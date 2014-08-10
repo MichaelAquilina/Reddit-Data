@@ -1,0 +1,555 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset=utf-8>
+  
+    <title>Porting to Python 3 Redux | Armin Ronacher's Thoughts and Writings</title>
+    <link rel="stylesheet" href="/static/style.css" type="text/css">
+    <link href="/feed.atom" rel="alternate" title="Recent Blog Posts" type="application/atom+xml">
+    <link rel="stylesheet" href="/static/_pygments.css" type="text/css">
+  
+  </head>
+  <body>
+    <div class=container>
+      <div class=header>
+        <a href="/about/">Armin Ronacher</a>'s Thoughts and Writings
+      </div>
+      <div class=navigation>
+        <ul>
+          <li><a href="/">blog</a>
+          <li><a href="/archive/">archive</a>
+          <li><a href="/tags/">tags</a>
+          <li><a href="/projects/">projects</a>
+          <li><a href="/talks/">talks</a>
+          <li><a href="/about/">about</a>
+        </ul>
+      </div>
+      <div class=body>
+        
+  <h1 class="title">Porting to Python 3 Redux</h1>
+
+  
+  <p class=date>written on Tuesday, May 21, 2013
+  
+
+  <p>After a very painful porting experience with Jinja2 to Python 3 I
+basically left the project idling around for a while because I was too
+afraid of breaking Python 3 support.  The approach I used was one codebase
+that was written in Python 2 and translated with 2to3 to Python 3 on
+installation.  The unfortunate side-effect of that is that any change you
+do requires about a minute of translation which destroys all your
+iteration speeds.  Thankfully it turns out that if you target the right
+versions of Python you can do much better.</p>
+<p>Thomas Waldmann from the MoinMoin project started running Jinja2 through
+my <a class="reference external" href="https://github.com/mitsuhiko/python-modernize">python-modernize</a>
+with the right parameters and ended up with a unified codebase that runs
+on 2.6, 2.7 and 3.3.  With a bit of cleanup afterwards we were able to
+come up with a nice codebase that runs in all versions of Python and also
+looks like regular Python code for the most time.</p>
+<p>Motivated by the results from this I went through the code a few more
+times and also started migrating some other code over to experiment more
+with unified codebases.</p>
+<p>This is a selection of some tips and tricks I can now share in regards to
+accomplishing something similar.</p>
+<div class="section" id="drop-2-5-3-1-and-3-2">
+<h2>Drop 2.5, 3.1 and 3.2</h2>
+<p>This is the most important tip.  Dropping 2.5 by now is more than possible
+since very few people are still on it and dropping 3.1 and 3.2 are no
+brainers anyways considering the low adoption of Python 3 so far.  But why
+would you drop those versions?  The basic answer is that 2.6 and 3.3 have
+a lot of overlapping syntax and features that allow for code that works
+well with both:</p>
+<ul>
+<li><p class="first">Compatible string literals.  2.6 and 3.3 support the same syntax for
+strings.  You can use <tt class="docutils literal">'foo'</tt> to refer to a native string (byte
+string on 2.x and a Unicode string on 3.x), <tt class="docutils literal">u'foo'</tt> to refer to a
+Unicode string and <tt class="docutils literal">b'foo'</tt> to refer to a bytestring or bytes
+object.</p>
+</li>
+<li><p class="first">Compatible print syntax.  In case you have a few print statements
+sitting around you can <tt class="docutils literal">from __future__ import print_function</tt> and
+start using the print function without having to bind it to a
+different name or suffering from other inconsistencies.</p>
+</li>
+<li><p class="first">Compatible exception catching syntax.  Python 2.6 introduced <tt class="docutils literal">except
+Exception as e</tt> which is also the syntax used on 3.x to catch down
+exceptions.</p>
+</li>
+<li><p class="first">Class decorators are available.  They are incredible useful to
+automatically correct moved interfaces without leaving a footprint in
+the class structure.  For instance they can be used to automatically
+rename the iteration method from <tt class="docutils literal">next</tt> to <tt class="docutils literal">__next__</tt> or
+<tt class="docutils literal">__str__</tt> to <tt class="docutils literal">__unicode__</tt> for Python 2.x.</p>
+</li>
+<li><p class="first">Builtin <tt class="docutils literal">next()</tt> function to invoke <tt class="docutils literal">__next__</tt> or <tt class="docutils literal">next</tt>.  This
+is helpful because they are performing about the same speed as calling
+the method directly so you don't pay much of a performance penalty
+compared to putting runtime checks into places or making a wrapper
+function yourself.</p>
+</li>
+<li><p class="first">Python 2.6 added the <tt class="docutils literal">bytearray</tt> type which has the same interface
+in that version of Python as the one in 3.3.  This is useful because
+while Python 2.6 lacks the Python 3.3 <tt class="docutils literal">bytes</tt> object it does have
+a builtin with that name but that's just another name for <tt class="docutils literal">str</tt>
+which has vastly different behavior.</p>
+</li>
+<li><p class="first">Python 3.3 reintroduces bytes-to-bytes and string-to-string codecs
+that were broken in 3.1 and 3.2.  Unfortunately the interface for them
+is clunkier now and the aliases are missing, but it's much closer to
+what we had in 2.x than before.</p>
+<p>This is particularly useful if you did stream based encoding and
+decoding.  That functionality was plain missing between 3.0 up until
+3.3.</p>
+</li>
+</ul>
+<p>Yes, the <cite>six</cite> module can get you quite far, but don't underestimate the
+impact of looking at nice code.  With the Python 3 port I basically lost
+interest in maintaining Jinja2 because the codebase started to frustrate
+me.  Back then a unified codebase was looking ugly and had a performance
+impact (<tt class="docutils literal"><span class="pre">six.b('foo')</span></tt> and <tt class="docutils literal"><span class="pre">six.u('foo')</span></tt> everywhere) or was plagued
+under the bad iteration speeds of 2to3.  Not having to deal with any of
+that brings the joy back.  Jinja2's codebase now looks like very clean and
+you have to find the Python 2/3 compatibility support.  Very few paths in
+the code actually do something like <tt class="docutils literal">if PY2:</tt>.</p>
+<p>The rest of this article assumes that these are the Python versions you
+want to support.  Also attempting to support Python 2.5 is a very painful
+thing to do and I strongly recommend against it.  Supporting 3.2 is
+possible if you are willing to wrap all your strings in function calls
+which I don't recommend doing for aesthetic and performance reasons.</p>
+</div>
+<div class="section" id="skip-six">
+<h2>Skip Six</h2>
+<p>Six is a pretty neat library and this is where the Jinja2 port started out
+with.  There however at the end of the day there is not much in six that
+actually is required for getting a Python 3 port running and a few things
+are missing.  Six is definitely required if you want to support Python 2.5
+but from 2.6 or later there really is not much of a reason to use six.
+Jinja2 ships a <cite>_compat</cite> module that contains the few helpers required.
+Including a few lines of non Python 3 code the whole compatibility module
+is less than 80 lines of code.</p>
+<p>This saves you from the troubles where users might expect a different
+version of six because of another library or pulling in another dependency
+into your project.</p>
+</div>
+<div class="section" id="start-with-modernize">
+<h2>Start with Modernize</h2>
+<p>To start with the port the <a class="reference external" href="https://github.com/mitsuhiko/python-modernize">python-modernize</a> library is a good start.
+It is a version of 2to3 that produces code that runs in either.  While
+it's pretty buggy still and the default options are not particularly
+great, it can get you quite far with regards to doing the boring parts for
+you.  You will still need to go over the result and clean up some imports
+and ugly results.</p>
+</div>
+<div class="section" id="fix-your-tests">
+<h2>Fix your Tests</h2>
+<p>Before you do anything else walk through your tests and make sure that
+they still make sense.  A lot of the problems in the Python standard
+library in 3.0 and 3.1 came from the fact that the behavior of the
+testsuite changed through the conversion to Python 3 in unintended ways.</p>
+</div>
+<div class="section" id="write-a-compatibility-module">
+<h2>Write a Compatibility Module</h2>
+<p>So you're going to skip six, can you live without helpers?  The answer is
+ânoâ.  You will still need a small compatibility module but that is small
+enough that you can just keep it in your package.  Here are some basic
+examples of what such a compatibility module could look like:</p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">PY2</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">PY2</span><span class="p">:</span>
+    <span class="n">text_type</span> <span class="o">=</span> <span class="nb">str</span>
+    <span class="n">string_types</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">,)</span>
+    <span class="nb">unichr</span> <span class="o">=</span> <span class="nb">chr</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">text_type</span> <span class="o">=</span> <span class="nb">unicode</span>
+    <span class="n">string_types</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">)</span>
+    <span class="nb">unichr</span> <span class="o">=</span> <span class="nb">unichr</span>
+</pre></div>
+<p>The exact contents of that module will depend on how much actually changed
+for you.  In case of Jinja2 I put a whole bunch of functions in there.
+For instance it contains <cite>ifilter</cite>, <cite>imap</cite> and similar itertools functions
+that became builtins in 3.x.  (I stuck with the Python 2.x functions to
+make it clear for the reader of the code that the iterator behavior is
+intended and not a bug).</p>
+</div>
+<div class="section" id="test-for-2-x-not-3-x">
+<h2>Test for 2.x not 3.x</h2>
+<p>At one point there will be the requirement to check if you are executing
+on 2.x or 3.x.  In that cases I would recommend checking for Python 2
+first and putting Python 3 into your else branch instead of the other way
+round.  That way you will have less ugly surprises when a Python 4 comes
+around at one point.</p>
+<p>Good:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">PY2</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__unicode__</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+</pre></div>
+<p>Less ideal:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="ow">not</span> <span class="n">PY3</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__unicode__</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="string-handling">
+<h2>String Handling</h2>
+<p>The biggest change in Python 3 is without doubt the changes on the Unicode
+interface.  Unfortunately these changes are very painful in some places
+and also inconsistently handled throughout the standard library.  The
+majority of the time porting will clearly be wasted on this topic.  This
+topic is a whole article by itself but here is a quick cheat sheet for
+porting that Jinja2 and Werkzeug follow:</p>
+<ul>
+<li><p class="first"><tt class="docutils literal">'foo'</tt> always refers to what we call the native string of the
+implementation.  This is the string used for identifiers, sourcecode,
+filenames and other low-level functions.  Additionally in 2.x it's
+permissible as a literal in Unicode strings for as long as it's
+limited to ASCII only characters.</p>
+<p>This property is very useful for unified codebases because the general
+trend with Python 3 is to introduce Unicode in some interfaces that
+previously did not support it, but never the inverse.  Since native
+string literals âupgradeâ to Unicode but still somewhat support
+Unicode in 2.x this string literal is very flexible.</p>
+<p>For instance the <tt class="docutils literal">datetime.strftime</tt> function strictly does not
+support Unicode in Python 2 but is Unicode only in 3.x.  Because in
+most cases the return value on 2.x however was ASCII only things like
+this work really well in 2.x and 3.x:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="s">u&#39;&lt;p&gt;Current time: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%H:%M&#39;</span><span class="p">)</span>
+<span class="go">u&#39;&lt;p&gt;Current time: 23:52&#39;</span>
+</pre></div>
+<p>The string passed to <cite>strftime</cite> is native (so bytes in 2.x and Unicode
+in 3.x).  The return value is a native string again and ASCII only.
+As such both on 2.x and 3.x it will be a Unicode string once string
+formatted.</p>
+</li>
+<li><p class="first"><tt class="docutils literal">u'foo'</tt> always refers to a Unicode string.  Many libraries already
+had pretty excellent Unicode support in 2.x so that literal should not
+be surprising to many.</p>
+</li>
+<li><p class="first"><tt class="docutils literal">b'foo'</tt> always refers to something that can hold arbitrary bytes.
+Since 2.6 does not actually have a <tt class="docutils literal">bytes</tt> object like Python 3.3
+has and Python 3.3 lacks an actual bytestring the usefulness of this
+literal is indeed a bit limited.  It becomes immediately more useful
+when paired with the <tt class="docutils literal">bytearray</tt> object which has the same interface
+on 2.x and 3.x:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">bytearray</span><span class="p">(</span><span class="n">b</span><span class="s">&#39; foo &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="go">bytearray(b&#39;foo&#39;)</span>
+</pre></div>
+<p>Since it's also mutable it's quite efficient at modifying raw bytes
+and you can trivially convert it to something more conventional by
+wrapping the final result in <tt class="docutils literal">bytes()</tt> again.</p>
+</li>
+</ul>
+<p>In addition to these basic rules I also add <tt class="docutils literal">text_type</tt>, <tt class="docutils literal">unichr</tt>
+and <tt class="docutils literal">string_types</tt> variables to my compatibility module as shown above.
+With those available the big changes are:</p>
+<ul class="simple">
+<li><tt class="docutils literal">isinstance(x, basestring)</tt> becomes <tt class="docutils literal">isinstance(x, string_types)</tt>.</li>
+<li><tt class="docutils literal">isinstance(x, unicode)</tt> becomes <tt class="docutils literal">isinstance(x, text_type)</tt>.</li>
+<li><tt class="docutils literal">isinstance(x, str)</tt> with the intention of catching bytes becomes
+<tt class="docutils literal">isinstance(x, bytes)</tt> or <tt class="docutils literal">isinstance(x, (bytes, bytearray))</tt>.</li>
+</ul>
+<p>I also created a <tt class="docutils literal">implements_to_string</tt> class decorator that helps
+implementing classes with <tt class="docutils literal">__unicode__</tt> or <tt class="docutils literal">__str__</tt> methods:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">PY2</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">implements_to_string</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">__unicode__</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">__str__</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">__str__</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">__unicode__</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cls</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">implements_to_string</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+</pre></div>
+<p>The idea is that you just implement <tt class="docutils literal">__str__</tt> on both 2.x and 3.x and
+let it return Unicode strings (yes, looks a bit odd in 2.x) and the
+decorator automatically renames it to <tt class="docutils literal">__unicode__</tt> for 2.x and adds a
+<tt class="docutils literal">__str__</tt> that invokes <tt class="docutils literal">__unicode__</tt> and encodes the return value to
+utf-8.  This pattern has been pretty common in the past with 2.x modules.
+For instance Jinja2 and Django use it.</p>
+<p>Here is an example for the usage:</p>
+<div class="highlight"><pre><span class="nd">@implements_to_string</span>
+<span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span>
+</pre></div>
+</div>
+<div class="section" id="metaclass-syntax-changes">
+<h2>Metaclass Syntax Changes</h2>
+<p>Since Python 3 changed the syntax for defining the metaclass to use in an
+incompatible way this makes porting a bit harder than it should be.  Six
+has a <tt class="docutils literal">with_metaclass</tt> function that can work around this issue but it
+generates a dummy class that shows up in the inheritance tree.  For Jinja2
+I was not happy enough with that solution and modified it a bit.  The
+external API is the same but the implementation uses a temporary class
+to hook in the metaclass.  The benefit is that you don't have to pay a
+performance penalty for using it and your inheritance tree stays nice.</p>
+<p>The code is a bit hard to understand.  The basic idea is exploiting the
+idea that metaclasses can customize class creation and are picked by by
+the parent class.  This particular implementation uses a metaclass to
+remove its own parent from the inheritance tree on subclassing.  The end
+result is that the function creates a dummy class with a dummy metaclass.
+Once subclassed the dummy classes metaclass is used which has a
+constructor that basically instances a new class from the original parent
+and the actually intended metaclass.  That way the dummy class and dummy
+metaclass never show up.</p>
+<p>This is what it looks like:</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">with_metaclass</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="o">*</span><span class="n">bases</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">metaclass</span><span class="p">(</span><span class="n">meta</span><span class="p">):</span>
+        <span class="n">__call__</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="n">__call__</span>
+        <span class="n">__init__</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="n">__init__</span>
+        <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">this_bases</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">this_bases</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">type</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="p">(),</span> <span class="n">d</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">meta</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">metaclass</span><span class="p">(</span><span class="s">&#39;temporary_class&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">{})</span>
+</pre></div>
+<p>And here is how you use it:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">BaseForm</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">FormType</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">Form</span><span class="p">(</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">FormType</span><span class="p">,</span> <span class="n">BaseForm</span><span class="p">)):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<div class="section" id="dictionaries">
+<h2>Dictionaries</h2>
+<p>One of the more annoying changes in Python 3 are the changes on the
+dictionary iterator protocols.  In Python 2 all dictionaries had
+<tt class="docutils literal">keys()</tt>, <tt class="docutils literal">values()</tt> and <tt class="docutils literal">items()</tt> that returned lists and
+<tt class="docutils literal">iterkeys()</tt>, <tt class="docutils literal">itervalues()</tt> and <tt class="docutils literal">iteritems()</tt> that returned
+iterators.  In Python 3 none of that exists any more.  Instead they were
+replaced with new methods that return view objects.</p>
+<p><tt class="docutils literal">keys()</tt> returns a key view which behaves like some sort of read-only
+set, <tt class="docutils literal">values()</tt> which returns a read-only container and iterable (not an
+iterator!) and <tt class="docutils literal">items()</tt> which returns some sort of read-only set-like
+object.  Unlike regular sets it however can also point to mutable objects
+in which case some methods will fail at runtime.</p>
+<p>On the positive side a lot of people missed that views are not iterators
+so in many cases you can just ignore that.  Werkzeug and Django implement
+a bunch of custom dictionary objects and in both cases the decision was
+made to just ignore the existence of view objects and let <tt class="docutils literal">keys()</tt> and
+friends return iterators.</p>
+<p>This is currently the only sensible thing to do due to limitations of the
+Python interpreter.  There are a few problems with it:</p>
+<ul class="simple">
+<li>The fact that the views are not iterators by themselves mean that in
+the average case you create a temporary object for no good reason.</li>
+<li>The set-like behavior of the builtin dictionary views cannot be
+replicated in pure Python due to <a class="reference external" href="http://bugs.python.org/issue2226">limitations in the interpreter</a>.</li>
+<li>Implementing views for 3.x and iterators for 2.x would mean a lot of
+code duplication.</li>
+</ul>
+<p>This is what the Jinja2 codebase went with for iterating over
+dictionaries:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">PY2</span><span class="p">:</span>
+    <span class="n">iterkeys</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">()</span>
+    <span class="n">itervalues</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">itervalues</span><span class="p">()</span>
+    <span class="n">iteritems</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">iterkeys</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="nb">iter</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">itervalues</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="nb">iter</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">iteritems</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="nb">iter</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+</pre></div>
+<p>For implementing dictionary like objects a class decorator can become
+useful again:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">PY2</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">implements_dict_iteration</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">iterkeys</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">keys</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">itervalues</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">iteritems</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">items</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">keys</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">())</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">itervalues</span><span class="p">())</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">cls</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">implements_dict_iteration</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+</pre></div>
+<p>In that case all you need to do is to implement the <tt class="docutils literal">keys()</tt> and friends
+method as iterators and the rest happens automatically:</p>
+<div class="highlight"><pre><span class="nd">@implements_dict_iteration</span>
+<span class="k">class</span> <span class="nc">MyDict</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">key</span>
+
+    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<div class="section" id="general-iterator-changes">
+<h2>General Iterator Changes</h2>
+<p>Since iterators changed in general a bit of help is needed to make this
+painless.  The only change really is the transition from <tt class="docutils literal">next()</tt> to
+<tt class="docutils literal">__next__</tt>.  Thankfully this is already transparently handled.  The only
+thing you really need to change is to go from <tt class="docutils literal">x.next()</tt> to <tt class="docutils literal">next(x)</tt>
+and the language does the rest.</p>
+<p>If you plan on defining iterators a class decorator again becomes helpful:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">PY2</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">implements_iterator</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">next</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">__next__</span>
+        <span class="k">del</span> <span class="n">cls</span><span class="o">.</span><span class="n">__next__</span>
+        <span class="k">return</span> <span class="n">cls</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">implements_iterator</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+</pre></div>
+<p>For implementing this class just name the iteration step method
+<tt class="docutils literal">__next__</tt> in all versions:</p>
+<div class="highlight"><pre><span class="nd">@implements_iterator</span>
+<span class="k">class</span> <span class="nc">UppercasingIterator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+    <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_iter</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="section" id="transformation-codecs">
+<h2>Transformation Codecs</h2>
+<p>One of the nice features of the Python 2 encoding protocol was that it was
+independent of types.  You could register an encoding that would transform
+a csv file into a numpy array if you would have preferred that.  This
+feature however was not well known since the primary exposed interface of
+encodings was attached to string objects.  Since they got stricter in 3.x
+a lot of that functionality was removed in 3.0 but later reintroduced in
+3.3 again since it proved useful.  Basically all codecs that did not
+convert between Unicode and bytes or the other way round were unavailable
+until 3.3.  Among those codecs are the hex and base64 codec.</p>
+<p>There are two use cases for those codecs: operations on strings and
+operations on streams.  The former is well known as <tt class="docutils literal">str.encode()</tt> in
+2.x but now looks different if you want to support 2.x and 3.x due to the
+changed string API:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">codecs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;Hey!&#39;</span><span class="p">,</span> <span class="s">&#39;base64_codec&#39;</span><span class="p">)</span>
+<span class="go">&#39;SGV5IQ==\n&#39;</span>
+</pre></div>
+<p>You will also notice that the codecs are missing the aliases in 3.3 which
+requires you to write <tt class="docutils literal">'base64_codec'</tt> instead of <tt class="docutils literal">'base64'</tt>.</p>
+<p>(These codecs are preferable over the functions in the <cite>binascii</cite> module
+because they support operations on streams through the <a class="reference external" href="http://docs.python.org/3/library/codecs.html#incrementalencoder-objects">incremental
+encoding and decoding support</a>.)</p>
+</div>
+<div class="section" id="other-notes">
+<h2>Other Notes</h2>
+<p>There are still a few places where I don't have nice solutions for yet or
+are generally annoying to deal with but they are getting fewer.  Some of
+them are unfortunately now part of the Python 3 API are hard to discover
+until you trigger an edge case.</p>
+<ul>
+<li><p class="first">Filesystem and file IO access continues to be annoying to deal with on
+Linux due to it not being based on Unicode.  The <tt class="docutils literal">open()</tt> function
+and the filesystem layer have dangerous platform specific defaults.
+If I SSH into a <tt class="docutils literal">en_US</tt> machine from an <tt class="docutils literal">de_AT</tt> one for instance
+Python loves falling back to ASCII encoding for both file system and
+file operations.</p>
+<p>Generally I noticed the most reliable way to do text on Python 3 that
+also works okay on 2.x is just to open files in binary mode and
+explicitly decode.  Alternatively you can use the <tt class="docutils literal">codecs.open</tt> or
+<tt class="docutils literal">io.open</tt> function on 2.x and the builtin <tt class="docutils literal">open</tt> on Python 3 with
+an explicit encoding.</p>
+</li>
+<li><p class="first">URLs in the standard library are represented incorrectly as Unicode
+which causes some URLs to not be dealt with correctly on 3.x.</p>
+</li>
+<li><p class="first">Raising exceptions with a traceback object requires a helper function
+since the syntax changed.  This is very uncommon in general and easy
+enough to wrap.  Since the syntax changed this is one of the
+situations where you will have to move code into an exec block:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">PY2</span><span class="p">:</span>
+    <span class="k">exec</span><span class="p">(</span><span class="s">&#39;def reraise(tp, value, tb):</span><span class="se">\n</span><span class="s"> raise tp, value, tb&#39;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">reraise</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">value</span><span class="o">.</span><span class="n">with_traceback</span><span class="p">(</span><span class="n">tb</span><span class="p">)</span>
+</pre></div>
+</li>
+<li><p class="first">The previous <tt class="docutils literal">exec</tt> trick is useful in general if you have some code
+that depends on different syntax.  Since exec itself has a different
+syntax now you won't be able to use it to execute something against an
+arbitrary namespace.  This is not a huge deal because <tt class="docutils literal">eval</tt> with
+<tt class="docutils literal">compile</tt> can be used as a drop-in that works on both versions.
+Alternatively you can bootstrap an <tt class="docutils literal">exec_</tt> function through <tt class="docutils literal">exec</tt>
+itself.</p>
+<div class="highlight"><pre><span class="n">exec_</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">:</span> <span class="nb">eval</span><span class="p">(</span><span class="nb">compile</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s">&#39;&lt;string&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;exec&#39;</span><span class="p">),</span> <span class="o">*</span><span class="n">a</span><span class="p">)</span>
+</pre></div>
+</li>
+<li><p class="first">If you have a C module written on top of the Python C API: shoot
+yourself.  There is no tooling available for that yet from what I know
+and so much stuff changed.  Take this as an opportunity to ditch the
+way you build modules and redo it on top of <a class="reference external" href="https://cffi.readthedocs.org/en/release-0.6/">cffi</a> or <cite>ctypes</cite>.  If
+that's not an option because you're something like numpy then you will
+just have to accept the pain.  Maybe try writing some abomination on
+top of the C-preprocessor that makes porting easier.</p>
+</li>
+<li><p class="first">Use <a class="reference external" href="https://bitbucket.org/hpk42/tox">tox</a> for local testing.  Being
+able to run your tests against all python versions at once is very
+helpful and will find you a lot of issues.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="outlook">
+<h2>Outlook</h2>
+<p>Unified codebases for 2.x and 3.x are definitely within reach now.  The
+majority of the porting time will still be spend trying to figure out how
+APIs are going to behave with regards to Unicode and interoperability with
+other modules that might have changed their API.  In any case if you want
+to consider porting libraries don't bother with versions outside below
+2.5, 3.0-3.2 and it will not hurt as much.</p>
+</div>
+
+
+  
+  <p class=tags>This entry was tagged
+    
+      <a href="/tags/python/">python</a> and 
+      <a href="/tags/thoughts/">thoughts</a>
+  
+
+  
+
+
+        <div class=adspace>
+          <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+          <ins class="adsbygoogle"
+               style="display:inline-block;width:728px;height:90px"
+               data-ad-client="ca-pub-6757320953560275"
+               data-ad-slot="8324866143"></ins>
+          <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+      </div>
+      <div class=footer>
+        <p>&copy; Copyright 2014 by Armin Ronacher.
+        <p>
+          Content licensed under the Creative Commons
+          attribution-noncommercial-sharealike License.
+        <p>
+          Contact me via <a href="mailto:armin.ronacher@active-4.com">mail</a>,
+          <a href="http://twitter.com/mitsuhiko">twitter</a>,
+          <a href="http://github.com/mitsuhiko">github</a> or
+          <a href="http://bitbucket.org/mitsuhiko">bitbucket</a>.
+          Tip me via <a href="https://www.gittip.com/mitsuhiko/">gittip</a>.
+          More info: <a href="/about#imprint">imprint</a>.
+          (<a href="/feed.atom" rel="alternate" title="Recent Blog Posts">feed</a>)
+      </div>
+    </div>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-20909083-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,473 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset=utf-8>
+  
+    <title>Be careful with exec and eval in Python | Armin Ronacher's Thoughts and Writings</title>
+    <link rel="stylesheet" href="/static/style.css" type="text/css">
+    <link href="/feed.atom" rel="alternate" title="Recent Blog Posts" type="application/atom+xml">
+    <link rel="stylesheet" href="/static/_pygments.css" type="text/css">
+  
+  </head>
+  <body>
+    <div class=container>
+      <div class=header>
+        <a href="/about/">Armin Ronacher</a>'s Thoughts and Writings
+      </div>
+      <div class=navigation>
+        <ul>
+          <li><a href="/">blog</a>
+          <li><a href="/archive/">archive</a>
+          <li><a href="/tags/">tags</a>
+          <li><a href="/projects/">projects</a>
+          <li><a href="/talks/">talks</a>
+          <li><a href="/about/">about</a>
+        </ul>
+      </div>
+      <div class=body>
+        
+  <h1 class="title">Be careful with exec and eval in Python</h1>
+
+  
+  <p class=date>written on Tuesday, February 1, 2011
+  
+
+  <p>One of the perceived features of a dynamic programming language like
+Python is the ability to execute code from a string.  In fact many people
+are under the impression that this is the main difference between
+something like Python and C#.  That might have been true when the people
+compared Python to things like C.  It's certainly not a necessarily a
+feature of the language itself.  For instance Mono implements the compiler
+as a service and you can compile C# code at runtime, just like Python
+compiles code at runtime.</p>
+<p>Wait what.  Python compiles?  That is correct.  CPython and PyPy (the
+implementations worth caring about currently) are in fact creating a code
+object from the string you pass to <cite>exec</cite> or <cite>eval</cite> before executing it.
+And that's just one of the things many people don't know about the exec
+statement.  So this post aims to clean up some of the misconceptions about
+the <cite>exec</cite> keyword (or builtin function in Python 3) and why you have to
+be careful with using it.</p>
+<p>This post was inspired by a discussion on reddit about the use of the
+<cite>execfile</cite> function in the <a class="reference external" href="http://web2py.com/">web2py</a> web framework
+but also applies to other projects.  Some of this here might actually not
+affect web2py at all and is just a general suggestion of how to deal with
+<cite>exec</cite>.  There are some very good reasons for using <cite>exec</cite> when that's the
+right thing to do.</p>
+<p>Disclaimer beforehand: the numbers for this post are taken from Python 2.7
+on OS X.  Do not ever trust benchmarks, take them only as a reference and
+test it for yourself on your target environment.  Also: âYay, another post
+about the security implications of <cite>eval</cite>/<cite>exec</cite>.â  Wrong!  I am assuming
+that everybody already knows how to <em>properly</em> use these two, so I will
+not talk about security here.</p>
+<div class="section" id="behind-the-scenes-of-imports">
+<h2>Behind the Scenes of Imports</h2>
+<p>Let's start with everybody's favourite topic: Performance.  That's
+probably the most pointless argument against <cite>exec</cite>, but well, it's
+important to know though.  But before that, let's see what Python roughly
+does if you import a module (<tt class="docutils literal">import foo</tt>):</p>
+<ol class="arabic simple">
+<li>it locates the module (surprise).  That happens by traversing the
+<cite>sys.path</cite> info in various ways.  There is builtin import logic, there
+are import hooks and all in all there is a lot of magic involved I
+don't want to go into.  If you are curious, check <a class="reference external" href="http://svn.python.org/view/sandbox/trunk/import_in_py/">this</a> and <a class="reference external" href="http://www.python.org/dev/peps/pep-0302/">this</a>.</li>
+<li>Now depending on the import hook responsible it might load bytecode
+(<cite>.pyc</cite>) or sourcecode (<cite>.py</cite>):<ol class="arabic">
+<li>If bytecode is available and the magic checksum matches the
+current Python interpreter's version, the timestamp of the
+bytecode file is newer or equal to the source version (or the
+source does not exist) it will load that.</li>
+<li>If the bytecode is missing or outdated it will load the source
+file and compile that to bytecode.  For that it checks magic
+comments in the file header for encoding settings and decodes
+according to those settings.  It will also check if a special
+tab-width comment exists to treat tabs as something else than 8
+characters if necessary.  Some import hooks will then generate
+<cite>.pyc</cite> files or store the bytecode somewhere else (<cite>__pycache__</cite>)
+depending on Python version and implementation.</li>
+</ol>
+</li>
+<li>The Python interpreter creates a new module object (you can do that on
+your own by calling <cite>imp.new_module</cite> or creating an instance of
+<cite>types.ModuleType</cite>.  Those are equivalent) with a proper name.</li>
+<li>If the module was loaded from a file the <cite>__file__</cite> key is set.  The
+import system will also make sure that <cite>__package__</cite> and <cite>__path__</cite>
+are set properly if packages are involved before the code is executed.
+Import hooks will furthermore set the <cite>__loader__</cite> variable.</li>
+<li>The Python interpreter executes the bytecode in the context of the
+dictionary of the module.  Thus the frame locals and frame globals for
+the executed code are the <cite>__dict__</cite> attribute of that module.</li>
+<li>The module is inserted into <cite>sys.modules</cite>.</li>
+</ol>
+<p>Now first of all, none of the above steps ever passed a string to the
+<cite>exec</cite> keyword or function.  That's obviously true because that happens
+deep inside the Python interpreter unless you are using an import hook
+written in Python.  But even if the Python interpreter was written in
+Python it would never pass a string to the exec function.  So what would
+you want to do if you want to get that string into bytecode yourself?  You
+would use the <cite>compile</cite> builtin:</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">code</span> <span class="o">=</span> <span class="nb">compile</span><span class="p">(</span><span class="s">&#39;a = 1 + 2&#39;</span><span class="p">,</span> <span class="s">&#39;&lt;string&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;exec&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">exec</span> <span class="n">code</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="n">a</span>
+<span class="mi">3</span>
+</pre></div>
+<p>As you can see, <cite>exec</cite> happily executes bytecode too.  Because the <cite>code</cite>
+variable is actually an object of type <cite>code</cite> and not a string.  The
+second argument to <cite>compile</cite> is the filename hint.  If we are compiling
+from an actual string there we should provide a value enclosed in angular
+brackets because this is what Python will do.  <tt class="docutils literal">&lt;string&gt;</tt> and
+<tt class="docutils literal">&lt;stdin&gt;</tt> are common values.  If you do have a file to back this up,
+please use the actual filename there.  The last parameter is can be one of
+<tt class="docutils literal">'exec'</tt>, <tt class="docutils literal">'eval'</tt> and <tt class="docutils literal">'single'</tt>.  The first one is what exec is
+using, the second is what the <cite>eval</cite> function uses.  The difference is
+that the first can contain statements, the second only expressions.
+<tt class="docutils literal">'single'</tt> is a form of hybrid mode which is useless for anything but
+interactive shells.  It exists solely to implement things like the
+interactive Python shell and is very limited in use.</p>
+<p>Here however we were already using a feature you should never, ever, ever
+use: executing code in the calling code's namespace.  What should you do
+instead?  Execute against a new environment:</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">code</span> <span class="o">=</span> <span class="nb">compile</span><span class="p">(</span><span class="s">&#39;a = 1 + 2&#39;</span><span class="p">,</span> <span class="s">&#39;&lt;string&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;exec&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ns</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">exec</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">ns</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="n">ns</span><span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">]</span>
+<span class="mi">3</span>
+</pre></div>
+<p>Why should you do that?  Cleaner for starters, also because exec without a
+dictionary has to hack around some implementation details in the
+interpreter.  We will cover that later.  For the moment: if you want to
+use <cite>exec</cite> and you plan on executing that code more than once, make sure
+you compile it into bytecode first and then execute that bytecode only and
+only in a new dictionary as namespace.</p>
+<p>In Python 3 the <tt class="docutils literal">exec ... in</tt> statement disappeared and instead you can
+use the new <cite>exec</cite> function which takes the globals and locals
+dictionaries as parameters.</p>
+</div>
+<div class="section" id="performance-characteristics">
+<h2>Performance Characteristics</h2>
+<p>Now how much faster is executing bytecode over creating bytecode and
+executing that?:</p>
+<pre class="literal-block">
+$ python -mtimeit -s 'code = &quot;a = 2; b = 3; c = a * b&quot;' 'exec code'
+10000 loops, best of 3: 22.7 usec per loop
+
+$ python -mtimeit -s 'code = compile(&quot;a = 2; b = 3; c = a * b&quot;,
+  &quot;&lt;string&gt;&quot;, &quot;exec&quot;)' 'exec code'
+1000000 loops, best of 3: 0.765 usec per loop
+</pre>
+<p>32 times as fast for a very short code example.  It becomes a lot worse
+the more code you have.  Why is that the case?  Because parsing Python
+code and converting that into Bytecode is an expensive operation compared
+to evaluating the bytecode.  That of course also affects <cite>execfile</cite> which
+totally does not use bytecode caches, how should it.  It's not gonna
+magically check if there is a <cite>.pyc</cite> file if you are passing the path to a
+<cite>foo.py</cite> file.</p>
+<p>Alright, lesson learned.  <cite>compile</cite> + <cite>exec</cite> &gt; <cite>exec</cite>.  What else has to
+be considered when using <cite>exec</cite>?  The next thing you have to keep in mind
+is that there is a huge difference between the global scope and the local
+scope.  While both the global scope and the local scope are using
+dictionaries as a data storage, the latter actually is not.  Local
+variables in Python are just pulled from the frame local dictionary and
+put there as necessary.  For all calculations that happen between that,
+the dictionary is never ever used.  You can quickly verify this yourself.</p>
+<p>Execute the following thing in the Python interpreter:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">locals</span><span class="p">()[</span><span class="s">&#39;a&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">23</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
+<span class="go">23</span>
+</pre></div>
+<p>Works as expected.  Why?  Because the interactive Python shell executes
+code as part of the global namespace like any code outside of functions or
+class declarations.  The local scope <em>is</em> the global scope:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">globals</span><span class="p">()</span> <span class="ow">is</span> <span class="nb">locals</span><span class="p">()</span>
+<span class="go">True</span>
+</pre></div>
+<p>Now what happens if we do this at function level?</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+<span class="gp">... </span> <span class="n">a</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="gp">... </span> <span class="nb">locals</span><span class="p">()[</span><span class="s">&#39;a&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">23</span>
+<span class="gp">... </span> <span class="k">return</span> <span class="n">a</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span><span class="p">()</span>
+<span class="go">42</span>
+</pre></div>
+<p>How unfortunate.  No magic variable changing for us.  That however is only
+partially correct.  There is a Python opcode for synchronizing the frame
+dictionary with the variables from the fast local slots.  There are two
+ways this synchronization can happen: from fast local to dictionary and
+the other way round.  The former is implicitly done for you when you call
+<cite>locals()</cite> or access the <cite>f_locals</cite> attribute from a frame object, the
+latter happens either explicitly when using some opcodes (which I don't
+think are used by Python as part of the regular compilation process but
+nice for hacks) or when the <cite>exec</cite> statement is used in the frame.</p>
+<p>So what are the performance characteristics of code executed in a global
+scope versus code executed at a local scope?  This is a lot harder to
+measure because the <cite>timeit</cite> module does not allow us to execute code at
+global scope by default.  So we will need to write a little helper module
+that emulates that:</p>
+<div class="highlight"><pre><span class="n">code_global</span> <span class="o">=</span> <span class="nb">compile</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">sum = 0</span>
+<span class="s">for x in xrange(500000):</span>
+<span class="s">    sum += x</span>
+<span class="s">&#39;&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&lt;string&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;exec&#39;</span><span class="p">)</span>
+<span class="n">code_local</span> <span class="o">=</span> <span class="nb">compile</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">def f():</span>
+<span class="s">    sum = 0</span>
+<span class="s">    for x in xrange(500000):</span>
+<span class="s">        sum += x</span>
+<span class="s">&#39;&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&lt;string&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;exec&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">test_global</span><span class="p">():</span>
+    <span class="k">exec</span> <span class="n">code_global</span> <span class="ow">in</span> <span class="p">{}</span>
+
+<span class="k">def</span> <span class="nf">test_local</span><span class="p">():</span>
+    <span class="n">ns</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">exec</span> <span class="n">code_local</span> <span class="ow">in</span> <span class="n">ns</span>
+    <span class="n">ns</span><span class="p">[</span><span class="s">&#39;f&#39;</span><span class="p">]()</span>
+</pre></div>
+<p>Here we compile two times the same algorithm into a string.  One time
+directly globally, one time wrapped into a function.  Then we have two
+functions.  The first one executes that code in an empty dictionary, the
+second executes the code in a new dictionary and then calls the function
+that was declared.  Let's ask <cite>timeit</cite> how fast we are:</p>
+<pre class="literal-block">
+$ python -mtimeit -s 'from execcompile import test_global as t' 't()'
+10 loops, best of 3: 67.7 msec per loop
+
+$ python -mtimeit -s 'from execcompile import test_local as t' 't()'
+100 loops, best of 3: 23.3 msec per loop
+</pre>
+<p>Again, an increase in performance <a class="footnote-reference" href="#timingfix" id="id1">[3]</a>.  Why is that?  That has
+to do with the fact that fast locals are faster than dictionaries (duh).
+What is a fast local?  In a local scope Python keeps track of the names of
+variables it knows about.  Each of that variable is assigned a number
+(index).  That index is used in an array of Python objects instead of a
+dictionary.  It will only fall back to the dictionary if this is necessary
+(debugging purposes, <cite>exec</cite> statement used at local scope).  Even though
+<cite>exec</cite> still exists in Python 3 (as a function) you no longer it at a
+local scope to override variables.  The Python compiler does not check if
+the <cite>exec</cite> builtin is used and will not unoptimize the scope because of
+that <a class="footnote-reference" href="#exec" id="id2">[1]</a>.</p>
+<p>All of the above knowledge is good to know if you plan on utilizing the
+Python interpreter to interpret your own language by generating Python
+code and compiling it to bytecode.  That's for instance how template
+engines like Mako, Jinja2 or Genshi work internally in one way or another.</p>
+</div>
+<div class="section" id="semantics-and-unwritten-conventions">
+<h2>Semantics and Unwritten Conventions</h2>
+<p>However most people are using the <cite>exec</cite> statement for something else:
+executing actual Python code from different locations.  A very popular use
+case is executing config files as Python code.  That's for example what
+<a class="reference external" href="http://flask.pocoo.org/">Flask</a> does if you tell it to.  That's usually
+okay because you don't expect your config file to be a place where you
+implement actual code.  However there are also people that use <cite>exec</cite> to
+load actual Python code that declares functions and classes.  This is a
+very popular pattern in some plugin systems and the web2py framework.</p>
+<p>Why is that not a good idea?  Because it breaks some (partially unwritten)
+conventions about Python code:</p>
+<ol class="arabic">
+<li><p class="first">Classes and functions belong into a module.  That basic rule holds for
+all functions and classes imported from regular modules:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">xml.sax.saxutils</span> <span class="kn">import</span> <span class="n">quoteattr</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">quoteattr</span><span class="o">.</span><span class="n">__module__</span>
+<span class="go">&#39;xml.sax.saxutils&#39;</span>
+</pre></div>
+<p>Why is that important?  Because that is how pickle works <a class="footnote-reference" href="#pickle" id="id3">[2]</a>:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">quoteattr</span><span class="p">))</span>
+<span class="go">&lt;function quoteattr at 0x1005349b0&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">quoteattr</span><span class="o">.</span><span class="n">__module__</span> <span class="o">=</span> <span class="s">&#39;fake&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">quoteattr</span><span class="p">))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="err">  ..</span>
+<span class="x">pickle.PicklingError: Can&#39;t pickle quoteattr: it&#39;s not found as fake.quoteattr</span>
+</pre></div>
+<p>If you are using <cite>exec</cite> to execute Python code, be prepared that
+some modules like pickle, inspect, pkgutil, pydoc and probably some
+others that depend on those will not work as expected.</p>
+</li>
+<li><p class="first">CPython has a cyclic garbage collector, classes can have destructors
+and interpreter shutdown breaks up cycles.  What does it mean?</p>
+<ul class="simple">
+<li>CPython uses refcounting internally.  One (of many) downsides of
+refcounting is that it cannot detect circular dependencies between
+objects.  Thus Python introduced a cyclic garbage collector at one
+point.</li>
+<li>Python however also allows destructors on objects.  Destructors
+however mean that the cyclic garbage collector will skip these
+objects because it does not know in what order it should delete
+these objects.</li>
+</ul>
+<p>Now let's look at an innocent example:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">&#39;Deleted&#39;</span>
+<span class="n">foo</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">()</span>
+</pre></div>
+<p>Let's execute that file:</p>
+<pre class="literal-block">
+$ python test.py
+Deleted
+</pre>
+<p>Looks good.  Let's try that with exec:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">execfile</span><span class="p">(</span><span class="s">&#39;test.py&#39;</span><span class="p">,</span> <span class="p">{})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">execfile</span><span class="p">(</span><span class="s">&#39;test.py&#39;</span><span class="p">,</span> <span class="p">{})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">execfile</span><span class="p">(</span><span class="s">&#39;test.py&#39;</span><span class="p">,</span> <span class="p">{})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">gc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+<span class="go">27</span>
+</pre></div>
+<p>It clearly collected something, but it never collected our <cite>Foo</cite>
+instances.  What the hell is happening?  What's happening is that
+there is an implicit cycle between <cite>foo</cite>, and the <cite>__del__</cite> function
+itself.  The function knows the scope it was created in and from
+<cite>__del__</cite> -&gt; global scope -&gt; <cite>foo</cite> instance it has a nice cycle.</p>
+<p>Now now we know the cause, why doesn't it happen if you have a module?
+The reason for that is that Python will do a trick when it shuts down
+modules.  It will override all global values that do not begin with an
+underscore with <cite>None</cite>.  We can easily verify that if we print the
+value of <cite>foo</cite> instead of <tt class="docutils literal">'Deleted'</tt>:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">foo</span>
+<span class="n">foo</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">()</span>
+</pre></div>
+<p>And of course it's <cite>None</cite>:</p>
+<pre class="literal-block">
+$ python test.py
+None
+</pre>
+<p>So if we want to replicate that with <cite>exec</cite> or friends, we have to
+apply the same logic, but Python will not do that for us.  If we are
+not careful this could lead to hard to spot memory leaks.  And this is
+something many people rely on, because it's <a class="reference external" href="http://docs.python.org/reference/datamodel.html#object.__del__">documented behaviour</a>.</p>
+</li>
+<li><p class="first">Lifetime of objects.  A global namespace sticks around from when it
+was imported to the point where the interpreter shuts down.  With
+<cite>exec</cite> you as a user no longer know when this will happen.  It might
+happen at a random point before.  web2py is a common offender here.
+In web2py the magically executed namespace comes and goes each request
+which is very surprising behaviour for any experienced Python
+developer.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="python-is-not-php">
+<h2>Python is not PHP</h2>
+<p>Don't try to circumvent Python idioms because some other language does it
+differently.  Namespaces are in Python for a reason and just because it
+gives you the tool <cite>exec</cite> it does not mean you should use that tool.  C
+gives you <cite>setjmp</cite> and <cite>longjmp</cite> and yet you will be very careful with
+using it.  The combination of <cite>exec</cite> and <cite>compile</cite> are a powerful tool for
+anyone that wants to implement a domain specific language on top of Python
+or for developers interested in <em>extending</em> (not circumventing) the Python
+import system.</p>
+<p>A python developer depends on imports doing what they are documented to do
+and that the namespace has a specific initial value (namely that it's
+empty with the exception of a few internal variables such as <cite>__name__</cite>,
+<cite>__loader__</cite> etc.).  A Python developer depends on being able to import
+that module by a dotted name, on the fact that modules shut down in a
+specific way, that they are cached in <cite>sys.modules</cite> etc.</p>
+<p>Jacob Kaplan-Moss <a class="reference external" href="http://www.reddit.com/r/Python/comments/ex54j/seeking_clarification_on_pylonsturbogearspyramid/c1bo1v5">wrote a comment on Reddit</a>
+about the use of <cite>exec</cite> in web2py a while ago which I would recommend
+reading.  He brings up some very good points why changing the semantics of
+a language is a bad idea.</p>
+<p>However web2py and it's use of <cite>execfile</cite> are not the only offenders in
+the Python web community.  Werkzeug has it's fair share of abusing Python
+conventions as well.  We were shipping (and still do) an on-demand import
+system which caused more problems than it solved and are currently in the
+progress of moving away from it (despite all the pain this is for us).
+Django abused Python internals as well.  It was generating Python code on
+the fly and totally changing semantics (to the point where imports
+vanished without warning!).  They learned their lesson as well and fixed
+that problem in the magic removal branch.  Same goes for web.py which was
+abusing the <cite>print</cite> statement to write into an internal thread-local
+buffer that was then sent out as response to the browser.  Also something
+that turned out to be a bad idea and was subsequently removed.</p>
+<p>With that I encourage the web2py developers to reconsider their decision
+on the use of the <cite>exec</cite> statement and using regular Python modules.</p>
+<p>Because one of the things we all have to keep in mind: if a Python
+developer starts his journeys in the twisted world of wrongly executed
+Python modules they will be very confused when they continue their travels
+in another Python environment.  And having different semantics in
+different frameworks/modules/libraries is very hurtful for Python as a
+runtime and language.</p>
+<table class="docutils footnote" frame="void" id="exec" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>if one wants to argue that this is obvious: it should be.  But
+Python does track another builtin function to change the behaviour of
+the compiler: <cite>super</cite>.  So it would have been possible to do the same
+with <cite>exec</cite>.  It's for the better however that this does not happen.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="pickle" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td><p class="first">if you however set <cite>__module__</cite> to <cite>None</cite> you will notice
+that Python is magically still able to find your function if it
+originated from a module registered in <cite>sys.modules</cite>.  How does that
+work?  It will actually walk through <em>all the modules</em> and look at <em>all
+the global variables</em> to find that function again.</p>
+<p class="last">I have no idea who came up with that idea, but it's an incredible slow
+operation if a lot of modules are loaded.</p>
+</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="timingfix" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[3]</a></td><td>I actually made a mistake in this benchmark.  As correctly
+pointed out by <a class="reference external" href="http://twitter.com/thp4">&#64;thp4</a> the benchmark was
+flawed because it was comparing different iterations.  This has since
+been fixed.</td></tr>
+</tbody>
+</table>
+</div>
+
+
+  
+  <p class=tags>This entry was tagged
+    
+      <a href="/tags/python/">python</a>
+  
+
+  
+
+
+        <div class=adspace>
+          <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+          <ins class="adsbygoogle"
+               style="display:inline-block;width:728px;height:90px"
+               data-ad-client="ca-pub-6757320953560275"
+               data-ad-slot="8324866143"></ins>
+          <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+      </div>
+      <div class=footer>
+        <p>&copy; Copyright 2014 by Armin Ronacher.
+        <p>
+          Content licensed under the Creative Commons
+          attribution-noncommercial-sharealike License.
+        <p>
+          Contact me via <a href="mailto:armin.ronacher@active-4.com">mail</a>,
+          <a href="http://twitter.com/mitsuhiko">twitter</a>,
+          <a href="http://github.com/mitsuhiko">github</a> or
+          <a href="http://bitbucket.org/mitsuhiko">bitbucket</a>.
+          Tip me via <a href="https://www.gittip.com/mitsuhiko/">gittip</a>.
+          More info: <a href="/about#imprint">imprint</a>.
+          (<a href="/feed.atom" rel="alternate" title="Recent Blog Posts">feed</a>)
+      </div>
+    </div>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-20909083-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

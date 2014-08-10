@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8">
+  <title>My Flask to Django Experience - JÃ¶kull SÃ³lberg AuÃ°unsson</title>
+
+  <meta name="description" content="">
+  <meta name="author" content="JÃ¶kull SÃ³lberg AuÃ°unsson">
+  <meta property="og:type" content="blog">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <link rel="alternate" href="./feeds/all.atom.xml" type="application/atom+xml">
+
+  <link rel="stylesheet" href="./theme/base.css">
+  <link rel="stylesheet" href="./theme/skeleton.css">
+  <link rel="stylesheet" href="./theme/styles.css">
+  <link rel="stylesheet" href="./theme/pygment.css">
+
+  
+  <script src="http://cachedcommons.org/cache/modernizr/1.5.0/javascripts/modernizr-min.js"></script>
+  
+</head>
+
+<body>
+  
+  <header>
+    <div class="container">
+      <div class="sixteen columns">
+        <h1>
+          <a href="."><img src="http://twitter.com/api/users/profile_image?screen_name=jokull" alt="Twitter Avatar">JÃ¶kull SÃ³lberg AuÃ°unsson</a>
+        </h1>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <section class="row">
+      <div class="sixteen columns">
+        <h2 class="section"></h2>
+          
+
+  <article class="hentry">
+
+    <div class="entry-header">
+      <abbr class="published" title="2012-11-29T00:00:00">
+        November 29, 2012
+      </abbr>
+      <h2 class="instapaper_title">My Flask to Django Experience</h2>
+    </div>
+    <div class="instapaper_body entry-content">
+    <p>Iâve recently "had" to work with Django again when creating <a href="https://www.oath.is/">Oath</a>. It was an interesting experience because since Flask was released as an evolved April Foolâs joke Iâve never used anything but it. </p>
+<p>Djangoâs <em>batteries included</em> approach and early arrival on the scene made it a much loved framework at the time, and it still is. As is the nature of most ecosystems, specialization breeds success. The monolithic approach holds Django back in some subtle ways. Itâs burdened by backwards incompatibility but also bad decisions. Over the years since the release of Django the community has developed a stronger sense of Pythonicism; the written and unwritten agreement that guides the way problems are approached and solved in Python. </p>
+<p>When you get "pythonic" right it will appear to you as an aesthetic. Hidden complexity without magic, exposing innards when needed but otherwise hidden, PEP8 within reason and as simple as possible without being too simple. Everyone loves Kennethâs <a href="http://www.python-requests.org/">requests</a> because it adheres so strongly to these principles. </p>
+<p>Letâs talk about the most clear-cut example where Django simply fails: Templating. Django nailed the syntax and top level features: block inheritance and {{ moustaches }}. What it didnât get was where to constrain the user. Jinja2, of course, gets this right when allowing much richer looping, extending, mangling and even <em>gasp</em> Python code (albeit a subset thereof). Djangoâs template philosophy is one of constraint whereas Jinja2 embraces the complexity, but allows you to carry it over to where it belongs. Pragmatists know code is documentation. Iffy presentation is therefore documented where it concerns itself: in the templates! This is why Flask views come damn close to working for multiple content type responses (JSON <em>and</em> HTML). </p>
+<p>A view shouldnât prepare a presentation. It should more or less just hand over data. To give the user more power it falls back to template tags, which is really just a reinvented callable with mysterious undocumented powers and horrible stack traces. How could you not just want a Python callable here? Hereâs a bit of Flask that should blow your mind if you are using Django: <code>{{ url('user', pk=user.pk, _external=True) }}</code>. It can do that because:</p>
+<ol>
+<li>The request object is implicitly context aware. Import and use without passing around routes, views and render functions. Itâs a hack, but a hack well documented and thoughtfully coded. Thatâs why url() can reconstruct the protocol and hostname to create an external link to a view. Without a bloody SITE_ID setting.</li>
+<li>Callables in templates are just that, callable. </li>
+</ol>
+<p>So Iâd say going back to Django was more or less frustrating although some of it was just me having to recall a bunch of edge cases and gotchas. Here are some points I gathered:</p>
+<ul>
+<li>Regular expressions are overkill for URL routing.</li>
+<li>There are too many ways to render templates (render, render_to_response, HttpResponse, ...) all of them with a set of drawbacks.</li>
+<li>URL reversal is a mess especially in templates, like nobody thought of the interface, just the implementation. Why the explicit <code>args</code> here <code>reverse('name', args=[])</code>? </li>
+<li>Why no top level <code>models.py</code>. "Everything is an app" forces premature optimization for most (all?) projects.</li>
+<li>request.json would be nice ... requests and Flask both have it.</li>
+<li>While weâre at it, jsonify() for application/json responses.</li>
+<li>WSGI as an <code>Application</code> objects is so much better than this magic bootstrappin DJANGO_SETTINGS_MODULE and URL_CONFIG stuff.</li>
+</ul>
+<p>Thought exercise: Make a single <code>app.py</code> in Django. Is it forced or pretty?</p>
+<p>Now the reason I stuck with Django for this project was that the codebase had gathered some battle experience I didnât want to discard. A rewrite would have killed the momentum. Another reason was <a href="http://haystacksearch.org/">Haystack</a>, a very slick library that wraps fulltext indexers in a pythonic. Itâs sort of beyond me why itâs coupled with Django though. <small>A Celery approach would be welcome here.</small></p>
+<p>The libraries that came after Django had the benefit of learning from its strengths and weaknesses. It became popular at a time when "pythonic" hadnât penetrated the community psyche. For what it is, it presents a compelling case for newcomers. Great documentation for 90% of all you need, in one fucking place. </p>
+<p>I see some parallels with jQuery. Both have well known extensions that have no reason to couple to the framework other than marketing to people that are safezoned by the framework ecosystem. Both are big and challenged by smaller more nimble libraries, and both have seen tremendous growth and did a good job with documentation and managing community efforts. Times have changed I guess. </p>
+    </div>
+    
+    <div class="metadata">
+    
+      
+      <address class="vcard author">
+        By <a class="url fn" href="./author/JÃ¶kull SÃ³lberg AuÃ°unsson.html">JÃ¶kull SÃ³lberg AuÃ°unsson</a>
+      </address>
+      
+    
+      
+    
+      
+
+    </div>
+  
+    
+    <hr>
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+       var disqus_identifier = "my-flask-to-django-experience.html";
+       (function() {
+       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+       dsq.src = 'http://solberg.disqus.com/embed.js';
+       (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    
+  
+  </article>
+  
+
+      </div>
+    </section>
+
+    <footer class="row">
+      <div class="sixteen columns">
+      
+        <div class="twitter">
+          <a href="https://twitter.com/jokull" class="twitter-follow-button" data-show-count="false">Follow @jokull</a>
+          <script src="//platform.twitter.com/widgets.js" type="text/javascript"></script>
+        </div>
+      
+        <p class="small">Published with <a href="http://calepin.co">Calepin.co</a> Â· Powered by <a href="http://pelican.readthedocs.org/">Pelican</a>.</p>
+      </div>
+    </footer>
+
+  </div>
+  
+</body>
+</html>

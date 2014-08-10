@@ -1,0 +1,548 @@
+<!DOCTYPE HTML>
+
+
+<html lang='en'><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width"><title>Ned Batchelder: Eval really is dangerous</title><link rel='stylesheet' href='http://nedbatchelder.com/style.css' type='text/css'><link rel='stylesheet' href='http://nedbatchelder.com/printstyle.css' type='text/css' media='print'><link rel="alternate" type="application/rss+xml" href="http://nedbatchelder.com/blog/rss.xml" title="RSS feed for Ned's blog"><script type='text/javascript' src='http://nedbatchelder.com/nedbatchelder.js'></script><script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-32134006-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script></head><body><table id='logo_banner'><tr><td id='logo'><a href='/'><img src='/dodeca3_100.gif' width='100' height='120' alt='[*]'></a></td><td id='banner'><span class='path'><a href='/'>Ned Batchelder</a> : <a href='/blog'>Blog</a> | <a href='/code'>Code</a> | <a href='/text'>Text</a> | <a href='/site'>Site</a></span><br><span class='headslug'>Eval really is dangerous</span><br><span class='path'>
+                    &#xbb; <a href='/'>Home</a> : <a href='/blog'>Blog</a> : <a href='/blog/201206.html'>June 2012</a></span></td></tr></table><table id='content_menu'><tr><td id='content'><div class='body'><div id='searchwelcome'></div><div class='blog-entry' id='e20120606T093359'><div class='head'><h3 class='title'><a class='s' href='/blog/201206/eval_really_is_dangerous.html' rel='bookmark' title='Link to this post'>Eval really is dangerous</a></h3><p class='date'>Wednesday 6 <a class='s' href='/blog/201206.html'>June 2012</a></p></div><p>Python has an eval() function which evaluates a string of Python code:
+</p><blockquote class="code"><code><span class="k">assert</span>&#xA0;<span class="nb">eval</span><span class="p">(</span><span class="s">&quot;2&#xA0;+&#xA0;3&#xA0;*&#xA0;len(&#39;hello&#39;)&quot;</span><span class="p">)</span>&#xA0;<span class="o">==</span>&#xA0;<span class="mi">17</span><br></code></blockquote><p>This is very powerful, but is also very dangerous if you accept strings
+    to evaluate from untrusted input.  Suppose the string
+    being evaluated is "os.system('rm -rf /')" ? It will really start deleting
+    all the files on your computer. (In the examples that follow, I'll use
+    'clear' instead of 'rm -rf /' to prevent accidental foot-shootings.)</p><p>Some have claimed that you can make eval safe by providing it with no
+    globals.  eval() takes a second argument which are the global values to use
+    during the evaluation.  If you don't provide a globals dictionary, then
+    eval uses the current globals, which is why "os" might be available.  If
+    you provide an empty dictionary, then there are no globals. This now raises
+    a NameError, "name 'os' is not defined":</p><blockquote class="code"><code><span class="nb">eval</span><span class="p">(</span><span class="s">&quot;os.system(&#39;clear&#39;)&quot;</span><span class="p">,</span>&#xA0;<span class="p">{})</span><br></code></blockquote><p>But we can still import modules and use them, with the builtin function
+    __import__.  This succeeds:</p><blockquote class="code"><code><span class="nb">eval</span><span class="p">(</span><span class="s">&quot;__import__(&#39;os&#39;).system(&#39;clear&#39;)&quot;</span><span class="p">,</span>&#xA0;<span class="p">{})</span><br></code></blockquote><p>The next attempt to make things safe is to refuse access to the builtins.
+    The reason names like __import__ and open are available to you in Python 2
+    is because they are in the __builtins__ global.  We can explicitly specify
+    that there are no builtins by defining that name as an empty dictionary in
+    our globals.  Now this raises a NameError:</p><blockquote class="code"><code><span class="nb">eval</span><span class="p">(</span><span class="s">&quot;__import__(&#39;os&#39;).system(&#39;clear&#39;)&quot;</span><span class="p">,</span>&#xA0;<span class="p">{</span><span class="s">&#39;__builtins__&#39;</span><span class="p">:{}})</span><br></code></blockquote><p>Are we safe now?  Some <a class="offsite" rel="external" href="http://lybniz2.sourceforge.net/safeeval.html">say yes</a>, 
+    but they are wrong.  As a demonstration, running this in CPython will segfault
+    your interpreter:</p><blockquote class="code"><code><span class="n">s</span>&#xA0;<span class="o">=</span>&#xA0;<span class="s">&quot;&quot;&quot;</span><br><span class="s">(lambda&#xA0;fc=(</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;lambda&#xA0;n:&#xA0;[</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;c&#xA0;for&#xA0;c&#xA0;in&#xA0;</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;().__class__.__bases__[0].__subclasses__()&#xA0;</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;if&#xA0;c.__name__&#xA0;==&#xA0;n</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;][0]</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;):</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;fc(&quot;function&quot;)(</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;fc(&quot;code&quot;)(</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;0,0,0,0,&quot;KABOOM&quot;,(),(),(),&quot;&quot;,&quot;&quot;,0,&quot;&quot;</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;),{}</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;)()</span><br><span class="s">)()</span><br><span class="s">&quot;&quot;&quot;</span><br><span class="nb">eval</span><span class="p">(</span><span class="n">s</span><span class="p">,</span>&#xA0;<span class="p">{</span><span class="s">&#39;__builtins__&#39;</span><span class="p">:{}})</span><br></code></blockquote><p>Let's unpack this beast and see what's going on.  At the center we find this:</p><blockquote class="code"><code><span class="p">()</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__bases__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><br></code></blockquote><p>which is a fancy way of saying "object".  The first base class of a tuple is "object".
+    Remember, we can't simply say "object", since we have no builtins.  But we can create
+    objects with literal syntax, and then use attributes from there. This is the list
+    of all the subclasses of object:</p><blockquote class="code"><code><span class="p">()</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__bases__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span><br></code></blockquote><p>or in other words, a list of all the classes that have been instantiated to
+    this point in the program.  We'll come back to this at the end.  If we
+    shorthand this as ALL_CLASSES, then this is a list comprehension that
+    examines all the classes to find one named n:</p><blockquote class="code"><code><span class="p">[</span><span class="n">c</span>&#xA0;<span class="k">for</span>&#xA0;<span class="n">c</span>&#xA0;<span class="ow">in</span>&#xA0;<span class="n">ALL_CLASSES</span>&#xA0;<span class="k">if</span>&#xA0;<span class="n">c</span><span class="o">.</span><span class="n">__name__</span>&#xA0;<span class="o">==</span>&#xA0;<span class="n">n</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><br></code></blockquote><p>We'll use this to find classes by name, and because we need to use it twice, we'll create
+    a function for it:</p><blockquote class="code"><code><span class="k">lambda</span>&#xA0;<span class="n">n</span><span class="p">:</span>&#xA0;<span class="p">[</span><span class="n">c</span>&#xA0;<span class="k">for</span>&#xA0;<span class="n">c</span>&#xA0;<span class="ow">in</span>&#xA0;<span class="n">ALL_CLASSES</span>&#xA0;<span class="k">if</span>&#xA0;<span class="n">c</span><span class="o">.</span><span class="n">__name__</span>&#xA0;<span class="o">==</span>&#xA0;<span class="n">n</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><br></code></blockquote><p>But we're in an eval, so we can't use the def statement, or the
+    assignment statement to give this function a name. But default arguments to a function
+    are also a form of assignment, and lambdas can have default arguments.  So
+    we put the rest of our code in a lambda function to get the use of the
+    default arguments as an assignment:</p><blockquote class="code"><code><span class="p">(</span><span class="k">lambda</span>&#xA0;<span class="n">fc</span><span class="o">=</span><span class="p">(</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="k">lambda</span>&#xA0;<span class="n">n</span><span class="p">:</span>&#xA0;<span class="p">[</span><br>&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;<span class="n">c</span>&#xA0;<span class="k">for</span>&#xA0;<span class="n">c</span>&#xA0;<span class="ow">in</span>&#xA0;<span class="n">ALL_CLASSES</span>&#xA0;<span class="k">if</span>&#xA0;<span class="n">c</span><span class="o">.</span><span class="n">__name__</span>&#xA0;<span class="o">==</span>&#xA0;<span class="n">n</span><br>&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;<span class="p">][</span><span class="mi">0</span><span class="p">]</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="p">):</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="c">#&#xA0;code&#xA0;goes&#xA0;here...</span><br><span class="p">)()</span><br></code></blockquote><p>Now that we have our "find class" function fc, what will we do with it? We can
+    make a code object!  It isn't easy, you need to provide 12 arguments to the
+    constructor, but most can be given simple default values.</p><blockquote class="code"><code><span class="n">fc</span><span class="p">(</span><span class="s">&quot;code&quot;</span><span class="p">)(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="s">&quot;KABOOM&quot;</span><span class="p">,(),(),(),</span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">)</span><br></code></blockquote><p>The string "KABOOM" is the actual bytecodes to use in the code object, and as you
+    can probably guess, "KABOOM" is not a valid sequence of bytecodes.  Actually,
+    any one of these bytecodes would be enough, they are all binary operators that will
+    try to operate on an empty operand stack, which will segfault CPython. "KABOOM"
+    is just more fun, thanks to <a class="offsite" rel="external" href="http://b.lvh.cc/">lvh</a> for it.</p><p>This gives us a code object: fc("code") finds the class "code" for us, and
+    then we invoke it with the 12 arguments.  You can't invoke a code object
+    directly, but you can create a function with one:</p><blockquote class="code"><code><span class="n">fc</span><span class="p">(</span><span class="s">&quot;function&quot;</span><span class="p">)(</span><span class="n">CODE_OBJECT</span><span class="p">,</span>&#xA0;<span class="p">{})</span><br></code></blockquote><p>And of course, once you have a function, you can call it, which will run the code
+    in its code object.  In this case, that will execute our bogus bytecodes, which
+    will segfault the CPython interpreter. Here's the dangerous string again:</p><blockquote class="code"><code><span class="p">(</span><span class="k">lambda</span>&#xA0;<span class="n">fc</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span>&#xA0;<span class="n">n</span><span class="p">:</span>&#xA0;<span class="p">[</span><span class="n">c</span>&#xA0;<span class="k">for</span>&#xA0;<span class="n">c</span>&#xA0;<span class="ow">in</span>&#xA0;<span class="p">()</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__bases__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span>&#xA0;<span class="k">if</span>&#xA0;<span class="n">c</span><span class="o">.</span><span class="n">__name__</span>&#xA0;<span class="o">==</span>&#xA0;<span class="n">n</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="n">fc</span><span class="p">(</span><span class="s">&quot;function&quot;</span><span class="p">)(</span><span class="n">fc</span><span class="p">(</span><span class="s">&quot;code&quot;</span><span class="p">)(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="s">&quot;KABOOM&quot;</span><span class="p">,(),(),(),</span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">),{})()</span><br><span class="p">)()</span><br></code></blockquote><p>So eval is not safe, even if you remove all the globals and the builtins!</p><p>We used the list of all subclasses of object here to make a code object and a function.
+    You can of course find other classes and use them.  Which classes you can find 
+    depends on where the eval() call actually is. In a real program, there will
+    be many classes already created by the time the eval() happens, and all of them
+    will be in our list of ALL_CLASSES.  As an example:</p><blockquote class="code"><code><span class="n">s</span>&#xA0;<span class="o">=</span>&#xA0;<span class="s">&quot;&quot;&quot;</span><br><span class="s">[</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;c&#xA0;for&#xA0;c&#xA0;in&#xA0;</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;().__class__.__bases__[0].__subclasses__()&#xA0;</span><br><span class="s">&#xA0;&#xA0;&#xA0;&#xA0;if&#xA0;c.__name__&#xA0;==&#xA0;&quot;Quitter&quot;</span><br><span class="s">][0](0)()</span><br><span class="s">&quot;&quot;&quot;</span><br></code></blockquote><p>The standard site module defines a class called Quitter, it's what the name "quit" 
+    is bound to, so that you can type quit() at the interactive prompt to exit the
+    interpreter.  So in eval we simply find Quitter, instantiate it, and call it.
+    This string cleanly exits the Python interpreter.</p><p>Of course, in a real system, there will be all sorts of powerful classes lying around
+    that an eval'ed string could instantiate and invoke.  There's no end to the havoc
+    that could be caused.</p><p>The problem with all of these attempts to protect eval() is that they are blacklists.
+    They explicitly remove things that could be dangerous.  That is a losing battle
+    because if there's just one item left off the list, you can attack the system.</p><p>While I was poking around on this topic, I stumbled on Python's restricted evaluation
+    mode, which seems to be an attempt to plug some of these holes. Here we try 
+    to access the code object for a lambda, and find we aren't allowed to:</p><blockquote class="code"><code><span class="gp">&gt;&gt;&gt;&#xA0;</span><span class="nb">eval</span><span class="p">(</span><span class="s">&quot;(lambda:0).func_code&quot;</span><span class="p">,</span>&#xA0;<span class="p">{</span><span class="s">&#39;__builtins__&#39;</span><span class="p">:{}})</span><br><span class="gt">Traceback&#xA0;(most&#xA0;recent&#xA0;call&#xA0;last):</span><br>&#xA0;&#xA0;File&#xA0;<span class="nb">&quot;&lt;stdin&gt;&quot;</span>,&#xA0;line&#xA0;<span class="m">1</span>,&#xA0;in&#xA0;<span class="n">&lt;module&gt;</span><br>&#xA0;&#xA0;File&#xA0;<span class="nb">&quot;&lt;string&gt;&quot;</span>,&#xA0;line&#xA0;<span class="m">1</span>,&#xA0;in&#xA0;<span class="n">&lt;module&gt;</span><br><span class="gr">RuntimeError</span>:&#xA0;<span class="n">function&#xA0;attributes&#xA0;not&#xA0;accessible&#xA0;in&#xA0;restricted&#xA0;mode</span><br></code></blockquote><p>Restricted mode is an explicit attempt to blacklist certain "dangerous" attribute
+    access.  It's specifically triggered when executing code if your builtins
+    are not the official builtins.  There's a much more detailed explanation and links to other discussion on this topic
+    on <a class="offsite" rel="external" href="http://tav.espians.com/paving-the-way-to-securing-the-python-interpreter.html">Tav's blog</a>.
+    As we've seen, the existing restricted mode it isn't enough to prevent mischief.</p><p>So, can eval be made safe?  Hard to say.  At this point, my best guess is
+    that you can't do any harm if you can't use any double underscores, so maybe if
+    exclude any string with double underscores you are safe.  Maybe...</p><p><b>Update:</b> from a <a class="offsite" rel="external" href="http://www.reddit.com/r/Python/comments/hftnp/ask_rpython_recovering_cleared_globals/">thread on Reddit about recovering cleared globals</a>,
+    a similar snippet that will get you the original builtins:</p><blockquote class="code"><code><span class="p">[</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="n">c</span>&#xA0;<span class="k">for</span>&#xA0;<span class="n">c</span>&#xA0;<span class="ow">in</span>&#xA0;<span class="p">()</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__base__</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span>&#xA0;
+<br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="k">if</span>&#xA0;<span class="n">c</span><span class="o">.</span><span class="n">__name__</span>&#xA0;<span class="o">==</span>&#xA0;<span class="s">&#39;catch_warnings&#39;</span><br><span class="p">][</span><span class="mi">0</span><span class="p">]()</span><span class="o">.</span><span class="n">_module</span><span class="o">.</span><span class="n">__builtins__</span><br></code></blockquote><div class='foot'><span class='via'>
+
+    
+    
+        tagged: 
+        <a href='/blog/tag/python.html' rel='tag'>python</a>,
+    
+        
+        <a href='/blog/tag/security.html' rel='tag'>security</a></span><span class='react'>&#xbb;&#xa0;28 reactions</span></div></div><div class='comments' id='comments'>
+<h1>Comments</h1>
+
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/84c6cbd836b65fbb4661ff6ae56359ba.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa65.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://late.am' rel='nofollow' target='_blank'>Dan Crosta</a></b></span>
+			<span class='when'><span class='adminlink'></span> 9:05 AM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Great in-depth investigation. When I've talked about this in the past (and in 2 days at PyGotham) I've always kind of hand-waved about the risks of eval() and exec (which I believe has all of the same risks inherent?), but now I can just point people here. Thanks for saving me some work!
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/aa7c1350d93036592f58f165318044db.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa128.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://billmill.org' rel='nofollow' target='_blank'>Bill Mill</a></b></span>
+			<span class='when'><span class='adminlink'></span> 10:05 AM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			There's an interesting attempt at a restricted python: <a rel='nofollow' href='https://github.com/haypo/pysandbox'>https://github.com/haypo/pysandbox</a> .<br><br>I used it in a chatbot once to allow people to eval simple python statements: <a rel='nofollow' href='https://github.com/llimllib/pyphage/blob/master/plugins/eval.py'>https://github.com/llimllib/pyphage/blob/master/plugins/eval.py</a><br><br>While it was vulnerable to DOS (the timeout function did not work properly on memory intensive functions: <a rel='nofollow' href='https://github.com/haypo/pysandbox/issues/10'>https://github.com/haypo/pysandbox/issues/10</a> ), I let some pretty serious python hackers have a go at it and they weren't able to break it.<br><br>I wouldn't trust it on a for-real server, obviously, but it was good enough for the task I set out to accomplish in that scenario.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/21887ee4ecf409f978ba4c392c8ec08a.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa278.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://python.net/~goodger' rel='nofollow' target='_blank'>David Goodger</a></b></span>
+			<span class='when'><span class='adminlink'></span> 10:26 AM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Reading this, I was confused. Of course eval() (and exec()) are dangerous if you don't trust the strings to be evaluated.<br><br>The article seems to be missing a basic stipulation, perhaps "running untrusted code is dangerous". You seem to be trying to prove that no matter what you do, you can't fully isolate and sanitize untrusted code. OK, I buy that. But I think the article needs a liberal sprinkling of "... for untrusted code/input/source".<br><br>eval() and exec() are perfectly safe for trusted code, useful and even necessary on occasion (e.g. dynamic programming). Just never *ever* use them with untrusted input.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/cbde212986000125ff4322c25c1e50ce.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa83.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://www.kryogenix.org' rel='nofollow' target='_blank'>sil</a></b></span>
+			<span class='when'><span class='adminlink'></span> 10:44 AM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Sadly, eval can also evaluate... eval. So the double-underscore trick doesn't work:<pre>eval('eval("()._" + "_class_" + "_._" + "_bases_" + "_[0]")')
+type 'object'</pre>
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/16d60987b48d8560676aee3c0a7980b7.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa206.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>lahwran</b></span>
+			<span class='when'><span class='adminlink'></span> 10:54 AM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			The solution I'd use if you need this is to use the <a rel='nofollow' href="http://pypy.org/features.html#sandboxing">PyPy sandbox</a>. It isn't quite ready for use, but it's pretty close, and it's fully software virtualized so much safer than eval.<br><br>Incidentally, Ned himself did some work on it to speed up the startup a few months ago. That's still the main area that needs work, too.<br><br>Also, using eval to be "dynamic" is icky.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/d89d81f673dac06b16cade5b4bf19954.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa181.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Masklinn</b></span>
+			<span class='when'><span class='adminlink'></span> 10:59 AM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			> At this point, my best guess is that you can't do any harm if you can't use any double underscores, so maybe if exclude any string with double underscores you are safe.<br><br>You could always concatenate single underscores. But if you prevent all direct accesses to dunder-methods and dunder-attributes (__subclasses__ in this case, and the indirect access via __getattribute__) this threat should be <i>mostly</i> mitigated. Far's I can tell, this means walking the bytecode and forbidding all LOAD_ATTR to a dunder method or attribute.<br><br>> Sadly, eval can also evaluate... eval.<br><br>Eval's a builtin, if you remove all builtins you can't eval eval:<pre>>>> eval('eval("()._" + "_class_" + "_._" + "_bases_" + "_[0]")', {'__builtins__': {}})
+Traceback (most recent call last):
+  File "", line 1, in 
+  File "", line 1, in 
+NameError: name 'eval' is not defined
+</pre>
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/dadff6511e3f51152116c86121a4671f.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa195.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Jeff Blaine</b></span>
+			<span class='when'><span class='adminlink'></span> 11:22 AM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			The easy (to type) related answer is "Use an OS with RBAC and configure it properly."
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/cbde212986000125ff4322c25c1e50ce.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa83.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://www.kryogenix.org' rel='nofollow' target='_blank'>sil</a></b></span>
+			<span class='when'><span class='adminlink'></span> 11:59 AM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Masklinn: aha, of course! My mistake. Thanks :)
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/d89d81f673dac06b16cade5b4bf19954.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa181.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Masklinn</b></span>
+			<span class='when'><span class='adminlink'></span> 12:03 PM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			> walking the bytecode and forbidding all LOAD_ATTR to a dunder method or attribute. <br><br>Thought about it for a bit longer that time, you don't actually need to walk the bytecode, just look in co_names and forbid any dunder name in it (this will catch access to user-created ones as well, but I'm not sure there's any reason to care).
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0c1f60fdc145650f9feaa0c62648204d.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa1.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Kent Johnson</b></span>
+			<span class='when'><span class='adminlink'></span> 12:27 PM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			ast.literal_eval() is a useful alternative for one common use of eval() - to evaluate literal expressions. For example you can convert the string representation of a list into a real list:<pre>
+>>> ast.literal_eval('[2, 3, "some list"]')
+[2, 3, 'some list']
+</pre><a rel='nofollow' href='http://docs.python.org/library/ast.html#ast.literal_eval'>http://docs.python.org/library/ast.html#ast.literal_eval</a>
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/daa45563a98419bb1b6b63904ce71f95.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa136.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>haypo</b></span>
+			<span class='when'><span class='adminlink'></span> 3:30 PM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			eval() is not evil, the os module is not evil, only some functions of the os module are dangerous. I wrote the pysandbox project which installs a lot of protections in the CPython interpreter to hide dangerous function but also any way to get access to these functions. For example, you can give access to the os.urandom() function if you enable the "random" feature of pysandbox. You get an os module with only one function: urandom().<br><br><a rel='nofollow' href='https://github.com/haypo/pysandbox'>https://github.com/haypo/pysandbox</a><br><br>Bill Mill already mentionned pysandbox. <br><br>"While it was vulnerable to DOS (the timeout function did not work properly on memory intensive functions: <a rel='nofollow' href='https://github.com/haypo/pysandbox/issues/10'>https://github.com/haypo/pysandbox/issues/10</a> ),"<br><br>I'm working on a new version (1.6) which runs untrusted code in a subprocess. I reintroduced the timeout option, it is now safe (and implemented completly differently).
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/cd9e8569aee29c320345e24604f2b730.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa186.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Christian Heimes</b></span>
+			<span class='when'><span class='adminlink'></span> 3:55 PM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			I'm using a modified version of seval from an example at activestate for simplistic restricted Python. The code uses the compiler package and a custom AST walker to verify the code. You can disable certain keywords like raise or forbid access to attributes and objects.<br><br>Here is my modified version: <a rel='nofollow' href='http://pastebin.mozilla.org/1657291'>http://pastebin.mozilla.org/1657291</a>
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/63ca18e130d527d0741f1da54bb129a7.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa166.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Wes Turner</b></span>
+			<span class='when'><span class='adminlink'></span> 5:59 PM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Hey thanks. <a rel='nofollow' href='http://lucumr.pocoo.org/2011/2/1/exec-in-python/'>http://lucumr.pocoo.org/2011/2/1/exec-in-python/</a> was also a good read. I've heard about some pretty cool things done with AST test case function invocation introspection. I believe Sage has a few examples of walking the AST.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 9:52 PM on 6 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			@David Goodger: Yes, you are right, I meant, "safe for untrusted input."  I've added that clause to the opening paragraph to make it clearer.<br><br>About sandboxes, @lahwran is right, we've worked on the PyPy sandbox, though this investigation was not to try to fix eval, but instead to find a convincing example for people who thing eval can be fixed for untrusted input.<br><br>Everyone else, thanks for the interesting pointers and suggestions.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/ea3359f56b90883153912616ab8e4641.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa20.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://beauty-of-imagination.blogspot.com/' rel='nofollow' target='_blank'>SFJulie1</a></b></span>
+			<span class='when'><span class='adminlink'></span> 4:29 AM on 7 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Eval'ing arbitrary string is like sql.exec'ing arbitrary string. An obvious security hole, since knowing of security, means parsing and understanding the string to look for malicious code. <br> <br>The philosophy for safe eval'ing should be like SQL prepare : using place holders with validations, or ... being imaginative :<br>eval("dispatch_table[%s](*%s,**%s)") % func, loads(table_as_json),loads( dict_as_json)<br><br>If we do so, the advantage are : <br>- with a dispatch table we can limit the safe available functions, and if dispatch keys are easy ([a-zA-Z]{8,12}), then, escaping seems very hard ;<br>- if we use named argument serialized in json it would be easier to avoid active charge in the arguments (only Â«passive dataÂ» are json'able).   <br><br><br>ofc it seems very reductive (it looks like we cannot build complex functions trees), unless you notice that if the dispatch table is global, then, dispatch table keys can also be passed as arguments, with arguments.<br><br>Okay, it looks like LISP. But all safe parsing problem seems to point to a LISP'like solution.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/b2507d479af955f05ee995b8d5daa6ac.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa178.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://tartley.com' rel='nofollow' target='_blank'>Jonathan Hartley</a></b></span>
+			<span class='when'><span class='adminlink'></span> 1:43 AM on 8 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Slightly off-topic, but just to cconfirm I understand: It's for these kinds of reasons that I shouldn't be importing a Python source file as my application's config file (because if a user lets malicious input into the config file, then my application will execute it.) So I should be using ConfigObj instead, is that still a recommended route these days?
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 7:22 AM on 8 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Jonathan: an important point about "untrusted input" is, who is your user, where are they, and what damage could they do if you ran code from them?  For example, on a desktop application, the program is running on the user's own machine.  If they try to "rm -rf /", they will be deleting their own files.  Perhaps not something you need to be concerned with.  If you're building a web service, then the user is anyone on the internet, and they could destroy your server, a much more dangerous proposition.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/b2507d479af955f05ee995b8d5daa6ac.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa178.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://tartley.com' rel='nofollow' target='_blank'>Jonathan Hartley</a></b></span>
+			<span class='when'><span class='adminlink'></span> 9:38 AM on 8 Jun 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Ned, thanks for that clarification, which makes sense on one level, but on the other hand: If my application was responsible for deleting all of a user's Desktop files (or many users), then while that is less serious to me and my business, it's obviously more serious to the affected users. I'm not yet convinced that it's something I don't need to worry about. I guess it boils down to: is ever a time when an attacker is not able to execute arbitrary (Python) code, but is able to insert arbitrary Python code into my application's appropriately-permissioned config file? My application would then execute this code, and be blamed as one link in the chain which created the exploited security hole. But if this scenario isn't actually a threat, then I'll continue to store my application config in Python source and effectively 'eval' it when my application runs.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/d797538504a367f277d19bd8369e9a19.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa201.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Janus Troelsen</b></span>
+			<span class='when'><span class='adminlink'></span> 7:15 PM on 26 Nov 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Is eval without _ (underscore), . (dot) [, ] (sharp parenthesis) , " and ' (double-quote and single-quote) dangerous too?
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/16d60987b48d8560676aee3c0a7980b7.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa206.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>lahwran</b></span>
+			<span class='when'><span class='adminlink'></span> 7:18 PM on 26 Nov 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Almost certainly. There are usually ways to get other values without entering, say, " - but even short of that, there's _always_ the risk of bugs in the interpreter. There are all sorts of things that aren't tested because people don't use the interpreter that way.<br><br>If you want serious, hardcore foreign-code safety, you'll need something like the pypy sandbox or an OS-level thing like virtualization. and even that is vulnerable to some things, apparently people are stealing encryption keys from neighboring VMs now.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 7:53 PM on 26 Nov 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Janus: it depends what kind of risk you're talking about.  For example, "9**9**9**9**9" will consume all your memory, and bugs like <a rel='nofollow' href='http://bugs.python.org/issue14010'>http://bugs.python.org/issue14010</a> exist and can be exploited.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/d797538504a367f277d19bd8369e9a19.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa201.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Janus Troelsen</b></span>
+			<span class='when'><span class='adminlink'></span> 8:07 PM on 26 Nov 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Let's consider DoS a non-issue. But I don't need * so I'll disallow it anyway.<br><br>I currently use the following cleaner (don't worry, it's not a serious project):<pre>cleancode = lambda x: re.sub("[^0-9A-z _\^|&()]","",x)</pre>Every single exploit I have seen have used [ or . or *. I just want to evaluate boolean literals in a simple way. ast.literal_eval is not really evaluating, just parsing. I have yet to see a non-DoS exploit using the character set above...<br><br>I'll PayPal â¬ 5 to the first person that shows me a non-DoS exploit in under 100 characters that survives the filter above.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/d797538504a367f277d19bd8369e9a19.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa201.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Janus Troelsen</b></span>
+			<span class='when'><span class='adminlink'></span> 8:09 PM on 26 Nov 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			(no builtins of course, only Python 3.2+)
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/daa45563a98419bb1b6b63904ce71f95.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa136.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>haypo</b></span>
+			<span class='when'><span class='adminlink'></span> 10:56 AM on 27 Nov 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Try<br><br>((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))<br><br>s_push: parser stack overflow<br>Traceback (most recent call last):<br>  File "", line 1, in <br>MemoryError<br><br>It's not a crash, but a funny error, and the code matchs your regex ;)
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0383e4cae325f65a1bbd906be4be2276.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa125.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://asmeurersympy.wordpress.com/' rel='nofollow' target='_blank'>Aaron Meurer</a></b></span>
+			<span class='when'><span class='adminlink'></span> 11:15 PM on 14 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			What would be a Python 3 version? It seems that code takes 13 arguments instead of 12.  I'm curious if it still sefgaults.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 6:47 AM on 15 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Aaron: it does still segfault, you just have to provide one more argument, and make some of them byte strings:<pre>
+(0,0,0,0,0,b"KABOOM",(),(),(),"","",0,b"")
+</pre>
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 6:48 AM on 15 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Also, BTW, for Python 3, there are some more details here: <a rel='nofollow' href='http://nedbatchelder.com/blog/201302/finding_python_3_builtins.html'>http://nedbatchelder.com/blog/201302/finding_python_3_builtins.html</a>
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/352cb0a7d071bb52129eaa4e3f881d11.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa76.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Vladislav Stepanov</b></span>
+			<span class='when'><span class='adminlink'></span> 2:14 PM on 8 May 2014</span>
+		</div>
+		
+		<p class='commenttext'>
+			Hi, Ned!<br>I've translated your post into russian, you can find it here: <a rel='nofollow' href='http://habrahabr.ru/post/221937/'>http://habrahabr.ru/post/221937/</a><br>Is it ok for you? Sorry for not asking in advance:(
+		</p>
+	</div>
+
+<div id='commentform'>
+<h2>Add a comment:</h2>
+<div>
+	<form method="post" action="http://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html#commentform" id="commentformform">
+		<table>
+			<tr>
+				<td class="labels">
+					<div class='label'>name</div>
+				</td>
+				<td class="inputs">
+					<input class='edit' type="text" name="feef4889e2d3b938aefe2934d29027942" id="feef4889e2d3b938aefe2934d29027942" size="40" value="">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class='label'>email</div>
+				</td>
+				<td>
+					<div class="dn">
+                        Ignore this:
+                        <input class='edit' type="email" name="ffda612104809b857dd047dfe004474ed" id="ffda612104809b857dd047dfe004474ed" size="40">
+					</div>
+					<input class='edit' type="email" name="ffec3577a4b3a97d85bbfab6e8dd211ed" id="ffec3577a4b3a97d85bbfab6e8dd211ed" size="40" value="">
+					<span class='notice'>not displayed and no spam.</span>
+					<div class="dn">
+                        Leave this empty:
+                        <input class='edit' type="email" name="f11b668b25d91cdf029dc8d766d593c84" id="f11b668b25d91cdf029dc8d766d593c84" size="40">
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class='label'>www</div>
+				</td>
+				<td>
+					<input class='edit' type="url" name="fc3edc4e4dcea4e5d5ffc8d648c4b52ba" id="fc3edc4e4dcea4e5d5ffc8d648c4b52ba" size="40" value="">
+					<span class='notice'>not searched.</span>
+				</td>
+			</tr>
+			<tr>
+				<td>&nbsp;</td>
+				<td>
+					<div class="notice">Name and either email or www are required.</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="dn">
+						Don't put anything here:
+						<textarea name="fcdc8a2df3410b986b9516fe2a0f6af81" id="fcdc8a2df3410b986b9516fe2a0f6af81" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+					<div>
+						<textarea name="f9083d57f677342d733b3f2e9825d6940" id="f9083d57f677342d733b3f2e9825d6940" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+					<div class="dn">
+						Leave this empty:
+						<textarea name="fc7386b58f0a35931155bb83744b7bc83" id="fc7386b58f0a35931155bb83744b7bc83" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="notice right">
+					URLs auto-link and some tags are allowed: &lt;a&gt;&lt;b&gt;&lt;i&gt;&lt;p&gt;&lt;br&gt;&lt;pre&gt;.
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="notice right">
+						<label for="cbnotify">
+							<input type="checkbox" name="fcc60d107fa88c819405152c9a623e04e" id="cbnotify" >
+							<span class='label'>Email me future comments</span>
+						</label>&#160;&#160;
+						<input id="previewbtn" type="submit" name="fd8d90ae2db12b9b8fbb66cad27ea60b8" value="preview >>">
+						<span class="dn">
+                            <input type="submit" name="f33f1df57aeb827b86951f2cea15f5248" value="I'm a spambot">
+						</span>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<input type='hidden' name='fdadda628d10e11d5ef60e6b9d948d4d8' value='e20120606T093359'>
+		<input type='hidden' name='spinner' value='1964c231fee8b113683e51a5a221b737'>
+		<input type='hidden' name='f1b705c4be66b027edef52a9e10a1520e' value='1404132091'>
+
+
+	</form>
+</div>
+</div>
+
+</div>
+</div></td><td id='menu'><div class='sidebar'>
+
+
+<div class='blogroll'><ul class='first'><li class='first'>Search this site:
+            
+<form action="http://www.google.com/cse" id="searchbox_007818501792991951010:s9hiibxg-ty" style="margin-top:6px;"><input type="hidden" name="cx" value="007818501792991951010:s9hiibxg-ty"><table><tr><td class="vmid"><input type="text" name="q" style='border:1px solid #7e9db9;padding:2px;width:144px;height:16px;'></td><td class="vmid"><input id="submit" class="vmid" type="image" title="Search" alt="Search" src="/pix/search.png"></td></tr></table></form><script type="text/javascript">
+    (function() {
+        var f = document.getElementById('searchbox_007818501792991951010:s9hiibxg-ty');
+        if (f && f.q) {
+            var q = f.q;
+            var b = function() {
+                if (q.value == '') {
+                    q.style.background = '#fff url(http:\x2F\x2Fwww.google.com\x2Fcoop\x2Fintl\x2Fen\x2Fimages\x2Fgoogle_custom_search_watermark.gif) left no-repeat';
+                }
+            };
+            var f = function() {
+                q.style.background = '#fff';
+            };
+            q.onfocus = f;
+            q.onblur = b;
+            if (!/[&?]q=[^&]/.test(location.search)) {
+                b();
+            }
+        }
+    })();
+</script></li><li><a href='/site/aboutned.html' rel='author'>About me</a></li><li class='inline'>Also me:
+            <ul><li><a href='http://twitter.com/nedbat'>twitter</a>&#xa0;&#xb7; </li><li><a href='mailto:ned@nedbatchelder.com'>email</a></li></ul></li><li class='inline'>Tip me:
+            <ul><li><a href='http://gittip.com/nedbat'>gittip</a>&#xa0;&#xb7; </li><li><a href='https://coinbase.com/checkouts/c2a7f9652ecc0f6bf9c240c05109305f'>bitcoin</a></li></ul></li><li>Commerce:
+            <ul class='compact'><li>&#xbb;&#xa0;<a href='http://www.amazon.com/exec/obidos/redirect-home/nedbatchelder-20'>Amazon</a></li><li>&#xbb;&#xa0;<a href='http://susansenator.com/survivalguide.html'>Susan's books</a><br><a href='http://susansenator.com/makingpeace.html'><img src='/pix/makingpeacetiny.png' alt='Making Peace With Autism' width='83' height='127' style='margin: 10px 0 0 0'></a> <a href='http://susansenator.com/dirt.html'><img src='/pix/dirttiny.png' alt='Dirt, a novel' width='86' height='125' style='margin: 10px 0 0 0'></a><!--
+                    <a href='http://susansenator.com/survivalguide.html'><img src='pix/survivalguidetiny.png' alt='Autism Mom&#39;s Survival Guide' width='86' height='121' style='margin: 10px 0 0 0'></a>
+                    --></li></ul></li><li class='inline'>More blog:
+            <ul><li><a href='/blog/tag/python.html'>python</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/art.html'>art</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2014.html'>14</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/funny.html'>funny</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/webpage.html'>web</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2013.html'>13</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/tools.html'>tools</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/parenting.html'>parenting</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2012.html'>12</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/math.html'>math</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/politics.html'>politics</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2011.html'>11</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/movies.html'>movies</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/ling.html'>language</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2010.html'>10</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/mycode.html'>my code</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/history.html'>history</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2009.html'>09</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/books.html'>books</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/type.html'>typography</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2008.html'>08</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/business.html'>business</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/autism.html'>autism</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2007.html'>07</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/howto.html'>how-to</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/coverage.html'>coverage</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2006.html'>06</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/games.html'>games</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/quick.html'>quick links</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2005.html'>05</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/science.html'>science</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/windows.html'>windows</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2004.html'>04</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/friendfam.html'>friends & family</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/work.html'>work</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2003.html'>03</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/online.html'>online</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/photos.html'>photos</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2002.html'>02</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/crafts.html'>crafts</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/music.html'>music</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tags.html'><i>all tags</i></a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archiveall.html'><b><i>everything!</i></b></a></li></ul></li><li><a
+                href='/blog/rss.xml'
+                type='application/rss+xml'
+                style='
+                    padding: 0 .4em;
+                    background: #F60;
+                    color: white;
+                    border: 1px solid;
+                    border-color: #FC9 #630 #330 #F96;
+                    font-weight: bold;
+                    text-decoration: none;
+                    '
+                >RSS</a></li></ul></div>
+
+</div></td></tr><tr><td id='copyright' colspan='2'><p class='copyright'><a rel='copyright license' href='/site/legal.html'>
+                            &#xa9; Copyright
+                            
+                                2012,
+                            
+                            Ned Batchelder
+                        </a></p></td></tr></table></body></html>

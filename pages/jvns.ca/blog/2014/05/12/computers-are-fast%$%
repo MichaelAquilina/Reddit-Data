@@ -1,0 +1,285 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>Computers are *fast*! - Julia Evans</title>
+<meta name="author" content="Julia Evans">
+<meta name="description" content="So I have a computer. My computer contains hardware (like a CPU! RAM!
+L1/L2 caches!) But I don&#8217;t understand very well how fast that hardware
+is &hellip;">
+ 
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="text/javascript">
+//<![CDATA[
+try{if (!window.CloudFlare) {var CloudFlare=[{verbose:0,p:1403411329,byc:0,owlid:"cf",bag2:1,mirage2:0,oracle:0,paths:{cloudflare:"/cdn-cgi/nexp/dokv=abba2f56bd/"},atok:"0607a27c5e85145c891a8d0aeeb02433",petok:"f2837120b0f84d8bd1bb458c8aa526e56b16c98d-1404248398-14400",zone:"jvns.ca",rocket:"0",apps:{"ga_key":{"ua":"UA-23087669-1","ga_bs":"2"}}}];!function(a,b){a=document.createElement("script"),b=document.getElementsByTagName("script")[0],a.async=!0,a.src="//ajax.cloudflare.com/cdn-cgi/nexp/dokv=97fb4d042e/cloudflare.min.js",b.parentNode.insertBefore(a,b)}()}}catch(e){};
+//]]>
+</script>
+<link rel="canonical" href="http://jvns.ca/blog/2014/05/12/computers-are-fast/">
+<link href="/favicon.png" rel="icon">
+<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+<script src="/javascripts/modernizr-2.0.js"></script>
+<script src="/javascripts/ender.js"></script>
+<script src="/javascripts/octopress.js" type="text/javascript"></script>
+<link href="/atom.xml" rel="alternate" title="Julia Evans" type="application/atom+xml">
+ 
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<script type="text/javascript">/* CloudFlare analytics upgrade */
+</script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-23087669-1']);
+_gaq.push(['_trackPageview']);
+
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+
+(function(b){(function(a){"__CF"in b&&"DJS"in b.__CF?b.__CF.DJS.push(a):"addEventListener"in b?b.addEventListener("load",a,!1):b.attachEvent("onload",a)})(function(){"FB"in b&&"Event"in FB&&"subscribe"in FB.Event&&(FB.Event.subscribe("edge.create",function(a){_gaq.push(["_trackSocial","facebook","like",a])}),FB.Event.subscribe("edge.remove",function(a){_gaq.push(["_trackSocial","facebook","unlike",a])}),FB.Event.subscribe("message.send",function(a){_gaq.push(["_trackSocial","facebook","send",a])}));"twttr"in b&&"events"in twttr&&"bind"in twttr.events&&twttr.events.bind("tweet",function(a){if(a){var b;if(a.target&&a.target.nodeName=="IFRAME")a:{if(a=a.target.src){a=a.split("#")[0].match(/[^?=&]+=([^&]*)?/g);b=0;for(var c;c=a[b];++b)if(c.indexOf("url")===0){b=unescape(c.split("=")[1]);break a}}b=void 0}_gaq.push(["_trackSocial","twitter","tweet",b])}})})})(window);
+/* ]]> */
+</script>
+</head>
+<body>
+<header role="banner"><hgroup>
+<h1><a href="/">Julia Evans</a></h1>
+<h2><a href="http://hackerschool.com">Hacker School</a> alumna</h2>
+</hgroup>
+<div id="uliaea">
+If you like this, you may like <a href="http://www.uliaea.ca">Ulia Ea</a>.
+</div>
+<style>div#uliaea{font-size:12px;color:#aaa;text-align:right;}</style>
+</header>
+<nav role="navigation"><ul class="subscription" data-subscription="rss">
+<li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+</ul>
+<form action="http://google.com/search" method="get">
+<fieldset role="search">
+<input type="hidden" name="q" value="site:jvns.ca"/>
+<input class="search" type="text" name="q" results="0" placeholder="Search"/>
+</fieldset>
+</form>
+<ul class="main-navigation">
+<li><a href="/">Blog</a></li>
+<li><a href="/about">About</a></li>
+<li><a href="/blog/archives">Archives</a></li>
+<li><a href="/talks">Talks</a></li>
+<li><a href="/projects/">Projects</a></li>
+</ul>
+</nav>
+<div id="main">
+<div id="content">
+<div>
+<article class="hentry" role="article">
+<header>
+<h1 class="entry-title">Computers are *fast*!</h1>
+<p class="meta">
+<time datetime="2014-05-12T21:31:59-04:00" pubdate data-updated="true">May 12<span>th</span>, 2014</time>
+</p>
+</header>
+<div class="entry-content"><p>So I have a computer. My computer contains hardware (like a CPU! RAM!
+L1/L2 caches!) But I don&#8217;t understand very well how fast that hardware
+is, what tools I have to profile it, and how much of the time that my
+programs are running is split between RAM/the hard disk/the CPU.</p>
+<p>So today I paired with
+<a href="https://twitter.com/SashaLaundy">Sasha Laundy</a>, and we ran Serious
+Investigations into how fast my computer can process a 1GB file.</p>
+<p><strong>The objects:</strong></p>
+<ul>
+<li>An episode of The Newsroom (1GB)</li>
+<li>A task: add up all the bytes (mod 256)</li>
+</ul>
+<p>This was basically the easiest task that I could think of that
+involved processing the entire file (so nothing gets optimized out by
+the compiler).</p>
+<h3>Step 1: Write a program to add up all the bytes</h3>
+<p>I wrote a small C program to add up all the bytes in a file. It&#8217;s
+called
+<a href="https://github.com/jvns/howcomputer/blob/master/bytesum.c">bytesum.c</a>.
+It reads the file in chunks of 64k, and then adds up all the bytes
+into a char.</p>
+<p>This runs pretty fast! I compiled it with <code>gcc -Ofast</code> (to make it
+FASTER!) and it added up all the bytes in</p>
+<ul>
+<li>2.5 seconds (the first time I ran the program)</li>
+<li>0.6 seconds (the second time I ran the program, because it&#8217;s already
+loaded into RAM)</li>
+</ul>
+<p>I take this to mean that it takes 2s to read the file into memory (I
+have a SSD in my computer, so 500MB/s makes sense), and then 0.6s to
+do the actual adding-up-of-the bytes. Awesome! We now know that I can
+read from my hard drive at 500MB/s.</p>
+<h3>Step 2: try to use <code>mmap</code> to make it faster</h3>
+<p>This is a pretty boring step. We made it use <code>mmap</code> instead (see
+<a href="https://github.com/jvns/howcomputer/blob/master/bytesum_mmap.c">bytesum_mmap.c</a>),
+in the hopes that it would make it faster. It took exactly the same
+amount of time. NEXT.</p>
+<h3>Step 3: use vector intrinsics!!!</h3>
+<p>Then I went and talked to <a href="http://jamesporter.me/">James Porter</a>, and
+he told me that CPUs have special instructions for doing multiple
+additions at once, and that I could maybe use them to optimize my
+program! So I googled &#8220;vector intrinsics&#8221;, copied some code from Stack
+Overflow, and ended up with a new version:
+<a href="https://github.com/jvns/howcomputer/blob/master/bytesum_intrinsics.c">bytesum_intrinsics.c</a>.
+I timed it, and it took <strong>0.25 seconds</strong>!!!</p>
+<p>So our program now runs <strong>twice as fast</strong>, and we know a whole bunch
+of new words (SSE! SIMD! vector intrinsics!)</p>
+<h3>Step 4: Make it slow.</h3>
+<p>Now that we&#8217;ve written a super fast program, I wanted to understand
+the CPU caches better. What if we engineered a whole bunch of cache
+misses? I wrote a new version of <code>bytesum_mmap.c</code> that added up all
+the bytes in an irregular way &#8211; instead of going through all the
+bytes in order, it would skip from byte 1 to 2001 to 3001 to 4001 and
+then loop around and access 2, 2002, 3002, &#8230;, 100002. As you might
+imagine, this isn&#8217;t very efficient.</p>
+<p>You can see the code for this in
+<a href="https://github.com/jvns/howcomputer/blob/master/bytesum_stride.c">bytesum_stride.c</a>.
+I ran it with <code>./bytesum_stride *.mp4 60000</code>, and it took about 20
+seconds. So we&#8217;ve learned that <strong>cache misses can make your code 40
+times slower</strong>.</p>
+<h3>Step 5: where do the 0.25 seconds come from???</h3>
+<p>I still didn&#8217;t totally understand exactly how my super fast vector
+intrinsic program&#8217;s performance broke down, though: how much of that
+0.25 seconds was spent doing memory accesses, and how much in
+numerical computation? James suggested using
+<a href="http://marss86.org/~marss86/index.php/Home">Marss</a> which will
+apparently give you unlimited amounts of information, but I spent a
+few minutes trying to get it to work and failed.</p>
+<p>So instead I used <code>perf</code>, which is a <em>totally magical</em> performance
+measurement tool for Linux. I needed to upgrade my kernel first, which
+was a bit nervewracking. But I did it! And it was beautiful. There are
+colours, and we got it to annotate the assembly code with performance
+statistics. Here&#8217;s what I ran to do it:</p>
+<pre>
+perf record ./bytesum_intrinsics The\ Newsroom\ S01E04.mp4
+perf annotate --no-source
+</pre>
+<p>And here&#8217;s the result:</p>
+<p><img src="/images/perf.png"></p>
+<p>The <code>movdqa</code> instructions have to do with accessing memory, and it
+spends 32% of its time on those instructions. So I <em>think</em> that means
+that it spends 32% of its time accessing RAM, and the other 68% of its
+time doing calculations. Super neat!</p>
+<p>There are still a lot of things I don&#8217;t understand here &#8211; are my
+conclusions about this program correct? Are there further things I
+could be doing to optimize this?</p>
+<p>I&#8217;m also kind of amazed by how fast C is. I&#8217;m used to writing in
+dynamic programming languages, which definitely do not process 1GB
+files in 0.25 seconds. Fun!</p>
+</div>
+<footer>
+<p class="meta">
+<span class="byline author vcard">Posted by <span class="fn">Julia Evans</span></span>
+<time datetime="2014-05-12T21:31:59-04:00" pubdate data-updated="true">May 12<span>th</span>, 2014</time>
+</p>
+<div class="sharing">
+<a href="http://twitter.com/share" class="twitter-share-button" data-url="http://jvns.ca/blog/2014/05/12/computers-are-fast/" data-via="b0rk" data-counturl="http://jvns.ca/blog/2014/05/12/computers-are-fast/">Tweet</a>
+</div>
+<p class="meta">
+<a class="basic-alignment left" href="/blog/2014/04/27/stopping-to-think/" title="Previous Post: Stopping to think">&laquo; Stopping to think</a>
+<a class="basic-alignment right" href="/blog/2014/05/13/profiling-with-perf/" title="Next Post: I can spy on my CPU cycles with perf!">I can spy on my CPU cycles with perf! &raquo;</a>
+</p>
+</footer>
+</article>
+<section>
+<h1>Comments</h1>
+<div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+</div>
+<aside class="sidebar">
+<section>
+<h1>Recent Posts</h1>
+<ul id="recent_posts">
+<li class="post">
+<a href="/blog/2014/06/29/how-i-did-hacker-school/">How I did Hacker School: ignoring things I understand and doing the impossible</a>
+</li>
+<li class="post">
+<a href="/blog/2014/06/22/con-talks-are-up/">!!Con talks are up</a>
+</li>
+<li class="post">
+<a href="/blog/2014/06/19/machine-learning-isnt-kaggle-competitions/">Machine learning isn't Kaggle competitions</a>
+</li>
+<li class="post">
+<a href="/blog/2014/06/13/asking-questions-is-a-superpower/">Asking questions is a superpower</a>
+</li>
+<li class="post">
+<a href="/blog/2014/06/06/working-remote/">Working remote, 3 months in</a>
+</li>
+</ul>
+</section>
+<section>
+<h1>GitHub Repos</h1>
+<ul id="gh_repos">
+<li class="loading">Status updating...</li>
+</ul>
+<a href="https://github.com/jvns">@jvns</a> on GitHub
+<script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'jvns',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+<script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+<section>
+<h1>Latest Tweets</h1>
+<ul id="tweets">
+<a class="twitter-timeline" data-dnt="true" href="https://twitter.com/b0rk" data-widget-id="380344726030778368">Tweets by @b0rk</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+</ul>
+<a href="http://twitter.com/b0rk" class="twitter-follow-button" data-show-count="false">Follow @b0rk</a>
+</section>
+</aside>
+</div>
+</div>
+<footer role="contentinfo"><p>
+Copyright &copy; 2014 - Julia Evans -
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+</footer>
+<script type="text/javascript">
+      var disqus_shortname = 'jvns';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://jvns.ca/blog/2014/05/12/computers-are-fast/';
+        var disqus_url = 'http://jvns.ca/blog/2014/05/12/computers-are-fast/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+<script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!doctype html>
+<html>
+<head>
+<title>Animated GIFs the Hard Way</title>
+<style type="text/css" media="screen">
+/*@import url(http://www.sublimetext.com/wordpress/wp-content/themes/sublime/style.css);*/
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,600);
+body
+{
+    background-color: #f6f6f6;
+
+    /*margin: 2px 0 0 0;*/
+    /*padding: 0px;*/
+    font-family: 'Open Sans', sans-serif;
+    font-size: 11pt;
+    max-width: 800px;
+    margin: 20px;
+}
+
+pre
+{
+	background-color: #F0F0F0;
+	border: 1px solid #CCC;
+	padding: 6px 10px;
+	border-radius: 3px;
+}
+
+</style>
+<script type="text/javascript">
+var delay_scale = 0.7
+var timer = null
+
+rename2_timeline=[{"delay":623,"blit":[[0,0,800,450,0,0]]},{"delay":182,"blit":[[0,450,322,16,182,40],[771,482,23,10,738,96],[720,527,23,16,244,100],[51,526,21,16,729,128],[586,527,20,10,738,196],[156,513,15,28,729,234],[720,527,23,16,181,280],[342,528,35,8,723,316],[720,527,23,16,307,325],[720,527,23,16,237,385],[608,525,112,12,4,434]]},{"delay":194,"blit":[[0,526,51,15,0,100],[777,450,23,16,244,100],[794,488,4,2,738,104],[608,512,112,13,4,434]]},{"delay":184,"blit":[[794,486,4,2,729,128],[105,513,51,15,0,280],[777,450,23,16,181,280],[608,525,7,11,4,434]]},{"delay":192,"blit":[[794,484,4,2,746,134],[720,512,51,15,0,325],[777,450,23,16,307,325],[788,492,7,11,4,434]]},{"delay":854,"blit":[[794,482,4,2,737,142],[720,482,51,15,0,385],[777,450,23,16,237,385],[171,513,7,10,4,435]]},{"delay":166,"blit":[[188,498,9,8,147,16],[300,512,112,16,391,40],[206,528,35,10,738,96],[0,466,224,16,244,100],[412,527,45,16,729,128],[771,512,28,16,181,280],[0,482,202,16,307,325],[771,512,28,16,237,385]]},{"delay":65,"blit":[[510,512,98,15,398,40],[309,528,33,10,739,96],[202,497,210,15,251,100],[543,527,43,16,730,128],[0,498,14,15,188,280],[0,498,188,15,314,325],[0,498,14,15,244,385]]},{"delay":174,"blit":[[188,512,112,16,391,40],[171,528,35,10,738,96],[553,450,224,16,244,100],[51,526,45,16,729,128],[433,466,28,16,181,280],[433,466,202,16,307,325],[433,466,28,16,237,385]]},{"delay":186,"blit":[[635,466,119,16,391,40],[96,528,36,10,738,96],[322,450,231,16,244,100],[754,466,46,16,729,128],[224,466,35,16,181,280],[224,466,209,16,307,325],[224,466,35,16,237,385]]},{"delay":50,"blit":[[412,512,98,15,419,40],[275,528,34,10,741,96],[412,482,210,15,272,100],[500,527,43,16,733,128],[600,497,14,15,209,280],[600,497,188,15,335,325],[600,497,14,15,265,385]]},{"delay":1419,"blit":[[622,482,98,15,426,40],[241,528,34,10,742,96],[202,482,210,15,279,100],[457,527,43,16,734,128],[412,497,14,15,216,280],[412,497,188,15,342,325],[412,497,14,15,272,385]]},{"delay":4000,"blit":[[0,542,343,1,182,55],[0,100,51,15,0,100],[265,100,1,15,286,100],[738,196,20,10,738,196],[729,234,15,28,729,234],[0,280,51,15,0,280],[265,100,1,15,223,280],[723,316,35,8,723,316],[0,325,51,15,0,325],[265,100,1,15,349,325],[0,385,51,15,0,385],[265,100,1,15,279,385],[0,513,105,13,4,434]]}]
+
+var animate = function(img, timeline, element)
+{
+	var i = 0
+
+	var run_time = 0
+	for (var j = 0; j < timeline.length - 1; ++j)
+		run_time += timeline[j].delay
+
+	var f = function()
+	{
+		var frame = i++ % timeline.length
+		var delay = timeline[frame].delay * delay_scale
+		var blits = timeline[frame].blit
+
+		var ctx = element.getContext('2d')
+
+		for (j = 0; j < blits.length; ++j)
+		{
+			var blit = blits[j]
+			var sx = blit[0]
+			var sy = blit[1]
+			var w = blit[2]
+			var h = blit[3]
+			var dx = blit[4]
+			var dy = blit[5]
+			ctx.drawImage(img, sx, sy, w, h, dx, dy, w, h)
+		}
+
+		timer = window.setTimeout(f, delay)
+	}
+
+	if (timer) window.clearTimeout(timer)
+	f()
+}
+
+var animate_fallback = function(img, timeline, element)
+{
+	var i = 0
+
+	var run_time = 0
+	for (var j = 0; j < timeline.length - 1; ++j)
+		run_time += timeline[j].delay
+
+	var f = function()
+	{
+		if (i % timeline.length == 0)
+		{
+			while (element.hasChildNodes())
+				element.removeChild(element.lastChild)
+		}
+
+		var frame = i++ % timeline.length
+		var delay = timeline[frame].delay * delay_scale
+		var blits = timeline[frame].blit
+
+		for (j = 0; j < blits.length; ++j)
+		{
+			var blit = blits[j]
+			var sx = blit[0]
+			var sy = blit[1]
+			var w = blit[2]
+			var h = blit[3]
+			var dx = blit[4]
+			var dy = blit[5]
+
+			var d = document.createElement('div')
+			d.style.position = 'absolute'
+			d.style.left = dx + "px"
+			d.style.top = dy + "px"
+			d.style.width = w + "px"
+			d.style.height = h + "px"
+			d.style.backgroundImage = "url('" + img.src + "')"
+			d.style.backgroundPosition = "-" + sx + "px -" + sy + "px"
+
+			element.appendChild(d)
+		}
+
+		timer = window.setTimeout(f, delay)
+	}
+
+	if (timer) window.clearTimeout(timer)
+	f()
+}
+
+function set_animation(img_url, timeline, canvas_id, fallback_id)
+{
+	var img = new Image()
+	img.onload = function()
+	{
+		var canvas = document.getElementById(canvas_id)
+		if (canvas && canvas.getContext)
+			animate(img, timeline, canvas)
+		else
+			animate_fallback(img, timeline, document.getElementById(fallback_id))
+	}
+	img.src = img_url
+}
+</script>
+</head>
+
+<body>
+
+
+<h1>Animated GIFs the Hard Way</h1>
+
+<p>When doing the new website for the <a href="http://www.sublimetext.com">Sublime Text 2.0</a> launch, instead of just screenshots, I wanted to have animations to demonstrate some of its features. One of the criteria was that the animations should work everywhere, from IE6 to an iPad. This ruled out two common video options, Flash and the &lt;video&gt; element. Animated GIF files would have been a candidate, except for two issues: the 256 color limitation, which would have made the animations ugly, and the encoders I tried spat out huge files, at almost 1MB per-animation.
+
+<p>Instead, I wrote a small Python script that takes a collection of PNG frames as input, and emits a single packed PNG file as output, which contains all the differences between the frames, and some JSON meta-data specifying which bits of the packed PNG file correspond to each frame. JavaScript turns the PNG and JSON into an animation, using either the canvas element, or emulating it using overlaid div elements for older browsers.
+
+<p>As a short example, this animation:
+
+<div><canvas id="rename2_target" class="anim_target" width="800" height="450">
+<div id="rename2_fallback" class="anim_target" style="width: 800px; height: 450px; position: relative;"></div>
+<p></canvas></div>
+
+<script>
+set_animation("http://www.sublimetext.com/anim/rename2_packed.png", rename2_timeline, 'rename2_target', 'rename2_fallback');
+</script>
+
+<p>is packed into this PNG file:
+
+<p><img src="http://www.sublimetext.com/anim/rename2_packed.png" width="800" height="543">
+
+<p>The data size of the animation is 96KB for the packed image plus 725 bytes for the gzipped meta-data. This compares to 71KB for a static PNG of a single frame. Aside from the quality advantage over animated GIFS, doing the playback in JavaScript gives more control over the animation. This control is used on the Sublime Text website to synchronize text with the animation, and automatically cycle through the different animations.
+
+<p>The meta data looks like this:
+
+<pre>
+timeline =
+[
+	{
+		"delay":623,
+		"blit":
+		[
+			[0,0,800,450,0,0]
+		]
+	},
+	{
+		"delay":182,
+		"blit":
+		[
+			[0,450,322,16,182,40],
+			[771,482,23,10,738,96],
+			[720,527,23,16,244,100],
+			[51,526,21,16,729,128],
+			[586,527,20,10,738,196],
+			...
+		]
+	},
+	{
+		"delay":194,
+		"blit":
+		[
+			[0,526,51,15,0,100],
+			[777,450,23,16,244,100],
+			[794,488,4,2,738,104],
+			[608,512,112,13,4,434]
+		]
+	},
+	...
+]
+</pre>
+
+<p>Each entry in the above timeline describes a frame of data. The delay attribute gives the number of milliseconds to show the frame for, and the blit attribute describes the image rectangles that have changed from the previous frame. This description uses 6 numbers, the first two give the offset within the packed image, then two numbers for the width and height of the rectangle, and then another pair of numbers for the destination position.
+
+<p>The JavaScript code to play the animation is quite short: the canvas version calls drawImage to draw each rectangle at the appropriate time, while the fallback version creates an absolutely positioned div element to represent each rectangle.
+
+<p>The Python encoder program puts quite a lot of effort into reducing the file size. For each frame, it first determines a set of rectangles that differ from the previous frame. Each of these rectangles is placed into the packed image, but first the packed image is exhaustively searched to see if the data already exists, in which case only meta-data is needed for the frame.
+
+<h2>Getting the Encoder</h2>
+
+<p>You can download the encoder from <a href="http://github.com/sublimehq/anim_encoder">http://github.com/sublimehq/anim_encoder</a>, under the permissive 3 clause BSD license. Keep in mind it was written as an essentially once off script, so it's not the easiest thing to work with.
+
+
+<h3>Prerequisites</h3>
+
+<p>anim_encoder.py has only been used on a Ubuntu system. It requires NumPy, SciPy and OpenCV, which are available via apt-get as python-numpy, python-scipy and python-opencv. It also assumes pngcrush is installed, and in the system path.
+
+<h3>Using the Encoder</h3>
+
+<p>For input, you'll need to have a series of files named <tt>screen_([0-9]+).png</tt>. The number in the the filename is a timestamp in milliseconds for the frame. The absolute values of the timestamps aren't important, just the difference between them. For example:
+
+<pre>
+example/screen_660305415.png
+example/screen_660306038.png
+example/screen_660306220.png
+example/screen_660306414.png
+example/screen_660306598.png
+example/screen_660306790.png
+example/screen_660307644.png
+example/screen_660307810.png
+example/screen_660307875.png
+example/screen_660308049.png
+example/screen_660308235.png
+example/screen_660308285.png
+example/screen_660309704.png
+</pre>
+
+<p>Then run the encoder via:
+
+<pre>
+./anim_encoder.py example
+</pre>
+
+<p>It'll emit two files <tt>example_packed.png</tt>, and <tt>example_anim.js</tt>, containing the timeline.
+
+<h3>Things You Could Do</h3>
+
+<ul>
+	<li>Make the encoder more friendly. It currently doesn't have any command line help, always spends lots of time trying to shrink the animation, and is very picky about what data it accepts (e.g., it'll fall over if the input PNGs have an alpha channel).</li>
+	<li>Make the JavaScript use requestAnimationFrame, so it'll be a little better behaved.</li>
+	<li>Make the encoder faster. The runtime hasn't been an issue for the short animations I've used it for, but it wouldn't be fun for anything long.</li>
+	<li>Progressive Loading. Currently nothing is displayed until the entire animation has loaded, however as the first frame of the animation is always located at the top of the packed image, it wouldn't be hard to have this display as the packed image is loading.</li>
+</ul>
+
+<hr>
+Jon Skinner<br>
+<a href="http://www.sublimetext.com">http://www.sublimetext.com</a>
+
+<p>Comments on <a href="http://news.ycombinator.com/item?id=4532146">Hacker News</a>
+
+
+</body>

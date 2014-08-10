@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link href='/css/jeffknupp.min.css' rel='stylesheet' type='text/css'>
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,900' rel='stylesheet' type='text/css'>
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <title>Write Cleaner Python: Use Exceptions</title>
+  <meta name="author" content="Jeff Knupp">
+  <meta name="description" content=""> 
+  <link rel="icon" href="/images/favicon.png" >
+  <link rel="alternate" href="http://feeds.feedblitz.com/hackersgonnahack" title="Python Programming" type="application/atom+xml">
+
+  
+<style>
+td.linenos { background-color: #f0f0f0; padding-right: 10px; }
+span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
+table.codehilitetable .hll, .codehilite pre .hll { background-color: #ffffcc }
+table.codehilitetable, .codehilite  { background: #f8f8f8; }
+table.codehilitetable .c, .codehilite pre .c { color: #408080; font-style: italic } /* Comment */
+table.codehilitetable .err, .codehilite pre .err { border: 1px solid #FF0000 } /* Error */
+table.codehilitetable .k, .codehilite pre .k { color: #008000; font-weight: bold } /* Keyword */
+table.codehilitetable .o, .codehilite pre .o { color: #666666 } /* Operator */
+table.codehilitetable .cm, .codehilite pre .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+table.codehilitetable .cp, .codehilite pre .cp { color: #BC7A00 } /* Comment.Preproc */
+table.codehilitetable .c1, .codehilite pre .c1 { color: #408080; font-style: italic } /* Comment.Single */
+table.codehilitetable .cs, .codehilite pre .cs { color: #408080; font-style: italic } /* Comment.Special */
+table.codehilitetable .gd, .codehilite pre .gd { color: #A00000 } /* Generic.Deleted */
+table.codehilitetable .ge, .codehilite pre .ge { font-style: italic } /* Generic.Emph */
+table.codehilitetable .gr, .codehilite pre .gr { color: #FF0000 } /* Generic.Error */
+table.codehilitetable .gh, .codehilite pre .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+table.codehilitetable .gi, .codehilite pre .gi { color: #00A000 } /* Generic.Inserted */
+table.codehilitetable .go, .codehilite pre .go { color: #808080 } /* Generic.Output */
+table.codehilitetable .gp, .codehilite pre .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+table.codehilitetable .gs, .codehilite pre .gs { font-weight: bold } /* Generic.Strong */
+table.codehilitetable .gu, .codehilite pre .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+table.codehilitetable .gt, .codehilite pre .gt { color: #0040D0 } /* Generic.Traceback */
+table.codehilitetable .kc, .codehilite pre .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+table.codehilitetable .kd, .codehilite pre .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+table.codehilitetable .kn, .codehilite pre .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+table.codehilitetable .kp, .codehilite pre .kp { color: #008000 } /* Keyword.Pseudo */
+table.codehilitetable .kr, .codehilite pre .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+table.codehilitetable .kt, .codehilite pre .kt { color: #B00040 } /* Keyword.Type */
+table.codehilitetable .m, .codehilite pre .m { color: #666666 } /* Literal.Number */
+table.codehilitetable .s, .codehilite pre .s { color: #BA2121 } /* Literal.String */
+table.codehilitetable .na, .codehilite pre .na { color: #7D9029 } /* Name.Attribute */
+table.codehilitetable .nb, .codehilite pre .nb { color: #008000 } /* Name.Builtin */
+table.codehilitetable .nc, .codehilite pre .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+table.codehilitetable .no, .codehilite pre .no { color: #880000 } /* Name.Constant */
+table.codehilitetable .nd, .codehilite pre .nd { color: #AA22FF } /* Name.Decorator */
+table.codehilitetable .ni, .codehilite pre .ni { color: #999999; font-weight: bold } /* Name.Entity */
+table.codehilitetable .ne, .codehilite pre .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+table.codehilitetable .nf, .codehilite pre .nf { color: #0000FF } /* Name.Function */
+table.codehilitetable .nl, .codehilite pre .nl { color: #A0A000 } /* Name.Label */
+table.codehilitetable .nn, .codehilite pre .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+table.codehilitetable .nt, .codehilite pre .nt { color: #008000; font-weight: bold } /* Name.Tag */
+table.codehilitetable .nv, .codehilite pre .nv { color: #19177C } /* Name.Variable */
+table.codehilitetable .ow, .codehilite pre .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+table.codehilitetable .w, .codehilite pre .w { color: #bbbbbb } /* Text.Whitespace */
+table.codehilitetable .mf, .codehilite pre .mf { color: #666666 } /* Literal.Number.Float */
+table.codehilitetable .mh, .codehilite pre .mh { color: #666666 } /* Literal.Number.Hex */
+table.codehilitetable .mi, .codehilite pre .mi { color: #666666 } /* Literal.Number.Integer */
+table.codehilitetable .mo, .codehilite pre .mo { color: #666666 } /* Literal.Number.Oct */
+table.codehilitetable .sb, .codehilite pre .sb { color: #BA2121 } /* Literal.String.Backtick */
+table.codehilitetable .sc, .codehilite pre .sc { color: #BA2121 } /* Literal.String.Char */
+table.codehilitetable .sd, .codehilite pre .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+table.codehilitetable .s2, .codehilite pre .s2 { color: #BA2121 } /* Literal.String.Double */
+table.codehilitetable .se, .codehilite pre .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+table.codehilitetable .sh, .codehilite pre .sh { color: #BA2121 } /* Literal.String.Heredoc */
+table.codehilitetable .si, .codehilite pre .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+table.codehilitetable .sx, .codehilite pre .sx { color: #008000 } /* Literal.String.Other */
+table.codehilitetable .sr, .codehilite pre .sr { color: #BB6688 } /* Literal.String.Regex */
+table.codehilitetable .s1, .codehilite pre .s1 { color: #BA2121 } /* Literal.String.Single */
+table.codehilitetable .ss, .codehilite pre .ss { color: #19177C } /* Literal.String.Symbol */
+table.codehilitetable .bp, .codehilite pre .bp { color: #008000 } /* Name.Builtin.Pseudo */
+table.codehilitetable .vc, .codehilite pre .vc { color: #19177C } /* Name.Variable.Class */
+table.codehilitetable .vg, .codehilite pre .vg { color: #19177C } /* Name.Variable.Global */
+table.codehilitetable .vi, .codehilite pre .vi { color: #19177C } /* Name.Variable.Instance */
+table.codehilitetable .il, .codehilite pre .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
+  <style>
+body {
+    font-family: 'Roboto', sans-serif;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", 'Roboto', Arial, "Lucida Grande", sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+}
+.nav {
+    text-align: right;
+    padding-bottom: 20px;
+}
+
+.nav a {
+    padding-right: 2em;
+    color: black;
+    font-size: 14px;
+}
+
+.title {
+   width: 100%; 
+   text-align: center; 
+   border-bottom: 1px solid #000; 
+   line-height: 0.1em;
+   margin: 10px 0 40px; 
+} 
+
+.title span { 
+    background:#fff; 
+    padding:0 20px; 
+}
+
+/* Side notes for calling out things
+-------------------------------------------------- */
+ 
+/* Base styles (regardless of theme) */
+.bs-callout {
+  margin: 20px 0;
+  padding: 15px 30px 15px 15px;
+  border-left: 5px solid #eee;
+}
+.bs-callout h4 {
+  margin-top: 0;
+}
+.bs-callout p:last-child {
+  margin-bottom: 0;
+}
+.bs-callout code,
+.bs-callout .highlight {
+  background-color: #fff;
+}
+ 
+/* Themes for different contexts */
+.bs-callout-danger {
+  background-color: #fcf2f2;
+  border-color: #dFb5b4;
+}
+.bs-callout-warning {
+  background-color: #fefbed;
+  border-color: #f1e7bc;
+}
+.bs-callout-info {
+  background-color: #f0f7fd;
+  border-color: #d0e3f0;
+}
+.bs-callout-danger h4 {
+color: #B94A48;
+}
+
+.bs-callout-warning h4 {
+color: #C09853;
+}
+
+.bs-callout-info h4 {
+color: #3A87AD;
+}
+</style>
+
+  
+  
+  <!-- Google Analytics -->
+  <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-12615441-1', 'jeffknupp.com');
+    ga('send', 'pageview');
+  </script>
+  <!-- Google Plus Author Link -->
+  <link href="https://plus.google.com/102786441324515866525" rel="publisher" />
+
+</head>
+
+<body itemscope itemtype="http://schema.org/Blog">
+<header id="header">
+    <img src="/images/jeff.jpg" class="circular center-block">
+    <h1>Jeff Knupp</h1>
+    <h2>PYTHON PROGRAMMER</h2>
+    <nav>
+        <a href="/">BLOG</a>
+        <span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="/about-me/" itemprop="url">ABOUT</a></span>
+        <a href="/blog/archives">ARCHIVES</a>
+        <a href="/python-tutoring" title="python-tutoring">TUTORING</a>
+        <a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">BOOK</a>
+    </nav>
+</header>
+<div class="container-fluid content">
+    <h2 class="text-center"><span itemprop="name">Everything I know about Python...</span></h2>
+    <div class="col-md-8 col-md-offset-2 col-xs-12">
+        <div class="bs-callout bs-callout-danger">
+            <h4 class="text-center">Learn to Write Pythonic Code!</h4>
+            <p class="text-center"><a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">
+                Check out the book <em>Writing Idiomatic Python</em>!</a></p>
+        </div>
+        <div id="content">
+            
+<article itemscope itemtype="http://schema.org/BlogPosting">
+<header>
+    <h1 class="post-title"><a href="/blog/2013/02/06/write-cleaner-python-use-exceptions"><span itemprop="headline">Write Cleaner Python: Use Exceptions</span></a><br/>
+</header>
+
+<div class="entry-content" itemprop="articleBody">
+    
+        <p>Many programmers have had it drilled into their head that exceptions, in any 
+language, should only be used in truly exceptional cases.  They're wrong. 
+The Python community's approach to exceptions leads to cleaner code that's
+easier to read. And that's without the monstrous hit to performance commonly
+associated with exceptions in other languages. </p>
+<!--more-->
+
+<p><strong>EDIT: Updated with more useful exception idioms</strong></p>
+<h2>Using exceptions to write <em>cleaner</em> code?</h2>
+<p>When I talk about "using exceptions", I'm specifically <em>not</em> referring to
+creating some crazy exception hierarchy for your package and raising exceptions
+at every possible opportunity. That will most certainly lead to unmaintainable
+and difficult to understand code. This notion has been widely discussed and is
+well summarized <a href="http://www.joelonsoftware.com/items/2003/10/13.html">on Joel Spolsky's blog</a>.</p>
+<p><em>Note: Python avoids much of the tension of the "error codes vs exceptions" argument.
+Between the ability to return multiple values from a function and the ability to
+return values of different types (e.g. <code>None</code> or something similar in the error
+case) the argument is moot. But this is besides the point.</em></p>
+<p>The style of exception usage I'm advocating is quite different. In short: <strong>take
+advantage of Python built-ins and standard library modules that already throw
+exceptions.</strong> Exceptions are built in to Python at the lowest levels. In fact, I
+<em>guarantee</em> your code is already using exceptions, even if not explicitly. </p>
+<h3>Intermezzo: How the <code>for</code> statement works</h3>
+<p>Any time you use <code>for</code> to iterate over an <code>iterable</code> (basically, all <code>sequence</code>
+types and anything that defines <code>__iter__()</code> or <code>__getitem__()</code>), it needs to 
+know when to stop iterating. Take a look at the code below: </p>
+<div class="codehilite"><pre><span class="n">words</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;exceptions&#39;</span><span class="p">,</span> <span class="s">&#39;are&#39;</span><span class="p">,</span> <span class="s">&#39;useful&#39;</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+</pre></div>
+
+
+<p>How does <code>for</code> know when it's reached the last element in <code>words</code> and should 
+stop trying to get more items? The answer may surprise you: <em>the list raises a
+<code>StopIteration</code> exception</em>. </p>
+<p>In fact, all <code>iterables</code> follow this pattern. When a <code>for</code> statement is 
+first evaluated, it calls <code>iter()</code> on the object being iterated over. 
+This creates an <code>iterator</code> for the object, capable of returning the 
+contents of the object in sequence. For the call to <code>iter()</code> to succeed, the
+object must either support the iteration protocol (by defining <code>__iter__()</code>) or
+the sequence protocol (by defining <code>__getitem__()</code>).</p>
+<p>As it happens, both the <code>__iter__()</code> and <code>__getitem__()</code> functions are 
+required to <em>raise an exception</em> when the items to iterate over are 
+exhausted. <code>__iter__()</code> raises the <code>StopIteration</code> exception, as discussed
+earlier, and <code>__getitem__()</code> raises the <code>IndexError</code> exception. This is how
+<code>for</code> knows when to stop.</p>
+<p><strong>In summary: if you use <code>for</code> anywhere in your code, you're using exceptions.</strong></p>
+<h2>LBYL vs. EAFP</h2>
+<p>It's all well and good that exceptions are widely used in core Python constructs,
+but <em>why</em> is a different question. After all, <code>for</code> could certainly have
+been written to not rely on exceptions to mark the end of a sequence. Indeed,
+exceptions could have been avoided altogether.</p>
+<p>But they exist due to the philosophical approach to error checking adopted in 
+Python. Code that doesn't use exceptions is always checking if it's OK to do 
+something. In practice, it must ask a number of different questions before it is
+convinced it's OK to do something. If it doesn't ask <em>all</em> of the right 
+questions, bad things happen. Consider the following code:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">print_object</span><span class="p">(</span><span class="n">some_object</span><span class="p">):</span>
+    <span class="c"># Check if the object is printable...</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">some_object</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">some_object</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">some_object</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">some_object</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">some_object</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">some_object</span><span class="p">)</span>
+    <span class="c"># 97 elifs later...</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;unprintable object&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>This trivial function is responsible for calling <code>print()</code> on an object. If it can't be
+<code>print()</code>-ed, it prints an error message.</p>
+<p>Trying to anticipate all error conditions in advance is destined for failure
+(and is also really ugly). Duck typing is a central idea in Python, but this
+function will incorrectly print an error for types than <em>can</em> be printed but
+aren't explicitly checked.</p>
+<p>The function can be rewritten like so:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">print_object</span><span class="p">(</span><span class="n">some_object</span><span class="p">):</span>
+    <span class="c"># Check if the object is printable...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">printable</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">some_object</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">printable</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;unprintable object&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>If the object can be coerced to a string, do so and print it. If that attempt 
+raises an exception, print our error string. Same idea, much easier to follow
+(the lines in the <code>try</code> block could obviously be combined but weren't to make the
+example more clear). Also, note that we're explicitly checking 
+for <code>TypeError</code>, which is what would be raised if the coercion failed. Never
+use a "bare" <code>except:</code> clause or you'll end up suppressing 
+real errors you didn't intend to catch.</p>
+<h3>But wait, there's more!</h3>
+<p>The function above is admittedly contrived (though certainly based on a common
+anti-pattern). There are a number of other useful ways to use exceptions. Let's
+take a look at the use of an <code>else</code> clause when handling exceptions.</p>
+<p>In the rewritten version of <code>print_object</code> below, the code in the <code>else</code> block is 
+executed only if the code in the <code>try</code> block <strong>didn't</strong> throw an exception. 
+It's conceptually similar to using <code>else</code> with a <code>for</code> loop (which is itself a 
+useful, if not widely known, idiom). It also fixes a bug in the previous
+version: we caught a <code>TypeError</code> assuming that only the call to <code>str()</code> would
+generate it. But what if it was actually (somehow) generated from the call to
+<code>print()</code> and has nothing to do with our string coercion?</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">print_object</span><span class="p">(</span><span class="n">some_object</span><span class="p">):</span>
+    <span class="c"># Check if the object is printable...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">printable</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">some_object</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;unprintable object&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">printable</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Now, the <code>print()</code> line is only called if no exception was raised. If <code>print()</code>
+raises an exception, this will bubble up the call stack as normal. The <code>else</code>
+clause is often overlooked in exception handling but incredibly useful in
+certain situations. Another use of  <code>else</code> is when code in the <code>try</code>
+block requires some cleanup (and doesn't have a usable context manager), as in
+the below example:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">display_username</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">db_connection</span> <span class="o">=</span> <span class="n">get_db_connection</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">DatabaseEatenByGrueError</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Sorry! Database was eaten by a grue.&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">db_connection</span><span class="o">.</span><span class="n">get_username</span><span class="p">(</span><span class="n">user_id</span><span class="p">))</span>
+        <span class="n">db_connection</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+
+
+<h3>How not to confuse your users</h3>
+<p>A useful pattern when dealing with exceptions is the bare <code>raise</code>. 
+Normally, <code>raise</code> is paired with an exception to be raised. However, if 
+it's used in exception handling code, <code>raise</code> has a slightly 
+different (but immensely useful) meaning.</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">calculate_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">foo</span><span class="p">,</span> <span class="n">bar</span><span class="p">,</span> <span class="n">baz</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_calculation</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">bar</span><span class="p">,</span> <span class="n">baz</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_screwups</span> <span class="o">+=</span> <span class="mi">1</span> 
+        <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+
+
+<p>Here, we have a member function doing some calculation. 
+We want to keep some statistics on how often the function is misused and
+throws an exception, but we have no intention of actually handling the 
+exception.  Ideally, we want to an exception raised in <code>_do_calculation</code> 
+to be flow back to the user code as normal. If we simply raised a new exception 
+from our <code>except</code> clause, the traceback point to our <code>except</code>
+clause and mask the real issue (not to mention confusing the user). 
+<code>raise</code> on its own, however, lets the exception propagate normally <em>with its
+original traceback</em>. In this way, we record the information we want and the user
+is able to see what actually caused the exception.</p>
+<h3>A tale of two styles</h3>
+<p>We've now seen two distinct approaches to error handling (lots of <code>if</code>
+statements vs. catching exceptions). These approaches are respectively known 
+as <em>Look Before You Leap (LBYL)</em> and <em>Easier to Ask for Forgiveness than 
+Permission</em>. In the LBYL camp, you always check to see if something can 
+be done before doing it. In EAFP, you just do the thing. If it turns out 
+that wasn't possible, <em>shrug</em> "my bad", and deal with it.</p>
+<p>Idiomatic Python is written in the EAFP style (where reasonable). We can do so
+because exceptions are cheap in Python.</p>
+<h2>Slow is relative</h2>
+<p>The fact that the schism over exception usage exists is understandable. In a 
+number of other languages (especially compiled ones), exceptions are 
+comparatively expensive.  In this context, avoiding exceptions in 
+performance sensitive code is reasonable. </p>
+<p>But this argument doesn't hold weight for Python. There is <em>some</em> overhead,
+of course, to using exceptions in Python. <em>Comparatively</em>, though, it's
+negligible in almost all cases. And I'm playing it safe by including "almost"
+in the previous sentence.</p>
+<p>Want proof? Regardless, here's some proof. To get an accurate sense of the
+overhead of using exceptions, we need to measure two (and a half) things: </p>
+<ol>
+<li>The overhead of simply adding a <code>try</code> block but never throwing an exception</li>
+<li>The overhead of using an exception vs. comparable code without exceptions<ol>
+<li>When the exception case is quite likely</li>
+<li>When the exception case is unlikely</li>
+</ol>
+</li>
+</ol>
+<p>The first is easy to measure. We'll time two code blocks using the <code>timeit</code>
+module. The first will simply increment a counter. The second will do the same
+but wrapped in a <code>try</code>/<code>except</code> block.</p>
+<p>Here's the script to calculate the timings:</p>
+<div class="codehilite"><pre><span class="n">SETUP</span> <span class="o">=</span> <span class="s">&#39;counter = 0&#39;</span>
+
+<span class="n">LOOP_IF</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">counter += 1</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="n">LOOP_EXCEPT</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">try:</span>
+<span class="s">    counter += 1</span>
+<span class="s">except:</span>
+<span class="s">    pass</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">timeit</span>
+    <span class="n">if_time</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">LOOP_IF</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="n">SETUP</span><span class="p">)</span>
+    <span class="n">except_time</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">LOOP_EXCEPT</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="n">SETUP</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;using if statement: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">if_time</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="mi">10</span> <span class="o">**</span> <span class="mi">7</span><span class="p">))))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;using exception: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">except_time</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="mi">10</span> <span class="o">**</span> <span class="mi">7</span><span class="p">))))</span>
+</pre></div>
+
+
+<p>Note that <code>Timer.repeat(repeat=3, number=1000000)</code> returns the time
+taken to execute the code block <code>number</code> times, repeated <code>repeat</code> times. The
+<a href="http://docs.python.org/2/library/timeit.html">Python documentation</a> suggests
+that the time should be at least 0.2 to be accurate, hence the change to <code>number</code>.<br />
+The code prints the best run of executing each code block (<code>LOOP_IF</code> and <code>LOOP_EXCEPT</code>) 
+10,000,000 times.</p>
+<p>Clearly, all we're measuring here is the setup cost of using an exception. Here
+are the results:</p>
+<div class="codehilite"><pre>&gt;&gt;&gt; python exception_short
+using <span class="k">if </span>statement: 0.574051856995
+using exception: 0.821137189865
+</pre></div>
+
+
+<p>So the presence of an exception increases run time by .3 seconds divided by
+10,000,000. In other words: <strong>if using a simple exception drastically impacts
+your performance, you're doing it wrong...</strong></p>
+<p>So an exception that does nothing is cheap. Great. What about one that's
+actually useful? To test this, we'll load the words file found at
+<code>/usr/share/dict/words</code> on most flavors of Linux. Then we'll conditionally 
+increment a counter based on the presence of a random word. Here is the new 
+timing script:</p>
+<div class="codehilite"><pre><span class="kn">import</span> <span class="nn">timeit</span>
+
+<span class="n">SETUP</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">import random</span>
+<span class="s">with open(&#39;/usr/share/dict/words&#39;, &#39;r&#39;) as fp:</span>
+<span class="s">    words = [word.strip() for word in fp.readlines()]</span>
+<span class="s">percentage = int(len(words) *.1)</span>
+<span class="s">my_dict = dict([(w, w) for w in random.sample(words, percentage)])</span>
+<span class="s">counter = 0</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="n">LOOP_IF</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">word = random.choice(words)</span>
+<span class="s">if word in my_dict:</span>
+<span class="s">    counter += len(my_dict[word])</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="n">LOOP_EXCEPT</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">word = random.choice(words)</span>
+<span class="s">try:</span>
+<span class="s">    counter += len(my_dict[word])</span>
+<span class="s">except KeyError:</span>
+<span class="s">    pass</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">if_time</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">LOOP_IF</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="n">SETUP</span><span class="p">)</span>
+    <span class="n">except_time</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">LOOP_EXCEPT</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="n">SETUP</span><span class="p">)</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="mi">1000000</span>
+    <span class="n">min_if_time</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">if_time</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="n">number</span><span class="p">))</span>
+    <span class="n">min_except_time</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">except_time</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="n">number</span><span class="p">))</span>
+
+    <span class="k">print</span> <span class="s">&quot;&quot;&quot;using if statement:</span>
+<span class="s">    minimum: {}</span>
+<span class="s">    per_lookup: {}</span>
+<span class="s">    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">min_if_time</span><span class="p">,</span> <span class="n">min_if_time</span> <span class="o">/</span> <span class="n">number</span><span class="p">)</span>
+
+    <span class="k">print</span> <span class="s">&quot;&quot;&quot;using exception:</span>
+<span class="s">    minimum: {}</span>
+<span class="s">    per_lookup: {}</span>
+<span class="s">    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">min_except_time</span><span class="p">,</span> <span class="n">min_except_time</span> <span class="o">/</span> <span class="n">number</span><span class="p">)</span>
+</pre></div>
+
+
+<p>The only thing of note is the <code>percentage</code> variable, which essentially dictates
+how likely our randomly chosen <code>word</code> is to be in <code>my_dict</code>. </p>
+<p>So with a 90% chance of an exception being thrown in the code above, here 
+are the numbers:</p>
+<div class="codehilite"><pre><span class="n">using</span> <span class="k">if</span> <span class="n">statement</span><span class="o">:</span>
+    <span class="nl">minimum:</span> <span class="mf">1.35720682144</span>
+    <span class="nl">per_lookup:</span> <span class="mf">1.35720682144e-06</span>
+
+<span class="n">using</span> <span class="n">exception</span><span class="o">:</span>
+    <span class="nl">minimum:</span> <span class="mf">3.25777006149</span>
+    <span class="nl">per_lookup:</span> <span class="mf">3.25777006149e-06</span>
+</pre></div>
+
+
+<p>Wow! 3.2 seconds vs 1.3 seconds! Exceptions are teh sux0rz!</p>
+<p>If you run them 1,000,000 times in a tight loop with a 90% chance of throwing
+an exception, then exceptions are a bit slower, yes. Does any code you've 
+<em>ever</em> written do that? No? Good, let's see a more realistic scenario.</p>
+<p>Changing the chance of an exception to 20% gives the following result:</p>
+<div class="codehilite"><pre><span class="n">using</span> <span class="k">if</span> <span class="n">statement</span><span class="o">:</span>
+    <span class="nl">minimum:</span> <span class="mf">1.49791312218</span>
+    <span class="nl">per_lookup:</span> <span class="mf">1.49791312218e-06</span>
+
+<span class="n">using</span> <span class="n">exception</span><span class="o">:</span>
+    <span class="nl">minimum:</span> <span class="mf">1.92286801338</span>
+    <span class="nl">per_lookup:</span> <span class="mf">1.92286801338e-06</span>
+</pre></div>
+
+
+<p>At this point the numbers are close enough to not care. A difference of 0.5 * 10^-6
+seconds shouldn't matter to anyone. If it does, I have a spare copy of the K&amp;R C
+book you can have; go nuts.</p>
+<p>What did we learn?</p>
+<p><strong>Exceptions in Python are not "slow".</strong></p>
+<h2>To sum up...</h2>
+<p>Exceptions are baked-in to Python at the language level, can lead to cleaner
+code, and impose almost zero performance impact. If you were hesitant about
+using exceptions in the style described in this post, don't be. If you've
+avoided exceptions like the plague, it's time to give them another look.</p>
+        
+<small>Posted on <time datetime="2013-02-06 14:36:00" pubdate data-updated="true" itemprop="datePublished">Feb 06, 2013</time> by <span itemprop="author"> Jeff Knupp</span></small> </h1>
+<div class="sharing">
+    <div class="row">
+    <p class="meta" style="padding-top: 20px;">
+    <a class="basic-alignment left" href="/blog/2013/01/29/anatomy-of-an-ebook-launch-raw-numbers" title="Previous Post: Anatomy of an eBook Launch: Raw Numbers">&laquo; Anatomy of an eBook Launch: Raw Numbers</a>
+    </p>
+    
+    <div id="mc_embed_signup" class="well">
+<form action="http://jeffknupp.us6.list-manage1.com/subscribe/post?u=51d2d98cf34cbcc20db22e5fa&amp;id=f15bb537ad" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+  <h4>Like this article?</h4>
+  <p>Why not sign up for <strong>Python Tutoring</strong>? Sessions can be held
+  remotely using Google+/Skype or in-person if you're in the NYC area. <a href="mailto:jeff@jeffknupp.com">Email jeff@jeffknupp.com</a> if interested.</p>
+  <p><strong>Sign up for the free jeffknupp.com email newsletter.</strong> Sent roughly once a month, it focuses on Python programming, scalable web development, and growing your freelance consultancy. And of course, you'll never be spammed, your privacy is protected, and you can opt out at any time.</p>
+<div class="mc-field-group">
+	<label for="mce-EMAIL">Email Address</label>
+	<input type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+</div>
+	<div id="mce-responses" class="clear">
+		<div class="response" id="mce-error-response" style="display:none"></div>
+		<div class="response" id="mce-success-response" style="display:none"></div>
+	</div>	<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+</form>
+</div>
+    
+  </footer>
+</article>
+</div>
+<section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Leaderboard -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-2922325862575361"
+     data-ad-slot="6191597138"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <div id="disqus_thread"></div>
+<script type="text/javascript">
+            var disqus_shortname = 'hackersgonnahack';
+
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+ 
+  </section>
+  </div>
+    
+</div>
+</article>
+
+        </div>
+        <div id="footer" class="text-center">
+        
+            <footer role="contentinfo">
+                <p>Copyright &copy; 2014 - Jeff Knupp- <span class="credit">Powered by <a href="http://www.github.com/jeffknupp/blug">Blug</a></span> </p>
+            </footer>
+         
+    </div>
+
+<a title="Web Analytics" href="http://clicky.com/66535137"><img alt="Web Analytics" src="//static.getclicky.com/media/links/badge.gif" border="0" /></a>
+<script type="text/javascript">
+var clicky_site_ids = clicky_site_ids || [];
+clicky_site_ids.push(66535137);
+(function() {
+  var s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.async = true;
+  s.src = '//static.getclicky.com/js';
+  ( document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0] ).appendChild( s );
+})();
+</script>
+<noscript><p><img alt="Clicky" width="1" height="1" src="//in.getclicky.com/66535137ns.gif" /></p></noscript> 
+</div>
+</html>

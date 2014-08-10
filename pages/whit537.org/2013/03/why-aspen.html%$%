@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style>@import url("/main.010.css");</style>
+        <script src="/jquery-1.8.1.min.js"></script>
+        <title>Why Aspen?</title>
+        
+    </head>
+    <body>
+        <div id="blue"></div>
+        <div id="post"><div id="post-padding">
+            
+            <h1>Why Aspen?</h1>
+            <div class="meta">
+                By <a href="https://www.gittip.com/whit537/">Chad Whitacre</a><br />
+                
+                March 26, 2013<br />
+                
+            </div>
+            
+            <div id="nav">
+                <a href="/" class="text">Up to Index</a>
+            </div>
+            
+            
+
+<div class="midbar"><em>
+        
+    <b>Full disclosure:</b> I am the author of the <a
+        href="http://aspen.io/">Aspen</a> web framework.</b>
+
+    <br /><br />
+    
+    I started Aspen in 2006, and in 2012 I built a site with it called <a
+        href="https://www.gittip.com/">Gittip</a>.  People looking at Gittip
+    are <a
+        href="https://twitter.com/zeeg/status/316440131601063937">wondering</a>
+    what Aspen is all about, so I wrote this post to explain the history, the
+    design philosophy, and the current status of Aspen from my perspective.
+
+</em></div>
+
+<p>Ah, the heady days of Python web programming in the early aughts! Everyone
+had their own framework, with almost-forgotten names like Quixote, jonpy, and
+Spyce. Ian Bicking looked at ten of them in a web framework <a
+    href="http://ftp.ntua.gr/mirror/python/pycon/papers/framework/web.html">shootout</a>
+at PyCon 2003. Back in those days Zope was the big player in the Python world,
+along with its wild child Plone. Then we started hearing rumblings about a web
+shop in Chicago with an attitude of its own and a killer project management
+app. Ruby on Rails dropped in 2004. Django followed in 2005, and by the end of
+2006 Guido himself had <a
+    href="http://blog.gordaen.com/2008/04/03/guido-on-django-in-2006/">pronounced</a>
+Django the winner of the Python web wars.</p>
+
+<p>My own contribution came comparatively late, in early 2006. When I <a
+    href="http://mail.python.org/pipermail/chicago/2006-April/000655.html">presented</a>
+at ChiPy in April, it was called httpy. By November, it was called Aspen.
+Django was all the buzz at PyCon that year. I button-holed Guido and pressed
+him to tell me why he thought raising Response objects was a bad idea.
+&ldquo;It violates the principle that you should return from only one
+place,&rdquo; he managed, before excusing himself. &ldquo;I have to go. I don't
+want to miss Adrian's talk about Django.&rdquo;</p>
+
+<p>Then web 2.0 happened.</p>
+
+<p>Then social networking happened.</p>
+
+<p>Then mobile happened.</p>
+
+<p>The whole time I couldn't shake Aspen. Like a ball and chain, or a dog on my
+ankle, I dragged it from one gig to the next. The Curse of Aspen.</p>
+
+<p>Now here it is, 2013, and I've got this site called <a
+    href="https://www.gittip.com/">Gittip</a> that is starting to see some
+traction. Gittip is implemented in Aspen, and naturally people are <a
+    href="https://twitter.com/zeeg/status/316440131601063937">scratching</a>
+their heads. Why use this quirky also-ran instead of Rails or Django?</p>
+
+<h2>Principles</h2>
+
+<p>Aspen has a design based on principle, whereas Rails and Django inherited a
+design pattern from the Java world that was never meant for web programming.
+This makes programming with Aspen much more rational.</p>
+
+<p>The two principles to Aspen's design are:</p>
+
+<ol>
+    <li>URLs map directly to the filesystem.</li>
+    <li>Files are split into pages.</li>
+</ol>
+
+<p>Everything in Aspen's architecture flows from these two principles.</p>
+
+<p>The first principle is what keeps Aspen close to <a
+    href="http://www.w3.org/Protocols/rfc2616/rfc2616.html">HTTP</a>. The path
+is the primary mechanism for picking out a resource on an HTTP server, and,
+clearly, the path used in HTTP is derived from the paths used on filesystems.
+Therefore, using the filesystem for routing is the best way to go with the
+grain of HTTP. All other routing mechanisms&mdash;pattern matching,
+decorators, object traversal, etc.&mdash;all introduce friction between the
+application and HTTP. Question: How do you do URL routing in Django? Answer:
+Regular expressions. Now you've got, as they say, two problems. ;^)</p>
+
+<p>Of course, non-filesystem-based routing mechanisms were developed for a
+reason, and that reason is that CGI and PHP landed us in a morass of
+unmaintainable spaghetti. By the late 1990s we were flailing, looking for
+anything that remotely resembled order and sanity. &ldquo;HAS ANYONE EVER
+ORGANIZED ANY SOURCE CODE EVER BEFORE EVER!?!?!?&rdquo; we cried. And Trygve
+Reenskaug calmly replied, &ldquo;Sure, I invented this pattern called MVC at
+PARC back in the late 1970s. It's for desktop GUIs, but maybe check it
+out?&rdquo; So we did. Sun introduced its so-called <a
+    href="https://en.wikipedia.org/wiki/Model_2">Model 2</a> architecture in
+1998, and, in a 1999 article for JavaWorld.com entitled, &ldquo;<a
+    href="https://en.wikipedia.org/wiki/Model_2">Understanding JavaServer Pages
+    Model 2 architecture</a>,&rdquo; Govind Seshadri recognized it as an
+implementation of MVC:</p>
+
+<blockquote>
+
+    In this article, I provide an in-depth look at how you can gain optimal
+    separation of presentation from content by using the JSP Model 2
+    architecture. This model can also be seen as a server-side implementation
+    of the popular Model-View-Controller (MVC) design pattern.
+
+</blockquote>
+
+<p>The problem is that web servers are not desktop GUIs. Using MVC for
+server-side web programming is, to be honest, a kludge. Yes, it looks sane
+compared to spaghetti PHP, but that's not saying much. With Aspen I've tried to
+design an application architecture that is native to web programming.</p>
+
+<p>With Aspen, URLs map directly to files called &ldquo;simplates,&rdquo; and
+these consist of one or more pages. In the simplest case, with one page, a
+simplate is served as a static file. When you add another page at the top of
+the file, then the first page is programming language syntax, and the second
+page is templating language syntax that can use the names from the first page.
+Simplates use the ASCII page break (<code>&#94;L</code>) for page breaks.</p>
+
+<pre>
+program = "Aspen"
+
+&#94;L
+
+Greetings, {&#123; program }}!
+</pre>
+
+<p>Aspen's second principle, that files are split into pages, is what saves
+Aspen from the spaghetti mess of PHP. You can't arbitrarily mix code and
+content. You can only have code in the first page, and only content in the
+second page. Aspen brings code and content as close together as possible
+<em>without</em> mixing them. It steers you toward well-architected apps,
+without the friction that comes from fighting HTTP.</p>
+
+
+<h3>Derivations</h3>
+
+<p>The past seven years of use have demonstrated that Aspen's principled
+approach works. From these two principles, we can derive all of the common use
+cases of modern web development:</p>
+
+<ul>
+
+    <li>Any file without a page break is a static file.</li>
+
+    <li>Any file with two pages is a &ldquo;rendered&rdquo; simplate. Page one
+    is code, page two is templating. Different templating languages can be used
+    for different simplates, even on the same site.</li>
+
+    <li>A third page at the top of the file is code that is run once, the first
+    time the page is hit.</li>
+
+    <li>Files with extensions for serialization formats such as
+    <code>.json</code> have no templating page, and serialization is done
+    automatically.</li>
+
+    <li>A file with no file extension is a &ldquo;negotiated&rdquo; simplate,
+    and is capable of serving multiple content types (either through explicit
+    HTTP content negotiation, or through implicit negotation based on file
+    extension).</li>
+
+    <li>Path parts beginning with <code>%</code> (percent) are
+    parameterized.</li>
+
+    <li>Files with names beginning with <code>%</code> and having no file
+    extension are &ldquo;greedy&rdquo; simplates, and are used to serve any
+    requests below the given path.</li>
+
+    <li>Files with names ending in <code>.sock</code> are SocketIO
+    endpoints.</li>
+
+    <li>Models and business logic live in libraries, and are imported into
+    simplates.</p>
+
+    <li>Simplates lend themselves easily to having testing helpers written for
+    them.</p>
+
+</ul>
+
+<p>The Aspen architecture is suited for a whole range of applications, from
+short-lived static file servers, to service layers and internal dashboards, to
+consumer-grade web applications. Furthermore, the Aspen architecture is
+language-agnostic. Versions of Aspen exist (with varying maturity) for Go,
+JavaScript, Ruby, and Python. There's no reason in principle that a single
+server process couldn't serve simplates that use different programming
+languages.</p>
+
+<h3>Challenges</h3>
+
+<p>The biggest practical problem with simplates right now is tool support. Text
+editors, linters, code coverage tools, and the like don't know about simplates
+yet. We do have a <a
+    href="https://github.com/gittip/aspen-vim">Vim mode</a>, but it's very
+young. I don't use it, actually. I find myself manually calling <code>set
+    filetype=html</code> in simplates to switch from Python to HTML syntax
+highlighting. It might be necessary to <a
+    href="https://github.com/gittip/aspen-python/issues/148">adopt</a> a
+simplate-specific file extension to make it easier to write and configure
+tools. Obviously the tool support is good enough that I and others are
+productive with Aspen. You can drop into the Python debugger directly from
+simplates, for example. If Node has shown us anything over the past few years,
+it's that we can build fairly robust ecosystems pretty quickly if we want to.
+Tool support for Aspen is occasionally a little frustrating, but I'm not too
+worried about it in the long run.</p>
+
+<p>The biggest strategic challenge to Aspen I see is <a
+    href="http://meteor.com/">Meteor</a>. Aspen optimizes for HTTP, Meteor
+abstracts away HTTP altogether. If Meteor falls short of its ambitious goal to
+be the next UNIX, I expect it to be because HTTP is too leaky of an
+abstraction. I'm also not sure that full-stack JavaScript will carry the day as
+solidly as Meteor seems to require. Other languages aren't dead yet! We shall
+see.</p>
+
+<p>The current framework players aren't going anywhere soon either, of course.
+What if Rails or Django added filesystem dispatch as an optional routing
+mechanism?  That'd be a huge win, in my book. Aspen has already inspired one
+new framework, <a href="https://github.com/dcrosta/keystone">Keystone</a>. If
+the wider web programming community takes filesystem routing to heart in
+whatever form, I'll chalk that up as a success. In the mean time I'm seeing
+enough promise with Aspen on Gittip that I'm content to keep going with it.</p>
+
+
+<h3>Future Directions</h3>
+
+<p>So where is Aspen going? First, we're going to keep using it with Gittip. I
+want Gittip to be for Aspen what Basecamp was for Rails and LJW was for Django.
+If you want to see what a real Aspen app looks like, go look at <a
+    href="https://github.com/gittip/www.gittip.com">the Gittip source</a>.
+Maybe even clone it and send us a pull request. :)</p>
+
+<p>Second, I really want to push Aspen in this multi-glot direction we've
+started in on. The <a href="https://github.com/gittip/aspen-python">Python</a>
+version is obviously the most mature. <a
+    href="https://www.gittip.com/pjz/">Paul Jimenez</a> has been helping me run
+that project for a couple years now. I started the Ruby and JavaScript ports
+during my first Ruby and Node meetups a few months ago. The <a
+    href="https://github.com/gittip/aspen-ruby">Ruby</a> version is still
+waiting for the right person to come along and own it. The <a
+    href="https://github.com/gittip/aspen-javascript">JavaScript</a> version
+has seen greatly cleaned up by <a href="https://www.gittip.com/geNAZt/">Fabian
+    Fa&#223;bender</a>, however, and the <a
+    href="https://github.com/gittip/aspen-go">Go</a> port from <a
+    href="https://www.gittip.com/meatballhat/">Dan Buch</a> is more than a bare
+hack. What we really need to do is write up a language-agnostic definition of
+Aspen, and then we can revisit the <a href="http://aspen.io/">aspen.io</a>
+website and discuss each language implementation in context.</p>
+
+<p>If you want to give Aspen a try, then your best bet is to download the
+Python version from <a href="http://aspen.io/">aspen.io</a> (the other versions
+aren't actually published there yet!) and go through the <a
+    href="http://aspen.io/quick-start/">Quick Start</a>. If you want to
+contact me or get involved with Aspen, the place to start is Twitter (<a
+    href="https://twitter.com/whit537">@whit537</a>), or the <a
+    href="http://webchat.freenode.net/?channels=aspen">#aspen</a> channel on
+Freenode.</p> <p>Thanks! :)</p>
+
+
+            <div id="footer">
+                Feed back to <a href="http://twitter.com/whit537">@whit537</a>.
+                <br /><br />
+                <script data-gittip-username="whit537" 
+                        src="//gttp.co/v1.js"></script>
+            </div>
+        </div></div>
+        <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+        </script>
+        <script type="text/javascript">
+            try {
+                var pageTracker = _gat._getTracker("UA-247427-17");
+                pageTracker._trackPageview();
+            } catch(err) {}
+        </script>
+    </body>
+</html>

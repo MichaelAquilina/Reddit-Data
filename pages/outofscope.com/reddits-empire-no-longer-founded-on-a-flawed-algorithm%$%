@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    
+    <title>Reddit's empire no longer founded on a flawed algorithm</title>
+    <meta name="description" content="" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="shortcut icon" href="/favicon.ico">
+
+    
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css?v=eaeed7a258" />
+    <link rel="stylesheet" href="/assets/css/prism.css?v=eaeed7a258" />
+    <link rel="stylesheet" href="/assets/css/custom.css?v=eaeed7a258" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Noto+Serif:400,700,400italic|Open+Sans:700,400" />
+
+    
+    <meta name="generator" content="Ghost 0.4" />
+<link rel="alternate" type="application/rss+xml" title="out of scope" href="/rss/">
+<link rel="canonical" href="http://www.outofscope.com/reddits-empire-no-longer-founded-on-a-flawed-algorithm/" />
+</head>
+<body class="post-template tag-reddit">
+
+    
+    
+
+
+
+<main class="content" role="main">
+
+    <article class="post tag-reddit">
+
+        
+        <header class="post-header">
+            <a class="blog-logo" href="http://www.outofscope.com">
+                
+                    <img src="/content/images/2014/Jan/out_of_scope_logo.png" alt="Blog Logo" />
+                
+            </a>
+        </header>
+
+        
+        
+
+            <span class="post-meta"><time datetime="2014-02-16">16 Feb 2014</time> on <a href="/tag/reddit/">reddit</a></span>
+
+            <h1 class="post-title">Reddit's empire no longer founded on a flawed algorithm</h1>
+
+            <section class="post-content">
+                <p>About a month ago on January 12 2014, reddit made a seemingly minor change to its <code>hot</code> algorithm. This algorithm is responsible for determining which stories appear at the top of the front page and each individual subreddit. You can see why this algorithm is crucial to the company as it decides which submissions live and prosper as well as which ones wither and die.</p>
+
+<p>The algorithm was often criticized as being flawed, <a href="http://technotes.iangreenleaf.com/posts/2013-12-09-reddits-empire-is-built-on-a-flawed-algorithm.html">the most recent occurence happening on December 9 2013</a> (<a href="http://www.reddit.com/r/technology/comments/1siiiw/reddits_empire_is_founded_on_a_flawed_algorithm/">reddit thread</a>). Reddit's response was always that there's was more to it and that the "flaw" was <em>by-design</em>.</p>
+
+<blockquote>
+  <p>The hot sort might seem a bit weird, but it's intentionally set up that way.</p>
+  
+  <p>- <a href="https://github.com/reddit/reddit/pull/583#issuecomment-14527095">bsimpson63</a></p>
+</blockquote>
+
+<p>You can see most of the responses this criticism on <a href="https://github.com/reddit/reddit/pull/583">this GitHub issue</a>.</p>
+
+<p>So why did they suddenly change? What was the impact? Let's look at the code.</p>
+
+<h5 id="oldalgorithm">Old algorithm</h5>
+
+<pre><code>cpdef double _hot(long ups, long downs, double date):  
+    """The hot formula. Should match the equivalent function in postgres."""
+    s = score(ups, downs)
+    order = log10(max(abs(s), 1))
+    if s &gt; 0:
+        sign = 1
+    elif s &lt; 0:
+        sign = -1
+    else:
+        sign = 0
+    seconds = date - 1134028003
+    return round(order + sign * seconds / 45000, 7)
+</code></pre>
+
+<h5 id="newalgorithm">New algorithm</h5>
+
+<pre><code>cpdef double _hot(long ups, long downs, double date):  
+    """The hot formula. Should match the equivalent function in postgres."""
+    s = score(ups, downs)
+    order = log10(max(abs(s), 1))
+    if s &gt; 0:
+        sign = 1
+    elif s &lt; 0:
+        sign = -1
+    else:
+        sign = 0
+    seconds = date - 1134028003
+    return round(sign * order + seconds / 45000, 7)
+</code></pre>
+
+<p>Notice the <a href="https://github.com/reddit/reddit/commit/50d35de04b928836b7ee955c8a26f197e24ab01e">difference</a>?  </p>
+
+<pre><code>-    return round(order + sign * seconds / 45000, 7)
++    return round(sign * order + seconds / 45000, 7)
+</code></pre>
+
+<p>Let's take a look at the impact on a couple examples.</p>
+
+<h3 id="impactofscore">Impact of score</h3>
+
+<p>The score (upvotes - downvotes) is used to compute the <code>order</code> value.  </p>
+
+<pre><code>                                 old            new
+# score &gt; 0
+_hot(1, 0, 1262304000)           2850.0         2850.0  
+_hot(1000, 500, 1262304000)      2852.69897     2852.69897
+
+# score &lt; 0
+_hot(0, 1, 1262304000)          -2851.0         2850.0  
+_hot(1000, 1500, 1262304000)    -2848.30103     2847.30103
+
+# score == 0
+_hot(1000, 1000, 1262304000)     0.0            2850.0  
+</code></pre>
+
+<h5 id="score0">score > 0</h5>
+
+<p>We notice right away that submissions with a positive score haven't changed at all. It makes sense since the change only moved where <code>sign</code> was applied and in the case of positive scores, the sign is always 1.</p>
+
+<h5 id="score0">score &lt; 0</h5>
+
+<p>Here we notice a drastic change in the results. Submissions that previously had a negative ranking now have a positive one. Furthermore, the lower the score, the lower the submission will be ranked. <strong>That was not the case before.</strong> Yes, that's right, older submissions with a negative score would rank higher with the old algorithm than newer submissions with the same score. In practice this wasn't such a problem because the interesting, positive submissions would still be ranked before them anyway.</p>
+
+<h5 id="score0">score == 0</h5>
+
+<p>Finally, when the score was 0, all submissions would be ranked at 0, no matter what. With the new algorithm, the score has no impact on the rank, only it's age as we'll see next.</p>
+
+<h3 id="impactofage">Impact of age</h3>
+
+<p><code>1262304000</code> and <code>1353107345</code> are simply timestamps represented in seconds since epoch. Higher is more recent.</p>
+
+<pre><code>                                 old            new
+# score &gt; 0
+_hot(1000, 500, 1262304000)      2852.69897     2852.69897  
+_hot(1000, 500, 1353107345)      4870.69897     4870.69897
+
+# score &lt; 0
+_hot(1000, 1500, 1262304000)    -2848.30103     2847.30103  
+_hot(1000, 1500, 1353107345)    -4866.30103     4865.30103
+
+# score == 0
+_hot(1000, 1000, 1262304000)     0.0            2850.0  
+_hot(1000, 1000, 1353107345)     0.0            4868.0  
+</code></pre>
+
+<h5 id="score0">score > 0</h5>
+
+<p>Again, no change here for the same reasons.</p>
+
+<h5 id="score0">score &lt; 0</h5>
+
+<p>As before, the rankings are now positive with the new algorithm. But the biggest change is that <strong>newer submissions now rank higher than older ones</strong>. You'd think that would have been the case before, but submissions with a negative scores would quickly disappear from the front page with the previous flawed algorithm. Now, these stories have at least a chance to show up if their score isn't too abysmal.</p>
+
+<h5 id="score0">score == 0</h5>
+
+<p>The rankings for submissions with a score of 0 serve as the baseline for submissions with a similar date. Furthermore, there's now a way to compare the rank of these submissions.</p>
+
+<h3 id="birdseyeview">Bird's-eye view</h3>
+
+<p>If we distant ourselves from these results, this is what we see:  </p>
+
+<pre><code>old algorithm:  
+  positive submissions
+  neutral (score == 0) submissions
+  negative submissions
+
+new algorithm:  
+  positive submissions within a time frame
+  neutral submissions within a time frame
+  negative submissions within a time farme
+  positive submissions within an older time frame
+  ...
+</code></pre>
+
+<p>Of course in practice things aren't as tidy as this, but the point to remember is that <strong>neutral and negative submissions can now appear before older positive submissions</strong>. You're still unlikely to see submissions with a score of 0 on your front page. However, if you look at the next pages or visit a less active subreddit, at least now the positively ranked submissions won't drown out the more recent, less well received submissions.</p>
+
+<h4 id="furtherreading">Further reading</h4>
+
+<ul>
+<li><a href="http://bibwild.wordpress.com/2012/05/08/reddit-story-ranking-algorithm/">Reddit’s actual? (or a variation?) story ranking algorithm explained</a></li>
+<li><a href="http://amix.dk/blog/post/19588">How Reddit ranking algorithms work</a></li>
+<li><a href="https://coderwall.com/p/cacyhw">An introduction to ranking algorithms seen on social news aggregators</a></li>
+<li><a href="https://gist.github.com/mbillard/9037350">Code used to generate the results</a></li>
+</ul>
+            </section>
+
+            <footer class="post-footer">
+
+                <section class="author">
+                    <h4>Michel Billard</h4>
+                    <p>I&#x27;m a web developer with a passion for user experience and interaction design.</p>
+                    <ul class="author-meta clearfix">
+                        <li>Montreal, Canada</li>
+                        <li><a href="http://www.mbillard.com">http://www.mbillard.com</a></li>
+                    </ul>
+                </section>
+
+                <section class="share">
+                    <h4>Share this post</h4>
+                    <a class="icon-twitter" href="https://twitter.com/share?text=Reddit's%20empire%20no%20longer%20founded%20on%20a%20flawed%20algorithm&amp;url=http://www.outofscope.com/reddits-empire-no-longer-founded-on-a-flawed-algorithm/"
+                        onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                        <span class="hidden">Twitter</span>
+                    </a>
+                    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://www.outofscope.com/reddits-empire-no-longer-founded-on-a-flawed-algorithm/"
+                        onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                        <span class="hidden">Facebook</span>
+                    </a>
+                    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://www.outofscope.com/reddits-empire-no-longer-founded-on-a-flawed-algorithm/"
+                       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                        <span class="hidden">Google+</span>
+                    </a>
+                </section>
+
+            </footer>
+
+          
+          <div id="disqus_thread"></div>
+          <script type="text/javascript">
+              /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+              var disqus_shortname = 'out-of-scope'; // required: replace example with your forum shortname
+              var disqus_identifier = '17';
+              var disqus_title = 'Reddit&#x27;s empire no longer founded on a flawed algorithm';
+              var disqus_url = 'http://www.outofscope.com/reddits-empire-no-longer-founded-on-a-flawed-algorithm/';
+
+              /* * * DON'T EDIT BELOW THIS LINE * * */
+              (function() {
+                  var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+          </script>
+          <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+
+    </article>
+
+</main>
+
+
+    <footer class="site-footer">
+        <a class="subscribe icon-feed" href="http://www.outofscope.com/rss/"><span class="tooltip">Subscribe!</span></a>
+        <div class="inner">
+             <section class="copyright">All content copyright <a href="http://www.outofscope.com/">out of scope</a> &copy; 2014 &bull; All rights reserved.</section>
+             <section class="poweredby">Proudly published with <a class="icon-ghost" href="https://ghost.org">Ghost</a></section>
+        </div>
+    </footer>
+
+    
+    <script src="/public/jquery.js?v=eaeed7a258"></script>
+
+    
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js?v=eaeed7a258"></script>
+    <script type="text/javascript" src="/assets/js/index.js?v=eaeed7a258"></script>
+    <script src="/assets/js/prism.js?v=eaeed7a258"></script>
+
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-1804335-13', 'outofscope.com');
+      ga('send', 'pageview');
+    </script>
+
+<img src="/view.gif?page=/reddits-empire-no-longer-founded-on-a-flawed-algorithm/" alt="" style="display:none" hidden />
+</body>
+</html>

@@ -1,0 +1,396 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<title>Eli Bendersky&#039;s website  &raquo; Python will have enums in 3.4!</title>
+
+<meta name="generator" content="WordPress" /> <!-- leave this for stats -->
+
+<link rel="stylesheet" href="http://eli.thegreenplace.net/wp-content/themes/elitheme/style.css" type="text/css" media="screen" />
+<link rel="alternate" type="application/rss+xml" title="Eli Bendersky&#039;s website RSS Feed" href="http://eli.thegreenplace.net/feed/" />
+<link rel="pingback" href="http://eli.thegreenplace.net/xmlrpc.php" />
+
+<style type="text/css" media="screen">
+/*	To accomodate differing install paths of WordPress, images are referred only here,
+	and not in the wp-layout.css file. If you prefer to use only CSS for colors and what
+	not, then go right ahead and delete the following lines, and the image files. */
+		
+	body { background: url("http://eli.thegreenplace.net/wp-content/themes/elitheme/images/kubrickbgcolor.jpg"); }	
+	#page { background: url("http://eli.thegreenplace.net/wp-content/themes/elitheme/images/kubrickbgwide.jpg") repeat-y top; border: none; } 
+	#header { background: url("http://eli.thegreenplace.net/wp-content/themes/elitheme/images/kubrickheader.jpg") no-repeat bottom center; }
+	#footer { background: url("http://eli.thegreenplace.net/wp-content/themes/elitheme/images/kubrickfooter.jpg") no-repeat bottom; border: none; }
+
+    #headerimg { background: url('http://eli.thegreenplace.net/wp-content/themes/elitheme/images/personalheader.gif') no-repeat top;}
+</style>
+
+<link rel="alternate" type="application/rss+xml" title="Eli Bendersky&#039;s website &raquo; Python will have enums in 3.4! Comments Feed" href="http://eli.thegreenplace.net/2013/05/10/python-will-have-enums-in-3-4/feed/" />
+<link rel='stylesheet' id='wp-quicklatex-format-css'  href='http://eli.thegreenplace.net/wp-content/plugins/wp-quicklatex/css/quicklatex-format.css?ver=3.4.2' type='text/css' media='all' />
+<script type='text/javascript' src='http://eli.thegreenplace.net/wp-includes/js/tw-sack.js?ver=1.6.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var AjaxForceCommentPreviewVars = {"emptyString":"A preview will appear here","url":"http:\/\/eli.thegreenplace.net\/wp-content\/plugins\/ajax-force-comment-preview\/ajax-force-comment-preview.php"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://eli.thegreenplace.net/wp-content/plugins/ajax-force-comment-preview/ajax-force-comment-preview.js?ver=2.0459311904'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://eli.thegreenplace.net/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://eli.thegreenplace.net/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Ten years of blogging' href='http://eli.thegreenplace.net/2013/05/06/ten-years-of-blogging/' />
+<link rel='next' title='How require loads modules in Node.js' href='http://eli.thegreenplace.net/2013/05/27/how-require-loads-modules-in-node-js/' />
+<meta name="generator" content="WordPress 3.4.2" />
+<link rel='canonical' href='http://eli.thegreenplace.net/2013/05/10/python-will-have-enums-in-3-4/' />
+<link rel='shortlink' href='http://eli.thegreenplace.net/?p=3148' />
+
+	<!-- Google Ajax Search -->
+
+	
+	<link href="http://www.google.com/uds/css/gsearch.css" type="text/css" rel="stylesheet"/>
+	<style>	
+	
+	/* Width */
+	.gsc-control {
+	  	width: 190px;
+		overflow: hidden
+	}
+	.gs-result .gs-title,
+	.gs-result .gs-title * {
+		font-size: em;
+	  	color: #;
+	}
+	.gsc-results .gsc-trailing-more-results,
+	.gsc-results .gsc-trailing-more-results * {
+	  	color: #;
+	}
+	.gs-result a.gs-visibleUrl,
+	.gs-result .gs-visibleUrl {
+	  	color: #;
+	}
+	.gs-result a.gs-clusterUrl,
+	.gs-result .gs-clusterUrl {
+	  	color: #;
+	}
+	.gsc-resultsbox-visible {
+		display: table;
+		width: 100%;
+		overflow: hidden
+	}
+	</style>
+
+
+	<style>
+	img.gsc-branding-img {
+	display: none;
+	}
+	td.gsc-branding-text div.gsc-branding-text {
+	display: none;
+	}	
+	</style>
+
+		
+	<script src='http://www.google.com/uds/api?file=uds.js&amp;v=1.0&key=ABQIAAAASJLkfzhbrk2er4Fet8xQ8RTEuR52sBrLGuwoSTDIWMPE_c3JyBS_mfdA9ofPFAiibXYIkxl8dPjKeA' type='text/javascript'></script>
+	<!-- Google AjaxSearch Plugin for WordPress initialization -->
+	<script type='text/javascript'> 
+
+
+
+
+		function OnLoad()
+		{
+			
+			var searchControl = new GSearchControl();
+			searchControl .setLinkTarget(GSearch.LINK_TARGET_SELF); 
+			var webSearch = new GwebSearch();   
+			webSearch.setSiteRestriction("http://eli.thegreenplace.net");
+			webSearch.setUserDefinedLabel("Results");
+			webSearch.setUserDefinedClassSuffix("webSearch");
+											var options = new GsearcherOptions();
+			options.setExpandMode(GSearchControl.EXPAND_MODE_OPEN);
+			searchControl.addSearcher(webSearch, options);
+											
+
+			var drawOptions = new GdrawOptions();
+			drawOptions.setDrawMode(GSearchControl.DRAW_MODE_LINEAR);
+			searchControl.draw(document.getElementById("searchcontrol"),drawOptions);
+		}
+		GSearch.setOnLoadCallback(OnLoad);
+
+	</script>
+	<!-- Google Maps Plugin for WordPress (end) -->
+
+                <script type='text/javascript' src='http://eli.thegreenplace.net/wp-content/plugins/stupid-captcha/jquery.js.php' ></script>
+        <script type='text/javascript' src='http://eli.thegreenplace.net/wp-content/plugins/stupid-captcha/stupid-captcha.js.php' ></script></head>
+<body>
+<div id="page">
+
+
+<div id="header">
+	<a href="http://eli.thegreenplace.net/"><img src="http://eli.thegreenplace.net/wp-content/themes/elitheme/images/personalheader.gif"></a>
+<!--	<div id="headerimg">
+		<h1><a href="http://eli.thegreenplace.net/">Eli Bendersky&#039;s website</a></h1>
+		<div class="description">Eli Bendersky&#039;s personal website</div>
+	</div>-->
+</div>
+<hr />
+
+	<div id="content" class="widecolumn">
+				
+  	
+		<div class="navigation">
+			<div class="alignleft"><b><a href="http://eli.thegreenplace.net/archives/">&lt;&lt;&lt;</a> 
+            Back to blog <a href="http://eli.thegreenplace.net/archives/">Archives</a></b></div>
+            <br/>
+		</div>
+		<div class="post" id="post-3148">
+			<h2><a href="http://eli.thegreenplace.net/2013/05/10/python-will-have-enums-in-3-4/" rel="bookmark" title="Permanent Link: Python will have enums in 3.4!">Python will have enums in 3.4!</a></h2>
+			<small>May 10th, 2013 at 6:06 am <!-- by eliben --></small>
+			
+			<div class="entry">
+				<p>After months of intensive discussion (more than a 1000 emails in dozens of threads spread over two mailing lists, and a couple of hundred additional private emails), <a href="http://www.python.org/dev/peps/pep-0435/">PEP 435</a> has been <a href="http://mail.python.org/pipermail/python-dev/2013-May/126112.html">accepted</a> and Python will finally have an enumeration type in 3.4!</p>
+<p>The discussion and decision process has been long and arduous, but eventually very positive. A collective brain is certainly better than any single one; the final proposal is better in a number of ways than the initial one, and the vast majority of Python core developers now feel good about it (give or take a couple of very minor issues).</p>
+<p>I&#8217;ve been told enums have been debated on Python development lists for years. There&#8217;s at least one earlier PEP (354) that&#8217;s been discussed and rejected in 2005.</p>
+<p>I think part of the success of the current attempt can be attributed to the advances in metaclasses that has been made in the past few releases (3.x). These advances allow very nice syntax of enum definitions that provides a lot of convenient features for free. I tried to find <a href="http://eli.thegreenplace.net/2011/08/14/python-metaclasses-by-example/">interesting examples of metaclasses in the standard library</a> in 2011; Once the enum gets pushed I&#8217;ll have a much better example <img src='http://eli.thegreenplace.net/wp-includes/images/smilies/icon_smile.gif' alt=':-)' class='wp-smiley' /> </p>
+<p>Related posts:</p><ol>
+<li><a href='http://eli.thegreenplace.net/2011/08/14/python-metaclasses-by-example/' rel='bookmark' title='Python metaclasses by example'>Python metaclasses by example</a></li>
+<li><a href='http://eli.thegreenplace.net/2011/07/12/helping-improve-the-documentation-of-python/' rel='bookmark' title='Helping improve the documentation of Python'>Helping improve the documentation of Python</a></li>
+</ol>	
+					
+				<p class="postmetadata alt">
+					<small>
+						This entry was posted
+						on Friday, May 10th, 2013 at 06:06						and is filed under <a href="http://eli.thegreenplace.net/category/programming/python/" title="View all posts in Python" rel="category tag">Python</a>.
+						You can follow any responses to this entry through the <a href='http://eli.thegreenplace.net/2013/05/10/python-will-have-enums-in-3-4/feed/'>RSS 2.0</a> feed. 
+						
+													You can skip to the end and leave a response. Pinging is currently not allowed.
+			
+												
+					</small>
+				</p>
+	
+			</div>
+		</div>
+		
+	
+<!-- You can start editing here. -->
+
+
+	<h3 id="comments">12 Responses to &#8220;Python will have enums in 3.4!&#8221;</h3> 
+
+	<ol class="commentlist">
+
+	
+		<li class="alt" id="comment-1151667">
+			<cite><a href='http://gplus.to/cito' rel='external nofollow'>Christoph Zwerschke</a><a href='http://gplus.to/cito' rel='external nofollow'><img style='float: left; margin-right: 10px; border: none; display:inline;' src='http://www.gravatar.com/avatar/f59fb62df3f86e8a9c16d3d5b1595705?rating=X&amp;default=identicon' alt='No Gravatar' width=40 height=40/></a></cite> Says:
+						<br />
+
+			<small class="commentmetadata"><a href="#comment-1151667" title="">May 10th, 2013 at 08:28</a> </small>
+
+			<p>The enums also build upon other new features such as ordered dictionaries. It took some time until it was possible to have an implementation that is really satisfactory. I like it.</p>
+
+		</li>
+
+	
+	
+		<li class="" id="comment-1151673">
+			<cite>eliben<img style='float: left; margin-right: 10px; border: none; display:inline;' src='http://www.gravatar.com/avatar/fc761ccaf6c0d7d977e2959f9bfebd06?rating=X&amp;default=identicon' alt='No Gravatar' width=40 height=40/></cite> Says:
+						<br />
+
+			<small class="commentmetadata"><a href="#comment-1151673" title="">May 10th, 2013 at 08:36</a> </small>
+
+			<p>@Christoph,</p>
+<p>To be completely fair, <code class="backtick">OrderedDict</code> has been available since 2.7 and its functionality was easy to implement even before that. Features like a metaclass&#8217;s <code class="backtick">__prepare__</code>, OTOH, are much harder to fake without actually having them.</p>
+
+		</li>
+
+	
+	
+		<li class="alt" id="comment-1151716">
+			<cite><a href='http://conceptjunkie.blogspot.com' rel='external nofollow'>ConceptJunkie</a><a href='http://conceptjunkie.blogspot.com' rel='external nofollow'><img style='float: left; margin-right: 10px; border: none; display:inline;' src='http://www.gravatar.com/avatar/be665c509af74ecccaddf39c2a7f43e2?rating=X&amp;default=identicon' alt='No Gravatar' width=40 height=40/></a></cite> Says:
+						<br />
+
+			<small class="commentmetadata"><a href="#comment-1151716" title="">May 10th, 2013 at 10:17</a> </small>
+
+			<p>This is excellent.  I&#8217;m a newcomer to Python after almost 20 years of mostly C++ and I am totally in love with this language, and the lack of enums (or something close enough to them) was one of the few things I did not like.  Python has quickly become my language of choice for any scripting or quick utilities I need to write.  I&#8217;d love to develop something bigger in it, but my main job will still be in C++ for the foreseeable future.</p>
+
+		</li>
+
+	
+	
+		<li class="" id="comment-1151762">
+			<cite>Petra<img style='float: left; margin-right: 10px; border: none; display:inline;' src='http://www.gravatar.com/avatar/eb8eb1f386ca887a424e2dce3fc6885f?rating=X&amp;default=identicon' alt='No Gravatar' width=40 height=40/></cite> Says:
+						<br />
+
+			<small class="commentmetadata"><a href="#comment-1151762" title="">May 10th, 2013 at 11:43</a> </small>
+
+			<p>How much of a change this is given we already have namedtuples and c like structs in standard library?? </p>
+<p>Seems I don&#8217;t have a clue what the big deal is..</p>
+
+		</li>
+
+	
+	
+		<li class="alt" id="comment-1152339">
+			<cite>eliben<img style='float: left; margin-right: 10px; border: none; display:inline;' src='http://www.gravatar.com/avatar/fc761ccaf6c0d7d977e2959f9bfebd06?rating=X&amp;default=identicon' alt='No Gravatar' width=40 height=40/></cite> Says:
+						<br />
+
+			<small class="commentmetadata"><a href="#comment-1152339" title="">May 11th, 2013 at 10:36</a> </small>
+
+			<p>@Petra,</p>
+<p><code class="backtick">nametuple</code> is a very different beast. And C-like structs? Not sure what you&#8217;re talking about.</p>
+
+		</li>
+
+	
+	
+		<li class="" id="comment-1152968">
+			<cite><a href='http://gplus.to/cito' rel='external nofollow'>Christoph Zwerschke</a><a href='http://gplus.to/cito' rel='external nofollow'><img style='float: left; margin-right: 10px; border: none; display:inline;' src='http://www.gravatar.com/avatar/f59fb62df3f86e8a9c16d3d5b1595705?rating=X&amp;default=identicon' alt='No Gravatar' width=40 height=40/></a></cite> Says:
+						<br />
+
+			<small class="commentmetadata"><a href="#comment-1152968" title="">May 12th, 2013 at 13:30</a> </small>
+
+			<p>@eliben: True, I didn&#8217;t want to imply that OrderedDict were so important for Enum. Just pointing out how smoothly things fit together now, and that it&#8217;s sometimes better to wait for the right time to add a feature. The slow, but steady and evolutionary development of Python is really nice to see.</p>
+
+		</li>
+
+	
+	
+		<li class="alt" id="comment-1153432">
+			<cite>Daverz<img style='float: left; margin-right: 10px; border: none; display:inline;' src='http://www.gravatar.com/avatar/5a1a0acb7be1d9563c0c8eeee23562e3?rating=X&amp;default=identicon' alt='No Gravatar' width=40 height=40/></cite> Says:
+						<br />
+
+			<small class="commentmetadata"><a href="#comment-1153432" title="">May 13th, 2013 at 07:30</a> </small>
+
+			<p>@eliben</p>
+<p>There are two modules in the standard library that provide C structs, the struct module and the ctypes module (ctypes.Structure).  I prefer using ctypes for this.</p>
+<p>Of course, these are usually used for reading/writing binary data from/to a file.  I wouldn&#8217;t use them when I needed something &#8220;struct-like&#8221; in an app (well, maybe Real Men do it that way).  I&#8217;d usually use a class in that case.</p>
+
+		</li>
+
+	
+	
+		<li class="" id="comment-1154095">
+			<cite>eliben<img style='float: left; margin-right: 10px; border: none; display:inline;' src='http://www.gravatar.com/avatar/fc761ccaf6c0d7d977e2959f9bfebd06?rating=X&amp;default=identicon' alt='No Gravatar' width=40 height=40/></cite> Says:
+						<br />
+
+			<small class="commentmetadata"><a href="#comment-1154095" title="">May 14th, 2013 at 08:07</a> </small>
+
+			<p>@Daverz,</p>
+<p>Yes, I&#8217;m aware of the <code class="backtick">struct</code> module (which has little in common with C-like structures except the name) and <code class="backtick">ctypes&#46;Structure</code>. But as you correctly note, these hardly designed to be actually used as convenient structures, and have even less in common with enums (which is what the original comment was referring to).</p>
+
+		</li>
+
+	
+	
+		<li class="alt" id="comment-1158276">
+			<cite>Shawn Fumo<img style='float: left; margin-right: 10px; border: none; display:inline;' src='http://www.gravatar.com/avatar/e78b8cd006ddee8ac5f19f809c3ff659?rating=X&amp;default=identicon' alt='No Gravatar' width=40 height=40/></cite> Says:
+						<br />
+
+			<small class="commentmetadata"><a href="#comment-1158276" title="">May 20th, 2013 at 08:10</a> </small>
+
+			<p>Any idea if this will get backported somehow so we can use it in 2.x?</p>
+
+		</li>
+
+	
+	
+		<li class="" id="comment-1159510">
+			<cite>eliben<img style='float: left; margin-right: 10px; border: none; display:inline;' src='http://www.gravatar.com/avatar/fc761ccaf6c0d7d977e2959f9bfebd06?rating=X&amp;default=identicon' alt='No Gravatar' width=40 height=40/></cite> Says:
+						<br />
+
+			<small class="commentmetadata"><a href="#comment-1159510" title="">May 21st, 2013 at 20:42</a> </small>
+
+			<p>@Shawn Fumo,</p>
+<p>It cannot be <i>fully</i> backported because some features of Python 3.x are used. But most of the functionality can be backported, although it won&#8217;t be done officially since there isn&#8217;t going to be Python version 2.8 (see <a href="http://www.python.org/dev/peps/pep-0404/" rel="nofollow">http://www.python.org/dev/peps/pep-0404/</a>)</p>
+
+		</li>
+
+	
+	
+		<li class="alt" id="comment-1211089">
+			<cite>SDS<img style='float: left; margin-right: 10px; border: none; display:inline;' src='http://www.gravatar.com/avatar/2b49a489637516fce006d8e27fa7706a?rating=X&amp;default=identicon' alt='No Gravatar' width=40 height=40/></cite> Says:
+						<br />
+
+			<small class="commentmetadata"><a href="#comment-1211089" title="">August 12th, 2013 at 10:15</a> </small>
+
+			<p>Hey, there was a very interesting discussion regarding enumerations and bitmasks which seems to have fizzled out without reaching a consensus. I really liked the suggestion of &#8220;random832&#8243;, has this been discussed, resolved, or implemented (atop the new enum module) anywhere else?</p>
+<p>@ <a href="http://mail.python.org/pipermail/python-ideas/2013-March/019955.html" rel="nofollow">http://mail.python.org/pipermail/python-ideas/2013-March/019955.html</a></p>
+<p>Also, is this available as a package for 3.3 without waiting?</p>
+
+		</li>
+
+	
+	
+		<li class="" id="comment-1211254">
+			<cite>eliben<img style='float: left; margin-right: 10px; border: none; display:inline;' src='http://www.gravatar.com/avatar/fc761ccaf6c0d7d977e2959f9bfebd06?rating=X&amp;default=identicon' alt='No Gravatar' width=40 height=40/></cite> Says:
+						<br />
+
+			<small class="commentmetadata"><a href="#comment-1211254" title="">August 12th, 2013 at 15:50</a> </small>
+
+			<p>@SDS,</p>
+<p>Bitmasked sets of constants were not deemed a good fit for the Enum design and were left out. For 3.3 and earlier Pythons, see the enum34 package on PyPi.</p>
+
+		</li>
+
+	
+	
+	</ol>
+
+ 
+
+
+<h3 id="respond">Leave a Reply</h3>
+
+
+<form action="http://eli.thegreenplace.net/wp-comments-post.php" method="post" id="commentform">
+
+
+<p><input type="text" name="author" id="author" value="" size="22" tabindex="1" />
+<label for="author"><small>Name (required)</small></label></p>
+
+<p><input type="text" name="email" id="email" value="" size="22" tabindex="2" />
+<label for="email"><small>Mail (will not be published) (required)</small></label></p>
+
+<p><input type="text" name="url" id="url" value="" size="22" tabindex="3" />
+<label for="url"><small>Website</small></label></p>
+
+
+        <!--<span>Write the number 4 here (required)</span><br/>-->
+    <p><input type="text" name="stupid-captcha" value="" tabindex="4"/> 
+    <label for="stupid-captcha"><small>Write the number 4 here (required)</small></label></p>
+
+<p><small>To post code with preserved formatting, enclose it in `backticks` (even multiple lines) </small></p>
+
+<p><textarea name="comment" id="comment" cols="100%" rows="10" tabindex="5"></textarea></p>
+
+<p><input name="submit" type="submit" id="submit" tabindex="5" value="Submit Comment" />
+<input type="hidden" name="comment_post_ID" value="3148" />
+</p>
+<input name="afcp-preview" type="button" id="afcp-preview" tabindex="6" value="Preview" /><div id="ajax-force-comment-preview"></div><noscript><p><strong>Currently you have JavaScript disabled. In order to post comments, please make sure JavaScript is enabled, and reload the page.</strong></p></noscript><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="197788dd84" /></p>
+</form>
+
+
+
+
+	
+		
+	</div>
+
+<hr />
+<div id="footer">
+	<p>
+		Eli Bendersky&#039;s website is powered by 
+		<a href="http://wordpress.org/">WordPress</a>
+		<br /><a href="http://eli.thegreenplace.net/feed/">Entries (RSS)</a>
+		and <a href="http://eli.thegreenplace.net/comments/feed/">Comments (RSS)</a>.
+<!--	<br/><br/>
+	Ads:
+    <a href="http://www.behindthecounter.com/newegg-promo-code/">Newegg Promo Code</a>
+-->
+	</p>
+</div>
+</div>
+
+<!-- Gorgeous design by Michael Heilemann - http://binarybonsai.com/kubrick/ -->
+
+		</body>
+</html>

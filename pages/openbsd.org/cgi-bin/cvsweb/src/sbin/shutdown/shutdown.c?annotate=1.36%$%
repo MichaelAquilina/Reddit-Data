@@ -1,0 +1,572 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>src/sbin/shutdown/shutdown.c - annotate - 1.36</title>
+<meta name="robots" content="nofollow" />
+<meta name="generator" content="FreeBSD-CVSweb 3.0.6" />
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<link rel="stylesheet" type="text/css" href="/cvsweb.css" />
+</head>
+<body class="src">
+<table class="navigate-header" width="100%" summary="Navigation">
+ <tr>
+  <td>
+<a href="./shutdown.c#rev1.36"><img src="/icons/back.gif" alt="[BACK]" border="0" width="20" height="22" /></a><b>Return to <a href="./shutdown.c#rev1.36">shutdown.c</a> CVS log</b> <img src="/icons/text.gif" alt="[TXT]" border="0" width="20" height="22" /></td>  <td style="text-align: right"><img src="/icons/dir.gif" alt="[DIR]" border="0" width="20" height="22" /> <b>Up to  <a href="/cgi-bin/cvsweb/#dirlist">[OpenBSD]</a> / <a href="/cgi-bin/cvsweb/src/#dirlist">src</a> / <a href="/cgi-bin/cvsweb/src/sbin/#dirlist">sbin</a> / <a href="/cgi-bin/cvsweb/src/sbin/shutdown/#dirlist">shutdown</a></b></td>
+ </tr>
+</table>
+<h3 style="text-align: center">Annotation of src/sbin/shutdown/shutdown.c, revision 1.36</h3>
+<pre><span class="current-rev"><a href="shutdown.c#rev1.36">1.36</a>    ! sobrado     1:&nbsp;/* &nbsp; &nbsp; $OpenBSD: shutdown.c,v 1.35 2009/10/27 23:59:34 deraadt Exp $ &nbsp; */
+</span><a href="shutdown.c#rev1.1">1.1</a>       deraadt     2:&nbsp;/* &nbsp; &nbsp; $NetBSD: shutdown.c,v 1.9 1995/03/18 15:01:09 cgd Exp $ */
+                      3:&nbsp;
+                      4:&nbsp;/*
+                      5:&nbsp; * Copyright (c) 1988, 1990, 1993
+                      6:&nbsp; * &nbsp; &nbsp; The Regents of the University of California. &nbsp;All rights reserved.
+                      7:&nbsp; *
+                      8:&nbsp; * Redistribution and use in source and binary forms, with or without
+                      9:&nbsp; * modification, are permitted provided that the following conditions
+                     10:&nbsp; * are met:
+                     11:&nbsp; * 1. Redistributions of source code must retain the above copyright
+                     12:&nbsp; * &nbsp; &nbsp;notice, this list of conditions and the following disclaimer.
+                     13:&nbsp; * 2. Redistributions in binary form must reproduce the above copyright
+                     14:&nbsp; * &nbsp; &nbsp;notice, this list of conditions and the following disclaimer in the
+                     15:&nbsp; * &nbsp; &nbsp;documentation and/or other materials provided with the distribution.
+<a href="shutdown.c#rev1.29">1.29</a>      millert    16:&nbsp; * 3. Neither the name of the University nor the names of its contributors
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt    17:&nbsp; * &nbsp; &nbsp;may be used to endorse or promote products derived from this software
+                     18:&nbsp; * &nbsp; &nbsp;without specific prior written permission.
+                     19:&nbsp; *
+                     20:&nbsp; * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+                     21:&nbsp; * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+                     22:&nbsp; * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+                     23:&nbsp; * ARE DISCLAIMED. &nbsp;IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+                     24:&nbsp; * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+                     25:&nbsp; * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+                     26:&nbsp; * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+                     27:&nbsp; * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+                     28:&nbsp; * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+                     29:&nbsp; * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+                     30:&nbsp; * SUCH DAMAGE.
+                     31:&nbsp; */
+                     32:&nbsp;
+                     33:&nbsp;#include &lt;sys/param.h&gt;
+                     34:&nbsp;#include &lt;sys/resource.h&gt;
+                     35:&nbsp;#include &lt;sys/syslog.h&gt;
+<a href="shutdown.c#rev1.18">1.18</a>      ericj      36:&nbsp;#include &lt;sys/types.h&gt;
+                     37:&nbsp;#include &lt;sys/wait.h&gt;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt    38:&nbsp;
+                     39:&nbsp;#include &lt;ctype.h&gt;
+                     40:&nbsp;#include &lt;fcntl.h&gt;
+<a href="shutdown.c#rev1.16">1.16</a>      deraadt    41:&nbsp;#include &lt;sys/termios.h&gt;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt    42:&nbsp;#include &lt;pwd.h&gt;
+                     43:&nbsp;#include &lt;setjmp.h&gt;
+                     44:&nbsp;#include &lt;signal.h&gt;
+                     45:&nbsp;#include &lt;stdio.h&gt;
+                     46:&nbsp;#include &lt;stdlib.h&gt;
+                     47:&nbsp;#include &lt;string.h&gt;
+<a href="shutdown.c#rev1.18">1.18</a>      ericj      48:&nbsp;#include &lt;time.h&gt;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt    49:&nbsp;#include &lt;tzfile.h&gt;
+                     50:&nbsp;#include &lt;unistd.h&gt;
+<a href="shutdown.c#rev1.13">1.13</a>      mickey     51:&nbsp;#include &lt;errno.h&gt;
+                     52:&nbsp;#include &lt;err.h&gt;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt    53:&nbsp;
+                     54:&nbsp;#include &quot;pathnames.h&quot;
+                     55:&nbsp;
+                     56:&nbsp;#ifdef DEBUG
+                     57:&nbsp;#undef _PATH_NOLOGIN
+                     58:&nbsp;#define &nbsp; &nbsp; &nbsp; &nbsp;_PATH_NOLOGIN &nbsp; &quot;./nologin&quot;
+                     59:&nbsp;#undef _PATH_FASTBOOT
+                     60:&nbsp;#define &nbsp; &nbsp; &nbsp; &nbsp;_PATH_FASTBOOT &nbsp;&quot;./fastboot&quot;
+                     61:&nbsp;#endif
+                     62:&nbsp;
+                     63:&nbsp;#define &nbsp; &nbsp; &nbsp; &nbsp;H &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; *60*60
+                     64:&nbsp;#define &nbsp; &nbsp; &nbsp; &nbsp;M &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; *60
+                     65:&nbsp;#define &nbsp; &nbsp; &nbsp; &nbsp;S &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; *1
+                     66:&nbsp;#define &nbsp; &nbsp; &nbsp; &nbsp;NOLOG_TIME &nbsp; &nbsp; &nbsp;5*60
+                     67:&nbsp;struct interval {
+                     68:&nbsp; &nbsp; &nbsp; &nbsp; int timeleft, timetowait;
+                     69:&nbsp;} tlist[] = {
+<a href="shutdown.c#rev1.10">1.10</a>      mickey     70:&nbsp; &nbsp; &nbsp; &nbsp; { 10 H, &nbsp;5 H },
+                     71:&nbsp; &nbsp; &nbsp; &nbsp; { &nbsp;5 H, &nbsp;3 H },
+                     72:&nbsp; &nbsp; &nbsp; &nbsp; { &nbsp;2 H, &nbsp;1 H },
+                     73:&nbsp; &nbsp; &nbsp; &nbsp; { &nbsp;1 H, 30 M },
+                     74:&nbsp; &nbsp; &nbsp; &nbsp; { 30 M, 10 M },
+                     75:&nbsp; &nbsp; &nbsp; &nbsp; { 20 M, 10 M },
+                     76:&nbsp; &nbsp; &nbsp; &nbsp; { 10 M, &nbsp;5 M },
+                     77:&nbsp; &nbsp; &nbsp; &nbsp; { &nbsp;5 M, &nbsp;3 M },
+                     78:&nbsp; &nbsp; &nbsp; &nbsp; { &nbsp;2 M, &nbsp;1 M },
+                     79:&nbsp; &nbsp; &nbsp; &nbsp; { &nbsp;1 M, 30 S },
+                     80:&nbsp; &nbsp; &nbsp; &nbsp; { 30 S, 30 S },
+                     81:&nbsp; &nbsp; &nbsp; &nbsp; { &nbsp; &nbsp;0, &nbsp; &nbsp;0 }
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt    82:&nbsp;};
+                     83:&nbsp;#undef H
+                     84:&nbsp;#undef M
+                     85:&nbsp;#undef S
+                     86:&nbsp;
+                     87:&nbsp;static time_t offset, shuttime;
+<a href="shutdown.c#rev1.33">1.33</a>      deraadt    88:&nbsp;static int dofast, dohalt, doreboot, dopower, dodump, mbuflen, nosync;
+                     89:&nbsp;static sig_atomic_t killflg;
+<a href="shutdown.c#rev1.9">1.9</a>       downsj     90:&nbsp;static char *whom, mbuf[BUFSIZ];
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt    91:&nbsp;
+<a href="shutdown.c#rev1.24">1.24</a>      millert    92:&nbsp;void badtime(void);
+<a href="shutdown.c#rev1.34">1.34</a>      cloder     93:&nbsp;void __dead die_you_gravy_sucking_pig_dog(void);
+<a href="shutdown.c#rev1.24">1.24</a>      millert    94:&nbsp;void doitfast(void);
+<a href="shutdown.c#rev1.34">1.34</a>      cloder     95:&nbsp;void __dead finish(int);
+<a href="shutdown.c#rev1.24">1.24</a>      millert    96:&nbsp;void getoffset(char *);
+<a href="shutdown.c#rev1.34">1.34</a>      cloder     97:&nbsp;void __dead loop(void);
+<a href="shutdown.c#rev1.24">1.24</a>      millert    98:&nbsp;void nolog(void);
+                     99:&nbsp;void timeout(int);
+                    100:&nbsp;void timewarn(int);
+                    101:&nbsp;void usage(void);
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   102:&nbsp;
+                    103:&nbsp;int
+<a href="shutdown.c#rev1.26">1.26</a>      deraadt   104:&nbsp;main(int argc, char *argv[])
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   105:&nbsp;{
+<a href="shutdown.c#rev1.31">1.31</a>      deraadt   106:&nbsp; &nbsp; &nbsp; &nbsp; int arglen, ch, len, readstdin = 0;
+                    107:&nbsp; &nbsp; &nbsp; &nbsp; struct passwd *pw;
+<a href="shutdown.c#rev1.23">1.23</a>      mpech     108:&nbsp; &nbsp; &nbsp; &nbsp; char *p, *endp;
+<a href="shutdown.c#rev1.31">1.31</a>      deraadt   109:&nbsp; &nbsp; &nbsp; &nbsp; pid_t forkpid;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   110:&nbsp;
+                    111:&nbsp;#ifndef DEBUG
+<a href="shutdown.c#rev1.28">1.28</a>      mickey    112:&nbsp; &nbsp; &nbsp; &nbsp; if (geteuid())
+                    113:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; errx(1, &quot;NOT super-user&quot;);
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   114:&nbsp;#endif
+<a href="shutdown.c#rev1.27">1.27</a>      millert   115:&nbsp; &nbsp; &nbsp; &nbsp; while ((ch = getopt(argc, argv, &quot;dfhknpr-&quot;)) != -1)
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   116:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; switch (ch) {
+                    117:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; case '-':
+                    118:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; readstdin = 1;
+                    119:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+<a href="shutdown.c#rev1.11">1.11</a>      mickey    120:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; case 'd':
+                    121:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; dodump = 1;
+                    122:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   123:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; case 'f':
+                    124:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; dofast = 1;
+                    125:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+                    126:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; case 'h':
+                    127:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; dohalt = 1;
+                    128:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+                    129:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; case 'k':
+                    130:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; killflg = 1;
+                    131:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+                    132:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; case 'n':
+<a href="shutdown.c#rev1.9">1.9</a>       downsj    133:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; nosync = 1;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   134:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+<a href="shutdown.c#rev1.8">1.8</a>       downsj    135:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; case 'p':
+                    136:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; dopower = 1;
+                    137:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   138:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; case 'r':
+                    139:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; doreboot = 1;
+                    140:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+                    141:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; default:
+                    142:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; usage();
+                    143:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+                    144:&nbsp; &nbsp; &nbsp; &nbsp; argc -= optind;
+                    145:&nbsp; &nbsp; &nbsp; &nbsp; argv += optind;
+                    146:&nbsp;
+                    147:&nbsp; &nbsp; &nbsp; &nbsp; if (argc &lt; 1)
+                    148:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; usage();
+                    149:&nbsp;
+                    150:&nbsp; &nbsp; &nbsp; &nbsp; if (dofast &amp;&amp; nosync) {
+                    151:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)fprintf(stderr,
+                    152:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &quot;shutdown: incompatible switches -f and -n.\n&quot;);
+                    153:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; usage();
+                    154:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    155:&nbsp; &nbsp; &nbsp; &nbsp; if (doreboot &amp;&amp; dohalt) {
+                    156:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)fprintf(stderr,
+                    157:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &quot;shutdown: incompatible switches -h and -r.\n&quot;);
+                    158:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; usage();
+                    159:&nbsp; &nbsp; &nbsp; &nbsp; }
+<a href="shutdown.c#rev1.8">1.8</a>       downsj    160:&nbsp; &nbsp; &nbsp; &nbsp; if (dopower &amp;&amp; !dohalt) {
+                    161:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)fprintf(stderr,
+                    162:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &quot;shutdown: switch -p must be used with -h.\n&quot;);
+                    163:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; usage();
+                    164:&nbsp; &nbsp; &nbsp; &nbsp; }
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   165:&nbsp; &nbsp; &nbsp; &nbsp; getoffset(*argv++);
+                    166:&nbsp;
+                    167:&nbsp; &nbsp; &nbsp; &nbsp; if (*argv) {
+                    168:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; for (p = mbuf, len = sizeof(mbuf); *argv; ++argv) {
+                    169:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; arglen = strlen(*argv);
+                    170:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if ((len -= arglen) &lt;= 2)
+                    171:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+                    172:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (p != mbuf)
+                    173:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; *p++ = ' ';
+                    174:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; memcpy(p, *argv, arglen);
+                    175:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; p += arglen;
+                    176:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+                    177:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; *p = '\n';
+                    178:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; *++p = '\0';
+                    179:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    180:&nbsp;
+                    181:&nbsp; &nbsp; &nbsp; &nbsp; if (readstdin) {
+                    182:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; p = mbuf;
+                    183:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; endp = mbuf + sizeof(mbuf) - 2;
+                    184:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; for (;;) {
+                    185:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (!fgets(p, endp - p + 1, stdin))
+                    186:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+<a href="shutdown.c#rev1.31">1.31</a>      deraadt   187:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; for (; *p &amp;&amp; &nbsp;p &lt; endp; ++p)
+                    188:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   189:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (p == endp) {
+                    190:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; *p = '\n';
+                    191:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; *++p = '\0';
+                    192:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+                    193:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+                    194:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+                    195:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    196:&nbsp; &nbsp; &nbsp; &nbsp; mbuflen = strlen(mbuf);
+                    197:&nbsp;
+                    198:&nbsp; &nbsp; &nbsp; &nbsp; if (offset)
+                    199:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)printf(&quot;Shutdown at %.24s.\n&quot;, ctime(&amp;shuttime));
+                    200:&nbsp; &nbsp; &nbsp; &nbsp; else
+                    201:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)printf(&quot;Shutdown NOW!\n&quot;);
+                    202:&nbsp;
+                    203:&nbsp; &nbsp; &nbsp; &nbsp; if (!(whom = getlogin()))
+                    204:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; whom = (pw = getpwuid(getuid())) ? pw-&gt;pw_name : &quot;???&quot;;
+                    205:&nbsp;
+                    206:&nbsp;#ifdef DEBUG
+                    207:&nbsp; &nbsp; &nbsp; &nbsp; (void)putc('\n', stdout);
+                    208:&nbsp;#else
+                    209:&nbsp; &nbsp; &nbsp; &nbsp; (void)setpriority(PRIO_PROCESS, 0, PRIO_MIN);
+                    210:&nbsp;
+<a href="shutdown.c#rev1.31">1.31</a>      deraadt   211:&nbsp; &nbsp; &nbsp; &nbsp; forkpid = fork();
+                    212:&nbsp; &nbsp; &nbsp; &nbsp; if (forkpid == -1)
+                    213:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; err(1, &quot;fork&quot;);
+                    214:&nbsp; &nbsp; &nbsp; &nbsp; if (forkpid) {
+                    215:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)printf(&quot;shutdown: [pid %ld]\n&quot;, (long)forkpid);
+                    216:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.openbsd.org/cgi-bin/man.cgi?apropos=0&amp;sektion=0&amp;query=exit&amp;manpath=OpenBSD+Current&amp;arch=i386&amp;format=html">exit(0)</a>;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   217:&nbsp; &nbsp; &nbsp; &nbsp; }
+<a href="shutdown.c#rev1.12">1.12</a>      deraadt   218:&nbsp; &nbsp; &nbsp; &nbsp; setsid();
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   219:&nbsp;#endif
+                    220:&nbsp; &nbsp; &nbsp; &nbsp; openlog(&quot;shutdown&quot;, LOG_CONS, LOG_AUTH);
+                    221:&nbsp; &nbsp; &nbsp; &nbsp; loop();
+                    222:&nbsp; &nbsp; &nbsp; &nbsp; /* NOTREACHED */
+                    223:&nbsp;}
+                    224:&nbsp;
+                    225:&nbsp;void
+<a href="shutdown.c#rev1.26">1.26</a>      deraadt   226:&nbsp;loop(void)
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   227:&nbsp;{
+                    228:&nbsp; &nbsp; &nbsp; &nbsp; struct interval *tp;
+                    229:&nbsp; &nbsp; &nbsp; &nbsp; u_int sltime;
+                    230:&nbsp; &nbsp; &nbsp; &nbsp; int logged;
+                    231:&nbsp;
+                    232:&nbsp; &nbsp; &nbsp; &nbsp; if (offset &lt;= NOLOG_TIME) {
+                    233:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; logged = 1;
+                    234:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; nolog();
+<a href="shutdown.c#rev1.31">1.31</a>      deraadt   235:&nbsp; &nbsp; &nbsp; &nbsp; } else
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   236:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; logged = 0;
+                    237:&nbsp; &nbsp; &nbsp; &nbsp; tp = tlist;
+                    238:&nbsp; &nbsp; &nbsp; &nbsp; if (tp-&gt;timeleft &lt; offset)
+                    239:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)sleep((u_int)(offset - tp-&gt;timeleft));
+                    240:&nbsp; &nbsp; &nbsp; &nbsp; else {
+                    241:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; while (offset &lt; tp-&gt;timeleft)
+                    242:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ++tp;
+                    243:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; /*
+                    244:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* Warn now, if going to sleep more than a fifth of
+                    245:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* the next wait time.
+                    246:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;*/
+<a href="shutdown.c#rev1.10">1.10</a>      mickey    247:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if ((sltime = offset - tp-&gt;timeleft)) {
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   248:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (sltime &gt; tp-&gt;timetowait / 5)
+                    249:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; timewarn(offset);
+                    250:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)sleep(sltime);
+                    251:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+                    252:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    253:&nbsp; &nbsp; &nbsp; &nbsp; for (;; ++tp) {
+                    254:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; timewarn(tp-&gt;timeleft);
+                    255:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (!logged &amp;&amp; tp-&gt;timeleft &lt;= NOLOG_TIME) {
+                    256:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; logged = 1;
+                    257:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; nolog();
+                    258:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+                    259:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)sleep((u_int)tp-&gt;timetowait);
+                    260:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (!tp-&gt;timeleft)
+                    261:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+                    262:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    263:&nbsp; &nbsp; &nbsp; &nbsp; die_you_gravy_sucking_pig_dog();
+                    264:&nbsp;}
+                    265:&nbsp;
+                    266:&nbsp;static jmp_buf alarmbuf;
+                    267:&nbsp;
+<a href="shutdown.c#rev1.3">1.3</a>       deraadt   268:&nbsp;static char *restricted_environ[] = {
+                    269:&nbsp; &nbsp; &nbsp; &nbsp; &quot;PATH=&quot; _PATH_STDPATH,
+                    270:&nbsp; &nbsp; &nbsp; &nbsp; NULL
+                    271:&nbsp;};
+                    272:&nbsp;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   273:&nbsp;void
+<a href="shutdown.c#rev1.26">1.26</a>      deraadt   274:&nbsp;timewarn(int timeleft)
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   275:&nbsp;{
+<a href="shutdown.c#rev1.6">1.6</a>       deraadt   276:&nbsp; &nbsp; &nbsp; &nbsp; static char hostname[MAXHOSTNAMELEN];
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   277:&nbsp; &nbsp; &nbsp; &nbsp; char wcmd[MAXPATHLEN + 4];
+<a href="shutdown.c#rev1.4">1.4</a>       deraadt   278:&nbsp; &nbsp; &nbsp; &nbsp; extern char **environ;
+<a href="shutdown.c#rev1.31">1.31</a>      deraadt   279:&nbsp; &nbsp; &nbsp; &nbsp; static int first;
+                    280:&nbsp; &nbsp; &nbsp; &nbsp; FILE *pf;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   281:&nbsp;
+                    282:&nbsp; &nbsp; &nbsp; &nbsp; if (!first++)
+                    283:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)gethostname(hostname, sizeof(hostname));
+                    284:&nbsp;
+                    285:&nbsp; &nbsp; &nbsp; &nbsp; /* undoc -n option to wall suppresses normal wall banner */
+                    286:&nbsp; &nbsp; &nbsp; &nbsp; (void)snprintf(wcmd, sizeof(wcmd), &quot;%s -n&quot;, _PATH_WALL);
+<a href="shutdown.c#rev1.3">1.3</a>       deraadt   287:&nbsp; &nbsp; &nbsp; &nbsp; environ = restricted_environ;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   288:&nbsp; &nbsp; &nbsp; &nbsp; if (!(pf = popen(wcmd, &quot;w&quot;))) {
+                    289:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; syslog(LOG_ERR, &quot;shutdown: can't find %s: %m&quot;, _PATH_WALL);
+                    290:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; return;
+                    291:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    292:&nbsp;
+                    293:&nbsp; &nbsp; &nbsp; &nbsp; (void)fprintf(pf,
+                    294:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &quot;\007*** %sSystem shutdown message from %s@%s ***\007\n&quot;,
+                    295:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; timeleft ? &quot;&quot;: &quot;FINAL &quot;, whom, hostname);
+                    296:&nbsp;
+                    297:&nbsp; &nbsp; &nbsp; &nbsp; if (timeleft &gt; 10*60)
+                    298:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)fprintf(pf, &quot;System going down at %5.5s\n\n&quot;,
+                    299:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ctime(&amp;shuttime) + 11);
+                    300:&nbsp; &nbsp; &nbsp; &nbsp; else if (timeleft &gt; 59)
+                    301:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)fprintf(pf, &quot;System going down in %d minute%s\n\n&quot;,
+                    302:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; timeleft / 60, (timeleft &gt; 60) ? &quot;s&quot; : &quot;&quot;);
+                    303:&nbsp; &nbsp; &nbsp; &nbsp; else if (timeleft)
+                    304:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)fprintf(pf, &quot;System going down in 30 seconds\n\n&quot;);
+                    305:&nbsp; &nbsp; &nbsp; &nbsp; else
+                    306:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)fprintf(pf, &quot;System going down IMMEDIATELY\n\n&quot;);
+                    307:&nbsp;
+                    308:&nbsp; &nbsp; &nbsp; &nbsp; if (mbuflen)
+                    309:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)fwrite(mbuf, sizeof(*mbuf), mbuflen, pf);
+                    310:&nbsp;
+                    311:&nbsp; &nbsp; &nbsp; &nbsp; /*
+                    312:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* play some games, just in case wall doesn't come back
+<span class="current-rev"><a href="shutdown.c#rev1.36">1.36</a>    ! sobrado   313:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* probably unnecessary, given that wall is careful.
+</span><a href="shutdown.c#rev1.1">1.1</a>       deraadt   314:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;*/
+                    315:&nbsp; &nbsp; &nbsp; &nbsp; if (!setjmp(alarmbuf)) {
+                    316:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)signal(SIGALRM, timeout);
+                    317:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)alarm((u_int)30);
+                    318:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)pclose(pf);
+                    319:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)alarm((u_int)0);
+                    320:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)signal(SIGALRM, SIG_DFL);
+                    321:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    322:&nbsp;}
+                    323:&nbsp;
+                    324:&nbsp;void
+<a href="shutdown.c#rev1.26">1.26</a>      deraadt   325:&nbsp;timeout(int signo)
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   326:&nbsp;{
+<a href="shutdown.c#rev1.20">1.20</a>      deraadt   327:&nbsp; &nbsp; &nbsp; &nbsp; longjmp(alarmbuf, 1); &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; /* XXX signal/longjmp resource leaks */
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   328:&nbsp;}
+                    329:&nbsp;
+                    330:&nbsp;void
+<a href="shutdown.c#rev1.26">1.26</a>      deraadt   331:&nbsp;die_you_gravy_sucking_pig_dog(void)
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   332:&nbsp;{
+                    333:&nbsp;
+                    334:&nbsp; &nbsp; &nbsp; &nbsp; syslog(LOG_NOTICE, &quot;%s by %s: %s&quot;,
+                    335:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; doreboot ? &quot;reboot&quot; : dohalt ? &quot;halt&quot; : &quot;shutdown&quot;, whom, mbuf);
+                    336:&nbsp; &nbsp; &nbsp; &nbsp; (void)<a href="http://www.openbsd.org/cgi-bin/man.cgi?apropos=0&amp;sektion=2&amp;query=sleep&amp;manpath=OpenBSD+Current&amp;arch=i386&amp;format=html">sleep(2)</a>;
+                    337:&nbsp;
+                    338:&nbsp; &nbsp; &nbsp; &nbsp; (void)printf(&quot;\r\nSystem shutdown time has arrived\007\007\r\n&quot;);
+                    339:&nbsp; &nbsp; &nbsp; &nbsp; if (killflg) {
+                    340:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)printf(&quot;\rbut you'll have to do it yourself\r\n&quot;);
+                    341:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.openbsd.org/cgi-bin/man.cgi?apropos=0&amp;sektion=0&amp;query=finish&amp;manpath=OpenBSD+Current&amp;arch=i386&amp;format=html">finish(0)</a>;
+                    342:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    343:&nbsp; &nbsp; &nbsp; &nbsp; if (dofast)
+                    344:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; doitfast();
+                    345:&nbsp;#ifdef DEBUG
+                    346:&nbsp; &nbsp; &nbsp; &nbsp; if (doreboot)
+                    347:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)printf(&quot;reboot&quot;);
+                    348:&nbsp; &nbsp; &nbsp; &nbsp; else if (dohalt)
+                    349:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)printf(&quot;halt&quot;);
+                    350:&nbsp; &nbsp; &nbsp; &nbsp; if (nosync)
+                    351:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)printf(&quot; no sync&quot;);
+                    352:&nbsp; &nbsp; &nbsp; &nbsp; if (dofast)
+                    353:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)printf(&quot; no fsck&quot;);
+<a href="shutdown.c#rev1.11">1.11</a>      mickey    354:&nbsp; &nbsp; &nbsp; &nbsp; if (dodump)
+                    355:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)printf(&quot; with dump&quot;);
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   356:&nbsp; &nbsp; &nbsp; &nbsp; (void)printf(&quot;\nkill -HUP 1\n&quot;);
+                    357:&nbsp;#else
+                    358:&nbsp; &nbsp; &nbsp; &nbsp; if (doreboot) {
+<a href="shutdown.c#rev1.11">1.11</a>      mickey    359:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; execle(_PATH_REBOOT, &quot;reboot&quot;, &quot;-l&quot;,
+                    360:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (nosync ? &quot;-n&quot; : (dodump ? &quot;-d&quot; : NULL)),
+<a href="shutdown.c#rev1.30">1.30</a>      avsm      361:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (dodump ? &quot;-d&quot; : NULL), (char *)NULL, (char *)NULL);
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   362:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; syslog(LOG_ERR, &quot;shutdown: can't exec %s: %m.&quot;, _PATH_REBOOT);
+<a href="shutdown.c#rev1.13">1.13</a>      mickey    363:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; warn(_PATH_REBOOT);
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   364:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    365:&nbsp; &nbsp; &nbsp; &nbsp; else if (dohalt) {
+<a href="shutdown.c#rev1.9">1.9</a>       downsj    366:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; execle(_PATH_HALT, &quot;halt&quot;, &quot;-l&quot;,
+<a href="shutdown.c#rev1.11">1.11</a>      mickey    367:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (dopower ? &quot;-p&quot; : (nosync ? &quot;-n&quot; : (dodump ? &quot;-d&quot; : NULL))),
+                    368:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (nosync ? &quot;-n&quot; : (dodump ? &quot;-d&quot; : NULL)),
+<a href="shutdown.c#rev1.30">1.30</a>      avsm      369:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (dodump ? &quot;-d&quot; : NULL), (char *)NULL, (char *)NULL);
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   370:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; syslog(LOG_ERR, &quot;shutdown: can't exec %s: %m.&quot;, _PATH_HALT);
+<a href="shutdown.c#rev1.13">1.13</a>      mickey    371:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; warn(_PATH_HALT);
+<a href="shutdown.c#rev1.14">1.14</a>      millert   372:&nbsp; &nbsp; &nbsp; &nbsp; }
+<a href="shutdown.c#rev1.17">1.17</a>      deraadt   373:&nbsp; &nbsp; &nbsp; &nbsp; if (access(_PATH_RC, R_OK) != -1) {
+<a href="shutdown.c#rev1.14">1.14</a>      millert   374:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; pid_t pid;
+<a href="shutdown.c#rev1.16">1.16</a>      deraadt   375:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; struct termios t;
+                    376:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; int fd;
+<a href="shutdown.c#rev1.14">1.14</a>      millert   377:&nbsp;
+                    378:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; switch ((pid = fork())) {
+                    379:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; case -1:
+                    380:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+                    381:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; case 0:
+<a href="shutdown.c#rev1.16">1.16</a>      deraadt   382:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (revoke(_PATH_CONSOLE) == -1)
+                    383:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; perror(&quot;revoke&quot;);
+                    384:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (setsid() == -1)
+                    385:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; perror(&quot;setsid&quot;);
+                    386:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; fd = open(_PATH_CONSOLE, O_RDWR);
+                    387:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (fd == -1)
+                    388:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; perror(&quot;open&quot;);
+                    389:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; dup2(fd, 0);
+                    390:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; dup2(fd, 1);
+                    391:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; dup2(fd, 2);
+                    392:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (fd &gt; 2)
+                    393:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; close(fd);
+                    394:&nbsp;
+                    395:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; /* At a minimum... */
+                    396:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; tcgetattr(0, &amp;t);
+                    397:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; t.c_oflag |= (ONLCR | OPOST);
+                    398:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; tcsetattr(0, TCSANOW, &amp;t);
+                    399:&nbsp;
+<a href="shutdown.c#rev1.22">1.22</a>      deraadt   400:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; execl(_PATH_BSHELL, &quot;sh&quot;, _PATH_RC, &quot;shutdown&quot;, (char *)NULL);
+<a href="shutdown.c#rev1.16">1.16</a>      deraadt   401:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.openbsd.org/cgi-bin/man.cgi?apropos=0&amp;sektion=1&amp;query=_exit&amp;manpath=OpenBSD+Current&amp;arch=i386&amp;format=html">_exit(1)</a>;
+<a href="shutdown.c#rev1.14">1.14</a>      millert   402:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; default:
+                    403:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; waitpid(pid, NULL, 0);
+                    404:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   405:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    406:&nbsp; &nbsp; &nbsp; &nbsp; (void)kill(1, SIGTERM); &nbsp; &nbsp; &nbsp; &nbsp; /* to single user */
+                    407:&nbsp;#endif
+                    408:&nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.openbsd.org/cgi-bin/man.cgi?apropos=0&amp;sektion=0&amp;query=finish&amp;manpath=OpenBSD+Current&amp;arch=i386&amp;format=html">finish(0)</a>;
+                    409:&nbsp;}
+                    410:&nbsp;
+                    411:&nbsp;#define &nbsp; &nbsp; &nbsp; &nbsp;ATOI2(p) &nbsp; &nbsp; &nbsp; &nbsp;(p[0] - '0') * 10 + (p[1] - '0'); p += 2;
+                    412:&nbsp;
+                    413:&nbsp;void
+<a href="shutdown.c#rev1.26">1.26</a>      deraadt   414:&nbsp;getoffset(char *timearg)
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   415:&nbsp;{
+<a href="shutdown.c#rev1.23">1.23</a>      mpech     416:&nbsp; &nbsp; &nbsp; &nbsp; struct tm *lt;
+<a href="shutdown.c#rev1.31">1.31</a>      deraadt   417:&nbsp; &nbsp; &nbsp; &nbsp; int this_year;
+                    418:&nbsp; &nbsp; &nbsp; &nbsp; time_t now;
+<a href="shutdown.c#rev1.23">1.23</a>      mpech     419:&nbsp; &nbsp; &nbsp; &nbsp; char *p;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   420:&nbsp;
+                    421:&nbsp; &nbsp; &nbsp; &nbsp; if (!strcasecmp(timearg, &quot;now&quot;)) { &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;/* now */
+                    422:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; offset = 0;
+                    423:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; return;
+                    424:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    425:&nbsp;
+                    426:&nbsp; &nbsp; &nbsp; &nbsp; (void)time(&amp;now);
+                    427:&nbsp; &nbsp; &nbsp; &nbsp; if (*timearg == '+') { &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;/* +minutes */
+                    428:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (!isdigit(*++timearg))
+                    429:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; badtime();
+                    430:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; offset = atoi(timearg) * 60;
+                    431:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; shuttime = now + offset;
+                    432:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; return;
+                    433:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    434:&nbsp;
+                    435:&nbsp; &nbsp; &nbsp; &nbsp; /* handle hh:mm by getting rid of the colon */
+<a href="shutdown.c#rev1.21">1.21</a>      deraadt   436:&nbsp; &nbsp; &nbsp; &nbsp; for (p = timearg; *p; ++p) {
+                    437:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (!isascii(*p) || !isdigit(*p)) {
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   438:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (*p == ':' &amp;&amp; strlen(p) == 3) {
+                    439:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; p[0] = p[1];
+                    440:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; p[1] = p[2];
+                    441:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; p[2] = '\0';
+<a href="shutdown.c#rev1.21">1.21</a>      deraadt   442:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; } else
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   443:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; badtime();
+<a href="shutdown.c#rev1.21">1.21</a>      deraadt   444:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+                    445:&nbsp; &nbsp; &nbsp; &nbsp; }
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   446:&nbsp;
+                    447:&nbsp; &nbsp; &nbsp; &nbsp; unsetenv(&quot;TZ&quot;); &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; /* OUR timezone */
+                    448:&nbsp; &nbsp; &nbsp; &nbsp; lt = localtime(&amp;now); &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; /* current time val */
+                    449:&nbsp;
+<a href="shutdown.c#rev1.31">1.31</a>      deraadt   450:&nbsp; &nbsp; &nbsp; &nbsp; switch (strlen(timearg)) {
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   451:&nbsp; &nbsp; &nbsp; &nbsp; case 10:
+<a href="shutdown.c#rev1.15">1.15</a>      alex      452:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; this_year = lt-&gt;tm_year;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   453:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; lt-&gt;tm_year = ATOI2(timearg);
+<a href="shutdown.c#rev1.15">1.15</a>      alex      454:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; /*
+                    455:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* check if the specified year is in the next century.
+                    456:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* allow for one year of user error as many people will
+                    457:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* enter n - 1 at the start of year n.
+                    458:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;*/
+                    459:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (lt-&gt;tm_year &lt; (this_year % 100) - 1)
+                    460:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; lt-&gt;tm_year += 100;
+                    461:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; /* adjust for the year 2000 and beyond */
+                    462:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; lt-&gt;tm_year += (this_year - (this_year % 100));
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   463:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; /* FALLTHROUGH */
+                    464:&nbsp; &nbsp; &nbsp; &nbsp; case 8:
+                    465:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; lt-&gt;tm_mon = ATOI2(timearg);
+                    466:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (--lt-&gt;tm_mon &lt; 0 || lt-&gt;tm_mon &gt; 11)
+                    467:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; badtime();
+                    468:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; /* FALLTHROUGH */
+                    469:&nbsp; &nbsp; &nbsp; &nbsp; case 6:
+                    470:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; lt-&gt;tm_mday = ATOI2(timearg);
+                    471:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (lt-&gt;tm_mday &lt; 1 || lt-&gt;tm_mday &gt; 31)
+                    472:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; badtime();
+                    473:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; /* FALLTHROUGH */
+                    474:&nbsp; &nbsp; &nbsp; &nbsp; case 4:
+                    475:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; lt-&gt;tm_hour = ATOI2(timearg);
+                    476:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (lt-&gt;tm_hour &lt; 0 || lt-&gt;tm_hour &gt; 23)
+                    477:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; badtime();
+                    478:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; lt-&gt;tm_min = ATOI2(timearg);
+                    479:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (lt-&gt;tm_min &lt; 0 || lt-&gt;tm_min &gt; 59)
+                    480:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; badtime();
+                    481:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; lt-&gt;tm_sec = 0;
+                    482:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if ((shuttime = mktime(lt)) == -1)
+                    483:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; badtime();
+<a href="shutdown.c#rev1.28">1.28</a>      mickey    484:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if ((offset = shuttime - now) &lt; 0)
+                    485:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; errx(1, &quot;that time is already past.&quot;);
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   486:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; break;
+                    487:&nbsp; &nbsp; &nbsp; &nbsp; default:
+                    488:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; badtime();
+                    489:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    490:&nbsp;}
+                    491:&nbsp;
+                    492:&nbsp;#define &nbsp; &nbsp; &nbsp; &nbsp;FSMSG &nbsp; &quot;fastboot file for fsck\n&quot;
+                    493:&nbsp;void
+<a href="shutdown.c#rev1.26">1.26</a>      deraadt   494:&nbsp;doitfast(void)
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   495:&nbsp;{
+                    496:&nbsp; &nbsp; &nbsp; &nbsp; int fastfd;
+                    497:&nbsp;
+                    498:&nbsp; &nbsp; &nbsp; &nbsp; if ((fastfd = open(_PATH_FASTBOOT, O_WRONLY|O_CREAT|O_TRUNC,
+                    499:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 0664)) &gt;= 0) {
+                    500:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)write(fastfd, FSMSG, sizeof(FSMSG) - 1);
+                    501:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)close(fastfd);
+                    502:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    503:&nbsp;}
+                    504:&nbsp;
+                    505:&nbsp;#define &nbsp; &nbsp; &nbsp; &nbsp;NOMSG &nbsp; &quot;\n\nNO LOGINS: System going down at &quot;
+                    506:&nbsp;void
+<a href="shutdown.c#rev1.26">1.26</a>      deraadt   507:&nbsp;nolog(void)
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   508:&nbsp;{
+                    509:&nbsp; &nbsp; &nbsp; &nbsp; int logfd;
+                    510:&nbsp; &nbsp; &nbsp; &nbsp; char *ct;
+                    511:&nbsp;
+                    512:&nbsp; &nbsp; &nbsp; &nbsp; (void)unlink(_PATH_NOLOGIN); &nbsp; &nbsp;/* in case linked to another file */
+                    513:&nbsp; &nbsp; &nbsp; &nbsp; (void)signal(SIGINT, finish);
+                    514:&nbsp; &nbsp; &nbsp; &nbsp; (void)signal(SIGHUP, finish);
+                    515:&nbsp; &nbsp; &nbsp; &nbsp; (void)signal(SIGQUIT, finish);
+                    516:&nbsp; &nbsp; &nbsp; &nbsp; (void)signal(SIGTERM, finish);
+                    517:&nbsp; &nbsp; &nbsp; &nbsp; if ((logfd = open(_PATH_NOLOGIN, O_WRONLY|O_CREAT|O_TRUNC,
+                    518:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 0664)) &gt;= 0) {
+                    519:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)write(logfd, NOMSG, sizeof(NOMSG) - 1);
+                    520:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ct = ctime(&amp;shuttime);
+                    521:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)write(logfd, ct + 11, 5);
+                    522:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)write(logfd, &quot;\n\n&quot;, 2);
+                    523:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)write(logfd, mbuf, strlen(mbuf));
+                    524:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)close(logfd);
+                    525:&nbsp; &nbsp; &nbsp; &nbsp; }
+                    526:&nbsp;}
+                    527:&nbsp;
+                    528:&nbsp;void
+<a href="shutdown.c#rev1.26">1.26</a>      deraadt   529:&nbsp;finish(int signo)
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   530:&nbsp;{
+                    531:&nbsp; &nbsp; &nbsp; &nbsp; if (!killflg)
+                    532:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (void)unlink(_PATH_NOLOGIN);
+<a href="shutdown.c#rev1.19">1.19</a>      deraadt   533:&nbsp; &nbsp; &nbsp; &nbsp; if (signo == 0)
+                    534:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.openbsd.org/cgi-bin/man.cgi?apropos=0&amp;sektion=0&amp;query=exit&amp;manpath=OpenBSD+Current&amp;arch=i386&amp;format=html">exit(0)</a>;
+                    535:&nbsp; &nbsp; &nbsp; &nbsp; else
+                    536:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.openbsd.org/cgi-bin/man.cgi?apropos=0&amp;sektion=0&amp;query=_exit&amp;manpath=OpenBSD+Current&amp;arch=i386&amp;format=html">_exit(0)</a>;
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   537:&nbsp;}
+                    538:&nbsp;
+                    539:&nbsp;void
+<a href="shutdown.c#rev1.26">1.26</a>      deraadt   540:&nbsp;badtime(void)
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   541:&nbsp;{
+<a href="shutdown.c#rev1.13">1.13</a>      mickey    542:&nbsp; &nbsp; &nbsp; &nbsp; errx(1, &quot;bad time format.&quot;);
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   543:&nbsp;}
+                    544:&nbsp;
+                    545:&nbsp;void
+<a href="shutdown.c#rev1.26">1.26</a>      deraadt   546:&nbsp;usage(void)
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   547:&nbsp;{
+<a href="shutdown.c#rev1.32">1.32</a>      jmc       548:&nbsp; &nbsp; &nbsp; &nbsp; fprintf(stderr, &quot;usage: shutdown [-] [-dfhknpr] time [warning-message ...]\n&quot;);
+<a href="shutdown.c#rev1.1">1.1</a>       deraadt   549:&nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.openbsd.org/cgi-bin/man.cgi?apropos=0&amp;sektion=1&amp;query=exit&amp;manpath=OpenBSD+Current&amp;arch=i386&amp;format=html">exit(1)</a>;
+                    550:&nbsp;}
+</pre><hr />
+<address><font size=-1>OpenBSD CVSweb server maintained by &lt;beck@openbsd.org&gt;</font></address>
+</body>
+</html>

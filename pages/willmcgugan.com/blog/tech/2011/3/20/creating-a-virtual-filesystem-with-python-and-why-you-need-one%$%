@@ -1,0 +1,1283 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Creating a Virtual Filesystem with Python (and why you need one)</title>
+    <link rel="stylesheet" href="/media/css/blog_base.css" type="text/css" ></link>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+
+    
+
+    <link rel="icon" type="image/png" href="/media/images/favicon.png" ></link>
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"> </script>
+    <script type="text/javascript" src="/media/js/blog_base.js"> </script>
+
+    
+
+    
+    
+
+<link rel="canonical" href="/blog/tech/2011/3/20/creating-a-virtual-filesystem-with-python-and-why-you-need-one/" />
+
+
+    
+    
+    
+
+</head>
+
+<body>
+
+    
+    <input type="hidden" id="xhr_preview_comment" value="/blog/tech/xhr/preview_comment/" />
+    
+
+    <input type="hidden" id="xhr_post_comment" value="/comments/xhr/post/" />
+    <input type="hidden" id="xhr_delete_comment" value="/comments/xhr/delete/" />
+
+
+    <div class="page-repeat">
+
+    <div id="content">
+
+        
+        <div class="hidden-login"><a href="/accounts/login/?next=/blog/tech/2011/3/20/creating-a-virtual-filesystem-with-python-and-why-you-need-one/" ref="nofollow">&nbsp;</a></div>
+        
+
+        
+
+        <div id="header">
+
+            <div class="title-area">
+                <div class="inner">
+                    
+<h1 class="faded-title"><a href="/blog/tech/">Creating a Virtual Filesystem with Python (and why you need one)</a></h1>
+
+<div class="blog-tagline">March 20th, 2011</div>
+
+
+                </div>
+
+            </div>
+             
+    <div class="main-links-container">
+        <ul class="main-links">
+            <ul>
+            <li><a href="/">Home</a></li><li><a href="/blog/tech/">Tech</a></li><li><a href="/blog/personal/">Personal</a></li><li><a href="/about/">About</a></li><li><a href="/contact/">Contact</a></li>
+            </ul>
+        </ul>
+    </div>
+
+        </div>
+
+        <div id="main">
+
+
+
+            <div class="bottom-shadow"> </div>
+
+            
+
+            <div id="column1">
+
+                <div class="inner">
+
+                    <div class="column1-content">
+                        
+
+
+
+<div class="post">
+
+<p>If you are writing an application of any size, it will most likely require a number of files to run &ndash; files which could be stored in a variety of possible locations. Furthermore, you will probably want to be able to change the location of those files when debugging and testing. You <em>may</em> even want to store those files somewhere other than the user's hard drive.</p>
+<p>Any engineer worth his salt will recognise that the file locations should be stored in some kind of configuration file and the code to read the files in question should be factored out so that it isn't just scattered at points where data is read or written. In this post I'll present a way of doing just that by creating a <em>virtual</em> filesystem with <a href="http://code.google.com/p/pyfilesystem/" class="external-link" title="code.google.com">PyFilesystem</a>.</p>
+
+
+
+<div class="pullout-left">
+<p>You'll need the most recent version of PyFilesystem from SVN to run this code.</p>
+</div>
+
+
+<p>We're going to create a virtual filesystem for a fictitious application that requires <em>per-application</em> and <em>per-user</em> resources, as well as a location for cache and log files. I'll also demonstrate how to <em>mount</em> files located on a web server. Here's the code:</p>
+
+
+
+<div class="code"><pre><span class="kn">from</span> <span class="nn">fs.opener</span> <span class="kn">import</span> <span class="n">fsopendir</span>
+<span class="n">app_fs</span> <span class="o">=</span> <span class="n">fsopendir</span><span class="p">(</span><span class="s">&#39;mount://fs.ini&#39;</span><span class="p">,</span> <span class="n">create_dir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+
+<p>That's, all there is to it; two lines of code (one if you don't count the import). Obviously there is quite a bit going on under the hood here, which I'll explain below, but lets see what this code gives you&#8230;</p>
+<p>The <code>app_fs</code> object is an interface to a single filesystem that contains all the file locations our application will use. For example, the path <code>/user/app.ini</code> references a per-user file, whereas <code>/resources/logo.png</code> references a per application file. The actual physical location of the data is irrelevant because as far as your application is concerned the paths never change. This abstraction is useful because the real path for such files varies according to the platform the code is running on; Windows, Mac and Linux all have different conventions, and if you put your files in the wrong place, your app will likely break on one platform or another.</p>
+<p>Here's how a per-user configuration file might be opened:</p>
+
+
+
+<div class="code"><pre><span class="kn">from</span> <span class="nn">ConfigParser</span> <span class="kn">import</span> <span class="n">ConfigParser</span>
+<span class="c"># The &#39;safeopen&#39; method works like &#39;open&#39;, but will return an</span>
+<span class="c"># empty file-like object if the path does not exist</span>
+<span class="k">with</span> <span class="n">app_fs</span><span class="o">.</span><span class="n">safeopen</span><span class="p">(</span><span class="s">&#39;/user/app.ini&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ini_file</span><span class="p">:</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">()</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">readfp</span><span class="p">(</span><span class="n">ini_file</span><span class="p">)</span>
+    <span class="c"># ... do something with cfg</span>
+</pre></div>
+
+<p>The files in our virtual filesystem don't even have to reside on the local filesystem. For instance, <code>/live/</code> may actually reference a location on the web, where the version of the current release and a short &lsquo;message of the day&rsquo; is stored.</p>
+<p>Here's how the version number and MOTD might be read:</p>
+
+
+
+<div class="code"><pre><span class="k">def</span> <span class="nf">get_application_version</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Get the version number of the most up to date version of the application,</span>
+<span class="sd">    as a tuple of three integers&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">app_fs</span><span class="o">.</span><span class="n">safeopen</span><span class="p">(</span><span class="s">&#39;live/version.txt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">version_file</span><span class="p">:</span>
+        <span class="n">version_text</span> <span class="o">=</span> <span class="n">version_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">version_text</span><span class="p">:</span>
+        <span class="c"># Empty file or unable to read</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">version_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="mf">3</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">get_motd</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Get a welcome message&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">app_fs</span><span class="o">.</span><span class="n">safeopen</span><span class="p">(</span><span class="s">&quot;live/motd.txt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">motd_file</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">motd_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+</pre></div>
+
+<p>You'll notice that even though the actual data is retrieved over HTTP (the files are located <a href="http://www.willmcgugan.com/static/cfg/version.txt" class="external-link" title="www.willmcgugan.com">here</a> and <a href="http://www.willmcgugan.com/static/cfg/motd.txt" class="external-link" title="www.willmcgugan.com">here</a>), the code would be no different if the files were stored locally.</p>
+<p>So how is all this behaviour created from a single line of code? The line <code>fsopendir("mount://fs.ini", create_dir=True)</code> <a href="http://packages.python.org/fs/opening.html" class="external-link" title="packages.python.org">opens</a> a <a href="http://packages.python.org/fs/mountfs.html#module-fs.mountfs" class="external-link" title="packages.python.org">MountFS</a> from the information contained within an INI file (<code>create_dir=True</code> will create specified directories if they don't exist). Here's an example of an INI file that could be used during development:</p>
+
+
+
+<div class="code"><pre>[fs]<br/>user=./user<br/>resources=./resources<br/>logs=./logs<br/>cache=./user/cache<br/>live=./live</pre></div>
+
+<p>The INI file is used to construct a MountFS, where the keys in the <code>[fs]</code> section are the top level directory names and the values are the real locations of the files. In above example, <code>/user/</code> maps on to a directory called <code>user</code> relative to the current directory &ndash; but it could be changed to an absolute path or to a location on a server (e.g. FTP, SFTP, HTTP, DAV), or even to a directory within a zip file.</p>
+
+
+
+<div class="pullout-left">
+<p>You can change the section to use in a mount opener by specifying it after a # symbol, i.e. mount://fs.ini#mysection</p>
+</div>
+
+
+<p>There are a few changes to this INI file we will need to make when our application is ready for release. User data, site data, logs and cache all have canonical locations that are derived from the name of the application (and the author on Windows). PyFilesystem contains handy openers for these special locations. For example, <code>appuser://examplesoft:myapp</code> detects the appropriate per-user data location for an application called &ldquo;myapp&rdquo; developed by &ldquo;examplesoft&rdquo;. Ditto for the other per-application directories. e.g.:</p>
+
+
+
+<div class="code"><pre>[fs]<br/>user=appuser://examplesoft:myapp<br/>resources=appsite://examplesoft:myapp<br/>logs=applog://examplesoft:myapp<br/>cache=appcache://examplesoft:myapp</pre></div>
+
+<p>The <code>/live/</code> path is different in that it needs to point to a web server:</p>
+
+
+
+<div class="code"><pre>live=http://www.willmcgugan.com/static/cfg/</pre></div>
+
+<p>Of course, you don't need to use the canonical locations. For instance, let's say you want to store all your static resources in a zip file. No problem:</p>
+
+
+
+<div class="code"><pre>resources=zip://./resources.zip</pre></div>
+
+<p>Or you want to keep your user data on a SFTP (Secure FTP) server:</p>
+
+
+
+<div class="code"><pre>user=sftp://username:password@example.org/home/will/</pre></div>
+
+<p>Perhaps you don't want to preserve the cache across sessions, for security reasons. The <code>temp</code> opener creates files in a temp directory and deletes them on close:</p>
+
+
+
+<div class="code"><pre>cache=temp://</pre></div>
+
+<p>Although, if you are really paranoid you can store the cache files in memory without ever writing them to disk:</p>
+
+
+
+<div class="code"><pre>cache=mem://</pre></div>
+
+<div class="pullout-left">
+<p>Setting /user/ to mem:// is a useful way of simulating a fresh install when debugging.</p>
+</div>
+
+
+<p>I hope that covers why you <em>might</em> need &ndash; or at least <em>want</em> &ndash; a virtual file system in your application. I've glossed over some the details and other features of <a href="http://code.google.com/p/pyfilesystem/" class="external-link" title="code.google.com">PyFilesystem</a>. If you would like more information, see my <a href="http://www.willmcgugan.com/tag/pyfilesystem/" class="external-link" title="www.willmcgugan.com">previous posts</a>, check out the <a href="http://packages.python.org/fs/" class="external-link" title="packages.python.org">documentation</a> or <a href="http://groups.google.com/group/pyfilesystem-discussion" class="external-link" title="groups.google.com">join the PyFilesystem discussion group</a>.</p>
+
+
+</div>
+
+<div class="post-description">
+    This blog post was posted to <a href="/blog/tech/">It&#39;s All Geek to Me</a>
+    on Sunday March 20th, 2011
+    at 9:22PM
+</div>
+
+
+
+<div class="post-navigation">
+    
+    <div class="prev-post">
+        <a href="/blog/tech/2011/2/26/ken-burns-effect-with-javascript-and-canvas/" title="Ken Burns effect with Javascript and Canvas">&larr;&nbsp;Ken Burns effect with Javascript and ...</a>
+    </div>
+    
+
+    
+    <div class="next-post">
+        <a href="/blog/tech/2011/5/9/django-job-at-net-communities/" title="Django job at Net Communities">Django job at Net Communities&nbsp;&rarr;</a>
+    </div>
+    
+
+    <div class="clear">&nbsp;</div>
+</div>
+
+
+
+
+
+<a name="comments"> </a>
+
+<div class="comments">
+    <h3>12 Responses to "Creating a Virtual Filesystem with Python (and why you need one)"</h3>
+    
+
+
+<ul class="comments-list">
+
+    <li id="comment2622" class="comment ">
+        <a name="comment2622"></a>
+        <a href="#comment2622"><img width="40" height="40" class="gravatar" src="http://www.gravatar.com/avatar.php?default=identicon&size=40&gravatar_id=3d75bb8c1b42ce7483e7aef810f31cbe"></a>
+        <div class="comment-header">
+            
+            <div class="comment-author">
+                <cite><a href="http://info.pqsdk.org" rel="nofollow">kevin</cite></a>
+                
+            </div>
+            <div class="comment-time">
+                March 21st, 2011, 4:27 p.m.
+            </div>
+        </div>
+        <div class="comment-body">
+            <p>Great stuff.  Is it possible to take this concept and make it work on Google AppEngine?</p>
+        </div>
+
+    </li>
+
+    <li id="comment2623" class="comment odd">
+        <a name="comment2623"></a>
+        <a href="#comment2623"><img width="40" height="40" class="gravatar" src="http://www.gravatar.com/avatar.php?default=identicon&size=40&gravatar_id=0ebb6104a03595ddb46f1ebd1492f3bd"></a>
+        <div class="comment-header">
+            
+            <div class="comment-author">
+                <cite><a href="http://www.willmcgugan.com" rel="nofollow">Will McGugan</cite></a>
+                
+            </div>
+            <div class="comment-time">
+                March 21st, 2011, 4:30 p.m.
+            </div>
+        </div>
+        <div class="comment-body">
+            <p>Kevin, I haven't tried it on GAE, but assuming it runs Python2.5 it should work!</p>
+        </div>
+
+    </li>
+
+    <li id="comment2624" class="comment ">
+        <a name="comment2624"></a>
+        <a href="#comment2624"><img width="40" height="40" class="gravatar" src="http://www.gravatar.com/avatar.php?default=identicon&size=40&gravatar_id=0ebb6104a03595ddb46f1ebd1492f3bd"></a>
+        <div class="comment-header">
+            
+            <div class="comment-author">
+                <cite><a href="http://www.willmcgugan.com" rel="nofollow">Will McGugan</cite></a>
+                
+            </div>
+            <div class="comment-time">
+                March 21st, 2011, 4:32 p.m.
+            </div>
+        </div>
+        <div class="comment-body">
+            <p>Assuming <em>GAE</em> runs Py2.5 that is&#8230;</p>
+        </div>
+
+    </li>
+
+    <li id="comment2625" class="comment odd">
+        <a name="comment2625"></a>
+        <a href="#comment2625"><img width="40" height="40" class="gravatar" src="http://www.gravatar.com/avatar.php?default=identicon&size=40&gravatar_id=3d75bb8c1b42ce7483e7aef810f31cbe"></a>
+        <div class="comment-header">
+            
+            <div class="comment-author">
+                <cite><a href="http://info.pqsdk.org" rel="nofollow">Kevin</cite></a>
+                
+            </div>
+            <div class="comment-time">
+                March 21st, 2011, 5:10 p.m.
+            </div>
+        </div>
+        <div class="comment-body">
+            <p>I think right now GAE can only run 2.5 and not 2.6 or later.  It looks like /live/ must be either a zip file or live some where on the web since GAE does not have an accessible file system. </p>
+        </div>
+
+    </li>
+
+    <li id="comment2626" class="comment ">
+        <a name="comment2626"></a>
+        <a href="#comment2626"><img width="40" height="40" class="gravatar" src="http://www.gravatar.com/avatar.php?default=identicon&size=40&gravatar_id=ae357570806a6b24745eef78acf74675"></a>
+        <div class="comment-header">
+            
+            <div class="comment-author">
+                <cite><a href="http://www.svendtofte.com" rel="nofollow">Svend Tofte</cite></a>
+                
+            </div>
+            <div class="comment-time">
+                March 21st, 2011, 5:34 p.m.
+            </div>
+        </div>
+        <div class="comment-body">
+            <p>FUSE is also well worth exploring if virtual file systems is your thing. The fusepy bindings are very easy to work with as well. From looking at the documentation it seems like pyfilesystem also can create a whole new file system (such as expose printers directories, where putting any file into it causes it to be printed, or what have you.</p>
+<p>It would be nice to see a null/loopback file system, such as this one for fusepy:</p>
+<p><a href="http://code.google.com/p/fusepy/source/browse/trunk/loopback.py">http://code.google.com/p/fusepy/source/browse/trunk/loopback.py</a> [code.google.com]</p>
+<p>Maybe it's in the docs somewhere, but I did not see it at least. </p>
+        </div>
+
+    </li>
+
+    <li id="comment2627" class="comment odd">
+        <a name="comment2627"></a>
+        <a href="#comment2627"><img width="40" height="40" class="gravatar" src="http://www.gravatar.com/avatar.php?default=identicon&size=40&gravatar_id=0ebb6104a03595ddb46f1ebd1492f3bd"></a>
+        <div class="comment-header">
+            
+            <div class="comment-author">
+                <cite><a href="http://www.willmcgugan.com" rel="nofollow">Will McGugan</cite></a>
+                
+            </div>
+            <div class="comment-time">
+                March 21st, 2011, 5:44 p.m.
+            </div>
+        </div>
+        <div class="comment-body">
+            <p>Svend, there is FUSE support in PyFilesystem, and Dokan (Windows equivelent), <a href="http://packages.python.org/fs/expose.html">http://packages.python.org/fs/expose.html</a> [packages.python.org]</p>
+<p>Not sure what a loopback file system would do in this context, the MounFS has that capability. A null filesystem might be useful though&#8230;</p>
+        </div>
+
+    </li>
+
+    <li id="comment2669" class="comment ">
+        <a name="comment2669"></a>
+        <a href="#comment2669"><img width="40" height="40" class="gravatar" src="http://www.gravatar.com/avatar.php?default=identicon&size=40&gravatar_id=174735af8f1d16e861f90938241f403b"></a>
+        <div class="comment-header">
+            
+            <div class="comment-author">
+                <cite><a href="http://chris-lamb.co.uk/" rel="nofollow">lamby</cite></a>
+                
+            </div>
+            <div class="comment-time">
+                August 31st, 2011, 3:11 p.m.
+            </div>
+        </div>
+        <div class="comment-body">
+            <p>Seen django-fuse?</p>
+        </div>
+
+    </li>
+
+    <li id="comment2674" class="comment odd">
+        <a name="comment2674"></a>
+        <a href="#comment2674"><img width="40" height="40" class="gravatar" src="http://www.gravatar.com/avatar.php?default=identicon&size=40&gravatar_id=c0cdf15ae4c58808b2803ee400f32584"></a>
+        <div class="comment-header">
+            
+            <div class="comment-author">
+                <cite>julou</cite>
+                
+            </div>
+            <div class="comment-time">
+                September 12th, 2011, 4:54 p.m.
+            </div>
+        </div>
+        <div class="comment-body">
+            <p>I read this post with great interest…</p>
+<p>Indeed, I am looking for a way to create a file system that would allow to browse the attachments of <a href="http://www.zotero.org">zotero</a> [zotero.org] collections in the finder (or explorer).</p>
+<p>Ideally, this would consist in creating a read-only virtual system in which I would add links to the relevant files. </p>
+<p>I am completely new to VFS programing (although I am a convinced user)… So I have several questions:</p>
+<p>- what kind of file system would be more appropriate? FUSE?… </p>
+<p>- is it possible to create a read-only VFS where only links to files are specified, or do I have to store files in a temp location? If yes, a minimal example would be of great help!</p>
+<p>- how to mount a VFS in the finder/explorer?</p>
+<p>Thank you in advance for your help,  Thomas.</p>
+        </div>
+
+    </li>
+
+    <li id="comment2677" class="comment ">
+        <a name="comment2677"></a>
+        <a href="#comment2677"><img width="40" height="40" class="gravatar" src="http://www.gravatar.com/avatar.php?default=identicon&size=40&gravatar_id=0ebb6104a03595ddb46f1ebd1492f3bd"></a>
+        <div class="comment-header">
+            
+            <div class="comment-author">
+                <cite><a href="http://www.willmcgugan.com" rel="nofollow">Will McGugan</cite></a>
+                
+            </div>
+            <div class="comment-time">
+                September 13th, 2011, 3:46 p.m.
+            </div>
+        </div>
+        <div class="comment-body">
+            <p>Julou, That should be possible. See the <a href="http://packages.python.org/fs/implementersguide.html">Guide for implementers</a> [packages.python.org]. Once you have created a filesystem you can mount it with FUSE. See the <a href="http://packages.python.org/fs/">docs</a> [packages.python.org] and join the mailing list if you need more information.</p>
+        </div>
+
+    </li>
+
+    <li id="comment2680" class="comment odd">
+        <a name="comment2680"></a>
+        <a href="#comment2680"><img width="40" height="40" class="gravatar" src="http://www.gravatar.com/avatar.php?default=identicon&size=40&gravatar_id=c0cdf15ae4c58808b2803ee400f32584"></a>
+        <div class="comment-header">
+            
+            <div class="comment-author">
+                <cite>julou</cite>
+                
+            </div>
+            <div class="comment-time">
+                September 14th, 2011, 3:51 p.m.
+            </div>
+        </div>
+        <div class="comment-body">
+            <p>Thanks for the quick reply.</p>
+<p>This helped me to understand that FUSE is not a file system ;) and how I can use it to expose a FS in the finder/explorer…</p>
+<p>Nonetheless, the second question stands open in my mind: </p>
+<blockquote>
+<p>is it possible to create a read-only VFS where only links to files are specified, or do I have to store files in a temp location? If yes, a minimal example would be of great help!</p></blockquote>
+        </div>
+
+    </li>
+
+    <li id="comment2830" class="comment ">
+        <a name="comment2830"></a>
+        <a href="#comment2830"><img width="40" height="40" class="gravatar" src="http://www.gravatar.com/avatar.php?default=identicon&size=40&gravatar_id=9c6d386f2d7fa9cfd7924519d853476d"></a>
+        <div class="comment-header">
+            
+            <div class="comment-author">
+                <cite>montibo</cite>
+                
+            </div>
+            <div class="comment-time">
+                March 13th, 2012, 3:29 p.m.
+            </div>
+        </div>
+        <div class="comment-body">
+            <p>Julou,<br/>would you eventually share your code? I am a beginner in VFS and try to make the same kind of thing with my blog. </p><p>The VFS has a really huge potential.<br/>Cheers<br/></p>
+        </div>
+
+    </li>
+
+    <li id="comment2845" class="comment odd">
+        <a name="comment2845"></a>
+        <a href="#comment2845"><img width="40" height="40" class="gravatar" src="http://www.gravatar.com/avatar.php?default=identicon&size=40&gravatar_id=d6ba8be19a6412f2657a485eaeb5eb66"></a>
+        <div class="comment-header">
+            
+            <div class="comment-author">
+                <cite><a href="http://www.EffectiveEducation.org" rel="nofollow">Jacob J. Walker</cite></a>
+                
+            </div>
+            <div class="comment-time">
+                March 18th, 2012, 8:44 p.m.
+            </div>
+        </div>
+        <div class="comment-body">
+            <p>I too am interested in making a VFS that I could use from Windows to access Zotero.  It seems on the surface that this shouldn't be a difficult project, because Zotero uses SQLLite.  Although of course I know that programming always gets more complex and takes longer than it seems it would.  Has anyone started on this project already, and wants to collaborate?  Is Python really the best language to do this in?  (I'm not against Python, I just honestly don't know the advantages and disadvantages of using it as the language for this type of project.)</p>
+        </div>
+
+    </li>
+
+</ul>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+<a name="comment-form"></a>
+<div class="blog-comment-form">
+<h3>Leave a Comment</h3>
+
+<form id="comment-form" action="post" target="">
+
+        <p>
+            <label for="id_name"><strong>Name</strong> (required):</label> <input type="text" id="id_name" name="name"/>
+            <div class="comment-form-errors" id="id_name_errors"></div>
+        </p>
+
+        <p>
+            <label for="id_email"><strong>Email</strong> (not published):</label> <input type="text" id="id_email" name="email"/>
+            <div class="comment-form-errors" id="id_email_errors"></div>
+        </p>
+
+        <p>
+            <label for="id_url"><strong>Website</strong>:</label> <input type="text" id="id_url" name="url"/>
+            <div class="comment-form-errors" id="id_url_errors"></div>
+        </p>
+
+        <p>
+            <label for="id_content"><strong>Comment</strong>:</label> <textarea name="content" cols="40" rows="10" id="id_content" ></textarea>
+            <div class="comment-form-errors" id="id_content_errors"></div>
+        </p>
+
+
+
+
+
+
+
+
+
+
+<input id="id_content_format" name="content_format" type="hidden" value="bbcode" />
+
+<input id="id_content_type" name="content_type" type="hidden" value="blog.post" />
+
+<input id="id_object_id" name="object_id" type="hidden" value="851" />
+
+<input id="id_success_url" name="success_url" type="hidden" />
+
+<input type="hidden" id="id_success_url" name="success_url" value="/blog/tech/2011/3/20/creating-a-virtual-filesystem-with-python-and-why-you-need-one/"></input>
+
+    <div class="comment-form-help">
+        You can use <a href="http://en.wikipedia.org/wiki/Bbcode" target="_blank">bbcode</a> in the comment: e.g.
+        [b]This is bold[/b], [url]http://www.willmcgugan.com[/url], [code python]import this[/code]
+    </div>
+
+    <div class="comment-form-options">
+        <a id="comment-preview" href="#" title="Click before posting comment">Preview</a>
+        <input id="comment-submit" type="submit" value="Post Comment"></input>
+        <span id="comment-submit-working">Posting... </span>
+    </div>
+</form>
+</div>
+
+<div id="comment-preview-working">
+    <div class="content">Previewing comment, please wait a moment...</div>
+    <img src="/media/images/throbber.gif" />
+</div>
+<div id="comment-preview-content">
+</div>
+
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div id="column2">
+                
+
+
+
+
+<a href="http://twitter.com/willmcgugan" target="_blank">
+<img src="http://www.willmcgugan.com/media/uploads/images/twitter.png">
+</a>
+
+
+<img width="90" title="Will McGugan" alt="Will McGugan" src="/media/uploads/images/headshot90.jpg" style="float:left;padding:0px 10px 10px 0px;"/>
+
+
+
+
+<p>My name is <strong><a href="/about/">Will McGugan</a></strong>. I am an unabashed <em>geek</em>, an author, a <em>hacker</em> and a <a href="/about/">Python expert</a> &ndash; amongst other things!</p>
+<p>You are reading my <em>tech</em> blog. See the <a href="/">homepage</a> for my other blogs.</p>
+
+
+
+<div class="module-header">Search for Posts</div>
+    <div class="module search">
+        <form action="/blog/tech/search/" method="get">
+            <input class="search" name="s" value=""> </input>
+            <button type="submit">Search</button>
+        </form>
+        <div class="clear">&nbsp;</div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+<div class="module-header">Possibly related posts</div>
+<div class="module">
+    <ul class="links-list">
+        
+        <li><a href="/blog/tech/2012/4/25/serve-ftp-with-pyfilesystem/">Serve FTP with Python and PyFilesystem</a></li>
+        
+        <li><a href="/blog/tech/2011/1/1/sneak-preview-of-new-features-pyfilesystem-04/">Sneak Preview of New Features in PyFilesystem 0.4</a></li>
+        
+        <li><a href="/blog/tech/2010/6/20/pyfilesystem-03-released/">PyFilesystem 0.3 released</a></li>
+        
+        <li><a href="/blog/tech/2008/9/28/so-what-can-you-do-with-fs-anyway/">So what can you do with FS anyway?</a></li>
+        
+        <li><a href="/blog/tech/2008/9/21/announcing-fs-010-a-python-file-system/">Announcing FS 0.1.0, a Python file-system</a></li>
+        
+    </ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<div class="module-header">Tags</div>
+<div class="module">
+    <ul class="tags-list">
+    
+    <li><a href="/blog/tech/tag/pyfilesystem/" class="tag">Pyfilesystem</a></li>
+    
+    <li><a href="/blog/tech/tag/python/" class="tag">Python</a></li>
+    
+    </ul>
+    <div class="clear">&nbsp;</div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<div class="module-header">
+    Popular Tags
+</div>
+<div class="module">
+    <ul class="links-list">
+
+    <li>
+        <a href="/blog/tech/tag/python/" title="113 posts" class="tag">Python (113)</a>
+    </li>
+
+    <li>
+        <a href="/blog/tech/tag/django/" title="32 posts" class="tag">Django (32)</a>
+    </li>
+
+    <li>
+        <a href="/blog/tech/tag/becontrary/" title="17 posts" class="tag">Becontrary (17)</a>
+    </li>
+
+    <li>
+        <a href="/blog/tech/tag/pygame/" title="17 posts" class="tag">Pygame (17)</a>
+    </li>
+
+    <li>
+        <a href="/blog/tech/tag/turbogears/" title="15 posts" class="tag">Turbogears (15)</a>
+    </li>
+
+    <li>
+        <a href="/blog/tech/tag/javascript/" title="10 posts" class="tag">Javascript (10)</a>
+    </li>
+
+    <li>
+        <a href="/blog/tech/tag/tech/" title="10 posts" class="tag">Tech (10)</a>
+    </li>
+
+    <li>
+        <a href="/blog/tech/tag/loci-desktop/" title="7 posts" class="tag">Loci Desktop (7)</a>
+    </li>
+
+    <li>
+        <a href="/blog/tech/tag/game-objects/" title="6 posts" class="tag">Game Objects (6)</a>
+    </li>
+
+    <li>
+        <a href="/blog/tech/tag/pyfilesystem/" title="6 posts" class="tag">Pyfilesystem (6)</a>
+    </li>
+
+    </ul>
+</div>
+<div class="clear">&nbsp;</div>
+
+
+
+
+
+
+
+
+
+<div class="module-header">Archives</div>
+<div class="module">
+<div class="archives">
+    
+    <div id="archive-year-2013" class="year">
+        <div class="archive-year">
+            <span class="yearprevbutton" name="year2013" title="Previous year">&larr;</span>
+                2013
+            <span class="yearnextbutton disabled" name="year2013" title="Next year">&rarr;</span>
+        </div>
+        <ul class="archive-months">
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2013/11/" title="2 posts">November</a>
+                </div>
+                <div class="archive-count">2 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2013/8/" title="1 posts">August</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2013/6/" title="1 posts">June</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+        </ul>
+        <div class="clear">&nbsp;</div>
+    </div>
+    
+    <div id="archive-year-2012" class="year invisible">
+        <div class="archive-year">
+            <span class="yearprevbutton" name="year2012" title="Previous year">&larr;</span>
+                2012
+            <span class="yearnextbutton" name="year2012" title="Next year">&rarr;</span>
+        </div>
+        <ul class="archive-months">
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2012/12/" title="1 posts">December</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2012/4/" title="2 posts">April</a>
+                </div>
+                <div class="archive-count">2 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2012/3/" title="1 posts">March</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+        </ul>
+        <div class="clear">&nbsp;</div>
+    </div>
+    
+    <div id="archive-year-2011" class="year invisible">
+        <div class="archive-year">
+            <span class="yearprevbutton" name="year2011" title="Previous year">&larr;</span>
+                2011
+            <span class="yearnextbutton" name="year2011" title="Next year">&rarr;</span>
+        </div>
+        <ul class="archive-months">
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2011/5/" title="1 posts">May</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2011/3/" title="1 posts">March</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2011/2/" title="1 posts">February</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2011/1/" title="2 posts">January</a>
+                </div>
+                <div class="archive-count">2 posts</div>
+            </li>
+            
+        </ul>
+        <div class="clear">&nbsp;</div>
+    </div>
+    
+    <div id="archive-year-2010" class="year invisible">
+        <div class="archive-year">
+            <span class="yearprevbutton" name="year2010" title="Previous year">&larr;</span>
+                2010
+            <span class="yearnextbutton" name="year2010" title="Next year">&rarr;</span>
+        </div>
+        <ul class="archive-months">
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2010/8/" title="1 posts">August</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2010/6/" title="4 posts">June</a>
+                </div>
+                <div class="archive-count">4 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2010/5/" title="6 posts">May</a>
+                </div>
+                <div class="archive-count">6 posts</div>
+            </li>
+            
+        </ul>
+        <div class="clear">&nbsp;</div>
+    </div>
+    
+    <div id="archive-year-2009" class="year invisible">
+        <div class="archive-year">
+            <span class="yearprevbutton" name="year2009" title="Previous year">&larr;</span>
+                2009
+            <span class="yearnextbutton" name="year2009" title="Next year">&rarr;</span>
+        </div>
+        <ul class="archive-months">
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2009/12/" title="4 posts">December</a>
+                </div>
+                <div class="archive-count">4 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2009/10/" title="2 posts">October</a>
+                </div>
+                <div class="archive-count">2 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2009/9/" title="1 posts">September</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2009/8/" title="1 posts">August</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2009/7/" title="4 posts">July</a>
+                </div>
+                <div class="archive-count">4 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2009/5/" title="1 posts">May</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2009/4/" title="2 posts">April</a>
+                </div>
+                <div class="archive-count">2 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2009/3/" title="8 posts">March</a>
+                </div>
+                <div class="archive-count">8 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2009/2/" title="5 posts">February</a>
+                </div>
+                <div class="archive-count">5 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2009/1/" title="2 posts">January</a>
+                </div>
+                <div class="archive-count">2 posts</div>
+            </li>
+            
+        </ul>
+        <div class="clear">&nbsp;</div>
+    </div>
+    
+    <div id="archive-year-2008" class="year invisible">
+        <div class="archive-year">
+            <span class="yearprevbutton" name="year2008" title="Previous year">&larr;</span>
+                2008
+            <span class="yearnextbutton" name="year2008" title="Next year">&rarr;</span>
+        </div>
+        <ul class="archive-months">
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2008/12/" title="1 posts">December</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2008/11/" title="1 posts">November</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2008/10/" title="1 posts">October</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2008/9/" title="4 posts">September</a>
+                </div>
+                <div class="archive-count">4 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2008/8/" title="5 posts">August</a>
+                </div>
+                <div class="archive-count">5 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2008/7/" title="1 posts">July</a>
+                </div>
+                <div class="archive-count">1 post</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2008/6/" title="6 posts">June</a>
+                </div>
+                <div class="archive-count">6 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2008/2/" title="8 posts">February</a>
+                </div>
+                <div class="archive-count">8 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2008/1/" title="2 posts">January</a>
+                </div>
+                <div class="archive-count">2 posts</div>
+            </li>
+            
+        </ul>
+        <div class="clear">&nbsp;</div>
+    </div>
+    
+    <div id="archive-year-2007" class="year invisible">
+        <div class="archive-year">
+            <span class="yearprevbutton" name="year2007" title="Previous year">&larr;</span>
+                2007
+            <span class="yearnextbutton" name="year2007" title="Next year">&rarr;</span>
+        </div>
+        <ul class="archive-months">
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2007/12/" title="4 posts">December</a>
+                </div>
+                <div class="archive-count">4 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2007/11/" title="2 posts">November</a>
+                </div>
+                <div class="archive-count">2 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2007/10/" title="13 posts">October</a>
+                </div>
+                <div class="archive-count">13 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2007/9/" title="3 posts">September</a>
+                </div>
+                <div class="archive-count">3 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2007/7/" title="6 posts">July</a>
+                </div>
+                <div class="archive-count">6 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2007/6/" title="5 posts">June</a>
+                </div>
+                <div class="archive-count">5 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2007/5/" title="13 posts">May</a>
+                </div>
+                <div class="archive-count">13 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2007/4/" title="5 posts">April</a>
+                </div>
+                <div class="archive-count">5 posts</div>
+            </li>
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2007/3/" title="2 posts">March</a>
+                </div>
+                <div class="archive-count">2 posts</div>
+            </li>
+            
+        </ul>
+        <div class="clear">&nbsp;</div>
+    </div>
+    
+    <div id="archive-year-2006" class="year invisible">
+        <div class="archive-year">
+            <span class="yearprevbutton disabled" name="year2006" title="Previous year">&larr;</span>
+                2006
+            <span class="yearnextbutton" name="year2006" title="Next year">&rarr;</span>
+        </div>
+        <ul class="archive-months">
+            
+            <li>
+                <div class="archive-month">
+                    <a href="/blog/tech/2006/6/" title="2 posts">June</a>
+                </div>
+                <div class="archive-count">2 posts</div>
+            </li>
+            
+        </ul>
+        <div class="clear">&nbsp;</div>
+    </div>
+    
+</div>
+</div>
+<script type="text/javascript">
+
+$(function(){
+
+    $(".yearprevbutton").click(function(){
+        var $this = $(this);
+        if ($this.hasClass('disabled'))
+        {
+            return;
+        }
+        var year = parseInt( $this.attr('name').substr(4) );
+
+        var $current_archive_year = $('#archive-year-'+year);
+
+        var max_years = 10;
+        do{
+            year--;
+            var $archive_year = $('#archive-year-'+year);
+            max_years--;
+
+        }while(max_years>0 && !$archive_year);
+
+        $current_archive_year.slideUp(function(){
+        $archive_year.slideDown();});
+    })
+
+    $(".yearnextbutton").click(function(){
+        var $this = $(this);
+        if ($this.hasClass('disabled'))
+        {
+            return;
+        }
+        var year = parseInt( $this.attr('name').substr(4) );
+
+        var $current_archive_year = $('#archive-year-'+year);
+
+        var max_years = 10;
+        do{
+            year++;
+            var $archive_year = $('#archive-year-'+year);
+            max_years++;
+
+        }while(max_years>0 && !$archive_year);
+
+        $current_archive_year.slideUp(function(){
+        $archive_year.slideDown();});
+    })
+
+})
+
+
+</script>
+
+
+
+
+
+
+
+<div class="module-header">
+    Recent Comments
+</div>
+<div class="module">
+
+
+<div class="recent-comment">
+
+    No an ad.cssSlider is a free slide show creator with the Kenburns effect (and very few others), it is a ...<br>
+    <div class="author">
+    - <strong>Tajio</strong> on <a href="/blog/tech/2011/2/26/ken-burns-effect-with-javascript-and-canvas/#comment3033">Ken Burns effect with Javascript and Canvas</a>
+    </div>
+
+</div>
+
+
+
+<div class="recent-comment">
+
+    No an ad.cssSlider is a free slide show creator with the Kenburns effect (and very few others), it is a ...<br>
+    <div class="author">
+    - <strong>Tajio</strong> on <a href="/blog/tech/2011/2/26/ken-burns-effect-with-javascript-and-canvas/#comment3032">Ken Burns effect with Javascript and Canvas</a>
+    </div>
+
+</div>
+
+
+
+<div class="recent-comment">
+
+    Hi Will Can&#39;t seem to run any pyopengl applications on my Win7 64bit setup. Using python 3.3 but keep getting ...<br>
+    <div class="author">
+    - <strong>Jamall</strong> on <a href="/blog/tech/2007/6/4/opengl-sample-code-for-pygame/#comment3031">OpenGL sample code for PyGame</a>
+    </div>
+
+</div>
+
+
+
+<div class="recent-comment">
+
+    Great work, is it possible to jump to a specified picture?<br>
+    <div class="author">
+    - <strong>John</strong> on <a href="/blog/tech/2011/2/26/ken-burns-effect-with-javascript-and-canvas/#comment3030">Ken Burns effect with Javascript and Canvas</a>
+    </div>
+
+</div>
+
+
+
+<div class="recent-comment">
+
+    Thanks for the lesson and library, but: What if I wanted to limit the frames as well? Is it really ...<br>
+    <div class="author">
+    - <strong>The novice</strong> on <a href="/blog/tech/2007/6/15/master-time-with-pygame/#comment3029">Master time with PyGame</a>
+    </div>
+
+</div>
+
+
+</div>
+
+
+
+
+            </div>
+            <div class="clear">&nbsp;</div>
+
+            <div id="footer">
+                <div class="inner">
+                    <div class="footer-content">
+                        
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    </div>
+
+    <div class="page-end"> </div>
+
+
+    <div class="subtext">
+        &copy; 2008 Will McGugan.<br/><br/>
+    </div>
+    <div class="credit">
+        A <a href="http://code.google.com/p/djangotechblog/">technoblog</a> blog, design by <a href="http://www.willmcgugan.com">Will McGugan</a>
+    </div>
+    <div class="credit">
+        <a href="http://www.djangoproject.com" alt="Made with Django." title="Made with Django."><img src="/media/images/icons/djangosite80x15.gif"></a>
+    </div>
+
+
+</body>
+
+<script type="text/javascript" src="/media/js/comments.js"> </script>
+
+
+</html>

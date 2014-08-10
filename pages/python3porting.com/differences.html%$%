@@ -1,0 +1,714 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Language differences and workarounds &mdash; Porting to Python 3 - The Book Site</title>
+    
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Porting to Python 3 - The Book Site" href="index.html" />
+    <meta name="DC.language" content="en"/>
+    <meta name="DC.creator" content="Lennart Regebro"/>
+    <meta name="DC.subject" content="python porting conversion python3 2to3" />
+    <meta name="keywords" content="python porting conversion python3 2to3" />   
+
+  </head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+        <h1><a href="bookindex.html">Porting to Python 3 - The Book Site</a></h1>
+        <div class="rel">
+          <a href="toc.html" title="Table of Contents">Contents</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="language-differences-and-workarounds">
+<h1>Language differences and workarounds<a class="headerlink" href="#language-differences-and-workarounds" title="Permalink to this headline">Â¶</a></h1>
+<p>This appendix contains a listing of the differences between Python&nbsp;2 and Python
+3 and example code that will run both in Python&nbsp;2 and Python&nbsp;3 without <tt class="docutils literal"><span class="pre">2to3</span></tt>
+conversion.</p>
+<p>This listing is incomplete. What is listed here is only the intentional changes
+that are not bug fixes and even so there may be accidental ommissions.</p>
+<div class="section" id="apply">
+<h2><tt class="docutils literal"><span class="pre">apply()</span></tt><a class="headerlink" href="#apply" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-0">2to3 fixer â six support â</p>
+<p>The Python&nbsp;2 builtin <tt class="docutils literal"><span class="pre">apply()</span></tt> has been removed in Python&nbsp;3. It&#8217;s used to
+call a function, but since you can call the function directly it serves no
+purpose and has been deprecated since Python&nbsp;2.3. There is no replacement.</p>
+</div>
+<div class="section" id="buffer">
+<h2><tt class="docutils literal"><span class="pre">buffer()</span></tt><a class="headerlink" href="#buffer" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-1">2to3 fixer â six support â</p>
+<p>The Python&nbsp;2 <tt class="docutils literal"><span class="pre">buffer()</span></tt> builtin is replaced by the <tt class="docutils literal"><span class="pre">memoryview</span></tt> class in
+Python&nbsp;3. They are not fully compatible, so <tt class="docutils literal"><span class="pre">2to3</span></tt> does not change this unless
+you explicitly specify the <tt class="docutils literal"><span class="pre">buffer</span></tt> fixer.</p>
+<p>This code will run in both Python&nbsp;2 and Python&nbsp;3 without <tt class="docutils literal"><span class="pre">2to3</span></tt> conversion:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span> <span class="o">&gt;</span> <span class="s">&#39;3&#39;</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">buffer</span> <span class="o">=</span> <span class="n">memoryview</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="nb">buffer</span><span class="p">(</span><span class="s">&#39;yay!&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="go">4</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="callable">
+<h2><tt class="docutils literal"><span class="pre">callable()</span></tt><a class="headerlink" href="#callable" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-2">2to3 fixer â six support â</p>
+<p>The Python&nbsp;2 builtin <tt class="docutils literal"><span class="pre">callable()</span></tt> was removed in Python&nbsp;3.0, but reintroduced
+in Python 3.2. If you need to support Python 3.1 you
+can try to call the object under scrutiny and catch the <tt class="docutils literal"><span class="pre">TypeError</span></tt> if it
+is not callable.</p>
+<p>If you need to know if something is callable without calling it, there are
+several solutions for Python&nbsp;3:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">afunction</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">any</span><span class="p">(</span><span class="s">&quot;__call__&quot;</span> <span class="ow">in</span> <span class="n">klass</span><span class="o">.</span><span class="n">__dict__</span> <span class="k">for</span> 
+<span class="gp">... </span>    <span class="n">klass</span> <span class="ow">in</span> <span class="nb">type</span><span class="p">(</span><span class="n">afunction</span><span class="p">)</span><span class="o">.</span><span class="n">__mro__</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">collections</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">afunction</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Callable</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>If you need code that runs in both Python&nbsp;2 and Python&nbsp;3 without <tt class="docutils literal"><span class="pre">2to3</span></tt>
+conversion, you can use this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">hasattr</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">six</span></tt> module also defines a <tt class="docutils literal"><span class="pre">callable</span></tt> function for use under
+Python&nbsp;3.</p>
+</div>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-3">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 there is two types of classes, &#8220;old-style&#8221; and &#8220;new&#8221;. The
+&#8220;old-style&#8221; classes have been removed in Python&nbsp;3.</p>
+<p>See also <a class="reference internal" href="preparing.html#newstyleclass"><em>Use new-style classes</em></a></p>
+</div>
+<div class="section" id="comparisons">
+<h2>Comparisons<a class="headerlink" href="#comparisons" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-4">2to3 fixer â six support â</p>
+<p>The Python&nbsp;2 builtin <tt class="docutils literal"><span class="pre">cmp()</span></tt> has been removed in Python&nbsp;3.0.1, although
+it remained in Python&nbsp;3.0 by mistake. It is mostly used when defining the
+<tt class="docutils literal"><span class="pre">__cmp__</span></tt> comparison method or functions to pass as <tt class="docutils literal"><span class="pre">cmp</span></tt> parameters
+to <tt class="docutils literal"><span class="pre">.sort()</span></tt> and the support for this has been removed in Python&nbsp;3 as well.</p>
+<p>Should you need <tt class="docutils literal"><span class="pre">cmp()</span></tt> you can define it like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">cmp</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="problems.html#comparisons"><em>Unorderable types, __cmp__ and cmp</em></a> for more information.</p>
+</div>
+<div class="section" id="coerce-and-coerce">
+<h2><tt class="docutils literal"><span class="pre">coerce()</span></tt> and <tt class="docutils literal"><span class="pre">__coerce__</span></tt><a class="headerlink" href="#coerce-and-coerce" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-5">2to3 fixer â six support â</p>
+<p>The <tt class="docutils literal"><span class="pre">coerce()</span></tt> builtin function and the support for the <tt class="docutils literal"><span class="pre">__coerce__</span></tt> method
+has been removed in Python&nbsp;3. <tt class="docutils literal"><span class="pre">coerce()</span></tt> would convert the numeric arguments
+to have the same type according to the coercion rules for Pythons arithmetic
+operators and was only useful in early versions of Python when implementing new
+numeric types. There is no replacement in Python&nbsp;3; coercion should instead
+be done by the numeric operator methods.</p>
+</div>
+<div class="section" id="dictionary-methods">
+<h2>Dictionary methods<a class="headerlink" href="#dictionary-methods" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-6">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 dictionaries have the methods <tt class="docutils literal"><span class="pre">iterkeys()</span></tt>, <tt class="docutils literal"><span class="pre">itervalues()</span></tt> and
+<tt class="docutils literal"><span class="pre">iteritems()</span></tt> that return iterators instead of lists. In Python&nbsp;3 the standard
+<tt class="docutils literal"><span class="pre">keys()</span></tt>, <tt class="docutils literal"><span class="pre">values()</span></tt> and <tt class="docutils literal"><span class="pre">items()</span></tt> return dictionary views, which are
+iterators, so the iterator variants become pointless and are removed.</p>
+<p>If you need to support both Python&nbsp;2 and Python&nbsp;3 without <tt class="docutils literal"><span class="pre">2to3</span></tt>
+conversion and you must use the iterator methods, you can access it via a
+<tt class="docutils literal"><span class="pre">try/except</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;key1&#39;</span><span class="p">:</span> <span class="s">&#39;value1&#39;</span><span class="p">,</span>
+<span class="gp">... </span>     <span class="s">&#39;key2&#39;</span><span class="p">:</span> <span class="s">&#39;value2&#39;</span><span class="p">,</span>
+<span class="gp">... </span>     <span class="s">&#39;key3&#39;</span><span class="p">:</span> <span class="s">&#39;value3&#39;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">}</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">values</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">itervalues</span><span class="p">()</span>
+<span class="gp">... </span><span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">values</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+<span class="go">False</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<span class="go">value3</span>
+<span class="go">value2</span>
+<span class="go">value1</span>
+</pre></div>
+</div>
+<p>Also, the <tt class="docutils literal"><span class="pre">has_key()</span></tt> method on dictionaries is gone. Use the <tt class="docutils literal"><span class="pre">in</span></tt> operator
+instead.</p>
+<p>See also <a class="reference internal" href="preparing.html#iterator-section"><em>Make sure you aren&#8217;t using any removed modules</em></a></p>
+</div>
+<div class="section" id="except">
+<h2><tt class="docutils literal"><span class="pre">except</span></tt><a class="headerlink" href="#except" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-7">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 the syntax to catch exceptions have changed from:</p>
+<div class="highlight-python"><pre>except (Exception1, Exception2), target:</pre>
+</div>
+<p>to the clearer Python&nbsp;3 syntax:</p>
+<div class="highlight-python"><pre>except (Exception1, Exception2) as target:</pre>
+</div>
+<p>Other differences is that the target no longer can be a tuple and that string
+exceptions are gone. <tt class="docutils literal"><span class="pre">2to3</span></tt> will convert all this, except string exceptions.</p>
+<p>Both syntaxes work in Python&nbsp;2.6 and Python&nbsp;2.7, but if you need code that is
+to run in earlier versions as well as Python&nbsp;3 without <tt class="docutils literal"><span class="pre">2to3</span></tt> conversion you
+can get the exception object through <tt class="docutils literal"><span class="pre">sys.exc_info()</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Something happened&quot;</span><span class="p">)</span>
+<span class="gp">... </span><span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">Something happened</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="exception-objects">
+<h2>Exception objects<a class="headerlink" href="#exception-objects" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-8">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 the exception object is iterable and indexable:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;arg1&#39;</span><span class="p">,</span> <span class="s">&#39;arg2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">&#39;arg2&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">e</span><span class="p">:</span>
+<span class="gp">... </span>  <span class="k">print</span> <span class="n">a</span>
+<span class="gp">... </span>
+<span class="go">arg1</span>
+<span class="go">arg2</span>
+</pre></div>
+</div>
+<p>In Python&nbsp;3 you must use the <tt class="docutils literal"><span class="pre">args</span></tt> attribute, which will work under
+Python&nbsp;2 as well.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;arg1&#39;</span><span class="p">,</span> <span class="s">&#39;arg2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">&#39;arg2&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+<span class="gp">... </span>  <span class="k">print</span> <span class="n">a</span>
+<span class="gp">... </span>
+<span class="go">arg1</span>
+<span class="go">arg2</span>
+</pre></div>
+</div>
+<p>There was also a <tt class="docutils literal"><span class="pre">message</span></tt> attribute on exceptions introduced in Python&nbsp;2.5,
+but it was deprecated already in Python&nbsp;2.6, so it&#8217;s unlikely that you will
+use it.</p>
+</div>
+<div class="section" id="exec">
+<h2><tt class="docutils literal"><span class="pre">exec</span></tt><a class="headerlink" href="#exec" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-9">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 <tt class="docutils literal"><span class="pre">exec</span></tt> is a statement:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">g_dict</span><span class="o">=</span><span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">l_dict</span><span class="o">=</span><span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">exec</span> <span class="s">&quot;v = 3&quot;</span> <span class="ow">in</span> <span class="n">g_dict</span><span class="p">,</span> <span class="n">l_dict</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">l_dict</span><span class="p">[</span><span class="s">&#39;v&#39;</span><span class="p">]</span>
+<span class="go">3</span>
+</pre></div>
+</div>
+<p>In Python&nbsp;3 <tt class="docutils literal"><span class="pre">exec</span></tt> is a function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">g_dict</span><span class="o">=</span><span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">l_dict</span><span class="o">=</span><span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">exec</span><span class="p">(</span><span class="s">&quot;v = 3&quot;</span><span class="p">,</span> <span class="n">g_dict</span><span class="p">,</span> <span class="n">l_dict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">l_dict</span><span class="p">[</span><span class="s">&#39;v&#39;</span><span class="p">]</span>
+<span class="go">3</span>
+</pre></div>
+</div>
+<p>The Python&nbsp;3 syntax without the global and local dictionaries will work in
+Python&nbsp;2 as well:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">exec</span><span class="p">(</span><span class="s">&quot;v = 3&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v</span>
+<span class="go">3</span>
+</pre></div>
+</div>
+<p>If you need to pass in the global or local dictionaries you will need to
+define a custom function with two different implementations, one for Python&nbsp;2
+and one for Python&nbsp;3. As usual <tt class="docutils literal"><span class="pre">six</span></tt> includes an excellent implementation
+of this called <tt class="docutils literal"><span class="pre">exec_()</span></tt>.</p>
+</div>
+<div class="section" id="execfile">
+<h2><tt class="docutils literal"><span class="pre">execfile</span></tt><a class="headerlink" href="#execfile" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-10">2to3 fixer â six support â</p>
+<p>The Python&nbsp;2 <tt class="docutils literal"><span class="pre">execfile</span></tt> statement is gone on Python&nbsp;3. As a replacement
+you can open the file and read the contents:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">exec</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">thefile</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>This works in all versions of Python.</p>
+</div>
+<div class="section" id="file">
+<h2><tt class="docutils literal"><span class="pre">file</span></tt><a class="headerlink" href="#file" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-11">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 there is a <tt class="docutils literal"><span class="pre">file</span></tt> type builtin. This is replaced with various
+file types in Python&nbsp;3. You commonly see code in Python&nbsp;2 that uses
+<tt class="docutils literal"><span class="pre">file(pathname)</span></tt> which will fail in Python&nbsp;3. Replace this usage with
+<tt class="docutils literal"><span class="pre">open(pathname)</span></tt>.</p>
+<p>If you need to test for types you can in Python&nbsp;3 check for <tt class="docutils literal"><span class="pre">io.IOBase</span></tt>
+instead of <tt class="docutils literal"><span class="pre">file</span></tt>.</p>
+</div>
+<div class="section" id="filter">
+<h2><tt class="docutils literal"><span class="pre">filter()</span></tt><a class="headerlink" href="#filter" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-12">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 <tt class="docutils literal"><span class="pre">filter()</span></tt> returns a list while in Python&nbsp;3 it returns an iterator.
+<tt class="docutils literal"><span class="pre">2to3</span></tt> will in some cases place a <tt class="docutils literal"><span class="pre">list()</span></tt> call around the call to <tt class="docutils literal"><span class="pre">filter()</span></tt>
+to ensure that the result is still a list. If you need code that runs
+in both Python&nbsp;2 and Python 3 without <tt class="docutils literal"><span class="pre">2to3</span></tt> conversion and you need the result to
+be a list, you can do the same.</p>
+</div>
+<div class="section" id="imports">
+<h2>Imports<a class="headerlink" href="#imports" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-13">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2, if you have a package called <tt class="docutils literal"><span class="pre">mypackage</span></tt> and that contains
+a module called <tt class="docutils literal"><span class="pre">csv.py</span></tt>, it would hide the <tt class="docutils literal"><span class="pre">csv</span></tt> module from the
+standard library. The code <tt class="docutils literal"><span class="pre">import</span> <span class="pre">csv</span></tt> would within <tt class="docutils literal"><span class="pre">mypackage</span></tt> import
+the local file, and importing from the standard library would become tricky.</p>
+<p>In Python&nbsp;3, this has changed so that <tt class="docutils literal"><span class="pre">import</span> <span class="pre">csv</span></tt> would import from the
+standard library, and to import the local <tt class="docutils literal"><span class="pre">csv.py</span></tt> file you need to write
+<tt class="docutils literal"><span class="pre">from</span> <span class="pre">.</span> <span class="pre">import</span> <span class="pre">csv</span></tt> and <tt class="docutils literal"><span class="pre">from</span> <span class="pre">csv</span> <span class="pre">import</span> <span class="pre">my_csv</span></tt> needs to be changed to
+<tt class="docutils literal"><span class="pre">from</span> <span class="pre">.csv</span> <span class="pre">import</span> <span class="pre">my_csv</span></tt>. These are called &#8220;relative imports&#8221;, and there is
+also a syntax to import from one level up module above; <tt class="docutils literal"><span class="pre">from</span> <span class="pre">..</span> <span class="pre">import</span> <span class="pre">csv</span></tt>.</p>
+<p>If you to support both Python&nbsp;2 and Python&nbsp;3 without <tt class="docutils literal"><span class="pre">2to3</span></tt> the <tt class="docutils literal"><span class="pre">from</span> <span class="pre">.</span></tt>
+and <tt class="docutils literal"><span class="pre">from</span> <span class="pre">..</span></tt> syntax has been available since Python&nbsp;2.5, together with a
+<tt class="docutils literal"><span class="pre">from</span> <span class="pre">__future__</span> <span class="pre">import</span> <span class="pre">absolute_import</span></tt> statement that changes the behavior
+to the Python&nbsp;3 behavior.</p>
+<p>If you need to support Python&nbsp;2.4 or earlier you have to spell out the whole
+package name so <tt class="docutils literal"><span class="pre">import</span> <span class="pre">csv</span></tt> becomes <tt class="docutils literal"><span class="pre">from</span> <span class="pre">mypkg</span> <span class="pre">import</span> <span class="pre">csv</span></tt> and <tt class="docutils literal"><span class="pre">from</span> <span class="pre">csv</span>
+<span class="pre">import</span> <span class="pre">my_csv</span></tt> becomes <tt class="docutils literal"><span class="pre">from</span> <span class="pre">mypckg.csv</span> <span class="pre">import</span> <span class="pre">my_csv</span></tt>. For clarity and
+readability I would avoid relative imports if you can and always spell out
+the whole path.</p>
+<p><tt class="docutils literal"><span class="pre">2to3</span></tt> will check if your imports are local and change them.</p>
+</div>
+<div class="section" id="indentation">
+<h2>Indentation<a class="headerlink" href="#indentation" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-14">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 a tab will be equal to eight spaces as indentation, so you can
+indent one line with a tab, and the next line with eight spaces. This is
+confusing if you are using an editor that expands tabs to another number than
+eight spaces.</p>
+<p>In Python&nbsp;3 a tab is only equal to another tab. This means that each
+indentation level has to be consistent in its use of tabs and spaces. If you
+have a file where an indented block sometimes uses spaces and sometimes tabs,
+you will get the error <tt class="docutils literal"><span class="pre">TabError:</span> <span class="pre">inconsistent</span> <span class="pre">use</span> <span class="pre">of</span> <span class="pre">tabs</span> <span class="pre">and</span> <span class="pre">spaces</span> <span class="pre">in</span>
+<span class="pre">indentation</span></tt>.</p>
+<p>The solution is of course to remove the inconsistency.</p>
+</div>
+<div class="section" id="input-and-raw-input">
+<h2><tt class="docutils literal"><span class="pre">input()</span></tt> and <tt class="docutils literal"><span class="pre">raw_input()</span></tt><a class="headerlink" href="#input-and-raw-input" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-15">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 there is <tt class="docutils literal"><span class="pre">raw_input()</span></tt> that takes a string from <tt class="docutils literal"><span class="pre">stdin</span></tt> and
+<tt class="docutils literal"><span class="pre">input()</span></tt> that takes a string from <tt class="docutils literal"><span class="pre">stdin</span></tt> and evaluates it. That last
+function is not very useful and has been removed in Python&nbsp;3, while
+<tt class="docutils literal"><span class="pre">raw_input()</span></tt> has been renamed to <tt class="docutils literal"><span class="pre">input()</span></tt>.</p>
+<p>If you need to evaluate the input string you can use <tt class="docutils literal"><span class="pre">eval()</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">eval</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s">&#39;Type in an expression: &#39;</span><span class="p">))</span>
+<span class="go">&#39;Type in an expression: &#39; 1+2</span>
+<span class="go">3</span>
+</pre></div>
+</div>
+<p>If you need code that runs in both Python&nbsp;2 and Python&nbsp;3 without <tt class="docutils literal"><span class="pre">2to3</span></tt>
+conversion you can conditionally set <tt class="docutils literal"><span class="pre">input()</span></tt> to be <tt class="docutils literal"><span class="pre">raw_input()</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">input</span> <span class="o">=</span> <span class="nb">raw_input</span>
+<span class="gp">... </span><span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span><span class="p">(</span><span class="s">&#39;Type in a string: &#39;</span><span class="p">)</span>
+<span class="go">Type in a string: It works!</span>
+<span class="go">&#39;It works!&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="integer-division">
+<h2>Integer division<a class="headerlink" href="#integer-division" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-16">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2, the result of dividing two integers will itself be an integer; in
+other words <tt class="docutils literal"><span class="pre">1/2</span></tt> returns <tt class="docutils literal"><span class="pre">0</span></tt>. In Python&nbsp;3 integer division will return an
+integer only if the result is a whole number. So <tt class="docutils literal"><span class="pre">1/2</span></tt> will return <tt class="docutils literal"><span class="pre">0.5</span></tt>.</p>
+<p>If you want the old behavior you should instead use the floor division operator
+<tt class="docutils literal"><span class="pre">//</span></tt>, available since Python&nbsp;2.2. If you need to support both Python&nbsp;2
+and Python&nbsp;3 without <tt class="docutils literal"><span class="pre">2to3</span></tt> conversion the following <tt class="docutils literal"><span class="pre">__future__</span></tt> import
+works since Python&nbsp;2.2 and enables the new behavior:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span>
+<span class="go">0.5</span>
+</pre></div>
+</div>
+<p>See also: <a class="reference internal" href="preparing.html#division-section"><em>Use // instead of / when dividing integers</em></a></p>
+</div>
+<div class="section" id="long">
+<h2><tt class="docutils literal"><span class="pre">long</span></tt><a class="headerlink" href="#long" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-17">2to3 fixer â six support â (partial)</p>
+<p>Python&nbsp;2 has two integer types <tt class="docutils literal"><span class="pre">int</span></tt> and <tt class="docutils literal"><span class="pre">long</span></tt>. These have been
+unified in Python&nbsp;3, so there is now only one type, <tt class="docutils literal"><span class="pre">int</span></tt>. This means
+that the following code fails in Python&nbsp;3:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="il">1L</span>
+<span class="go">1L</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">long</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">1L</span>
+</pre></div>
+</div>
+<p>It&#8217;s quite unusual that you would need to specify that an integer should be a
+long in Python&nbsp;2. If you do and you need code that runs in both Python&nbsp;2 and
+Python&nbsp;3 without <tt class="docutils literal"><span class="pre">2to3</span></tt> conversion, the following code works:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span> <span class="o">&gt;</span> <span class="s">&#39;3&#39;</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">long</span> <span class="o">=</span> <span class="nb">int</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">long</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">1L</span>
+</pre></div>
+</div>
+<p>However, the representation is still different, so doctests will fail.</p>
+<p>If you need to check if something is a number you need to check against
+both <tt class="docutils literal"><span class="pre">int</span></tt> and <tt class="docutils literal"><span class="pre">long</span></tt> under Python&nbsp;2, but only <tt class="docutils literal"><span class="pre">int</span></tt> in Python&nbsp;3. The
+best way to do that is to set up a <tt class="docutils literal"><span class="pre">integer_types</span></tt> tuple depending on
+Python version and test against that. <tt class="docutils literal"><span class="pre">six</span></tt> includes this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span> <span class="o">&lt;</span> <span class="s">&#39;3&#39;</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">integer_types</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">long</span><span class="p">,)</span>
+<span class="gp">... </span><span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">integer_types</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">integer_types</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="map">
+<h2><tt class="docutils literal"><span class="pre">map()</span></tt><a class="headerlink" href="#map" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-18">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 <tt class="docutils literal"><span class="pre">map()</span></tt> returns a list while in Python&nbsp;3 it returns an iterator.
+<tt class="docutils literal"><span class="pre">2to3</span></tt> will in some cases place a <tt class="docutils literal"><span class="pre">list()</span></tt> call around the call to
+<tt class="docutils literal"><span class="pre">map()</span></tt> to ensure that the result is still a list. If you need code that
+runs in both Python&nbsp;2 and Python 3 without <tt class="docutils literal"><span class="pre">2to3</span></tt> conversion and you need
+the result to be a list, you can do the same.</p>
+<p>In Python 2 <tt class="docutils literal"><span class="pre">map()</span></tt> will continue until the longest of the argument
+iterables are exhausted, extending the other arguments with <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">fun</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="k">if</span> <span class="n">b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+<span class="gp">... </span>       <span class="k">return</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="o">-</span><span class="n">a</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">map</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="go">[-3, -1, 1, -3, -4]</span>
+</pre></div>
+</div>
+<p>In Python 3 <tt class="docutils literal"><span class="pre">map()</span></tt> will instead stop at the shortest of the arguments. If
+you want the Python 2 behaviour in Python 3 you can use a combination of
+<tt class="docutils literal"><span class="pre">starmap()</span></tt> and <tt class="docutils literal"><span class="pre">zip_longest()</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">starmap</span><span class="p">,</span> <span class="n">zip_longest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">fun</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="k">if</span> <span class="n">b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+<span class="gp">... </span>       <span class="k">return</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="o">-</span><span class="n">a</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">starmap</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="n">zip_longest</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">])))</span>
+<span class="go">[-3, -1, 1, -3, -4]</span>
+</pre></div>
+</div>
+<p>The Python 2 <tt class="docutils literal"><span class="pre">map()</span></tt> will accept <tt class="docutils literal"><span class="pre">None</span></tt> as it&#8217;s function argument, where
+it will just return the object(s) passed in. As this transforms <tt class="docutils literal"><span class="pre">map()</span></tt>
+into <tt class="docutils literal"><span class="pre">zip()</span></tt> it&#8217;s not particularily useful, and in Python 3 this no longer
+works. However, some code dependes on this behavior, and you can use the
+following function as a full replacement for the Python 2 map.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">starmap</span><span class="p">,</span> <span class="n">zip_longest</span>
+
+<span class="k">def</span> <span class="nf">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">iterables</span><span class="p">):</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="n">zip_longest</span><span class="p">(</span><span class="o">*</span><span class="n">iterables</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># No need for a NOOP lambda here</span>
+        <span class="k">return</span> <span class="n">zipped</span>
+    <span class="k">return</span> <span class="n">starmap</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">zipped</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="metaclasses">
+<h2>Metaclasses<a class="headerlink" href="#metaclasses" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-19">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 you specified the metaclass with the <tt class="docutils literal"><span class="pre">__metaclass__</span></tt> attribute.
+In Python&nbsp;3 you instead pass in a <tt class="docutils literal"><span class="pre">metaclass</span></tt> parameter in the class
+definition. Supporting metaclasses in Python&nbsp;2 and Python&nbsp;3 without using <tt class="docutils literal"><span class="pre">2to3</span></tt>
+requires you to create classes on the fly. If you want this, I highly recommend
+to use the <tt class="docutils literal"><span class="pre">six</span></tt> module, which has a very clever <tt class="docutils literal"><span class="pre">with_metaclass()</span></tt> function.</p>
+</div>
+<div class="section" id="next">
+<h2><tt class="docutils literal"><span class="pre">.next()</span></tt><a class="headerlink" href="#next" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-20">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 you get the next result from an iterator by calling the iterators
+<tt class="docutils literal"><span class="pre">.next()</span></tt> method. In Python&nbsp;3 there is instead a <tt class="docutils literal"><span class="pre">next()</span></tt> builtin.</p>
+<p>If you need code that runs in both Python&nbsp;2 and Python&nbsp;3 without <tt class="docutils literal"><span class="pre">2to3</span></tt>
+conversion you can make a function that under Python&nbsp;2 calls
+<tt class="docutils literal"><span class="pre">iterator.next()</span></tt> and under Python&nbsp;3 calls <tt class="docutils literal"><span class="pre">next(iterator)</span></tt>. The <tt class="docutils literal"><span class="pre">six</span></tt>
+module contains such a function, called <tt class="docutils literal"><span class="pre">advance_iterator()</span></tt>.</p>
+</div>
+<div class="section" id="parameter-unpacking">
+<h2>Parameter unpacking<a class="headerlink" href="#parameter-unpacking" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-21">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 you have parameter unpacking:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">unpacks</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unpacks</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="go">(1, 2, 3)</span>
+</pre></div>
+</div>
+<p>Python&nbsp;3 does not support this, so you need to do your own unpacking:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">unpacks</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unpacks</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="go">(1, 2, 3)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="print">
+<h2><tt class="docutils literal"><span class="pre">print</span></tt><a class="headerlink" href="#print" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-22">2to3 fixer â six support â</p>
+<p>The Python&nbsp;2 <tt class="docutils literal"><span class="pre">print</span></tt> statement is in Python&nbsp;3 a function. If you need to run
+the same code in both Python&nbsp;2 and Python&nbsp;3 without <tt class="docutils literal"><span class="pre">2to3</span></tt> conversion there
+are various techniques for this. This is discussed in detail in
+<a class="reference internal" href="noconv.html#print-section"><em>Supporting the print() function</em></a>.</p>
+</div>
+<div class="section" id="raise">
+<h2><tt class="docutils literal"><span class="pre">raise</span></tt><a class="headerlink" href="#raise" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-23">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 the syntax for the <tt class="docutils literal"><span class="pre">raise</span></tt> statement is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">raise</span> <span class="n">E</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">T</span>
+</pre></div>
+</div>
+<p>Where <tt class="docutils literal"><span class="pre">E</span></tt> is a string, an exception class or an exception instance, <tt class="docutils literal"><span class="pre">V</span></tt> the
+an optional exception value in the case that <tt class="docutils literal"><span class="pre">E</span></tt> is a class or a string and
+<tt class="docutils literal"><span class="pre">T</span></tt> is a <tt class="docutils literal"><span class="pre">traceback</span></tt> object if you want to supply a traceback from a
+different place than the current code. In Python&nbsp;3 this has changed to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">raise</span> <span class="n">E</span><span class="p">(</span><span class="n">V</span><span class="p">)</span><span class="o">.</span><span class="n">with_traceback</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As with the Python&nbsp;2 syntax, <tt class="docutils literal"><span class="pre">value</span></tt> and <tt class="docutils literal"><span class="pre">traceback</span></tt> are optional.
+The syntax without the traceback variable is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">raise</span> <span class="n">E</span><span class="p">(</span><span class="n">V</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This works in all versions of Python. It&#8217;s very unusual that you need the
+traceback parameter, but if you do and you also need to write code that runs
+under Python&nbsp;2 and Python&nbsp;3 without using <tt class="docutils literal"><span class="pre">2to3</span></tt> you need to create different
+a function that takes <tt class="docutils literal"><span class="pre">E</span></tt>, <tt class="docutils literal"><span class="pre">V</span></tt> and <tt class="docutils literal"><span class="pre">T</span></tt> as parameters and have different
+implementations under Python&nbsp;2 and Python&nbsp;3 for that function. The <tt class="docutils literal"><span class="pre">six</span></tt>
+module has a nice implementation of that, called <tt class="docutils literal"><span class="pre">reraise()</span></tt>.</p>
+</div>
+<div class="section" id="range-and-xrange">
+<h2><tt class="docutils literal"><span class="pre">range()</span></tt> and <tt class="docutils literal"><span class="pre">xrange()</span></tt><a class="headerlink" href="#range-and-xrange" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-24">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 <tt class="docutils literal"><span class="pre">range()</span></tt> returns a list, and <tt class="docutils literal"><span class="pre">xrange()</span></tt> returns an object
+that will only generate the items in the range when needed, saving memory.</p>
+<p>In Python 3, the <tt class="docutils literal"><span class="pre">range()</span></tt> function is gone, and <tt class="docutils literal"><span class="pre">xrange()</span></tt> has been
+renamed <tt class="docutils literal"><span class="pre">range()</span></tt>. In addition the <tt class="docutils literal"><span class="pre">range()</span></tt> object support slicing in
+Python 3.2 and later .</p>
+<p><tt class="docutils literal"><span class="pre">2to3</span></tt> will in some cases place a <tt class="docutils literal"><span class="pre">list()</span></tt> call around the call to
+<tt class="docutils literal"><span class="pre">range()</span></tt>, to ensure that the result is still a list. If you need code that
+runs in both Python&nbsp;2 and Python 3 without <tt class="docutils literal"><span class="pre">2to3</span></tt> conversion and you need
+the result to be a list, you can do the same.</p>
+<p>You can import <tt class="docutils literal"><span class="pre">xrange()</span></tt> from the <tt class="docutils literal"><span class="pre">six</span></tt> module to be sure you get the
+iterator variation under both Python&nbsp;2 and Python 3.</p>
+</div>
+<div class="section" id="repr-as-backticks">
+<h2><tt class="docutils literal"><span class="pre">repr()</span></tt> as backticks.<a class="headerlink" href="#repr-as-backticks" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-25">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 you can generate a string representation of an expression by
+enclosing it with backticks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="sb">`sorted`</span>
+<span class="go">&#39;&lt;built-in function sorted&gt;&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="sb">`2+3`</span>
+<span class="go">&#39;5&#39;</span>
+</pre></div>
+</div>
+<p>The only purpose with this syntax is to confuse newbies and make obfuscated
+Python. It has been removed in Python&nbsp;3, since the <tt class="docutils literal"><span class="pre">repr()</span></tt> builtin does
+exactly the same.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">repr</span><span class="p">(</span><span class="nb">sorted</span><span class="p">)</span>
+<span class="go">&#39;&lt;built-in function sorted&gt;&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">repr</span><span class="p">(</span><span class="mi">2</span><span class="o">+</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">&#39;5&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="rounding-behavior">
+<h2>Rounding behavior<a class="headerlink" href="#rounding-behavior" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-26">2to3 fixer â six support â</p>
+<p>The behavior of <tt class="docutils literal"><span class="pre">round</span></tt> has changed in Python 3. In Python 2, rounding of
+halfway cases was away from zero, and <tt class="docutils literal"><span class="pre">round()</span></tt> would always return a
+float.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="go">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="mf">2.5</span><span class="p">)</span>
+<span class="go">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="mf">10.0</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="go">3.0</span>
+</pre></div>
+</div>
+<p>In Python 3 rounding of halfway cases are now always towards the nearest
+even. This is standard practice, as it will make a set of evenly distributed
+roundings average out.</p>
+<p>When called without the second parameter, which determines the number of
+decimals, <tt class="docutils literal"><span class="pre">round()</span></tt> will in Python 3 return an integer. If you pass in a
+parameter to set the number of decimals to round to, the returned value will
+be of the same type as the unrounded value. This is true even if you pass in
+zero.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="mf">2.5</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="mf">10.0</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="go">3.0</span>
+</pre></div>
+</div>
+<p>If you need the Python 2 behavior, you can use the following method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">my_round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">p</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">d</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">x</span> <span class="o">*</span> <span class="n">p</span><span class="p">)</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">copysign</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">x</span><span class="p">)))</span><span class="o">/</span><span class="n">p</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_round</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="go">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_round</span><span class="p">(</span><span class="mf">2.5</span><span class="p">)</span>
+<span class="go">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_round</span><span class="p">(</span><span class="mf">10.0</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="go">3.0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="slice-operator-methods">
+<h2>Slice operator methods<a class="headerlink" href="#slice-operator-methods" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-27">2to3 fixer â six support â</p>
+<p>In Python 1 you used <tt class="docutils literal"><span class="pre">__getslice__</span></tt> and <tt class="docutils literal"><span class="pre">__setslice__</span></tt> to support slice
+methods like <tt class="docutils literal"><span class="pre">foo[3:7]</span></tt> on your object. These were deprecated in Python&nbsp;2.0
+but still supported. Python&nbsp;3 removes the support for the slice methods, so you
+need to instead extend <tt class="docutils literal"><span class="pre">__getitem__</span></tt>, <tt class="docutils literal"><span class="pre">__setitem__</span></tt> and <tt class="docutils literal"><span class="pre">__delitem__</span></tt> with
+slice object support.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">StrawberryTart</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="gp">...</span>
+<span class="gp">... </span>   <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+<span class="gp">... </span>       <span class="sd">&quot;&quot;&quot;An example of how to use slice objects&quot;&quot;&quot;</span>
+<span class="gp">... </span>       <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+<span class="gp">... </span>           <span class="c"># Expand the slice object using range()</span>
+<span class="gp">... </span>           <span class="c"># to a maximum of eight items.</span>
+<span class="gp">... </span>           <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> 
+<span class="gp">... </span>                   <span class="nb">range</span><span class="p">(</span><span class="o">*</span><span class="n">n</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="mi">8</span><span class="p">))]</span>
+<span class="gp">...</span>
+<span class="gp">... </span>       <span class="c"># Return one item of the tart</span>
+<span class="gp">... </span>       <span class="k">return</span> <span class="s">&#39;A slice of StrawberryTart with &#39;</span> \
+<span class="gp">... </span>              <span class="s">&#39;not so much rat in it.&#39;</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tart</span> <span class="o">=</span> <span class="n">StrawberryTart</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tart</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+<span class="go">[&#39;A slice of StrawberryTart with not so much rat in it.&#39;]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sorting">
+<h2>Sorting<a class="headerlink" href="#sorting" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-28">2to3 fixer â six support â</p>
+<p>In Python&nbsp;2 the <tt class="docutils literal"><span class="pre">.sort()</span></tt> method on lists as well as the <tt class="docutils literal"><span class="pre">sorted()</span></tt> builtin
+takes two parameters, <tt class="docutils literal"><span class="pre">cmp</span></tt> and <tt class="docutils literal"><span class="pre">key</span></tt>. In Python&nbsp;3 only the <tt class="docutils literal"><span class="pre">key</span></tt>
+parameter is supported. There are no fixers for this, so you need to change
+that in the Python&nbsp;2 code.</p>
+<p>See <a class="reference internal" href="preparing.html#keycmp-section"><em>When sorting, use key instead of cmp</em></a> for more information.</p>
+</div>
+<div class="section" id="standarderror">
+<h2><tt class="docutils literal"><span class="pre">StandardError</span></tt><a class="headerlink" href="#standarderror" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-29">2to3 fixer â six support â</p>
+<p>Python&nbsp;2 has an exception class called <tt class="docutils literal"><span class="pre">StandardError</span></tt> that has been removed
+in Python&nbsp;3. Use <tt class="docutils literal"><span class="pre">Exception</span></tt> instead.</p>
+</div>
+<div class="section" id="string-types">
+<h2>String types<a class="headerlink" href="#string-types" title="Permalink to this headline">Â¶</a></h2>
+<p class="rubric" id="index-30">2to3 fixer â six support â</p>
+<p>Python&nbsp;2 had two string types; <tt class="docutils literal"><span class="pre">str</span></tt> and <tt class="docutils literal"><span class="pre">unicode</span></tt>. Python&nbsp;3 has only one;
+<tt class="docutils literal"><span class="pre">str</span></tt>, but instead it also has a <tt class="docutils literal"><span class="pre">bytes</span></tt> type made to handle binary
+data. For more information on this, see <a class="reference internal" href="problems.html#binary-section"><em>Bytes, strings and Unicode</em></a> and
+<a class="reference internal" href="noconv.html#unicode-section"><em>More bytes, strings and Unicode</em></a>.</p>
+<p class="rubric">Footnotes</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+    <blockquote>The book gets right to the point, without a lot of fluff and filler</blockquote>
+    <a href="http://www.doughellmann.com/articles/bookreviews/porting3.html">Doug Hellmann</a>
+    <blockquote>A concise, well-organised and complete reference</blockquote>
+    <a href="http://www.mechanicalcat.net/richard/log/Python/Review__Lennart_Regebro_s__Porting_to_Python_3">Richard Jones</a>
+    <br/>
+    <br/>
+    <h2>Buy it here!</h2>
+    <img src="_static/PortingtoPython3-2nd1.0-front-small.png" style="margin-right: 20px; float: left; width: 27%;">
+    <p><strong>$12 </strong><a href="https://gumroad.com/l/python3">for a set of PDF files suitable for screen, printing, tablets and phones.</a></p>
+    <p style="margin-top: 10px;"><strong>$20 </strong><a href="https://www.createspace.com/4312357">for a paperback version.</a></li>
+    <br/>
+    <h3 style="margin-top: 1.5em;">Search the book</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+      Enter search terms or a module, class or function name.
+    </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="toc.html" title="Table of Contents">Contents</a> |
+          <a href="genindex.html" title="General Index"
+             >index</a>
+        </div>
+
+        <div class="right">
+        &copy; Copyright 2011-2013, Lennart Regebro.
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

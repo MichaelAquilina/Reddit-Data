@@ -1,0 +1,461 @@
+<!doctype html> <!--[if lt IE 7]><html
+lang="en-US" prefix="og: http://ogp.me/ns#" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]--> <!--[if IE 7]><html
+lang="en-US" prefix="og: http://ogp.me/ns#" class="no-js lt-ie9 lt-ie8"> <![endif]--> <!--[if IE 8]><html
+lang="en-US" prefix="og: http://ogp.me/ns#" class="no-js lt-ie9"> <![endif]--> <!--[if gt IE 8]><!--><html
+lang="en-US" prefix="og: http://ogp.me/ns#" class="no-js"> <!--<![endif]--><head><link
+rel='stylesheet' href='http://blog.erezsh.com/wp-content/plugins/wp-minify/min/?f=wp-content/themes/sad-robot/style.css,wp-content/plugins/prettify-code-syntax/stylesheets/bootstrap.css&amp;m=1385641280' type='text/css' media='screen' /> <script type='text/javascript' src='http://blog.erezsh.com/wp-content/plugins/wp-minify/min/?f=wp-content/themes/sad-robot/js/vendor/modernizr.min.js,wp-includes/js/comment-reply.min.js&amp;m=1385641280'></script> <meta
+charset="UTF-8"><meta
+http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><title>How To Write A Calculator in 70 Python Lines, By Writing a Recursive-Descent Parser | Stories For Sad Robots</title><meta
+name="viewport" content="width=device-width,initial-scale=1.0"><meta
+property="og:image"        content="http://blog.erezsh.com/wp-content/themes/sad-robot/img/icons/facebook-thumb.png"><meta
+property="og:image:type"   content="image/png"><meta
+property="og:image:width"  content="308"><meta
+property="og:image:height" content="308"><link
+href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Roboto:400,700,400italic' rel='stylesheet' type='text/css'><link
+rel="shortcut icon" href="http://blog.erezsh.com/wp-content/themes/sad-robot/img/icons/favicon.ico"><link
+rel="apple-touch-icon-precomposed" href="http://blog.erezsh.com/wp-content/themes/sad-robot/img/icons/touch.png"><link
+rel="shortcut icon" sizes="196x196" href="http://blog.erezsh.com/wp-content/themes/sad-robot/img/icons/touch196.png"><link
+rel="canonical" href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/" /><meta
+property="og:locale" content="en_US" /><meta
+property="og:type" content="article" /><meta
+property="og:title" content="How To Write A Calculator in 70 Python Lines, By Writing a Recursive-Descent Parser - Stories For Sad Robots" /><meta
+property="og:description" content="Three months ago, I wrote a post detailing the process of writing a calculator using a parsing library. The popular response, however, was that readers are far more curious about seeing a calculator written from scratch, with the batteries included but nothing else. I figured, why not? Writing a calculator is simple, if you use hacks... View Article" /><meta
+property="og:url" content="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/" /><meta
+property="og:site_name" content="Stories For Sad Robots" /><meta
+property="article:tag" content="calculator" /><meta
+property="article:tag" content="parser" /><meta
+property="article:tag" content="Parsing" /><meta
+property="article:tag" content="Python" /><meta
+property="article:tag" content="recursive-descent" /><meta
+property="article:section" content="Parsing" /><meta
+property="article:section" content="Programming" /><meta
+property="article:section" content="Python" /><meta
+property="article:published_time" content="2013-02-23T21:35:59+00:00" /><meta
+property="article:modified_time" content="2013-08-23T11:27:37+00:00" />  <script type="text/javascript">var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-37919903-1']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();</script> </head><body
+class="single single-post postid-209 single-format-standard how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser"> <!--[if lt IE 9]><p
+class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a
+href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p> <![endif]--><div
+class="wrapper"> <header
+class="header clearfix" role="banner"><div
+class="inner-wrapper"><h1 class="blog-title"> <a
+href="http://blog.erezsh.com">Stories For Sad Robots</a></h1></div><div
+class="nav-robot-img-container hide-print"><div
+class="nav-robot-img"></div></div> <nav
+class="nav hide-print" role="navigation"><div
+class="nav-links-container"><ul
+class="menu"><li
+id="menu-item-237" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-237"><a
+href="http://blog.erezsh.com/">Home</a></li><li
+id="menu-item-238" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-238"><a
+href="http://blog.erezsh.com/about/">About</a></li></ul></div><hr
+class="nav-line-separator"><div
+class="nav-search-container"><form
+class="nav-search" method="get" action="http://blog.erezsh.com" role="search"> <label
+class="nav-search-label" for="s">search</label
+><input
+class="nav-search-input" type="search" name="s" placeholder="Search"
+><button
+class="nav-search-submit" type="submit" role="button"><img
+src="http://blog.erezsh.com/wp-content/themes/sad-robot/img/search-icon.svg"
+></button></form></div> </nav><div
+class="nav-bottom-gradient-3d hide-print"><div
+class="nav-bottom-gradient-shadow"></div></div><div
+class="nav-bottom-gradient hide-print"></div><div
+class="nav-bottom-shadow hide-print"></div> </header><div
+class="inner-wrapper"> <main
+role="main"> <article
+id="post-209" class="post-209 post type-post status-publish format-standard hentry category-parsing category-programming category-python-programming tag-calculator tag-parser tag-parsing tag-python-programming tag-recursive-descent"><h1><a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/" title="How To Write A Calculator in 70 Python Lines, By Writing a Recursive-Descent Parser">How To Write A Calculator in 70 Python Lines, By Writing a Recursive-Descent Parser</a></h1><p
+class="post-date date"> <time
+datetime="2013-02-23 21:35">Feb 23/2013, 21:35</time></p><div
+class="post-content"><p>Three months ago, I wrote a post detailing the process of writing a calculator using a parsing library. The popular response, however, was that readers are far more curious about seeing a calculator written from scratch, with the batteries included but nothing else. I figured, why not?</p><p>Writing a calculator is simple, if you use hacks specific to arithmetic expressions, but the effect of hacks is nearly always the same: the solution isn't elegant, it's not extendable, and it's hard to understand intuitively. In my appreciation of a good challenge, and my aim at a beneficial post, I decided to write it using a mostly generic <a
+href="http://en.wikipedia.org/wiki/Recursive_descent_parser" target="_blank">recursive-descent parser</a>. In the same spirit as last time, I wanted to do it in as few lines as I reasonably can, so it's filled with hacks and tricks, but they're superficial and not specific to the task at hand.</p><p>This post is a detailed, step-by-step explanation of my implementation. If you want to jump straight to the code and figure it out by yourself, just scroll to the end of this post. Hopefully when you're done you'll have better understanding of how parsing works internally, and you'll be inspired to use a proper parsing library to avoid this entire bloody mess.</p><p>To understand this post, you should have a strong understanding of Python, and it's recommended to have some understanding of what parsing is and what it's for. If you're not sure, I recommend that you read my <a
+href="/how-to-write-a-calculator-in-50-python-lines-without-eval/" title="How To Write A Calculator in 50 Python Lines (Without Eval)" target="_blank">previous post</a>, in which I thoroughly explain the grammar that I will be using in this post.</p><h2>Step 1: Tokenize</h2><p>The first step of processing the expression is to turn it into a list of individual symbols. This is the easiest part, and not the point of this exercise, so I allowed myself to cheat here quite a lot.</p><p>First, I defined the tokens (Numbers are notably absent; they're the default) and a Token type:</p><pre class="prettyprint linenums"><code class="language-python">token_map = {'+':'ADD', '-':'ADD',
+             '*':'MUL', '/':'MUL',
+             '(':'LPAR', ')':'RPAR'}</p>
+<p>Token = namedtuple('Token', ['name', 'value'])
+</code></pre><p>And here's the code I used to tokenize an expression `expr`:</p><pre class="prettyprint linenums"><code class="language-python">split_expr = re.findall('[\d.]+|[%s]' % ''.join(token_map), expr)
+tokens = [Token(token_map.get(x, 'NUM'), x) for x in split_expr]
+</code></pre><p>The first line is a trick that splits the expression into the basic tokens, so</p><pre class="prettyprint linenums"><code class="language-python">'1.2 / ( 11+3)' --&gt; ['1.2', '/', '(', '11', '+', '3', ')']
+</code></pre><p>The next line names the tokens, so that the parser can recognize them by category:</p><pre class="prettyprint linenums"><code class="language-python">['1.2', '/', '(', '11', '+', '3', ')']
+--&gt;
+[Token(name='NUM', value='1.2'), Token(name='MUL', value='/'), Token(name='LPAR', value='('), Token(name='NUM', value='11'), Token(name='ADD', value='+'), Token(name='NUM', value='3'), Token(name='RPAR', value=')')]
+</code></pre><p>Any token that is not in the token_map is assumed to be a number. Our tokenizer lacks a property called <em>validation</em> which would prevent non-numbers from being accepted, but luckily the evaluator will handle this task later on.</p><p>That's it. Now that we have a list of tokens, our next step is to parse it into an AST.</p><h2>Step 2: Define the grammar</h2><p>The parser I chose to implement is a naive <a
+href="http://en.wikipedia.org/wiki/Recursive_descent_parser" target="_blank">recursive descent parser</a>, which is a simpler version of LL parsing. It's the simplest parser to implement, and in fact mine takes only 14 lines. It's a kind of top-down parser, which means that it starts by matching the highest rule (like: <code>expression</code>), and recursively tries to match its sub-rules until it matches the lowest rules (like: <code>number</code>). To put it another way, while a bottom-up (LR) parser will gradually fold tokens and rules into other rules, until there's only one rule left, a top-down (LL) parser like ours will gradually expand the rules into less abstract rules, until they completely match the input-tokens.</p><p>Before we get to the actual parser, let's talk about the grammar. In my previous post, I used an LR parser, and I defined the calculator grammar like this (caps are tokens):</p><pre class="prettyprint linenums"><code class="language-python">add: add ADD mul | mul;
+mul: mul MUL atom | atom;
+atom: NUM | '(' add ')' | neg;
+neg: '-' atom;
+</code></pre><p>(If you don't understand this grammar, you should read my <a
+href="/how-to-write-a-calculator-in-50-python-lines-without-eval/" title="How To Write A Calculator in 50 Python Lines (Without Eval)" target="_blank">previous post</a>)</p><p>This time I'm using an LL parser, instead of LR, and here's how I defined the grammar:</p><pre class="prettyprint linenums"><code class="language-python">rule_map = {
+    'add' : ['mul ADD add', 'mul'],
+    'mul' : ['atom MUL mul', 'atom'],
+    'atom': ['NUM', 'LPAR add RPAR', 'neg'],
+    'neg' : ['ADD atom'],
+}
+</code></pre><p>There is a subtle change here. The recursive definitions of <code>add</code> and <code>mul</code> are reversed. This is a very important detail, and I need to explain it.</p><p>The LR version of this grammar uses something called <a
+href="http://en.wikipedia.org/wiki/Left_recursion" target="_blank">left-recursion</a>. When LL parsers see recursion, they just dive in there in an attempt to match the rule. So when faced with left-recursion, they enter infinite recursion. <a
+href="http://www.antlr.org/wiki/display/ANTLR3/Left-Recursion+Removal" target="_blank">Even smart LL-parsers such as ANTLR suffer from this issue</a>, though it probably writes a friendly error instead of looping infinitely like our toy parser would.</p><p>Left-recursion is easily solved by changing it to right-recursion, and that is what I did. But because nothing is easy with parsers, it created another problem: While left-recursion parses <code>3-2-1</code> correctly as <code>(3-2)-1</code>, right-recursion parses it<br
+/> incorrectly as <code>3-(2-1)</code>. I don't know of an easy solution to this problem, so to keep things short and simple for you and me both, I decided to keep the incorrect form and deal with it in post-processing (see step 4).</p><h2>Step 3: Parse into an AST</h2><p>The algorithm is simple. We're going to define a recursive function that receives two parameters: The first is the name of the rule that we're trying to match, and the second is the list of tokens we have left. We'll start with <code>add</code> (which is the highest rule) and with the entire list of tokens, and have the recursive calls become increasingly more specific. The function returns a tuple: The current match, and a list of the tokens that are left to match. For the purpose of short code, we'll make it capable of also matching tokens (they're both strings; one is UPPER-CASE and the other lower-case).</p><p>Here's is the code for the parser:</p><pre class="prettyprint linenums"><code class="language-python">RuleMatch = namedtuple('RuleMatch', ['name', 'matched'])</p>
+<p>def match(rule_name, tokens):
+    if tokens and rule_name == tokens[0].name:      # Match a token?
+        return RuleMatch(tokens[0], tokens[1:])
+    for expansion in rule_map.get(rule_name, ()):   # Match a rule?
+        remaining_tokens = tokens
+        matched_subrules = []
+        for subrule in expansion.split():
+            matched, remaining_tokens = match(subrule, remaining_tokens)
+            if not matched:
+                break   # no such luck. next expansion!
+            matched_subrules.append(matched)
+        else:
+            return RuleMatch(rule_name, matched_subrules), remaining_tokens
+    return None, None   # match not found
+</code></pre><p>Lines 4-5 check if <code>rule_name</code> is actually a token, and if it matches the current token. If it does, it will return the match, and which tokens are still left to consume.</p><p>Line 6 iterates over the sub-rules of <code>rule_name</code>, so each can be matched recursively. If <code>rule_name</code> is a token, the <code>get()</code> call will return an empty tuple and the flow will fall to the empty <code>return</code> (line 16).</p><p>Lines 9-15 iterate over every element of the current sub-rule, and try to match them in sequentially. Each iteration tries to consume as many matching tokens as possible. If one element did not match, we discard the entire sub-rule. However, if all elements matched, we reach the <code>else</code> clause and return our match for <code>rule_name</code>, with the remaining tokens to match.</p><p>Let's run it and see what we get for <code>1.2 / ( 11+3)</code>.</p><pre class="prettyprint linenums"><code class="language-python">&gt;&gt;&gt; tokens = [Token(name='NUM', value='1.2'), Token(name='MUL', value='/'), Token(name='LPAR', value='('), Token (name='NUM', value='11'), Token(name='ADD', value='+'), Token(name='NUM', value='3'), Token(name='RPAR', value=')')]</p>
+<p>&gt;&gt;&gt; match('add', tokens)</p>
+<p>(RuleMatch(name='add', matched=[RuleMatch(name='mul', matched=[RuleMatch(name='atom', matched=[Token(name='NUM', value='1.2')]), Token(name='MUL', value='/'), RuleMatch(name='mul', matched=[RuleMatch(name='atom', matched=[Token(name='LPAR', value='('), RuleMatch(name='add', matched=[RuleMatch(name='mul', matched=[RuleMatch(name='atom', matched=[Token(name='NUM', value='11')])]), Token(name='ADD', value='+'), RuleMatch(name='add', matched=[RuleMatch(name='mul', matched=[RuleMatch(name='atom', matched=[Token(name='NUM', value='3')])])])]), Token(name='RPAR', value=')')])])])]), [])
+</code></pre><p>The result is a tuple, of course, and we can see there are no remaining tokens. The actual match is not easy to read, so let me draw it for you</p><pre class="prettyprint linenums"><code class="language-python">    add
+        mul
+            atom
+                NUM '1.2'
+            MUL '/'
+            mul
+                atom
+                    LPAR    '('
+                    add
+                        mul
+                            atom
+                                NUM '11'
+                        ADD '+'
+                        add
+                            mul
+                                atom
+                                    NUM '3'
+                    RPAR    ')'
+</code></pre><p>This is what the AST looks like, in concept. It's a good practice to imagine the parser run in your mind, or on a piece of paper. I dare say it's necessary to do so if you want to grok it. You can use this AST as a reference to make sure you got it right.</p><p>So far we've written a parser capable of correctly parsing binary operations, unary operations, brackets and precedence.</p><p>There's only one thing it does incorrectly, and we're going to fix it in the next step.</p><h2>Step 4: Post Processing</h2><p>My parser is not perfect in many ways. The important one is that it cannot handle left-recursion, which forced me to write the grammar as right-recursive. As a result, parsing <code>8/4/2</code> results in the folowing AST:</p><pre class="prettyprint linenums"><code class="language-python">    add
+        mul
+            atom
+                NUM 8
+            MUL '/'
+            mul
+                atom
+                    NUM 4
+                MUL '/'
+                mul
+                    atom
+                        NUM 2
+</code></pre><p>If we try to solve the expression using this AST, we'll have to calculate <code>4/2</code> first, which is wrong. Some LL-parsers choose to fix the associativity in the tree. That takes too many lines ;). Instead, we're going to flatten it. The algorithm is simple: For each rule in the AST that 1) needs fixing, and 2) is a binary operation (has three sub-rules), and 3) its right-hand operand is the same rule: flatten the latter into the former. By "flatten", I mean replace a node with its children, in the context of its parent. Since our traversal is DFS post-order, meaning it starts from the edge of the tree and works its way to the root, the effect accumulates. Here's the code:</p><pre class="prettyprint linenums"><code class="language-python">    fix_assoc_rules = 'add', 'mul'</p>
+<p>    def _recurse_tree(tree, func):
+        return map(func, tree.matched) if tree.name in rule_map else tree[1]</p>
+<p>    def flatten_right_associativity(tree):
+        new = _recurse_tree(tree, flatten_right_associativity)
+        if tree.name in fix_assoc_rules and len(new)==3 and new[2].name==tree.name:
+            new[-1:] = new[-1].matched
+        return RuleMatch(tree.name, new)
+</code></pre><p>This code will turn any structural sequence of additions or multiplications into a flat list (without mixing each other). Parenthesis break the sequence, of course, so they won't be affected.</p><p>From this point I <em>could</em> re-build the structure as left-associative, using code such as</p><pre class="prettyprint linenums"><code class="language-python">    def build_left_associativity(tree):
+        new_nodes = _recurse_tree(tree, build_left_associativity)
+        if tree.name in fix_assoc_rules:
+            while len(new_nodes)&gt;3:
+                new_nodes[:3] = [RuleMatch(tree.name, new_nodes[:3])]
+        return RuleMatch(tree.name, new_nodes)
+</code></pre><p>But I won't. I'm pressed for lines of code, and changing the evaluation code to handle lists takes a lot less lines than rebuilding the tree.</p><h2>Step 5: Evaluate</h2><p>Evaluating the tree is very simple. All that's required is to traverse the tree in a similar fashion to the post-processing code (namely DFS post-order), and to evaluate each rule in it. At the point of evaluation, because we recurse first, each rule should be made of nothing more than numbers and operations. Here's the code:</p><pre class="prettyprint linenums"><code class="language-python">    bin_calc_map = {'*':mul, '/':div, '+':add, '-':sub}
+    def calc_binary(x):
+        while len(x) &gt; 1:
+            x[:3] = [ bin_calc_map[x[1]](x[0], x[2]) ]
+        return x[0]</p>
+<p>    calc_map = {
+        'NUM' : float,
+        'atom': lambda x: x[len(x)!=1],
+        'neg' : lambda (op,num): (num,-num)[op=='-'],
+        'mul' : calc_binary,
+        'add' : calc_binary,
+    }</p>
+<p>    def evaluate(tree):
+        solutions = _recurse_tree(tree, evaluate)
+        return calc_map.get(tree.name, lambda x:x)(solutions)
+</code></pre><p>I wrote <code>calc_binary</code> to evaluate both addition and multiplication (and their counterparts). It evaluates lists of either, in a left-associative fashion, thus bringing our little LL-grammar annoyance to conclusion.</p><h2>Step 6: The REPL</h2><p>The plainest REPL possible:</p><pre class="prettyprint linenums"><code class="language-python">    if __name__ == '__main__':
+        while True:
+            print( calc(raw_input('&gt; ')) )
+</code></pre><p>Please don't make me explain it :)</p><h2>Appendix: Tying it all together: A calculator in 70 lines</h2><pre class="prettyprint linenums"><code class="language-python">    '''A Calculator Implemented With A Top-Down, Recursive-Descent Parser'''
+    # Author: Erez Shinan, Dec 2012</p>
+<p>    import re, collections
+    from operator import add,sub,mul,div</p>
+<p>    Token = collections.namedtuple('Token', ['name', 'value'])
+    RuleMatch = collections.namedtuple('RuleMatch', ['name', 'matched'])</p>
+<p>    token_map = {'+':'ADD', '-':'ADD', '*':'MUL', '/':'MUL', '(':'LPAR', ')':'RPAR'}
+    rule_map = {
+        'add' : ['mul ADD add', 'mul'],
+        'mul' : ['atom MUL mul', 'atom'],
+        'atom': ['NUM', 'LPAR add RPAR', 'neg'],
+        'neg' : ['ADD atom'],
+    }
+    fix_assoc_rules = 'add', 'mul'</p>
+<p>    bin_calc_map = {'*':mul, '/':div, '+':add, '-':sub}
+    def calc_binary(x):
+        while len(x) &gt; 1:
+            x[:3] = [ bin_calc_map[x[1]](x[0], x[2]) ]
+        return x[0]</p>
+<p>    calc_map = {
+        'NUM' : float,
+        'atom': lambda x: x[len(x)!=1],
+        'neg' : lambda (op,num): (num,-num)[op=='-'],
+        'mul' : calc_binary,
+        'add' : calc_binary,
+    }</p>
+<p>    def match(rule_name, tokens):
+        if tokens and rule_name == tokens[0].name:      # Match a token?
+            return tokens[0], tokens[1:]
+        for expansion in rule_map.get(rule_name, ()):   # Match a rule?
+            remaining_tokens = tokens
+            matched_subrules = []
+            for subrule in expansion.split():
+                matched, remaining_tokens = match(subrule, remaining_tokens)
+                if not matched:
+                    break   # no such luck. next expansion!
+                matched_subrules.append(matched)
+            else:
+                return RuleMatch(rule_name, matched_subrules), remaining_tokens
+        return None, None   # match not found</p>
+<p>    def _recurse_tree(tree, func):
+        return map(func, tree.matched) if tree.name in rule_map else tree[1]</p>
+<p>    def flatten_right_associativity(tree):
+        new = _recurse_tree(tree, flatten_right_associativity)
+        if tree.name in fix_assoc_rules and len(new)==3 and new[2].name==tree.name:
+            new[-1:] = new[-1].matched
+        return RuleMatch(tree.name, new)</p>
+<p>    def evaluate(tree):
+        solutions = _recurse_tree(tree, evaluate)
+        return calc_map.get(tree.name, lambda x:x)(solutions)</p>
+<p>    def calc(expr):
+        split_expr = re.findall('[\d.]+|[%s]' % ''.join(token_map), expr)
+        tokens = [Token(token_map.get(x, 'NUM'), x) for x in split_expr]
+        tree = match('add', tokens)[0]
+        tree = flatten_right_associativity( tree )
+        return evaluate(tree)</p>
+<p>    if __name__ == '__main__':
+        while True:
+            print( calc(raw_input('&gt; ')) )
+</code></pre></div><p
+class="post-details">Tags: <a
+href="http://blog.erezsh.com/tag/calculator/" rel="tag">calculator</a>, <a
+href="http://blog.erezsh.com/tag/parser/" rel="tag">parser</a>, <a
+href="http://blog.erezsh.com/tag/parsing/" rel="tag">Parsing</a>, <a
+href="http://blog.erezsh.com/tag/python-programming/" rel="tag">Python</a>, <a
+href="http://blog.erezsh.com/tag/recursive-descent/" rel="tag">recursive-descent</a><br><br>Categorised in: <a
+href="http://blog.erezsh.com/category/programming/parsing/" title="View all posts in Parsing" rel="tag">Parsing</a>, <a
+href="http://blog.erezsh.com/category/programming/" title="View all posts in Programming" rel="tag">Programming</a>, <a
+href="http://blog.erezsh.com/category/programming/python-programming/" title="View all posts in Python" rel="tag">Python</a></p><div
+class="post-controls"></div><div
+class="post-controls"><div
+class="comments"><h2>10 Comments</h2><ul><li
+class="comment even thread-even depth-1 parent" id="comment-113"><div
+id="div-comment-113" class="comment-body"><div
+class="comment-author vcard"> <img
+alt='' src='http://1.gravatar.com/avatar/7dc1374e8307c45a20af92a81bd15fc1?s=96&amp;d=http%3A%2F%2Fblog.erezsh.com%2Fwp-content%2Fthemes%2Fsad-robot%2Fimg%2Fgravatar.png%3Fs%3D96&amp;r=G' class='avatar avatar-96 photo' height='96' width='96' /><cite
+class="fn"><a
+href='http://minireference.com/' rel='external nofollow' class='url'>Ivan Savov</a></cite> <span
+class="says">says:</span></div><div
+class="comment-meta commentmetadata"> <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-113"> <time
+datetime="2013-02-23 22:45">Feb 23/2013, 22:45</time> </a></div><p>Thanks for the cool post. I am not sure I got the difference between the LL and LR parser. Is what you have above an LR parser?</p><p>Also, why did you choose to represent both + and - as "ADD" tokens<br
+/> (and * and / as "MUL") is this to enforce evaluation priority?  It would be interesting to see if you can add ** or ^ as an exponent for this calculator.</p><p>Maybe you intended this post strictly as as an educational post, but I think doing parsing right (and from first principles) is a really cool thing to have. Check out how khan-exercises framework uses to parse math expressions into an AST:<br
+/> <a
+href="https://github.com/Khan/khan-exercises/blob/master/utils/math-model.js" rel="nofollow">https://github.com/Khan/khan-exercises/blob/master/utils/math-model.js</a></p><p>Peace out,<br
+/> Ivan</p><div
+class="comment-controls"> <a
+class='comment-reply-link' href='/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/?replytocom=113#respond' onclick='return addComment.moveForm("div-comment-113", "113", "respond", "209")'>Reply</a></div></div><ul
+class="children"><li
+class="comment byuser comment-author-erezsh bypostauthor odd alt depth-2" id="comment-115"><div
+id="div-comment-115" class="comment-body"><div
+class="comment-author vcard"> <img
+alt='' src='http://0.gravatar.com/avatar/2b9d2a7f618e94c7ee1506ae1870ac9f?s=96&amp;d=http%3A%2F%2Fblog.erezsh.com%2Fwp-content%2Fthemes%2Fsad-robot%2Fimg%2Fgravatar.png%3Fs%3D96&amp;r=G' class='avatar avatar-96 photo' height='96' width='96' /><cite
+class="fn">erezsh</cite> <span
+class="says">says:</span></div><div
+class="comment-meta commentmetadata"> <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-115"> <time
+datetime="2013-02-24 07:21">Feb 24/2013, 7:21</time> </a></div><p>Here's my hackernews response, for reference:</p><p>An LR-parser tries to reduce the input over and over again into rules, eventually ending with the 'start' rule. So a+b+c+d becomes [add]+c+d -> [add]+d -> [add] -> [start]</p><p>An LL-parser tries to expand the initial rule into a more complex rule structure, until it matches the input. So to match a+b+c+d it will do [start] -> [add] -> [add] + [num] -> [add] + [num] + [num] -> etc.</p><p>What I wrote is an LL-parser, simply because it's much much simpler to write and to understand.</p><p>Yes, both ADD and MUL are used for precedence. Since any list of +- or of */ will evaluate correctly if reduced from left to right, I didn't mind grouping them together and making my life easier (and shorter).</p><p>It was strictly educational, and also a shtick; a short code hack. If I was to write an actual parser (and I don't think I would ever try to), it would look very different!</p><div
+class="comment-controls"> <a
+class='comment-reply-link' href='/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/?replytocom=115#respond' onclick='return addComment.moveForm("div-comment-115", "115", "respond", "209")'>Reply</a></div></div></li></ul></li><li
+class="comment even thread-odd thread-alt depth-1" id="comment-114"><div
+id="div-comment-114" class="comment-body"><div
+class="comment-author vcard"> <img
+alt='' src='http://0.gravatar.com/avatar/4289352f4db15b4ea850786641ac1d1b?s=96&amp;d=http%3A%2F%2Fblog.erezsh.com%2Fwp-content%2Fthemes%2Fsad-robot%2Fimg%2Fgravatar.png%3Fs%3D96&amp;r=G' class='avatar avatar-96 photo' height='96' width='96' /><cite
+class="fn">Josh</cite> <span
+class="says">says:</span></div><div
+class="comment-meta commentmetadata"> <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-114"> <time
+datetime="2013-02-24 06:56">Feb 24/2013, 6:56</time> </a></div><p>Hi,</p><p>A very nice write-up! The calculator isn't really recursive descent since your functions don't implement the production rules of the grammar. Here is a simple calculator I made as an example of recursive descent parsing. Note that each function corresponds to a term in the grammar. I hope the example proves useful to you.</p><p><a
+href="https://gist.github.com/ascv/5022712" rel="nofollow">https://gist.github.com/ascv/5022712</a></p><p>Cheers,<br
+/> Josh</p><div
+class="comment-controls"> <a
+class='comment-reply-link' href='/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/?replytocom=114#respond' onclick='return addComment.moveForm("div-comment-114", "114", "respond", "209")'>Reply</a></div></div></li><li
+class="comment odd alt thread-even depth-1 parent" id="comment-145"><div
+id="div-comment-145" class="comment-body"><div
+class="comment-author vcard"> <img
+alt='' src='http://1.gravatar.com/avatar/908b7a69963a2dc80cdcc3abc2b3edb4?s=96&amp;d=http%3A%2F%2Fblog.erezsh.com%2Fwp-content%2Fthemes%2Fsad-robot%2Fimg%2Fgravatar.png%3Fs%3D96&amp;r=G' class='avatar avatar-96 photo' height='96' width='96' /><cite
+class="fn"><a
+href='http://www.elornitorrincoenmascarado.com/' rel='external nofollow' class='url'>Juan Ignacio Rodriguez de Leon</a></cite> <span
+class="says">says:</span></div><div
+class="comment-meta commentmetadata"> <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-145"> <time
+datetime="2013-03-01 14:02">Mar 1/2013, 14:02</time> </a></div><p>Nice article! I'm a Python programmer from Spain and recently interested in domain-specific languages. Would you mind if I do a translation to spanish and publish it on my Blog? Thank you for writting it, in any case.</p><div
+class="comment-controls"> <a
+class='comment-reply-link' href='/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/?replytocom=145#respond' onclick='return addComment.moveForm("div-comment-145", "145", "respond", "209")'>Reply</a></div></div><ul
+class="children"><li
+class="comment byuser comment-author-erezsh bypostauthor even depth-2 parent" id="comment-146"><div
+id="div-comment-146" class="comment-body"><div
+class="comment-author vcard"> <img
+alt='' src='http://0.gravatar.com/avatar/2b9d2a7f618e94c7ee1506ae1870ac9f?s=96&amp;d=http%3A%2F%2Fblog.erezsh.com%2Fwp-content%2Fthemes%2Fsad-robot%2Fimg%2Fgravatar.png%3Fs%3D96&amp;r=G' class='avatar avatar-96 photo' height='96' width='96' /><cite
+class="fn">erezsh</cite> <span
+class="says">says:</span></div><div
+class="comment-meta commentmetadata"> <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-146"> <time
+datetime="2013-03-01 14:20">Mar 1/2013, 14:20</time> </a></div><p>Of course! I would be honored :)</p><div
+class="comment-controls"> <a
+class='comment-reply-link' href='/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/?replytocom=146#respond' onclick='return addComment.moveForm("div-comment-146", "146", "respond", "209")'>Reply</a></div></div><ul
+class="children"><li
+class="comment odd alt depth-3" id="comment-153"><div
+id="div-comment-153" class="comment-body"><div
+class="comment-author vcard"> <img
+alt='' src='http://1.gravatar.com/avatar/908b7a69963a2dc80cdcc3abc2b3edb4?s=96&amp;d=http%3A%2F%2Fblog.erezsh.com%2Fwp-content%2Fthemes%2Fsad-robot%2Fimg%2Fgravatar.png%3Fs%3D96&amp;r=G' class='avatar avatar-96 photo' height='96' width='96' /><cite
+class="fn"><a
+href='http://www.elornitorrincoenmascarado.com/' rel='external nofollow' class='url'>Juan Ignacio Rodriguez de Leon</a></cite> <span
+class="says">says:</span></div><div
+class="comment-meta commentmetadata"> <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-153"> <time
+datetime="2013-03-04 14:22">Mar 4/2013, 14:22</time> </a></div><p>Thanks, I'll write here when it's published.</p><div
+class="comment-controls"> <a
+class='comment-reply-link' href='/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/?replytocom=153#respond' onclick='return addComment.moveForm("div-comment-153", "153", "respond", "209")'>Reply</a></div></div></li><li
+class="comment even depth-3 parent" id="comment-199"><div
+id="div-comment-199" class="comment-body"><div
+class="comment-author vcard"> <img
+alt='' src='http://1.gravatar.com/avatar/908b7a69963a2dc80cdcc3abc2b3edb4?s=96&amp;d=http%3A%2F%2Fblog.erezsh.com%2Fwp-content%2Fthemes%2Fsad-robot%2Fimg%2Fgravatar.png%3Fs%3D96&amp;r=G' class='avatar avatar-96 photo' height='96' width='96' /><cite
+class="fn"><a
+href='http://www.elornitorrincoenmascarado.com/' rel='external nofollow' class='url'>Juan Ignacio Rodriguez de Leon</a></cite> <span
+class="says">says:</span></div><div
+class="comment-meta commentmetadata"> <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-199"> <time
+datetime="2013-03-12 14:02">Mar 12/2013, 14:02</time> </a></div><p>The spanish translation is ready: "<a
+href="http://www.elornitorrincoenmascarado.com/2013/03/como-escribir-una-calculadora-en-70.html" rel="nofollow">Como escribir una calculadora en 70 líneas de Python, mediante un analizador descendente recursivo</a>".</p><div
+class="comment-controls"> <a
+class='comment-reply-link' href='/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/?replytocom=199#respond' onclick='return addComment.moveForm("div-comment-199", "199", "respond", "209")'>Reply</a></div></div><ul
+class="children"><li
+class="comment byuser comment-author-erezsh bypostauthor odd alt depth-4" id="comment-201"><div
+id="div-comment-201" class="comment-body"><div
+class="comment-author vcard"> <img
+alt='' src='http://0.gravatar.com/avatar/2b9d2a7f618e94c7ee1506ae1870ac9f?s=96&amp;d=http%3A%2F%2Fblog.erezsh.com%2Fwp-content%2Fthemes%2Fsad-robot%2Fimg%2Fgravatar.png%3Fs%3D96&amp;r=G' class='avatar avatar-96 photo' height='96' width='96' /><cite
+class="fn">erezsh</cite> <span
+class="says">says:</span></div><div
+class="comment-meta commentmetadata"> <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-201"> <time
+datetime="2013-03-12 15:42">Mar 12/2013, 15:42</time> </a></div><p>Very cool!</p><div
+class="comment-controls"> <a
+class='comment-reply-link' href='/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/?replytocom=201#respond' onclick='return addComment.moveForm("div-comment-201", "201", "respond", "209")'>Reply</a></div></div></li></ul></li></ul></li></ul></li></ul><div
+id="respond" class="comment-respond"><h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a
+rel="nofollow" id="cancel-comment-reply-link" href="/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#respond" style="display:none;">Cancel reply</a></small></h3><form
+action="http://blog.erezsh.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><p
+class="comment-notes">Your email address will not be published. Required fields are marked <span
+class="required">*</span></p><p
+class="comment-form-author"><label
+for="author">Name <span
+class="required">*</span></label> <input
+id="author" name="author" type="text" value="" size="30" aria-required='true' /></p><p
+class="comment-form-email"><label
+for="email">Email <span
+class="required">*</span></label> <input
+id="email" name="email" type="text" value="" size="30" aria-required='true' /></p><p
+class="comment-form-url"><label
+for="url">Website</label> <input
+id="url" name="url" type="text" value="" size="30" /></p><p
+class="comment-form-comment"><label
+for="comment">Comment</label><textarea id="comment" name="comment" cols="45" rows="8" aria-required="true"></textarea></p><p
+class="form-allowed-tags">You may use these <abbr
+title="HyperText Markup Language">HTML</abbr> tags and attributes: <code>&lt;a href=&quot;&quot; title=&quot;&quot;&gt; &lt;abbr title=&quot;&quot;&gt; &lt;acronym title=&quot;&quot;&gt; &lt;b&gt; &lt;blockquote cite=&quot;&quot;&gt; &lt;cite&gt; &lt;code&gt; &lt;del datetime=&quot;&quot;&gt; &lt;em&gt; &lt;i&gt; &lt;q cite=&quot;&quot;&gt; &lt;strike&gt; &lt;strong&gt; </code></p><p
+class="form-submit"> <input
+name="submit" type="submit" id="submit" value="Post Comment" /> <input
+type='hidden' name='comment_post_ID' value='209' id='comment_post_ID' /> <input
+type='hidden' name='comment_parent' id='comment_parent' value='0' /></p><p
+style="display: none;"><input
+type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="63922a8738" /></p></form></div></div></div> </article> </main> <aside
+class="sidebar hide-print" role="complementary"><div
+class="sidebar-widget"><div
+id="recent-posts-2" class="widget_recent_entries"><h3>Recent Posts</h3><ul><li> <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/">How To Write A Calculator in 70 Python Lines, By Writing a Recursive-Descent Parser</a></li><li> <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-50-python-lines-without-eval/">How To Write A Calculator in 50 Python Lines (Without Eval)</a></li><li> <a
+href="http://blog.erezsh.com/contracts-and-protocols-as-a-substitute-to-types-and-interfaces/">Contracts and protocols as a substitute to types and interfaces</a></li><li> <a
+href="http://blog.erezsh.com/baker-expose-python-to-the-shell/">Baker &#8211; Expose Python to the Shell</a></li><li> <a
+href="http://blog.erezsh.com/lazier-copy-on-write/">Lazier Copy-On-Write</a></li></ul></div><div
+id="recent-comments-2" class="widget_recent_comments"><h3>Recent Comments</h3><ul
+id="recentcomments"><li
+class="recentcomments">erezsh on <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-201">How To Write A Calculator in 70 Python Lines, By Writing a Recursive-Descent Parser</a></li><li
+class="recentcomments"><a
+href='http://www.elornitorrincoenmascarado.com/' rel='external nofollow' class='url'>Juan Ignacio Rodriguez de Leon</a> on <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-199">How To Write A Calculator in 70 Python Lines, By Writing a Recursive-Descent Parser</a></li><li
+class="recentcomments"><a
+href='http://www.elornitorrincoenmascarado.com/' rel='external nofollow' class='url'>Juan Ignacio Rodriguez de Leon</a> on <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-153">How To Write A Calculator in 70 Python Lines, By Writing a Recursive-Descent Parser</a></li><li
+class="recentcomments">erezsh on <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-146">How To Write A Calculator in 70 Python Lines, By Writing a Recursive-Descent Parser</a></li><li
+class="recentcomments"><a
+href='http://www.elornitorrincoenmascarado.com/' rel='external nofollow' class='url'>Juan Ignacio Rodriguez de Leon</a> on <a
+href="http://blog.erezsh.com/how-to-write-a-calculator-in-70-python-lines-by-writing-a-recursive-descent-parser/#comment-145">How To Write A Calculator in 70 Python Lines, By Writing a Recursive-Descent Parser</a></li></ul></div><div
+id="archives-2" class="widget_archive"><h3>Archives</h3><ul><li><a
+href='http://blog.erezsh.com/2013/02/'>February 2013</a></li><li><a
+href='http://blog.erezsh.com/2012/11/'>November 2012</a></li><li><a
+href='http://blog.erezsh.com/2011/12/'>December 2011</a></li><li><a
+href='http://blog.erezsh.com/2010/02/'>February 2010</a></li><li><a
+href='http://blog.erezsh.com/2009/06/'>June 2009</a></li><li><a
+href='http://blog.erezsh.com/2009/05/'>May 2009</a></li><li><a
+href='http://blog.erezsh.com/2009/03/'>March 2009</a></li><li><a
+href='http://blog.erezsh.com/2009/01/'>January 2009</a></li><li><a
+href='http://blog.erezsh.com/2008/11/'>November 2008</a></li><li><a
+href='http://blog.erezsh.com/2008/10/'>October 2008</a></li><li><a
+href='http://blog.erezsh.com/2008/09/'>September 2008</a></li><li><a
+href='http://blog.erezsh.com/2008/08/'>August 2008</a></li><li><a
+href='http://blog.erezsh.com/2008/07/'>July 2008</a></li><li><a
+href='http://blog.erezsh.com/2008/06/'>June 2008</a></li></ul></div><div
+id="categories-2" class="widget_categories"><h3>Categories</h3><ul><li
+class="cat-item cat-item-3"><a
+href="http://blog.erezsh.com/category/art/" title="View all posts filed under Art">Art</a></li><li
+class="cat-item cat-item-4"><a
+href="http://blog.erezsh.com/category/design/" title="View all posts filed under Design">Design</a></li><li
+class="cat-item cat-item-5"><a
+href="http://blog.erezsh.com/category/humor/" title="View all posts filed under Humor">Humor</a></li><li
+class="cat-item cat-item-53"><a
+href="http://blog.erezsh.com/category/programming/parsing/" title="View all posts filed under Parsing">Parsing</a></li><li
+class="cat-item cat-item-6"><a
+href="http://blog.erezsh.com/category/programming/" title="View all posts filed under Programming">Programming</a></li><li
+class="cat-item cat-item-7"><a
+href="http://blog.erezsh.com/category/programming/python-programming/" title="The Programming Language">Python</a></li><li
+class="cat-item cat-item-1"><a
+href="http://blog.erezsh.com/category/uncategorized/" title="View all posts filed under Uncategorized">Uncategorized</a></li><li
+class="cat-item cat-item-8"><a
+href="http://blog.erezsh.com/category/programming/web-programming/" title="View all posts filed under Web Programming">Web Programming</a></li></ul></div><div
+id="meta-2" class="widget_meta"><h3>Meta</h3><ul><li><a
+rel="nofollow" href="http://blog.erezsh.com/wp-login.php">Log in</a></li><li><a
+href="http://blog.erezsh.com/feed/" title="Syndicate this site using RSS 2.0">Entries <abbr
+title="Really Simple Syndication">RSS</abbr></a></li><li><a
+href="http://blog.erezsh.com/comments/feed/" title="The latest comments to all posts in RSS">Comments <abbr
+title="Really Simple Syndication">RSS</abbr></a></li><li><a
+href="http://wordpress.org/" title="Powered by WordPress, state-of-the-art semantic personal publishing platform.">WordPress.org</a></li></ul></div></div> </aside><div
+class="footer-padding"></div> <footer
+class="footer" role="contentinfo"><p
+class="copyright">&copy; “<a
+href="http://blog.erezsh.com">Stories For Sad Robots</a>” All rights reserved, 2014. Powered by <a
+href="//wordpress.org" title="WordPress">WordPress</a>.</p><p
+class="designed-by"><small>Designed by <a
+href="http://www.orisomething.com">Ori Something</a></small></p> </footer></div></div><script type='text/javascript' src='http://blog.erezsh.com/wp-content/plugins/prettify-code-syntax/javascripts/prettify.js?ver=3.7.3'></script>
+<script type='text/javascript' src='http://blog.erezsh.com/wp-content/plugins/prettify-code-syntax/javascripts/load.js?ver=3.7.3'></script>
+    </body>
+</html>
+<!-- Dynamic page generated in 0.395 seconds. -->
+<!-- Cached page generated by WP-Super-Cache on 2014-06-30 11:44:21 -->
+
+<!-- Compression = gzip -->

@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+    <title>Programming a Perceptron in Python - blog.dbrgn.ch</title>
+
+    <!-- meta -->
+    <meta charset="utf-8" />
+    <meta name="author" content="Danilo Bargen" />
+        <meta name="description" content="How to create a simple perceptron using Python and NumPy." />
+    <meta name="dc.language" content="en" />
+    <meta name="dc.license" content="http://creativecommons.org/licenses/by-sa/3.0/">
+        <meta name="google-site-verification" content="uJWWR6d5ESb8torD0v97T_07HLMGX7VzQ-smcUTc_IQ" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- favicon -->
+    <link rel="icon" href="/theme/favicon.ico" type="image/x-icon">
+
+    <!-- newsfeeds -->
+        <link href="https://blog.dbrgn.ch/feed.atom" type="application/atom+xml" rel="alternate" title="blog.dbrgn.ch Full Atom Feed" />
+
+    <!-- assets -->
+    <!--[if lt IE 9]>
+        <script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link href="https://fonts.googleapis.com/css?family=Linden+Hill:400,400italic" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://blog.dbrgn.ch/theme/css/main.css?1403017335" type="text/css">
+    <link rel="stylesheet" href="https://blog.dbrgn.ch/theme/css/pygments.css?1403017340" type="text/css">
+
+</head>
+
+<body>
+    <div id="wrapper">
+        <div id="blogtitle"><a href="https://blog.dbrgn.ch">blog.dbrgn.ch</a></div>
+        <ul id="mainnav">
+            <li class="first"><a href="/">home</a></li>
+            <li><a href="/archive/">archive</a></li>
+            <li><a href="/tags/">tags</a></li>
+            <li><a href="/blog/">about this blog</a></li>
+            <li class="last"><a href="/about/">about me</a></li>
+        </ul>
+
+        <div class="clearboth"></div>
+
+        <section id="content" class="hyphenate">
+
+    <h1 class="title">Programming a Perceptron in Python</h1>
+
+        <div class="date">
+            <p>written on Tuesday, March 26, 2013
+            by <a rel="author" href="/about/">Danilo Bargen</a></p>
+            <p class="hidden"><a href="https://plus.google.com/107821756387719288540/?rel=author">My Profile on Google+</a></p>
+        </div>
+
+    <div class="clearboth article-content">
+        <p>At <a class="reference external" href="http://www.hsr.ch/">HSR</a>, I'm currently enrolled in a course about neural networks and machine
+learning. One of the simplest forms of a neural network model is the
+<a class="reference external" href="http://reference.wolfram.com/applications/neuralnetworks/NeuralNetworkTheory/2.4.0.html">perceptron</a>.</p>
+<div class="section" id="background-information">
+<h2>Background Information</h2>
+<p>A perceptron classifier is a simple model of a neuron. It has different inputs
+($x_1$...$x_n$) with different weights ($w_1$...$w_n$).</p>
+<div class="docutils">$$s = \sum_{i=0}^n w_i \cdot x_i$$</div><p>The weighted sum $s$ of these inputs is then passed through a step function $f$
+(usually a <a class="reference external" href="http://en.wikipedia.org/wiki/Heaviside_step_function">Heaviside step function</a>).</p>
+<div class="docutils">$$f(s) = \begin{cases} 1 & \textrm{if } s \ge 0 \\ 0 & \textrm{otherwise} \end{cases}$$</div><p>To make things cleaner, here's a little diagram:</p>
+<img alt="The mathematical model of a perceptron." src="/images/2013/3/26/perceptron.png" />
+</div>
+<div class="section" id="python">
+<h2>Python!</h2>
+<p>Here's a simple version of such a perceptron using Python and <a class="reference external" href="http://www.numpy.org/">NumPy</a>. It will
+take two inputs and learn to act like the logical OR function. First, let's
+import some libraries we need:</p>
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">choice</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">dot</span><span class="p">,</span> <span class="n">random</span>
+</pre></div>
+<p>Then let's create the step function. <a class="reference external" href="http://reference.wolfram.com/mathematica/ref/UnitStep.html">In reference to Mathematica</a>, I'll call
+this function <tt class="docutils literal">unit_step</tt>.</p>
+<div class="highlight"><pre><span class="n">unit_step</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+</pre></div>
+<p>Next we need to map the possible input to the expected output. The first two
+entries of the NumPy array in each tuple are the two input values. The second
+element of the tuple is the expected result. And the third entry of the array is
+a &quot;dummy&quot; input (also called the bias) which is needed to move the threshold
+(also known as the decision boundary) up or down as needed by the step function.
+Its value is always 1, so that its influence on the result can be controlled by
+its weight.</p>
+<div class="highlight"><pre><span class="n">training_data</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+<p>As you can see, this training sequence maps exactly to the definition of the OR
+function:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="21%" />
+<col width="57%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">A</th>
+<th class="head">B</th>
+<th class="head">A OR B</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>Next we'll choose three random numbers between 0 and 1 as the initial weights:</p>
+<div class="highlight"><pre><span class="n">w</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+<p>Now on to some variable initializations. The <tt class="docutils literal">errors</tt> list is only used to
+store the error values so that they can be plotted later on. If you don't want
+to do any plotting, you can just leave it away. The <tt class="docutils literal">eta</tt> variable controls
+the learning rate. And <tt class="docutils literal">n</tt> specifies the number of learning iterations.</p>
+<div class="highlight"><pre><span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">eta</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">100</span>
+</pre></div>
+<p>In order to find the ideal values for the weights <tt class="docutils literal">w</tt>, we try to reduce the
+error magnitude to zero. In this simple case <tt class="docutils literal">n = 100</tt> iterations are enough;
+for a bigger and possibly &quot;noisier&quot; set of input data much larger numbers should
+be used.</p>
+<p>First we get a random input set from the training data. Then we calculate the
+dot product (sometimes also called scalar product or inner product) of the input
+and weight vectors. This is our (scalar) result, which we can compare to the
+expected value. If the expected value is bigger, we need to increase the
+weights, if it's smaller, we need to decrease them. This correction factor is
+calculated in the last line, where the error is multiplied with the learning
+rate (<tt class="docutils literal">eta</tt>) and the input vector (<tt class="docutils literal">x</tt>). It is then added to the weights
+vector, in order to improve the results in the next iteration.</p>
+<div class="highlight"><pre><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">expected</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">training_data</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">expected</span> <span class="o">-</span> <span class="n">unit_step</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">+=</span> <span class="n">eta</span> <span class="o">*</span> <span class="n">error</span> <span class="o">*</span> <span class="n">x</span>
+</pre></div>
+<p>And that's already everything we need in order to train the perceptron! It has
+now &quot;learned&quot; to act like a logical OR function:</p>
+<div class="highlight"><pre><span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">training_data</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;{}: {} -&gt; {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="n">result</span><span class="p">,</span> <span class="n">unit_step</span><span class="p">(</span><span class="n">result</span><span class="p">)))</span>
+
+<span class="p">[</span><span class="mi">0</span> <span class="mi">0</span><span class="p">]:</span> <span class="o">-</span><span class="mf">0.0714566687173</span> <span class="o">-&gt;</span> <span class="mi">0</span>
+<span class="p">[</span><span class="mi">0</span> <span class="mi">1</span><span class="p">]:</span> <span class="mf">0.829739696273</span> <span class="o">-&gt;</span> <span class="mi">1</span>
+<span class="p">[</span><span class="mi">1</span> <span class="mi">0</span><span class="p">]:</span> <span class="mf">0.345454042997</span> <span class="o">-&gt;</span> <span class="mi">1</span>
+<span class="p">[</span><span class="mi">1</span> <span class="mi">1</span><span class="p">]:</span> <span class="mf">1.24665040799</span> <span class="o">-&gt;</span> <span class="mi">1</span>
+</pre></div>
+<p>If you're interested, you can also plot the errors, which is a great way to
+visualize the learning process:</p>
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">pylab</span> <span class="kn">import</span> <span class="n">plot</span><span class="p">,</span> <span class="n">ylim</span>
+<span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+</pre></div>
+<img alt="" src="/images/2013/3/26/error_plot.png" />
+<p>It's easy to see that the errors stabilize around the 60th iteration. If you
+doubt that the errors are definitely eliminated, you can re-run the training
+with an iteration count of 500 or more and plot the errors:</p>
+<img alt="" src="/images/2013/3/26/error_plot2.png" />
+<p>You could also try to change the training sequence in order to model an AND, NOR
+or NOT function. Note that it's not possible to model an XOR function using a
+single perceptron like this, because the two classes (0 and 1) of an XOR
+function are not linearly separable. In that case you would have to use multiple
+layers of perceptrons (which is basically a small neural network).</p>
+</div>
+<div class="section" id="wrap-up">
+<h2>Wrap Up</h2>
+<p>Here's the entire code:</p>
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">choice</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="n">dot</span><span class="p">,</span> <span class="n">random</span>
+
+<span class="n">unit_step</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+
+<span class="n">training_data</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">w</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">eta</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">100</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">expected</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">training_data</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">expected</span> <span class="o">-</span> <span class="n">unit_step</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">+=</span> <span class="n">eta</span> <span class="o">*</span> <span class="n">error</span> <span class="o">*</span> <span class="n">x</span>
+
+<span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">training_data</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;{}: {} -&gt; {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="n">result</span><span class="p">,</span> <span class="n">unit_step</span><span class="p">(</span><span class="n">result</span><span class="p">)))</span>
+</pre></div>
+<p>If you have any questions, or if you've discovered an error (which is easily
+possible as I've just learned about this stuff), feel free to leave a comment
+below.</p>
+</div>
+
+    </div>
+
+    <a href="https://flattr.com/submit/auto?user_id=danilo&url=https://blog.dbrgn.ch/2013/3/26/perceptrons-in-python/&title=Programming%20a%20Perceptron%20in%20Python&description=How%20to%20create%20a%20simple%20perceptron%20using%20Python%20and%20NumPy.&tags=ai,machine%20learning,python&category=text">
+            <img class="flattrbutton" src="https://blog.dbrgn.ch/theme/images/flattr-badge-large.png" alt="Flattr this!" /> 
+        </a>
+
+        <div class="tags">
+            <p>This entry was tagged
+                <a href="https://blog.dbrgn.ch/tags/ai/">ai</a>,                 <a href="https://blog.dbrgn.ch/tags/machine-learning/">machine_learning</a> and                 <a href="https://blog.dbrgn.ch/tags/python/">python</a></p>
+        </div>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = "dbrgn";
+    var disqus_title = "Programming a Perceptron in Python";
+    var disqus_url = "https://blog.dbrgn.ch/2013/3/26/perceptrons-in-python/";
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        </section>
+    </div>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-1033934-12']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+
+        
+    <script src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type= "text/javascript">
+       MathJax.Hub.Config({
+           config: ["MMLorHTML.js"],
+           jax: ["input/TeX", "input/MathML", "output/HTML-CSS", "output/NativeMML"],
+           TeX: {
+               extensions: ["AMSmath.js", "AMSsymbols.js", "noErrors.js", "noUndefined.js"],
+               equationNumbers: { autoNumber: "AMS" }
+           },
+           extensions: ["tex2jax.js", "mml2jax.js", "MathMenu.js", "MathZoom.js"],
+           tex2jax: {
+               inlineMath: [ ['$','$'] ],
+               displayMath: [ ['$$','$$'] ],
+               processEscapes: true },
+           "HTML-CSS": {
+               styles: { ".MathJax .mo, .MathJax .mi": {color: "black ! important"}}
+           }
+       });
+    </script>
+
+
+    <script type="text/javascript" src="https://blog.dbrgn.ch/theme/js/hyphenator.js"></script>
+    <script type="text/javascript">
+        Hyphenator.config({
+            donthyphenateclassname: 'docutils',
+            useCSS3hyphenation: true
+        });
+        Hyphenator.run();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,706 @@
+<html><head><title>DNA seen through the eyes of a coder</title>
+<style type="text/css">
+body {
+        font-family: Verdana,Arial,Helvetica,sans-serif;
+                font-size: 14px;
+                        margin: 1.2em;
+                        }
+                        </style>
+                        
+</head>
+
+<body bgcolor="#ffffff">
+<center><big>DNA seen through the eyes of a coder</big>
+<p>
+<small>or</small>
+<p>
+<big>If you are a hammer, everything looks like a nail</big>
+</center>
+
+<table width=100%>
+<tr><td align=right>
+<small>`This is one of the coolest things I've read in a while.' -- <a 
+href=http://www.livejournal.com/users/jwz/>jwz</a></small></td></table>
+<p>
+This is just some rambling by a computer programmer about DNA. 
+I'm not a molecular geneticist. If you spot the inevitable
+mistakes, please mail me (<a href=http://ds9a.nl>bert hubert</a>) at <a
+href=mailto:ahu@ds9a.nl>ahu@ds9a.nl</a>. 
+<p>
+I'm not trying to force my view unto the DNA - each observation here is
+quite 'uncramped'. To see where I got all this from, head to the <a
+href="#bibliography">bibliography</a>.
+<p>
+<small>Quick links: <a href="#source">The source code</a>, <a
+href="#pic">Position Independent Code</a>, <a
+href="#conditional">Conditional compilation</a>,  <a
+href="#epigenetics">Epigenetics</a>, <a href="#dead-code">Dead
+code, bloat, comments ('junk dna')</a>,  <a href="#fork">fork() and fork
+bombs ('tumors')</a>,  <a href="#mirroring">Mirroring, failover</a>,  <a
+href="#apis">Cluttered APIs, dependency hell</a>,  <a
+href="#viruses">Viruses, worms</a>, <a href="#central-dogma">Central
+Dogma</a>, <a href="#binpatch">Binary patching
+aka 'Gene therapy'</a>,  <a href="#regression">Bug Regression</a>,  <a
+href="#rss">Reed-Solomon codes: 'Forward Error Correction'</a>, <a
+href="#holy">Holy Code</a>,  <a href="#framing">Framing errors: start and
+stop bits</a>,  <a href="#smp">Massive multiprocessing: each cell is a
+universe</a>,  <a href="#bootstrapping">Self hosting &amp;
+bootstrapping</a>,  <a href="#makefile">The Makefile</a>,  <a
+href="#bibliography">Further reading</a></small>.
+
+<h3>Updates</h3>
+24th of February 2013:<br>
+Added a bit on epigenetics, updated the font, small updates here and there.
+<p>
+3rd of January 2008:<br>
+A lot of updates are arriving since this page was linked on <a
+href="http://reddit.com">Reddit.com</a>, I'm currently evaluating and
+merging the suggested changes. Please do keep sending updates!
+<p>
+23rd of September 2006:<br>
+Small update on the number of genes. Some other updates have been sent to me
+over the past four years, and I'll try to work them in to the page.
+<p>
+16th of June 2002:<br>
+Added tiny piece on the <a href="#fork">halting problem</a> and cancer. I
+think this is a new insight, but I'm not sure. On the todolist: Code reuse
+through alternative splicing. 
+<p>
+18th of May 2002:<br>
+In the meantime some people who *are* geneticists have read this and have
+spotted and fixed some, but not many, mistakes. I recently added information
+on the cell as a state machine and on forking and forkbombs.
+<p>
+24th of May 2002:<br>
+Some clarifications from the great people on #bioinformatics on OPN. Added a
+bunch of pictures to lighten up the page. Added piece on the <a href="#central-dogma">Central
+Dogma</a>.
+<h2>The source code</h2>
+<a name="source"></a>
+Is <a
+href="ftp://ftp.ensembl.org/pub/current_genbank/homo_sapiens/">here</a>.
+This not a joke. We can wonder about the license though. Maybe we should ask
+the walking product of this source: <a
+href=http://www.guardian.co.uk/Archive/Article/0,4273,4403109,00.html>Craig
+Venter</a>. The source can be
+<a href=http://www.ensembl.org/Homo_sapiens/>viewed</a> via a wonderful set
+of perl scripts called '<a
+href=http://www.ensembl.org/Homo_sapiens/Download/>Ensembl</a>'. The human
+genome is about 3 gigabases long, which boils down to 750
+megabytes. Depressingly enough, this is only 2.8 <a
+href=http://ftp.mozilla.org/pub/mozilla/releases/>Mozilla browsers</a>.
+<p>
+DNA is not like C source but more like byte-compiled code for a virtual
+machine called 'the nucleus'. It is very doubtful that there is a source to
+this byte compilation - what you see is all you get.
+<p>
+
+<table><tr><td>
+The language of DNA is digital, but not binary. Where binary encoding has 0
+and 1 to work with (2 - hence the 'bi'nary), DNA has 4 positions, T, C, G
+and A.
+<p>
+Whereas a digital byte is mostly 8 binary digits, a DNA 'byte' (called a
+'codon') has three digits. Because each digit can have 4 values instead of
+2, an DNA codon has 64 possible values, compared to a binary byte which has
+256.</td><td><img src=dna.jpg></td></table>
+<p>
+A typical example of a DNA codon is 'GCC', which encodes the amino acid
+Alanine. A larger number of these amino acids combined are called a
+'polypeptide' or 'protein', and these are chemically active in making a
+living being.
+<p>
+See also <a
+href=http://www.ultranet.com/~jkimball/BiologyPages/C/Codons.html>
+http://www.ultranet.com/~jkimball/BiologyPages/C/Codons.html</a>.
+<h2>Position Independent Code</h2>
+<a name="pic"></a>
+Dynamically linked libraries (.so under Unix, .dll on Microsoft) code cannot
+use static addresses internally because the code may appear in different
+places in memory in different situations. DNA has this too, where it is
+called 'transposing code':
+
+<table><tr><td width=10%></td><td width=75%>Nearly half of the human genome is
+composed of transposable elements or jumping DNA. First recognized in the
+1940s by Dr. Barbara McClintock in studies of peculiar inheritance patterns
+found in the colors of Indian corn, jumping DNA refers to the idea that some
+stretches of DNA are unstable and "transposable," ie., they can move
+around -- on and between chromosomes. </td><td width=15%></td><tr><td></td>
+<td>
+<a href=http://www.ornl.gov/hgmis/resource/people.html>
+http://www.ornl.gov/hgmis/resource/people.html</a></td></table>
+
+
+<h2>Conditional compilation</h2>
+<table>
+<tr><td><img
+src=http://whyfiles.org/034clone/images/human_chrom.gif></td><td>
+<a name="conditional"></a>
+Of the <a href=http://www.commondreams.org/views01/0212-02.htm>20,000 to
+30,000
+genes</a> now thought to be in the human genome, most cells
+express only a very small part - which makes sense, a liver cell has little
+need for the DNA code that makes neurons.
+<p>
+But as almost all cells carry around a full copy ('distribution') of the
+genome, a system is needed to #ifdef out stuff not needed. And that is just
+how it works. The genetic code is full of #if/#endif statements.
+
+<p>
+
+This is why '<a
+href=http://www.ultranet.com/~jkimball/BiologyPages/S/Stem_Cells.html>stem
+cells</a>' are so hot right now - these cells have the ability to
+differentiate into everything. The code hasn't been #ifdeffed out
+yet, so to speak.
+<p>
+Stated more exactly, stem cells do not have everything turned on - they are
+not at once liver cells and neurons. Cells can be likened to state machines,
+starting out as a stem cell. Over the lifetime of the cell, during which
+time it may clone ('fork()') many times, it specializes. Each specialization
+can be regarded as chosing a branch in a tree.
+<p>
+Each cell can make (or be induced to make) decisions about its future, which
+each make it more specialized. These decisions are persistent over cloning
+using transcription factors and by modifying the way DNA is stored spacially
+('steric effects').
+<p>
+A liver cell, although it carries the genes to do so, will generally not
+be able to function as a skin cell. There are some indications out there
+that it is possible to 'breed' cells 'upwards' into the hierarchy, making
+them pluripotent. See also <a
+href=http://www.sciencedaily.com/releases/2002/01/020131074645.htm>this
+article</a>.
+</td></table>
+
+<h2>Epigenetics &amp; imprinting: runtime binary patching</h2>
+<a name="epigenetics"></a>
+Although the actual relevant changes in the DNA of an organism rarely occur
+within a generation, substantial tinkering goes on by activating or
+deactivating parts of our genome, without altering the actual code. 
+<p>
+This can be compared to the Linux kernel, which at boot time discovers what
+CPU it is running on, and actually disables parts of its binary code in case
+(for example) it is running on a single CPU system. This goes beyond
+something like if(numcpus &gt; 1), it is the actual nopping out of locking.
+Crucially, this nopping occurs in memory and not on the disk based image.
+<p>
+Similarly, as an embryo develops in the mother's womb, its DNA is edited
+substantially to reduce its growth rate, and the size of the placenta. In
+such a way, the competing interests of the father ('large strong children')
+and the mother ('survive pregnancy') are balanced. Such 'imprinting' can
+only happen within the mother, since the father's genome doesn't know
+anything about the size of the mother.
+<p>
+Recently, it is also becoming clear that the metabolic status of the parents
+influences the <a
+href="http://en.wikipedia.org/wiki/Transgenerational_epigenetics">chances of long life, cancer and diabetes in their
+grandchildren</a>. This also makes sense, as surviving in a food poor climate may
+require a different metabolic strategy than in one where food is abundantly
+available.
+<p>
+Mechanisms behind epigenetics and imprinting are 'methylation', which
+attaches methyl groups to DNA to 'flip' their activation status, but also
+histone modification, which can curl up DNA so it is not activated.
+<p>
+Some of these DNA edits are heritable and passed on to children, other forms
+may only impact one animal.
+<p>
+This field is still developing rapidly, and it may be that our DNA is much
+more dynamic than originally thought.
+
+
+<h2>Dead code, bloat, comments ('junk dna')</h2>
+<a name="dead-code"></a>
+<table><tr><td><img src=intron.gif></td><td>
+The genome is littered with old copies of genes and experiments that went
+wrong somewhere in the recent past - say, the last half a million years.
+This code is there but inactive. These are called the 'pseudo genes'.
+<p>
+
+Furthermore, 97% of your DNA is commented out. DNA is linear and read from
+start to end. The parts that should not be decoded are marked very clearly,
+much like C comments. The 3% that is used directly form the so called
+'exons'. The comments, that come 'inbetween' are called 'introns'.
+<p>
+
+These comments are fascinating in their own right. Like C comments they have
+a start marker, like /*, and a stop marker, like */. But they have some more
+structure. Remember that DNA is like a tape - the comments need to be
+snipped out physically! The start of a comment is almost always indicated by
+the letters 'GT', which thus corresponds to /*, the end is signalled by
+'AG', which is then like */.
+<p>
+However because of the snipping, some glue is needed to connect the code
+before the comment to the code after, which makes the comments more like
+html comments, which are longer: '&lt;!--' signifies the start, '--&gt;' the
+end.
+</td>
+</table>
+<p>
+So an actual stretch of DNA with exons and introns might look like this:
+<pre>
+ACTUAL CODE&lt!-- blah blah blah blah ---- blah --&gt;ACTUAL CODE
+  |         |            |           |        |        |
+exon 1    acceptor    intron 1     branch   donor   exon 2
+     (start of comment)                 (end of comment)
+</pre>
+The start of the comment is clear, which is then followed by a lot of
+non-coding DNA. Somewhere very near the end of the comment there is a
+'branch site', which indicates that the comment will end soon. Then some
+more comment follows, and then the actual terminator.
+<p>
+The actual cutting of the comments happens after the DNA has been
+transcribed into RNA and is performed by looping the comment and bringing
+the pieces of actual code close together. Then the RNA is cut at the
+'branch site' near the end of the comment, after which the 'acceptor'
+(comment start) and 'donator' (comment end) are connected to eachother.
+<p>
+Now, what are these comments good for? That discussion is part of a 
+<a href=http://www.tuxedo.org/~esr/jargon/html/entry/holy-wars.html>holy
+war</a> that can rival the vi/emacs one. 
+
+When comparing different species, we know that some introns show fewer code
+changes than the neighboring exons. This suggests that the comments are
+doing something important.
+<p>
+There are lots of possible explanations for the massive amount of non-coding
+DNA - one of the most appealing (to a coder) has to do with 'folding
+propensity'. DNA needs to be stored in a highly coiled form, but not all DNA
+codes lend themselves well to this.
+<p>
+This may remind you of <a
+href=http://www-2.cs.cmu.edu/~412/applications/ln/lecture16.html>RLL or
+MFM</a> coding. On a hard disk, a bit is encoded
+by a polarity transition or the lack thereof. A naive encoding would encode
+a 0 as 'no transition' and 1 as 'a transition'.
+<p>
+Encoding 000000 is easy - just keep the magnetic phase unchanged for
+a few micrometers. However, when decoding, uncertainty creaps in - how many
+micrometers did we read? Does this correspond to 6 zeroes or 5? To prevent
+this problem, data is treated such that these long stretches of no
+transitions do not occur.
+<p>
+If we see 'no transition,no transition,transition,transition' on disk, we
+can be sure that this corresponds to '0011' - it is exceedingly unlikely
+that our reading process is so imprecise that this might correspond to
+'00011' or '00111'. So we need to insert spacers so as to prevent too little
+transitions. This is called 'Run Lengh Limiting' on magnetic media.
+<p>
+The thing to note is that sometimes, transitions need to be inserted to
+make sure that the data can be stored reliably. Introns may do much the same
+thing by making sure that the resulting code can be coiled properly.
+<p>
+However, this area of molecular biology is a minefield! Huge diatribes rage
+about variants with exciting names like 'introns early' or 'introns late',
+and massive words like 'folding propensity' and 'stem-loop potential'. I
+think it best to let this discussion rage on a bit.
+<p>
+A fascinating link of uncertain scientific value is
+<a href=http://post.queensu.ca/~forsdyke/introns.htm>
+http://post.queensu.ca/~forsdyke/introns.htm
+</a>.
+<p>
+2013 Update: ten years on, the debate still hasn't settled! It is very clear
+that 'junk dna' is a misnommer, but as to its immediate function, there is
+no consensus. Check out <a
+href="http://blogs.nature.com/news/2012/09/fighting-about-encode-and-junk.html">Fighting
+about ENCODE and junk</a> for a discussion of where we stand.
+<h2>fork() and fork bombs ('tumors')</h2>
+<a name="fork"></a>
+Like with unix, cells are not 'spawned' - they are forked. All cells started
+out from your ovum which has forked itself many times since. Like processes,
+both halves of the fork() are (mostly) identical to begin with, but they may
+from then on decide to do different things.
+<p>
+As with unix, great problems arise when cells keep on forking. They quickly
+exhaust resources, sometimes leading to death. This is called a tumor. The
+cell is riddled with 'ulimits' and 'watchdogs' to prevent this sort of thing
+from happening. The number of divisions is limited by 
+<a href=http://www.ellison-med-fn.org/emf_award.jsp?award_id=10>Telomere
+shortening</a>, for example.
+<p>
+A cell cannot clone unless very stringent conditions are met - a '<a
+href=http://www.openbsd.org/>secure by default</a>' configuration. It is
+only when these safeguards fail that tumors can grow. Like with computer
+security, it is hard to strike a balance between security ('no cells can
+divide') and usability.
+<p>
+Compare this to the well known <a
+href="http://www.cs.washington.edu/homes/csk/halt.html">Halting Problem</a>,
+first described by the founder of Computer Science, <a
+href="http://www.turing.org.uk/turing/">Alan Turing</a>. Perhaps it is as
+impossible to predict if a program will ever finish as it is to create a
+functional genome that cannot get cancer?
+<table><tr><td>
+<h2>Mirroring, failover</h2>
+<a name="mirroring"></a>
+Each DNA Helix is redundant in itself - you can see the genome as a twisted
+ladder whereby each spoke contains two bases - hence the word 'basepair'. If
+one of these bases is missing, it can be derived from the one on the other
+side. T always binds to A, C always to G. So, we can state that the genome
+is mirrored within the helix. 'RAID-1' so to speak.
+<p>
+Furthermore, there are two copies of each chromosome present - one from each
+parent, with the notable exception of the Y chromosome, which is only
+present in males. The actual details are complicated - but most genes are
+thus present twice. In case one is broken or unusefully mutated, the other
+independent copy is still there. This is what we would normally call
+'failover'.
+<h2>Cluttered APIs, dependency hell</h2>
+<a name="apis"></a>
+As proteins interact in the cell, they rely on eachothers' characteristics.
+It has just been shown that proteins that interact with a lot of other
+proteins cannot evolve, or at least, only do so at a very slow rate. See
+Nature, 28 June 2001, and M. Kimura, T. Ohta, Science, 26 April 2002.
+<p>
+They propose that this is because of great internal dependencies which
+inhibit the changing of the 'contract' of the protein. It is also noted that
+evolution does take place, but very slowly as both parts of the dependency
+need to evolve in a compatible way at the same time.
+
+<h2>Viruses, worms</h2>
+<a name="viruses"></a>
+Somebody recently proposed in a discussion that it would be really cool to
+hack the genome and compromise it so as to insert code that would copy
+itself to other genomes, using the host-body as its vehicle. 'Just like the
+nimda worm!'</td>
+<td><img src=helix.gif></td></table>
+<p>
+He shortly thereafter realised that this is exactly what biological viruses
+have been doing for millions of years. And they are exceedingly good at it.
+<p>
+A lot of these viruses have become a fixed part of our genome and hitch a
+ride with all of us. To do so, they have to hide from the virus scanner
+which tries to detect foreign code and prevent it from getting into the DNA.
+
+<H2>The Central Dogma: .c -&gt; .o -&gt a.out/.exe</h2>
+<a name="central-dogma"></a>
+When scientists were still discovering the basics of genetics they were
+faced with lots of different chemicals but the correlation was unclear. When
+it became clear what comes from what it was hailed as a great triumph and
+called 'The Central Dogma'.
+<p>
+This dogma tells us that DNA is used to make RNA and that RNA is used to
+make proteins, which is like saying that from a .c file comes a .o object
+file, which can be compiled into an executable (a.out/exe). It also tells us
+that this is the only order in which information flows.
+<p>
+Now, the Central Dogma has recenly been tarnished somewhat. Like any billion
+year old coding project, a lot of hacking has been going on, and sometimes
+information flows the other way. Sometimes RNA patches the DNA and at other
+times, the DNA is modified by proteines created earlier.
+<p>
+But generally, the dependencies are clear, so the Central Dogma remains
+important.
+
+
+<h2>Binary patching aka 'Gene therapy'</h2>
+<table><tr><td><img src=genetherapy1big.gif></td><td>
+<a name="binpatch"></a>
+We can fiddle easily enough with DNA. There are companies to which you can
+send an ASCII file with DNA characters, and they will synthesise the
+corresponding 'output' for you. We can also splice DNA into developing
+animals and plans.
+<p>
+It is far harder to 'patch the running executable', as any programmer can
+attest. It is just like that with the genome. To change a running copy ('a
+human'), you need to edit each and every relevant copy of the gene you want
+to patch.
+<p>
+For many years, medical science has tried to patch people with SCID, or
+'Severe Combined Immunodefeciency', which is a very nasty disease which 
+in effect disables the immune system - leading to very ill patients. It has
+been clear for quite a while now which letters in the DNA need to be fixed
+in order to cure these people.
+<p>
+Many attempts where made to patch running people, using viruses that insert
+new DNA into living organisms, but this proved to be very hard. The genome
+is guarded far too well for such a simple approach to work - cells guard
+their code better than Microsoft!
+<p>
+However, recently the right virus was found which was able to breach the
+protection of the genome and fix the broken characters, leading to
+<a href=http://news.bbc.co.uk/hi/english/health/newsid_1906000/1906999.stm>
+apparently healthy people</a>.
+</td></table>
+<h2>Bug Regression</h2>
+<a name="regression"></a>
+When fixing a bug in a computer program, we often introduce new bugs in the
+course of doing so. The genome is rife with this thing. A lot of African
+Americans are immune to Malaria but instead suffer from sickle cell anemia:
+<p>
+<table><tr><td width=10%></td><td width=75%>
+In tropical regions of the world where the parasite-borne disease malaria
+is prevalent, people with a single copy of a particular genetic mutation
+have a survival advantage. 
+<br>...
+<br>
+While inheriting one copy of the mutation confers a benefit, inheriting two
+copies is a tragedy. Children born with two copies of the genetic mutation
+have sickle cell anemia, a painful disease that affects the red blood cells.
+</td><td width=15%></td><tr><td></td>
+<td>
+<a href=http://www.fda.gov/fdac/features/496_sick.html>
+http://www.fda.gov/fdac/features/496_sick.html</a></td></table>
+<p>
+There are quite a few examples of this happening. See also the wonderful
+book <a href=http://www.amazon.com/exec/obidos/ASIN/0060932902>'Genome' by Matt
+Ridley.</a>
+
+<h2>Reed-Solomon codes: 'Forward Error Correction'</h2>
+<a name="rss"></a>
+Like computer storage, DNA (and its intermediate 'RNA') can get corrupted.
+To protect against common 'single bit errors', the encoding from individual
+DNA letters to proteins is degenerate. There are 4 RNA characters, U, C, G
+and A - in other words, a 'byte' is 2 bits long. Three characters correspond
+to an amino acid.
+<p>
+<table><tr><td><img src=nucleotides.jpg></td><td>
+6 bits could conceivably map to 64 amino acids, yet there are only 20 in
+use. For example, UCU, UCC, UCA and UCG all encode for 'Serine', whereas only
+UGG maps to 'Tryptophan'.
+</td></table>	
+<p>
+Now, it turns out that some likely 'typos' (UCU -> UCC) in the encoding lead
+to an identical amino acid being expressed. For more about this fascinating
+phenomenon, read <a href=http://www.amazon.com/exec/obidos/ASIN/0465045669>'Metamagical Themas' by Douglas
+Hofstadter</a>.
+<h2>Holy Code: <a
+href=http://www.tuxedo.org/~esr/jargon/html/entry/You-are-not-expected-to-understand-this.html>
+/* you are not expected to understand this */</a></h2>
+<a name="holy"></a>
+Some code is sacred. We may not remember who wrote it, or why - we just know
+that it works. The guy who thought it up may have left the company already.
+Such code is not to be tinkered with.
+<p>
+DNA knows the concept of the 'molecular clock'. Some parts of the genome
+are actively changing and some parts are sacrosanct. A good example of the
+latter are the Histone genes H3 and H4. 
+<p>
+These genes are fundamental to the actual storage of the genome and are thus
+of paramount importance. Any failure in this code rapidly leads to a
+non-functioning organism.
+<p>
+So it is to be expected that this code isn't tinkered with and that turns
+out the case. The H3 an H4 genes have a *zero* effective mutation rate in
+humans. But it goes far beyond that. You share almost the exact same code
+with anything from chickens to grass or moulds.
+<p>
+<table><tr><td width=10%></td><td width=75%>
+RATES OF NUCLEOTIDE SUBSTITUTION PER SITE PER <b>1000 MILLION YEARS</b> BETWEEN
+VARIOUS HUMAN AND RODENT PROTEINS-CODING GENES WITH DIVERGENCE SET AT
+80 MILLION YEARS BASED ON FOSSIL EVIDENCE:<p>
+<table border=1 width=100%><tr><td>gene</td><td>Number of codons</td><td>Effective rate</td>
+<tr><td>histone 3</td><td>135</td><td>0.00</td>
+<tr><td>histone 4</td><td>101</td><td>0.00</td>
+<tr><td>insulin</td><td>51</td><td>0.13</td>
+<tr><td>gamma interferon</td><td>136</td><td>2.79</td>
+</table>
+</td><td width=15%></td><tr><td></td>
+<td>
+<p>
+<a
+href=http://www.staffs.ac.uk/schools/sciences/biology/Handbooks/evolseqphylo.htm>
+http://www.staffs.ac.uk/schools/sciences/biology/Handbooks/evolseqphylo.htm
+</a></td></table>
+<p>
+Now, it does appear that there are two ways the genome can make sure that
+code does not mutate. The first way is described above: use amino acids
+that are highly degenerate and making sure that those typos that DO occur
+result in the same output. 
+<p>
+Furthermore, genes can be copied earlier or later in the cell's reproductive
+process, leading to more or less favourable copying conditions. Many more of
+such conditions apply.
+<p>
+It appears as if H3 and H4 were authored very carefully as they do have a
+lot of 'synonymous changes', which through the clever techniques described
+above do not lead to changes in the output.
+<h2>Framing errors: start and stop bits</h2>
+<a name="framing"></a>
+
+<pre>...0 0000 0001   0000 0010  0000 0011 0...</pre>
+This clearly describes the 8 bit values 1, 2 and 3. The spaces I added make
+it clear where a byte starts and stops. Many serial devices employ stop and
+start bits to encode where you start reading. If we shift this sequence
+slightly:
+
+<pre>...00 0000 0010   000 00100  000 00110 ...</pre>
+
+It suddenly reads 2, 4, 6! To prevent this from happening in DNA there are
+elaborate signals that tell the cell where to start reading. Interestingly,
+there are pieces of genome that can be read from multiple starting points,
+and produce useful (but different) results either way. That is what I call a
+cool hack!
+<p>
+Each way a strand of DNA can be read is called an<a
+href=http://bioweb.uwlax.edu/GenWeb/Molecular/Seq_Anal/Translation/translation.html>
+Open Reading Frame</a> and there are generally 6, 3 each way.
+
+<h2>Massive multiprocessing: each cell is a universe</h2>
+<a name="smp"></a>
+Now, DNA is not like a computer programming language. It really isn't. But
+there are some whopping analogies. We can view each cell as a CPU, running
+its own kernel. Each cell has a copy of the entire kernel, but choses to
+activate only the relevant parts. Which modules or drivers it loads, so to
+speak.
+<p>
+<table><tr><td>
+If a cell needs to do something ('call a function'), it whips up the right
+piece of the genome and transcribes it into RNA. The RNA is then translated
+into a sequence of amino acids, which together make up a protein the DNA
+coded for. Now for the really cool bit :-)
+<p>
+This protein is tagged with a shipping address. This is a marker consisting
+of several amino acids which tell the rest of the cell where this protein
+needs to go. There is machinery which acts on these instructions, and
+delivers the protein, which is potentially on the outside of the cell.
+<p>
+The delivery instruction is then stripped off and several post processing
+steps may be performed, possibly activating the protein - which is good,
+because you may not want to transport an active protein through places where
+it should not do work.
+</td><td><center><img src=cell.jpg><br>A Cell</center></td></table>
+
+<h2>Self hosting &amp; bootstrapping</h2>
+<a name="bootstrapping"></a>
+If we were to destroy all existing C compilers on the planet and leave only
+the code for one, we would be in great trouble. Yes, we have the C code to a
+C compiler, but we need a C compiler to compile it!
+<p>
+In actual fact, this was solved by not writing the first C compiler in C
+(duh), but in a language that was available already: B. See 
+<a href=http://cm.bell-labs.com/cm/cs/who/dmr/chist.html>here</a> for
+details about 'bootstrapping'.
+<p>
+The same holds for the genome. To create a new 'binary' of a specimen, a
+*living* copy is required. The genome needs an elaborate toolchain in order
+to deliver a living thing. The code itself is impotent. This toolchain is
+commonly called 'your parents'.
+<p>
+It appears that RNA, which is an intermediate code between DNA and a
+protein, may have been the 'B' for DNA. Which begs the question where RNA
+came from. It is very interesting to note that extra-terrestial objects
+often contain amino acids! See
+<a
+href=http://www.google.com/search?hl=en&q=amino+acids+meteorites>http://www.google.com/search?hl=en&q=amino+acids+meteorites</a>
+
+<H2>The Makefile</H2>
+<a name="makefile"></a>
+<table><tr>
+<td><img src=homeobox.gif></td><td>
+Organisms typically start out as a single cell, which as said before
+contains two entire copies of the genome. The big tarfile so to speak, with
+all files extracted, ready to go. Now what? 
+<p>
+Enter the <a href=http://www.people.virginia.edu/~rjh9u/homeo.html>Homeobox
+genes</a>. Cells must be copied and assigned a purpose. The Homeobox genes
+start out by laying a 'top to bottom' dependency which reads 'start with the
+head'. In order to make this happen, a chemical gradient is created by which
+cells can sense where they are, and decide if they need to do things useful
+for building a head, or for building a primordial notochord.
+<p>
+Only discovered in 1983, the Homeobox genes are a very exciting area of
+research right now. It is interesting to note that like a Makefile, 'HOX'
+genes only trigger things in other genes and don't materially build things
+themselves.
+<p>
+The homeobox 'syntax' appears to be very 'holy' in the sense described above. 
+What happens if you copy paste the 'legs selector' part of a mouse HOX gene
+into the fruitfly Homebox:
+<p>
+<table><tr><td width=10%></td><td width=75%>
+'In fact, when the mouse Hox-B6 gene is inserted in Drosophila, it can
+substitute for Antennapedia and produce legs in place of antennae'
+</td><td width=15%></td><tr><td></td>
+<td>
+<a href=http://www.ultranet.com/~jkimball/BiologyPages/H/HomeoboxGenes.html>
+http://www.ultranet.com/~jkimball/BiologyPages/H/HomeoboxGenes.html</a></td></table>
+<p>
+The fruitfly and human genomes did not branch just millions of years ago but
+<b>hundreds of millions of years</b> ago. And you can copy paste parts
+('Selectors' in the genetic language) of the Makefile and it still clicks.
+Please note that the 'build a leg' routine in a fruitfly is of course
+radically different from that in a mouse, but the 'selector' correctly
+triggers the right instructions.
+</td></table>
+<H2>Further reading</H2>
+<a name="bibliography"></a>
+<table cellpadding=10>
+<tr valign=top><td>
+<a href=http://www.amazon.com/exec/obidos/ASIN/0060932902>Genome</a> by Matt
+Ridley</td><td>An amazing account of an effect each chromosome has on
+our lives. Very readable yet strict in not 'dumbing down' the theory.
+Contains an impressive set of references.
+<p>
+Source of many of the more impressive examples found on this page.
+<p>
+
+And to help Matt along in the quest he clearly sets out in his book, I would
+like to state quite clearly: <center><big>Genes are not there to cause
+diseases</big></center></td>
+
+<tr valign=top><td><a href=http://www.amazon.com/exec/obidos/ASIN/0471330612>Human
+Molecular Genetics, second edition</a> by Tom Strachan and Andrew P. Read</td>
+<td>Neatly fills the gap between 'primary literature' (ie, peer reviewed
+academic magazines and
+papers) and introductory textbooks. I'm litteraly dragging myself through
+this book, constantly looking things up in order to understand everything. 
+If you really want to know the details about introns, exons, RNA in all its
+variants, how genes cause and prevent diseases, this is the book.</td>
+<tr><td>
+
+<tr valign=top><td><a 
+href=http://www.amazon.com/exec/obidos/ASIN/0192860925>
+The Selfish Gene</a> by Richard Dawkins
+</td>
+<td>
+<a
+href=http://www.amazon.com/exec/obidos/search-handle-url/index%3Dbooks%26field-author%3DDawkins%2C%20Richard/>
+Richard Dawkins</a> is the 
+<a
+href=http://www.amazon.com/exec/obidos/search-handle-url/index%3Dbooks%26field-author%3DStevens%2C%20Richard/>
+Richard Stevens</a>
+of evolution theory. Both have contributed practical work but are most
+famous for their crystal clear expositions of existing theory, opening up
+the world they describe to an audience of millions.
+<p>
+In this book, Dawkins explains evolution from a 'gene' standpoint rather
+then from a 'species' standpoint. It turns out to make a lot more sense this
+way and helps understand how genes power you, and not the other way around.
+It is not that genes help you do what you want to do, you ARE the genes.
+<p>
+Also explains a lot about how genes work along the way.
+</td>
+<tr valign=top><td><a 
+href=http://www.amazon.com/exec/obidos/ASIN/0393315703>
+The Blind Watchmaker : Why the Evidence of Evolution Reveals a Universe
+Without Design</a> by Richard Dawkins</td>
+<td>
+Again a book by Dawkins. More about evolution than about genes but clearly
+explains how evolution can be responsible for the intricate design found in
+many living things.
+<p>
+Again very readable and fascinating on every level.
+</td>
+<tr valign=top>
+<td>
+<a href=http://www.amazon.com/exec/obidos/ASIN/0465045669>
+Metamagical Themas</a> by Douglas
+Hofstadter</td>
+<td>
+This is an 'idea' book. It is filled to the brim with ideas, they simply
+ooze out of the pages. Many of these ideas are about information theory,
+genetics, life, intelligence, music, mathematics and people. 
+<p>
+Clearly not a genetic textbook but has been influential in imbueing
+enthousiasm for all things genetic in many people. Can often be found dirt
+cheap in second hand bookstores.
+<p>
+Recommended.
+</td>
+
+</table>
+</body>
+</html>

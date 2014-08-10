@@ -1,0 +1,2136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Dropbox Tech Blog  &raquo; Blog Archive   &raquo; Introducing Pyston: an upcoming, JIT-based Python implementation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<link rel="shortcut icon" href="https://www.dropbox.com/static/images/favicon.ico" />
+<link rel="stylesheet" href="https://d3a9cj8nudt6dj.cloudfront.net/wp-content/themes/dropbox/style.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="/wp-content/themes/dropbox/style-mobile.css" type="text/css" media="only screen and (max-device-width:720px)" />
+<link rel="stylesheet" href="/wp-content/themes/dropbox/commoncss/common.css" type="text/css" />
+<link rel="alternate" type="application/rss+xml" title="Dropbox Tech Blog RSS Feed" href="https://tech.dropbox.com/feed/" />
+<link rel="pingback" href="https://tech.dropbox.com/xmlrpc.php" />
+<link href='//fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="/wp-content/assets/highlight/default.css" type="text/css" media="screen" />
+<script type="text/javascript" src="/wp-content/assets/highlight/highlight.pack.js"></script>
+<script type="text/javascript">hljs.initHighlightingOnLoad();</script>
+
+<meta property="og:title" content="Dropbox Tech Blog &#8211; Introducing Pyston: an upcoming, JIT-based Python implementation"/>
+<meta property="og:type" content="blog"/>
+<meta property="og:image" content="https://blog.dropbox.com/wp-content/themes/dropbox/images/logosquare.png"/>
+
+<script>
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-279179-4']);
+_gaq.push(['_setDomainName', document.domain]);
+_gaq.push(['_trackPageview']);
+
+window.setTimeout(function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    var src_prefix = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www');
+    ga.src = src_prefix + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+}, 0);
+</script>
+
+	<link rel='archives' title='April 2014' href='https://tech.dropbox.com/2014/04/' />
+	<link rel='archives' title='February 2014' href='https://tech.dropbox.com/2014/02/' />
+	<link rel='archives' title='January 2014' href='https://tech.dropbox.com/2014/01/' />
+	<link rel='archives' title='September 2013' href='https://tech.dropbox.com/2013/09/' />
+	<link rel='archives' title='December 2012' href='https://tech.dropbox.com/2012/12/' />
+	<link rel='archives' title='October 2012' href='https://tech.dropbox.com/2012/10/' />
+	<link rel='archives' title='September 2012' href='https://tech.dropbox.com/2012/09/' />
+	<link rel='archives' title='August 2012' href='https://tech.dropbox.com/2012/08/' />
+	<link rel='archives' title='July 2012' href='https://tech.dropbox.com/2012/07/' />
+	<link rel='archives' title='April 2012' href='https://tech.dropbox.com/2012/04/' />
+	<link rel='archives' title='February 2012' href='https://tech.dropbox.com/2012/02/' />
+	<link rel='archives' title='January 2012' href='https://tech.dropbox.com/2012/01/' />
+	<link rel='archives' title='October 2011' href='https://tech.dropbox.com/2011/10/' />
+	<link rel='archives' title='April 2011' href='https://tech.dropbox.com/2011/04/' />
+<link rel="alternate" type="application/rss+xml" title="Dropbox Tech Blog &raquo; Introducing Pyston: an upcoming, JIT-based Python implementation Comments Feed" href="https://tech.dropbox.com/2014/04/introducing-pyston-an-upcoming-jit-based-python-implementation/feed/" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://tech.dropbox.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://d3a9cj8nudt6dj.cloudfront.net/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Video Processing at Dropbox' href='https://tech.dropbox.com/2014/02/video-processing-at-dropbox/' />
+<link rel='next' title='Building Carousel, Part I: How we made our networked mobile app feel fast and local' href='https://tech.dropbox.com/2014/04/building-carousel-part-i-how-we-made-our-networked-mobile-app-feel-fast-and-local/' />
+<link rel='canonical' href='https://tech.dropbox.com/2014/04/introducing-pyston-an-upcoming-jit-based-python-implementation/' />
+<link rel='shortlink' href='https://tech.dropbox.com/?p=729' />
+</head>
+<body>
+    <div id="root">
+        <a href="/" id="logo-link">
+            <img class="logo" src="/wp-content/themes/dropbox/images/techblogbanner.png" alt=""/>
+      	</a>
+        <div id="main">
+    <div id="content">
+                	        		<div class="post hentry single" id="post-729">
+        		    <div class="entry-title">
+                    <h2><a href="https://tech.dropbox.com/2014/04/introducing-pyston-an-upcoming-jit-based-python-implementation/" rel="bookmark" title="Permanent Link to Introducing Pyston: an upcoming, JIT-based Python implementation">Introducing Pyston: an upcoming, JIT-based Python implementation</a></h2>
+                    </div>
+                    <div class="postdata">
+                        <span class="vcard">Posted by <span class="fn">Kevin Modzelewski</span></span>
+                        <span class="published posted_date" title="2014-04-03 18:00:28+00:00">on April 03, 2014</span>
+                    </div>
+                    <div class="entry-content"><p dir="ltr">Hello everyone, I’m very excited to announce Pyston, a new open-source implementation of Python, currently under development at Dropbox.  The goal of the project is to produce a high-performance Python implementation that can push Python into domains dominated by traditional systems languages like C++.</p>
+<p dir="ltr">Here at Dropbox, we love Python and try to use it for as much as we can.  As we scale and the problems we tackle grow, though, we’re starting to find that hitting our performance targets can sometimes become prohibitively difficult when staying on Python.  Sometimes, it can be less work to do a rewrite in another language.  I personally love Python, and it pains me every time we decide to rewrite something, so I wanted to do something about it.  After some abandoned experiments with static compilation, we looked around and saw how successfully JIT techniques are being applied in the JavaScript space: Chrome’s V8 engine, in particular, has greatly pushed the status quo of JavaScript performance.  Our hope is that by using similar techniques, we can achieve similar performance improvements for Python.</p>
+<p dir="ltr">Pyston is still in the earliest stages and is not ready for use, but we’re hopeful that by announcing it early in its lifecycle and <a href="https://github.com/dropbox/pyston">open-sourcing the code</a>, we can collaborate with the Python and JIT communities throughout its development.  There’s only room for so much detail in this blog post, but we wanted to talk about why we think we need a new Python implementation, and go into a little bit of how Pyston works.</p>
+<h3>Why a new implementation</h3>
+<p dir="ltr">There are already a number of Python implementations using JIT techniques, often in sophisticated ways.  <a href="http://pypy.org/">PyPy</a> has achieved impressive performance with its tracing JIT; Jython and IronPython are both built on top of mature VMs with extensive JIT support.  So why do we think it’s worth starting a new implementation?</p>
+<p>In short, it’s because we think the most promising techniques are incompatible with existing implementations.  For instance, the JavaScript world has switched from tracing JITs to method-at-a-time JITs, due to the compelling performance benefits.  Whether or not the same performance advantage holds for Python is an open question, but since the two approaches are fundamentally incompatible, the only way to start answering the question is to build a new method-at-a-time JIT.</p>
+<p>Another point of differentiation is the planned use of a <a href="https://github.com/dropbox/pyston#aspiration-extension-modules">conservative garbage collector to support extension modules efficiently</a>.  Again, we won’t know until later whether this is a better approach or not, but it’s a decision that’s integral enough to a JIT that it is difficult to test in an existing implementation.</p>
+<p>The downside of starting from scratch is, unsurprisingly, that creating a new language implementation is an enormous task.  Luckily, tools are starting to come out that can help with this process; in particular, Pyston is built on top of <a href="http://llvm.org/">LLVM</a>, which lets us achieve top-tier code generation quality without having to deal with the details ourselves. Nonetheless, a new Python implementation is a huge undertaking, and Pyston will not be ready for use soon.</p>
+<h3>How it works</h3>
+<p>At a high level, Pyston takes parsed Python code and transforms it to the LLVM intermediate representation (IR).  The IR is then run through the LLVM optimizer and passed off to the LLVM JIT engine, resulting in executable machine code.  LLVM contains a large number of optimization passes and mechanisms for easily adding more, which can lead to very fast code.</p>
+<p>The problem, though, is that LLVM can’t reason about Python code, because all the low-level behavior is hidden behind the type dispatching you have to do in any dynamic language.  To handle this, Pyston employs type speculation: it is typically impossible to <em>prove</em> that a variable will have a specific type, but Pyston can often predict with some certainty what the type of an object can be.  Once a prediction is made, Pyston will verify the prediction at runtime, branching between a fast path where the prediction holds, and a slow path where it doesn’t.</p>
+<p>Pyston also includes other modern techniques such as hidden classes for fast attribute lookups and inline caches for fast method calls.  You can find more technical details <a href="https://github.com/dropbox/pyston#technical-features">on the Github page</a>, along with a <a href="http://blog.kevmod.com/tag/pyston/">separate blog post</a> that goes into more technical detail.</p>
+<h3>Current state</h3>
+<p>Pyston is still in its infancy and right now only supports a minimal subset of the Python language.  It’s not quite fair to state benchmark numbers, since 1) Pyston doesn’t support a large enough set of benchmarks to be representative, and 2) Pyston doesn’t support all runtime features (including ones that might introduce slowdowns), so it’s not a true apples-to-apples comparison.  With those caveats, Pyston generally is able to beat CPython’s performance, but still lags behind PyPy.</p>
+<p>The code <a href="https://github.com/dropbox/pyston">has been released on Github</a> under the Apache 2.0 license, along with a growing amount of technical documentation.  There’s a lot of work to be done, and we’re looking to grow the team: if this kind of thing interests you, <a href="https://www.dropbox.com/jobs/listing/143">please apply</a>!</p>
+<p>Stay tuned for more updates as the project progresses.  If you&#8217;d like to subscribe to our announcement mailing list, you can <a href="https://docs.google.com/forms/d/123MrTaeD5q2eq-VoJ9uv7OUSvZH-wTkrSPbNLKyTXcg/viewform">do so here</a>.</p>
+</div>
+                            		</div>
+                
+<div id="disqus_thread">
+                    <div id="dsq-content">
+
+
+            <ul id="dsq-comments">
+                    <li class="comment even thread-even depth-1" id="dsq-comment-1104">
+        <div id="dsq-comment-header-1104" class="dsq-comment-header">
+            <cite id="dsq-cite-1104">
+http://alexgaynor.net/                <span id="dsq-author-user-1104">Alex Gaynor</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1104" class="dsq-comment-body">
+            <div id="dsq-comment-message-1104" class="dsq-comment-message"><p>Do you really feel like your claim that JS engines moved away from tracing JITs is actually accurate in light of the fact that only Firefox (TraceMonkey) ever used a tracing JIT, and it had a number of well documented flaws; and further, perhaps the most impressive dynamic language JIT, LuaJIT2 is still a tracing JIT?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-2" id="dsq-comment-1114">
+        <div id="dsq-comment-header-1114" class="dsq-comment-header">
+            <cite id="dsq-cite-1114">
+                <span id="dsq-author-user-1114">Ryan</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1114" class="dsq-comment-body">
+            <div id="dsq-comment-message-1114" class="dsq-comment-message"><p>Do you think there is no merit to pursuing alternative ways of JITting python? You think all the engineering effort should go to one project (PyPy)  rather than exploring different options?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-3" id="dsq-comment-1118">
+        <div id="dsq-comment-header-1118" class="dsq-comment-header">
+            <cite id="dsq-cite-1118">
+http://veekun.com/                <span id="dsq-author-user-1118">Eevee</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1118" class="dsq-comment-body">
+            <div id="dsq-comment-message-1118" class="dsq-comment-message"><p>It would certainly be nice to have one incredible JITted Python rather than dividing the effort between two, yes.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-4" id="dsq-comment-1126">
+        <div id="dsq-comment-header-1126" class="dsq-comment-header">
+            <cite id="dsq-cite-1126">
+                <span id="dsq-author-user-1126">Trey</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1126" class="dsq-comment-body">
+            <div id="dsq-comment-message-1126" class="dsq-comment-message"><p>Since PyPy is incompatible with much of the scientific Python stack, this is already a non-starter.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-5" id="dsq-comment-1127">
+        <div id="dsq-comment-header-1127" class="dsq-comment-header">
+            <cite id="dsq-cite-1127">
+http://veekun.com/                <span id="dsq-author-user-1127">Eevee</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1127" class="dsq-comment-body">
+            <div id="dsq-comment-message-1127" class="dsq-comment-message"><p>But so is Pyston at the moment.  Either way someone needs to do the work to fix the compatibility, but now it has to be done twice.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt depth-5" id="dsq-comment-1131">
+        <div id="dsq-comment-header-1131" class="dsq-comment-header">
+            <cite id="dsq-cite-1131">
+http://red-sheep.de                <span id="dsq-author-user-1131">flying sheep</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1131" class="dsq-comment-body">
+            <div id="dsq-comment-message-1131" class="dsq-comment-message"><p>pypy has numpy support. i’m pretty sure pyston doesn’t.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-5" id="dsq-comment-1143">
+        <div id="dsq-comment-header-1143" class="dsq-comment-header">
+            <cite id="dsq-cite-1143">
+                <span id="dsq-author-user-1143">Tim Richardson</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1143" class="dsq-comment-body">
+            <div id="dsq-comment-message-1143" class="dsq-comment-message"><p>Yes, probably the reason for this claim: &#8220;Another point of differentiation is the planned use of a conservative garbage collector to support extension modules efficiently. &#8221; This may be a hugely significant engineering decision.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt depth-5" id="dsq-comment-1187">
+        <div id="dsq-comment-header-1187" class="dsq-comment-header">
+            <cite id="dsq-cite-1187">
+                <span id="dsq-author-user-1187">TB</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1187" class="dsq-comment-body">
+            <div id="dsq-comment-message-1187" class="dsq-comment-message"><p>That&#8217;s the point of projects like PyPy however, make the GC pluggable. PyPy can use Bohem, reference counting or many other GCs (I think it has close to 6 GC implementations)</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even depth-3" id="dsq-comment-1120">
+        <div id="dsq-comment-header-1120" class="dsq-comment-header">
+            <cite id="dsq-cite-1120">
+                <span id="dsq-author-user-1120">TB</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1120" class="dsq-comment-body">
+            <div id="dsq-comment-message-1120" class="dsq-comment-message"><p>Why start from scratch when there&#8217;s a wicket fast Python that already is mature? Seems like a case of &#8220;not invented here&#8221; mixed with people who don&#8217;t want to dig in and learn PyPy.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-4" id="dsq-comment-1125">
+        <div id="dsq-comment-header-1125" class="dsq-comment-header">
+            <cite id="dsq-cite-1125">
+                <span id="dsq-author-user-1125">Guest</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1125" class="dsq-comment-body">
+            <div id="dsq-comment-message-1125" class="dsq-comment-message"><p>Those &#8220;people&#8221; include Guido van Rossum, the creator of Python and its BDFL, who is now working for Dropbox. I&#8217;d be surprised if he didn&#8217;t know a thing or two about PyPy.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-5" id="dsq-comment-1199">
+        <div id="dsq-comment-header-1199" class="dsq-comment-header">
+            <cite id="dsq-cite-1199">
+                <span id="dsq-author-user-1199">neuruss</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1199" class="dsq-comment-body">
+            <div id="dsq-comment-message-1199" class="dsq-comment-message"><p>Guido never liked Pypy because of its complexity.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt depth-4" id="dsq-comment-1137">
+        <div id="dsq-comment-header-1137" class="dsq-comment-header">
+            <cite id="dsq-cite-1137">
+                <span id="dsq-author-user-1137">jgmitzen</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1137" class="dsq-comment-body">
+            <div id="dsq-comment-message-1137" class="dsq-comment-message"><p>PyPy has its own drawbacks and cons. It will be interesting to have a different JIT with its own set of pros and cons. Even if it doesn&#8217;t turn out to be faster, it may turn out to suit some people&#8217;s use cases more.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-4" id="dsq-comment-1170">
+        <div id="dsq-comment-header-1170" class="dsq-comment-header">
+            <cite id="dsq-cite-1170">
+                <span id="dsq-author-user-1170">Henrique</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1170" class="dsq-comment-body">
+            <div id="dsq-comment-message-1170" class="dsq-comment-message"><p>I&#8217;m sure there are many qualifiers that apply to PyPy, but &#8220;mature&#8221; isn&#8217;t one. It&#8217;s lacking the most basic documentation, e.g. you have to be a core commiter to figure out how to compile it.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-5" id="dsq-comment-1172">
+        <div id="dsq-comment-header-1172" class="dsq-comment-header">
+            <cite id="dsq-cite-1172">
+                <span id="dsq-author-user-1172">John Camara</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1172" class="dsq-comment-body">
+            <div id="dsq-comment-message-1172" class="dsq-comment-message"><p>Did you even look for the docs?</p>
+<p>For using a prebuilt library &#8211; <a href="http://doc.pypy.org/en/latest/getting-started.html" rel="nofollow">http://doc.pypy.org/en/latest/getting-started.html</a></p>
+<p>To build PyPy &#8211; <a href="http://doc.pypy.org/en/latest/getting-started-python.html" rel="nofollow">http://doc.pypy.org/en/latest/getting-started-python.html</a></p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-5" id="dsq-comment-1228">
+        <div id="dsq-comment-header-1228" class="dsq-comment-header">
+            <cite id="dsq-cite-1228">
+                <span id="dsq-author-user-1228">Philip Jenvey</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1228" class="dsq-comment-body">
+            <div id="dsq-comment-message-1228" class="dsq-comment-message"><p><a href="http://pypy.org/download.html#building-from-source" rel="nofollow">http://pypy.org/download.html#building-from-source</a></p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt depth-3" id="dsq-comment-1128">
+        <div id="dsq-comment-header-1128" class="dsq-comment-header">
+            <cite id="dsq-cite-1128">
+http://kgriffs.com/                <span id="dsq-author-user-1128">kgriffs</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1128" class="dsq-comment-body">
+            <div id="dsq-comment-message-1128" class="dsq-comment-message"><p>I don&#8217;t see anything wrong with experimenting with some other ideas (for science!), although I think that long term it would be better to combine forces rather than running two separate projects unless there are two fundamentally different use cases that each one is targeting (which right now I don&#8217;t think there is).</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-3" id="dsq-comment-1145">
+        <div id="dsq-comment-header-1145" class="dsq-comment-header">
+            <cite id="dsq-cite-1145">
+                <span id="dsq-author-user-1145">Sturla Molden</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1145" class="dsq-comment-body">
+            <div id="dsq-comment-message-1145" class="dsq-comment-message"><p>Numba is a good example. </p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-4" id="dsq-comment-1148">
+        <div id="dsq-comment-header-1148" class="dsq-comment-header">
+            <cite id="dsq-cite-1148">
+                <span id="dsq-author-user-1148">Foo</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1148" class="dsq-comment-body">
+            <div id="dsq-comment-message-1148" class="dsq-comment-message"><p>Numba isn&#8217;t an implementation of Python</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-5" id="dsq-comment-1151">
+        <div id="dsq-comment-header-1151" class="dsq-comment-header">
+            <cite id="dsq-cite-1151">
+                <span id="dsq-author-user-1151">Sturla Molden</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1151" class="dsq-comment-body">
+            <div id="dsq-comment-message-1151" class="dsq-comment-message"><p>Numba is JIT compiler for Python, that replaces the interpreter with LLVM compiled Python bytecode.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt depth-5" id="dsq-comment-1153">
+        <div id="dsq-comment-header-1153" class="dsq-comment-header">
+            <cite id="dsq-cite-1153">
+                <span id="dsq-author-user-1153">Foo</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1153" class="dsq-comment-body">
+            <div id="dsq-comment-message-1153" class="dsq-comment-message"><p>It only replaces the interpreter when it can, it relies on CPython when it cannot optimize things, it cannot optimize attribute access for example</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-5" id="dsq-comment-1159">
+        <div id="dsq-comment-header-1159" class="dsq-comment-header">
+            <cite id="dsq-cite-1159">
+                <span id="dsq-author-user-1159">Sturla Molden</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1159" class="dsq-comment-body">
+            <div id="dsq-comment-message-1159" class="dsq-comment-message"><p>That is correct. But contributions from other developers could improve on this.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt depth-5" id="dsq-comment-1161">
+        <div id="dsq-comment-header-1161" class="dsq-comment-header">
+            <cite id="dsq-cite-1161">
+                <span id="dsq-author-user-1161">Foo</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1161" class="dsq-comment-body">
+            <div id="dsq-comment-message-1161" class="dsq-comment-message"><p>I don&#8217;t think so, it&#8217;s clearly not in their design goals</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-5" id="dsq-comment-1181">
+        <div id="dsq-comment-header-1181" class="dsq-comment-header">
+            <cite id="dsq-cite-1181">
+                <span id="dsq-author-user-1181">Eugene Toder</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1181" class="dsq-comment-body">
+            <div id="dsq-comment-message-1181" class="dsq-comment-message"><p>Numba is a JIT compiler as a module for CPython. The language it compiles is not Python, though &#8212; i.e. it doesn&#8217;t preserve much of Python&#8217;s semantics. A trivial example is it freezes globals.</p>
+<p>Disclosure: I contributed to Numba.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt thread-odd thread-alt depth-1" id="dsq-comment-1105">
+        <div id="dsq-comment-header-1105" class="dsq-comment-header">
+            <cite id="dsq-cite-1105">
+                <span id="dsq-author-user-1105">TB</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1105" class="dsq-comment-body">
+            <div id="dsq-comment-message-1105" class="dsq-comment-message"><p>I&#8217;d love to hear more about your issues with PyPy, it sounds like you wrote off PyPy simply because you don&#8217;t understand why it works so well. Not to mention that this is mostly a re-hash of stuff found in unladen-swallow. </p>
+<p>I mean, if your end goal is to write another Python, sure go for it. But it really sounds like you people haven&#8217;t done their research. I see nothing to write home about.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-2" id="dsq-comment-1106">
+        <div id="dsq-comment-header-1106" class="dsq-comment-header">
+            <cite id="dsq-cite-1106">
+                <span id="dsq-author-user-1106">PaulDillinger</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1106" class="dsq-comment-body">
+            <div id="dsq-comment-message-1106" class="dsq-comment-message"><p>You do know Guido van Rossum works for DropBox now right?  If you&#8217;re not sure who that is then Google him.  He has a nice large Wikipedia page saying that he &#8220;is best known as the author of the Python programming language&#8221;</p>
+<p>I for one am excited at where this will go.  WTG DropBox!</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-3" id="dsq-comment-1108">
+        <div id="dsq-comment-header-1108" class="dsq-comment-header">
+            <cite id="dsq-cite-1108">
+http://braintrace.ru                <span id="dsq-author-user-1108">Andrey Popp</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1108" class="dsq-comment-body">
+            <div id="dsq-comment-message-1108" class="dsq-comment-message"><p>Being a creator of Python doesn&#8217;t make him automatically knowledgable in how PyPy works.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-4" id="dsq-comment-1111">
+        <div id="dsq-comment-header-1111" class="dsq-comment-header">
+            <cite id="dsq-cite-1111">
+                <span id="dsq-author-user-1111">TB</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1111" class="dsq-comment-body">
+            <div id="dsq-comment-message-1111" class="dsq-comment-message"><p>Or even that he knows the first thing about JIT tech.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt depth-3" id="dsq-comment-1198">
+        <div id="dsq-comment-header-1198" class="dsq-comment-header">
+            <cite id="dsq-cite-1198">
+                <span id="dsq-author-user-1198">neuruss</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1198" class="dsq-comment-body">
+            <div id="dsq-comment-message-1198" class="dsq-comment-message"><p>Guido worked for Google when Unladen Swallow (backed by Google) was announced. He quickly gave his thumbs up, and then the project failed miserably.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even depth-2" id="dsq-comment-1116">
+        <div id="dsq-comment-header-1116" class="dsq-comment-header">
+            <cite id="dsq-cite-1116">
+                <span id="dsq-author-user-1116">haydoni</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1116" class="dsq-comment-body">
+            <div id="dsq-comment-message-1116" class="dsq-comment-message"><p>It says in the post: tracing JITs (pypy) vs method-at-a-time JITs (pyston) are &#8220;fundamentally incompatible&#8221;.</p>
+<p>This seem to be a completely different approach to LLVM support for pypy (which the pypy team have attempted a few times, so far without success)&#8230; the gamble/interesting question is which design choice will lead to better perf in the long run&#8230; Dropbox are betting on method-at-a-time JITs!</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-3" id="dsq-comment-1139">
+        <div id="dsq-comment-header-1139" class="dsq-comment-header">
+            <cite id="dsq-cite-1139">
+                <span id="dsq-author-user-1139">jrk</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1139" class="dsq-comment-body">
+            <div id="dsq-comment-message-1139" class="dsq-comment-message"><p>That addresses &#8220;why not PyPy,&#8221; but they totally fail to address &#8220;how is this different from Unladen Swallow,&#8221; which took exactly this approach just a few years ago and was ultimately unable to achieve much of a performance win while maintaining full compatibility. Among other things, LLVM is a great static compiler, but very slow and high-overhead for a JIT. With dynamic languages, where type speculation often requires regenerating code relatively frequently, this can be an especially big issue.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even thread-even depth-1" id="dsq-comment-1107">
+        <div id="dsq-comment-header-1107" class="dsq-comment-header">
+            <cite id="dsq-cite-1107">
+                <span id="dsq-author-user-1107">Andrei H</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1107" class="dsq-comment-body">
+            <div id="dsq-comment-message-1107" class="dsq-comment-message"><p>OSR in LLVM isn&#8217;t really supported, it looks like you&#8217;re planning to work around it using function calls. Are you planning to add proper OSR support to LLVM in the long-term?</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt thread-odd thread-alt depth-1" id="dsq-comment-1109">
+        <div id="dsq-comment-header-1109" class="dsq-comment-header">
+            <cite id="dsq-cite-1109">
+                <span id="dsq-author-user-1109">mattbillenstein</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1109" class="dsq-comment-body">
+            <div id="dsq-comment-message-1109" class="dsq-comment-message"><p>Is GvR involved in this project?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-2" id="dsq-comment-1119">
+        <div id="dsq-comment-header-1119" class="dsq-comment-header">
+            <cite id="dsq-cite-1119">
+                <span id="dsq-author-user-1119">Kevin Modzelewski</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1119" class="dsq-comment-body">
+            <div id="dsq-comment-message-1119" class="dsq-comment-message"><p>Guido&#8217;s advice has been extremely helpful, but so far we haven&#8217;t been able to get any code from him :/</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-3" id="dsq-comment-1133">
+        <div id="dsq-comment-header-1133" class="dsq-comment-header">
+            <cite id="dsq-cite-1133">
+                <span id="dsq-author-user-1133">mattbillenstein</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1133" class="dsq-comment-body">
+            <div id="dsq-comment-message-1133" class="dsq-comment-message"><p>What&#8217;s his opinion on the overall direction?  Where will this succeed where Unladen Swallow failed?</p>
+<p>And best of luck &#8211; it&#8217;s an ambitious project.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-4" id="dsq-comment-1142">
+        <div id="dsq-comment-header-1142" class="dsq-comment-header">
+            <cite id="dsq-cite-1142">
+                <span id="dsq-author-user-1142">Luke Stanley</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1142" class="dsq-comment-body">
+            <div id="dsq-comment-message-1142" class="dsq-comment-message"><p>Did Unladen Swallow actually fail, or simply not have enough funding / time available?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-5" id="dsq-comment-1214">
+        <div id="dsq-comment-header-1214" class="dsq-comment-header">
+            <cite id="dsq-cite-1214">
+                <span id="dsq-author-user-1214">mattbillenstein</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1214" class="dsq-comment-body">
+            <div id="dsq-comment-message-1214" class="dsq-comment-message"><p>Would seem the main developers got pulled onto other projects at Google:  <a href="http://en.wikipedia.org/wiki/Unladen_Swallow" rel="nofollow">http://en.wikipedia.org/wiki/Unladen_Swallow</a></p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even depth-3" id="dsq-comment-1169">
+        <div id="dsq-comment-header-1169" class="dsq-comment-header">
+            <cite id="dsq-cite-1169">
+http://aigarius.com/blog/                <span id="dsq-author-user-1169">Aigars Mahinovs</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1169" class="dsq-comment-body">
+            <div id="dsq-comment-message-1169" class="dsq-comment-message"><p>Was one of the advice points in line with &#8220;Don&#8217;t target obsolete version 2.7 &#8230;&#8221; ?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-4" id="dsq-comment-1234">
+        <div id="dsq-comment-header-1234" class="dsq-comment-header">
+            <cite id="dsq-cite-1234">
+                <span id="dsq-author-user-1234">miggitymiggitymiggitymiggity</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1234" class="dsq-comment-body">
+            <div id="dsq-comment-message-1234" class="dsq-comment-message"><p>I agree 100% &#8211; something like this could be the thing that creates the much needed interest in 3.x. I would bet all of my money (so not too much) that Python 3 would be a huge success if it had all the current features and libs, and was also 3-5 times as performant, in terms of speed and memory usage.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even thread-even depth-1" id="dsq-comment-1110">
+        <div id="dsq-comment-header-1110" class="dsq-comment-header">
+            <cite id="dsq-cite-1110">
+                <span id="dsq-author-user-1110">miggitymiggitymiggitymiggity</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1110" class="dsq-comment-body">
+            <div id="dsq-comment-message-1110" class="dsq-comment-message"><p>I&#8217;m aware, as all the naysayers will inexorably point out, that this is a large undertaking and will likely fail&#8230; just like every great achievement in history. In other words, bravo to Dropbox for funding this research when they could have just as easily dropped Python for Java, like Twitter did with Ruby, and bravo to you for giving this a shot. I hope it is a huge success. I, for one, have been whining about how Python needs more horsepower to stay afloat with the advent of Go, Node.js, et al, and I&#8217;m excited to see somebody working to add horsepower.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt thread-odd thread-alt depth-1" id="dsq-comment-1112">
+        <div id="dsq-comment-header-1112" class="dsq-comment-header">
+            <cite id="dsq-cite-1112">
+                <span id="dsq-author-user-1112">Wesley Hansen</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1112" class="dsq-comment-body">
+            <div id="dsq-comment-message-1112" class="dsq-comment-message"><p>Is that pronounced &#8220;piston&#8221; or &#8220;pie-ston&#8221; ?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-2" id="dsq-comment-1113">
+        <div id="dsq-comment-header-1113" class="dsq-comment-header">
+            <cite id="dsq-cite-1113">
+                <span id="dsq-author-user-1113">Igor Petruk</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1113" class="dsq-comment-body">
+            <div id="dsq-comment-message-1113" class="dsq-comment-message"><p>Russian speaking community has already started to discuss funny name in their language. At least it is not offensive comparing to &#8220;Pidora&#8221; a while ago.</p>
+<p><a href="https://www.linux.org.ru/forum/talks/10351478" rel="nofollow">https://www.linux.org.ru/forum/talks/10351478</a></p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-3" id="dsq-comment-1141">
+        <div id="dsq-comment-header-1141" class="dsq-comment-header">
+            <cite id="dsq-cite-1141">
+                <span id="dsq-author-user-1141">Alexander</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1141" class="dsq-comment-body">
+            <div id="dsq-comment-message-1141" class="dsq-comment-message"><p>Yep, Russian-speaking people jokingly called Python &#8220;piston&#8221; for years.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even thread-even depth-1" id="dsq-comment-1115">
+        <div id="dsq-comment-header-1115" class="dsq-comment-header">
+            <cite id="dsq-cite-1115">
+                <span id="dsq-author-user-1115">George Oblapenko</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1115" class="dsq-comment-body">
+            <div id="dsq-comment-message-1115" class="dsq-comment-message"><p>I remember reading that PyPy cannot &#8216;compile&#8217; Python files, i.e. you have to wait each time a Python script. Numba, a LLVM-based JIT compiler for numeric functions will have such an option (I remember using Numba a year ago, and I had to wait 10-15 seconds each time I ran my script before it actually would start doing things and not compile). Will Pyston have the same option?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-2" id="dsq-comment-1117">
+        <div id="dsq-comment-header-1117" class="dsq-comment-header">
+            <cite id="dsq-cite-1117">
+                <span id="dsq-author-user-1117">Samuel Giles</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1117" class="dsq-comment-body">
+            <div id="dsq-comment-message-1117" class="dsq-comment-message"><p>Pretty certain PyPy doesn&#8217;t have a wait.  (At least it can run pyc files without issue).  Definitely not a 10-15 second wait.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-3" id="dsq-comment-1121">
+        <div id="dsq-comment-header-1121" class="dsq-comment-header">
+            <cite id="dsq-cite-1121">
+                <span id="dsq-author-user-1121">TB</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1121" class="dsq-comment-body">
+            <div id="dsq-comment-message-1121" class="dsq-comment-message"><p>Agreed, I&#8217;ve never seen much of a wait&#8230;.if it&#8217;s there it&#8217;s in the 100-200ms range.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt thread-odd thread-alt depth-1" id="dsq-comment-1122">
+        <div id="dsq-comment-header-1122" class="dsq-comment-header">
+            <cite id="dsq-cite-1122">
+                <span id="dsq-author-user-1122">Steve</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1122" class="dsq-comment-body">
+            <div id="dsq-comment-message-1122" class="dsq-comment-message"><p>Didn&#8217;t see your position on the GIL. Excised, I hope!</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-2" id="dsq-comment-1136">
+        <div id="dsq-comment-header-1136" class="dsq-comment-header">
+            <cite id="dsq-cite-1136">
+                <span id="dsq-author-user-1136">jgmitzen</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1136" class="dsq-comment-body">
+            <div id="dsq-comment-message-1136" class="dsq-comment-message"><p>Threads are evil.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-3" id="dsq-comment-1174">
+        <div id="dsq-comment-header-1174" class="dsq-comment-header">
+            <cite id="dsq-cite-1174">
+                <span id="dsq-author-user-1174">Rick Gutleber</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1174" class="dsq-comment-body">
+            <div id="dsq-comment-message-1174" class="dsq-comment-message"><p>I agree, but parallelism is the future of Moore&#8217;s Law.   Threads are only going to become more and more important.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-3" id="dsq-comment-1196">
+        <div id="dsq-comment-header-1196" class="dsq-comment-header">
+            <cite id="dsq-cite-1196">
+                <span id="dsq-author-user-1196">pydsigner</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1196" class="dsq-comment-body">
+            <div id="dsq-comment-message-1196" class="dsq-comment-message"><p>Only when lazy people use them.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt depth-2" id="dsq-comment-1167">
+        <div id="dsq-comment-header-1167" class="dsq-comment-header">
+            <cite id="dsq-cite-1167">
+http://blog.est.im/                <span id="dsq-author-user-1167">est</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1167" class="dsq-comment-body">
+            <div id="dsq-comment-message-1167" class="dsq-comment-message"><p>unless you have &gt;10k LoC begin with `import threading`, you don&#8217;t have to worry about GIL.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even thread-even depth-1" id="dsq-comment-1123">
+        <div id="dsq-comment-header-1123" class="dsq-comment-header">
+            <cite id="dsq-cite-1123">
+                <span id="dsq-author-user-1123">Chuck Remes</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1123" class="dsq-comment-body">
+            <div id="dsq-comment-message-1123" class="dsq-comment-message"><p>There is another platform you could potentially build upon. The Rubinius project has built a Ruby implementation on top of LLVM (per method JIT). Interestingly, it has also been designed as a platform for others to build their own *dynamic* languages on top of this runtime.</p>
+<p>Take a look at <a href="http://rubini.us/projects/" rel="nofollow">http://rubini.us/projects/</a> for other languages that have been built on top of the Rubinius runtime. Note that there is a (somewhat old, probably bit-rot) Python implementation called Typhon.</p>
+<p>Rubinius has some pretty good corporate support in the form of Enova (a Chicago-based firm). Perhaps there is an opportunity here for DropBox to jump on board a project that has very similar goals and a similar approach with LLVM.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-2" id="dsq-comment-1130">
+        <div id="dsq-comment-header-1130" class="dsq-comment-header">
+            <cite id="dsq-cite-1130">
+                <span id="dsq-author-user-1130">Peter Wang</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1130" class="dsq-comment-body">
+            <div id="dsq-comment-message-1130" class="dsq-comment-message"><p>Some friends of mine who were working on a similar effort also looked at Rubinius and the Shotgun VM, and concluded that if you really want to be pushing performance, VMs really have to become quite tailored for the language they&#8217;re running.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-3" id="dsq-comment-1140">
+        <div id="dsq-comment-header-1140" class="dsq-comment-header">
+            <cite id="dsq-cite-1140">
+                <span id="dsq-author-user-1140">Chuck Remes</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1140" class="dsq-comment-body">
+            <div id="dsq-comment-message-1140" class="dsq-comment-message"><p>Interesting history. If they looked at the &#8220;shotgun&#8221; VM then they were looking at Rubinius probably 3+ years ago. Shotgun was replaced by the current incarnation which is built to utilize LLVM for compiling and JIT.</p>
+<p>It&#8217;s probably worth another look now. I love re-inventing the wheel (I do it regularly) but this is an opportunity to short-cut a proof-of-concept. If it pans out, then the decision can be made to start from scratch or continue forward with the rubinius platform.</p>
+<p>Just my 2 cents.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt thread-odd thread-alt depth-1" id="dsq-comment-1124">
+        <div id="dsq-comment-header-1124" class="dsq-comment-header">
+            <cite id="dsq-cite-1124">
+                <span id="dsq-author-user-1124">Gary Robinson</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1124" class="dsq-comment-body">
+            <div id="dsq-comment-message-1124" class="dsq-comment-message"><p>I&#8217;m wondering if the way you&#8217;re planning to handle extension models is compatible with using the existing scipy? The inability to do that has always seemed to me to be a major drawback of PyPy&#8217;s approach. If you can use scipy, I&#8217;ll be very eager to try Pyston for my statistical work.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-2" id="dsq-comment-1146">
+        <div id="dsq-comment-header-1146" class="dsq-comment-header">
+            <cite id="dsq-cite-1146">
+                <span id="dsq-author-user-1146">Sturla Molden</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1146" class="dsq-comment-body">
+            <div id="dsq-comment-message-1146" class="dsq-comment-message"><p>Numba can do that already.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt thread-even depth-1" id="dsq-comment-1129">
+        <div id="dsq-comment-header-1129" class="dsq-comment-header">
+            <cite id="dsq-cite-1129">
+                <span id="dsq-author-user-1129">chip</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1129" class="dsq-comment-body">
+            <div id="dsq-comment-message-1129" class="dsq-comment-message"><p>Any thoughts on adding optional static typing?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-2" id="dsq-comment-1166">
+        <div id="dsq-comment-header-1166" class="dsq-comment-header">
+            <cite id="dsq-cite-1166">
+http://blog.est.im/                <span id="dsq-author-user-1166">est</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1166" class="dsq-comment-body">
+            <div id="dsq-comment-message-1166" class="dsq-comment-message"><p>pep-3107</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt thread-odd thread-alt depth-1" id="dsq-comment-1132">
+        <div id="dsq-comment-header-1132" class="dsq-comment-header">
+            <cite id="dsq-cite-1132">
+                <span id="dsq-author-user-1132">skrat</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1132" class="dsq-comment-body">
+            <div id="dsq-comment-message-1132" class="dsq-comment-message"><p>Talking and comparing to node.js, makes me recall how V8 was originally marketed as being able to support not just JavaScript, but &#8220;any&#8221; other language. And of course JavaScript is much trickier beast to run than Python is. Did you look into V8 as part of your research?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-2" id="dsq-comment-1134">
+        <div id="dsq-comment-header-1134" class="dsq-comment-header">
+            <cite id="dsq-cite-1134">
+http://www.justcramer.com/                <span id="dsq-author-user-1134">David Cramer</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1134" class="dsq-comment-body">
+            <div id="dsq-comment-message-1134" class="dsq-comment-message"><p>Why would you say JavaScript is trickier? AFAIK classes in Python are much more complex and harder to support than prototypes/objects in JS.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-3" id="dsq-comment-1135">
+        <div id="dsq-comment-header-1135" class="dsq-comment-header">
+            <cite id="dsq-cite-1135">
+                <span id="dsq-author-user-1135">M28</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1135" class="dsq-comment-body">
+            <div id="dsq-comment-message-1135" class="dsq-comment-message"><p>No. Just no. It&#8217;s much harder to optimize for prototype based inheritance than class based.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-4" id="dsq-comment-1138">
+        <div id="dsq-comment-header-1138" class="dsq-comment-header">
+            <cite id="dsq-cite-1138">
+                <span id="dsq-author-user-1138">Romain</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1138" class="dsq-comment-body">
+            <div id="dsq-comment-message-1138" class="dsq-comment-message"><p>you need stuff like sys._getframe() though</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt depth-2" id="dsq-comment-1176">
+        <div id="dsq-comment-header-1176" class="dsq-comment-header">
+            <cite id="dsq-cite-1176">
+http://mrale.ph/                <span id="dsq-author-user-1176">Vyacheslav Egorov</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1176" class="dsq-comment-body">
+            <div id="dsq-comment-message-1176" class="dsq-comment-message"><p>V8 was never marketed as supporting any other language. Where did you find such claims? V8 is a JavaScript Virtual Machine, not a universal VM and it has tons of code that is JS specific.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-3" id="dsq-comment-1179">
+        <div id="dsq-comment-header-1179" class="dsq-comment-header">
+            <cite id="dsq-cite-1179">
+                <span id="dsq-author-user-1179">Eugene Toder</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1179" class="dsq-comment-body">
+            <div id="dsq-comment-message-1179" class="dsq-comment-message"><p>But it would be quite cool if base machinery from V8 could be reused for a fast Python VM.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt thread-even depth-1" id="dsq-comment-1144">
+        <div id="dsq-comment-header-1144" class="dsq-comment-header">
+            <cite id="dsq-cite-1144">
+                <span id="dsq-author-user-1144">Sturla Molden</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1144" class="dsq-comment-body">
+            <div id="dsq-comment-message-1144" class="dsq-comment-message"><p>Why not join forces with Continuum.io and the Numba team? They already have an LLVM based JIT for Python running. It&#8217;s already so advanced that it can parallelise for loops on multiple cores, and even make code that runs on the GPU.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even thread-odd thread-alt depth-1" id="dsq-comment-1147">
+        <div id="dsq-comment-header-1147" class="dsq-comment-header">
+            <cite id="dsq-cite-1147">
+                <span id="dsq-author-user-1147">Fabio</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1147" class="dsq-comment-body">
+            <div id="dsq-comment-message-1147" class="dsq-comment-message"><p>Just being curious&#8230; Unladen swallow seems to have gone to great lengths before google decided it was not worth for them to continue on it, although it seems they did have some (minor) performance improvements (<a href="http://legacy.python.org/dev/peps/pep-3146/" rel="nofollow">http://legacy.python.org/dev/peps/pep-3146/</a>) and from the retrospect what was missing was engineering cycles to do other optimizations. Have you considered taking over from where they stopped? (the main thing is that unfortunately PyPy will probably never be really be used because the approach is not compatible with extension modules, and from your proposal it seems that the same thing will happen&#8230;)</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-2" id="dsq-comment-1149">
+        <div id="dsq-comment-header-1149" class="dsq-comment-header">
+            <cite id="dsq-cite-1149">
+                <span id="dsq-author-user-1149">Sturla Molden</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1149" class="dsq-comment-body">
+            <div id="dsq-comment-message-1149" class="dsq-comment-message"><p>It would be better to start with Numba than the Unladen Swallow. Numba works great already, and often gives 100-1000 times speed boosts over Python for numeric or algorithmic code. <a href="http://numba.pydata.org" rel="nofollow">http://numba.pydata.org</a></p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-3" id="dsq-comment-1150">
+        <div id="dsq-comment-header-1150" class="dsq-comment-header">
+            <cite id="dsq-cite-1150">
+                <span id="dsq-author-user-1150">Foo</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1150" class="dsq-comment-body">
+            <div id="dsq-comment-message-1150" class="dsq-comment-message"><p>For some statically typed subset of Python</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-4" id="dsq-comment-1154">
+        <div id="dsq-comment-header-1154" class="dsq-comment-header">
+            <cite id="dsq-cite-1154">
+                <span id="dsq-author-user-1154">Sturla Molden</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1154" class="dsq-comment-body">
+            <div id="dsq-comment-message-1154" class="dsq-comment-message"><p>No, you must be confusing Numba with RPython. </p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-5" id="dsq-comment-1155">
+        <div id="dsq-comment-header-1155" class="dsq-comment-header">
+            <cite id="dsq-cite-1155">
+                <span id="dsq-author-user-1155">Foo</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1155" class="dsq-comment-body">
+            <div id="dsq-comment-message-1155" class="dsq-comment-message"><p>No</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt depth-5" id="dsq-comment-1156">
+        <div id="dsq-comment-header-1156" class="dsq-comment-header">
+            <cite id="dsq-cite-1156">
+                <span id="dsq-author-user-1156">Sturla Molden</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1156" class="dsq-comment-body">
+            <div id="dsq-comment-message-1156" class="dsq-comment-message"><p>Numba can JIT compile any Python bytecode. But if it enounters dynamically types in the bytecode it will just call the Python C API. </p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-5" id="dsq-comment-1157">
+        <div id="dsq-comment-header-1157" class="dsq-comment-header">
+            <cite id="dsq-cite-1157">
+                <span id="dsq-author-user-1157">Foo</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1157" class="dsq-comment-body">
+            <div id="dsq-comment-message-1157" class="dsq-comment-message"><p>And then it will be as slow as CPython</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt depth-5" id="dsq-comment-1158">
+        <div id="dsq-comment-header-1158" class="dsq-comment-header">
+            <cite id="dsq-cite-1158">
+                <span id="dsq-author-user-1158">Sturla Molden</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1158" class="dsq-comment-body">
+            <div id="dsq-comment-message-1158" class="dsq-comment-message"><p>Correct, but when Numba can infer the types it will be as fast as C. So for algorithmic code you often get extreme speedup relative to Python. But Numba is still under development, and might get these kinds optimisations if more people care to contribute.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even depth-4" id="dsq-comment-1178">
+        <div id="dsq-comment-header-1178" class="dsq-comment-header">
+            <cite id="dsq-cite-1178">
+                <span id="dsq-author-user-1178">Eugene Toder</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1178" class="dsq-comment-body">
+            <div id="dsq-comment-message-1178" class="dsq-comment-message"><p>In fact, for some subset of C expressed using python syntax.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt depth-3" id="dsq-comment-1160">
+        <div id="dsq-comment-header-1160" class="dsq-comment-header">
+            <cite id="dsq-cite-1160">
+                <span id="dsq-author-user-1160">Fabio</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1160" class="dsq-comment-body">
+            <div id="dsq-comment-message-1160" class="dsq-comment-message"><p>Possibly&#8230; although numba is very focused on making one algorithmic function very fast (so, not sure how suitable it&#8217;d be for a generic speedup with tracing &#8212; which is what unladen swallow targeted), but if the numba team would also be interested in changing their focus to tracing the whole vm it could be interesting. </p>
+<p>Anyways, I&#8217;m just seeing this from the outside and if I have to choose between something that works without being really python compatible (such as pypy) or something python-compatible as numba, I&#8217;d surely choose numba (but really, for me it&#8217;s no real problem going to c/c++ to speed that 0.1% of the cases that deserve it &#8212; although if a real jit did its work that could go to something like 0.01%, but if something as unladen swallow made things 2x faster overall, it&#8217;d already be worth it &#8212; as long as extension modules &#8212; and things such as numba &#8212; keep working).</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even depth-2" id="dsq-comment-1210">
+        <div id="dsq-comment-header-1210" class="dsq-comment-header">
+            <cite id="dsq-cite-1210">
+                <span id="dsq-author-user-1210">Foo</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1210" class="dsq-comment-body">
+            <div id="dsq-comment-message-1210" class="dsq-comment-message"><p>Quite a few people use PyPy&#8230;</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt thread-even depth-1" id="dsq-comment-1152">
+        <div id="dsq-comment-header-1152" class="dsq-comment-header">
+            <cite id="dsq-cite-1152">
+http://blog.ionelmc.ro/                <span id="dsq-author-user-1152">Ionel Cristian Mărieș</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1152" class="dsq-comment-body">
+            <div id="dsq-comment-message-1152" class="dsq-comment-message"><p>This may sound a bit silly but humour this question: if this is such large undertaking why not target Python3 directly ? Surely Python 3 will have very good adoption by the time Pyston is production ready no ?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-2" id="dsq-comment-1163">
+        <div id="dsq-comment-header-1163" class="dsq-comment-header">
+            <cite id="dsq-cite-1163">
+                <span id="dsq-author-user-1163">Rod Ricky Brown</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1163" class="dsq-comment-body">
+            <div id="dsq-comment-message-1163" class="dsq-comment-message"><p>Probably because dropbox core is still based on 2.x</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt thread-odd thread-alt depth-1" id="dsq-comment-1164">
+        <div id="dsq-comment-header-1164" class="dsq-comment-header">
+            <cite id="dsq-cite-1164">
+                <span id="dsq-author-user-1164">Rafael</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1164" class="dsq-comment-body">
+            <div id="dsq-comment-message-1164" class="dsq-comment-message"><p>As an enthusiast of PyPy, I&#8217;m also excited about Pyston. I&#8217;m only curious about the decision to implement it around v2.7. Assuming Guido&#8217;s blessing of the project and taking into account the announced and imminent end of 2.7 era, it doesn&#8217;t seem in sync with the future of Python. As I see it, the future resides in 3.X and newer versions and advocating them so people migrate and Python can continue evolving.<br />
+I only can come up with thinking that it has something to do with your current codebase at Dropbox. If that is so, is it really a good move to bet a herculean effort on a soon to be unsupported version instead of migrating to Py3 already?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-2" id="dsq-comment-1165">
+        <div id="dsq-comment-header-1165" class="dsq-comment-header">
+            <cite id="dsq-cite-1165">
+http://blog.est.im/                <span id="dsq-author-user-1165">est</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1165" class="dsq-comment-body">
+            <div id="dsq-comment-message-1165" class="dsq-comment-message"><p>I think Pyston chose 2.7 because dropbox has a large deployment of 2.7</p>
+<p>3.x vs 2.7 is not technical but political. But personally I think pep-3107 would help JIT a lot.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-3" id="dsq-comment-1175">
+        <div id="dsq-comment-header-1175" class="dsq-comment-header">
+            <cite id="dsq-cite-1175">
+                <span id="dsq-author-user-1175">John Camara</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1175" class="dsq-comment-body">
+            <div id="dsq-comment-message-1175" class="dsq-comment-message"><p>Most likely being practical rather than political.</p>
+<p>Too many assume Python 3.x will take off and want to belittle those who stay on 2.7.  But nobody at this time, really knows for sure if Python 3.x will take off.  So far Python 3.x is not off to a good start as it&#8217;s adoption rates are so low and from my personal experience I don&#8217;t even know one project that use Python 3.x in production.  Even PyPy get used far more in production than Python 3.x and yet many consider it a failure.</p>
+<p>So far no version of Python 3 offers a large enough tangible benefit to even make a small subset of existing production systems make the switch.  How ever many do make the switch to PyPy as it offers a nice tangible benefit to many projects.</p>
+<p>Right now from a practical point of view it is better to write Python 2.7 code while keeping in mind the changes that were made to Python 3.x so that you can write code that is mostly compatible with Python 3.x.  Then if and when Python 3.x takes off you will be prepared to make the switch.  Sometimes it&#8217;s just better to play it safe than take a chance with hype.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-4" id="dsq-comment-1188">
+        <div id="dsq-comment-header-1188" class="dsq-comment-header">
+            <cite id="dsq-cite-1188">
+                <span id="dsq-author-user-1188">Rafael</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1188" class="dsq-comment-body">
+            <div id="dsq-comment-message-1188" class="dsq-comment-message"><p>While I agree that Python 3 adoption has being disappointing, I don&#8217;t think moving to it can be labeled as &#8216;taking a change with hype&#8217;. The decision on ending Python 2.X support has been made and Python 3 is the way to go from now on.<br />
+Python 3 first releases were more of &#8220;cleaning up&#8221; the language than offering real advantages, but as of 3.4 the scenario is starting to change.<br />
+Playing safe and staying with Python 2.7 is understandable, my point though is that all further development will be useless and we&#8217;ll be doomed to stay in a deprecated version of the language if nobody is willing to make the jump. For Dropbox it might make sense to stay on 2.7, but for the Python language itself it would be great to have something so desirable as a JIT compiler to drive conversions.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-5" id="dsq-comment-1190">
+        <div id="dsq-comment-header-1190" class="dsq-comment-header">
+            <cite id="dsq-cite-1190">
+http://blog.est.im/                <span id="dsq-author-user-1190">est</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1190" class="dsq-comment-body">
+            <div id="dsq-comment-message-1190" class="dsq-comment-message"><p>Want fast py3k adoption? Drop the &#8220;Cpython is only reference implementation not for performance&#8221; ego and make at least 10% speedups. instant migration!.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-5" id="dsq-comment-1194">
+        <div id="dsq-comment-header-1194" class="dsq-comment-header">
+            <cite id="dsq-cite-1194">
+                <span id="dsq-author-user-1194">John Camara</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1194" class="dsq-comment-body">
+            <div id="dsq-comment-message-1194" class="dsq-comment-message"><p>I don&#8217;t agree that ending Python 2.x support automatically makes Python 3.x the way to go from now on.  It depends heavily on whether or not Python 3 starts to pick up a sizable share of the Python market.  If it is unable to do so, the Python 2.x line will be continued.</p>
+<p>Now I would like to see Python 3 take off but I&#8217;m going to be practical about my use of Python 2 vs Python 3.  Right now none of my customers want Python 3 and I&#8217;m not willing to take the risks involved moving my customers code over to Python 3 when there is essentially no benefit in do so and in fact it comes with a negative benefit of extra costs.</p>
+<p>Coding with Python 2.7, with 3.x syntax when possible, plus of course lots of automated testing, minimizes the possible future work of migrating a code base over to 3.x, if and when it becomes necessary to do so.  I believe this is the approach that most are taking and is why there is so little adoption to Python 3.x.</p>
+<p>If Python 3.x adoption is going to pick up it is going to need to add some killer features.  It needs to add a jit and or add support for multi cores or some other feature that has a huge benefit.  At this point in time I don&#8217;t see any of these features being added to the CPython 3.x line.  Plus at this time, having a jit is almost an expected feature that a dynamic language requires.</p>
+<p>Many CPython core devs have expressed that don&#8217;t want to add the complexity of a jit to the CPython code base.  They are also the ones who forgot about a very import part of the Zen of Python when Python 3 was developed.  The forgot about &#8220;practicality beats purity&#8221;.  A large number of decisions for Python 3 was for purity and not practicality.</p>
+<p>You see they placed the language as the most important aspect of Python when in reality the most important aspect is its ecosystem.  So now we have a more pure Python at the expense of a fractured ecosystem.</p>
+<p>The lesson learned here is if you going to make backwards incompatible changes you better make sure there are benefits that out-way the costs.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt thread-even depth-1" id="dsq-comment-1168">
+        <div id="dsq-comment-header-1168" class="dsq-comment-header">
+            <cite id="dsq-cite-1168">
+                <span id="dsq-author-user-1168">icewind</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1168" class="dsq-comment-body">
+            <div id="dsq-comment-message-1168" class="dsq-comment-message"><p>Ohh&#8230; I was so excited about Pyston, but this line &#8220;currently targets Python 2.7&#8243; ruined all expectations. Developers stuck with Py2 as they think there is no notable improvements in Py3. I&#8217;m not agreed with it, and moved to 3 long time ago. But JIT compilation could be a huge bonus could stimulate developers to upgrade. But now I just can&#8217;t understand it&#8217;s REALLY hard to update that old code at Dropbox? As always business kills all progress and in Python it feels much more painfull&#8230;  How can you tell about future of python and working on enhancements for old version? This is so sad, legacy code rules the future of the language. It is fail&#8230;</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-2" id="dsq-comment-1177">
+        <div id="dsq-comment-header-1177" class="dsq-comment-header">
+            <cite id="dsq-cite-1177">
+                <span id="dsq-author-user-1177">theY4Kman</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1177" class="dsq-comment-body">
+            <div id="dsq-comment-message-1177" class="dsq-comment-message"><p>If it was easier to upgrade, it wouldn&#8217;t be a dreaded task for those with legacy code. 3 is better, but all the same tasks can be done in 2, so if there&#8217;s no dealbreaker in 2 and it&#8217;s not straightforward to jump to 3, it ain&#8217;t gonna happen. It&#8217;s not business&#8217;s fault we chose to leave behind users of 2, insisting they put forward all the effort to upgrade.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-3" id="dsq-comment-1186">
+        <div id="dsq-comment-header-1186" class="dsq-comment-header">
+            <cite id="dsq-cite-1186">
+                <span id="dsq-author-user-1186">icewind</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1186" class="dsq-comment-body">
+            <div id="dsq-comment-message-1186" class="dsq-comment-message"><p>All the same tasks can be done in any turing complete language so why bother? Most of the popular languages have backward incompatible changes in major versions but there is no such circus as in python community. It is ridiculous. Or you want revolution in every update? What do you want from new version? New APIs and modules? There are a bunch of them. Performance improvements? GIL in Py3 works much better, and JIT compilation could be that improvement.</p>
+<p>Go on, follow the perl history. lets make a Perl6 from Py3 and left them all in a same oblivion. It is clear now &#8211; Dropbox it is the worst company for Guido to work. As any other company addicted to legacy code. Thankfully &#8220;all the same tasks&#8221; guys not maintaining popular libraries and most of them works well with Py3.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-4" id="dsq-comment-1195">
+        <div id="dsq-comment-header-1195" class="dsq-comment-header">
+            <cite id="dsq-cite-1195">
+                <span id="dsq-author-user-1195">John Camara</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1195" class="dsq-comment-body">
+            <div id="dsq-comment-message-1195" class="dsq-comment-message"><p>You must rely on just a few libraries if you think most libraries already support Python 3.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-5" id="dsq-comment-1211">
+        <div id="dsq-comment-header-1211" class="dsq-comment-header">
+            <cite id="dsq-cite-1211">
+                <span id="dsq-author-user-1211">Bogdan</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1211" class="dsq-comment-body">
+            <div id="dsq-comment-message-1211" class="dsq-comment-message"><p>According to <a href="https://python3wos.appspot.com/" rel="nofollow">https://python3wos.appspot.com/</a> he&#8217;s right. Of course it doesn&#8217;t help if the particular library you rely on does not support Py3, but it&#8217;s true for the majority of users.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-5" id="dsq-comment-1213">
+        <div id="dsq-comment-header-1213" class="dsq-comment-header">
+            <cite id="dsq-cite-1213">
+                <span id="dsq-author-user-1213">John Camara</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1213" class="dsq-comment-body">
+            <div id="dsq-comment-message-1213" class="dsq-comment-message"><p>Sorry the WOS website does not prove that the majority of users have all there dependencies available in Python 3.x.  It just indicates that most users have at least some of there dependencies available.</p>
+<p>To cover the majority of users that web site would likely have to have at least the top 800 projects.  The 800 number is just a gut feel and someone would have to look at the downloads figure of all projects in pypi to determine ow many projects should be included before we get to the projects that are part of the long tail of projects that aren&#8217;t used that often.</p>
+<p>I know for myself I regular use more than 100 projects that are not on WOS.  Of course I also use a large percentage of the ones listed.</p>
+<p>According to WOS, 78% the projects listed are compatible with Py3 but if you look at the numbers further you see that for the first 100 its 85% and then drops to 70% for the second 100.  What do you think is going to happen when you look at the 3rd, 4th, etc 100 projects.</p>
+<p>Now if you look at the list of projects a little more closely you will see that there is a lot of projects that I would consider as &#8220;infrastructure&#8221; projects.  These projects are not the projects that your production software has dependencies on but are projects that help developers get their work done.  They are all import projects but just not for your production code.  From scanning the list I count 28 of them, 18 in the first 100 and 10 in the second.  It is also of interest and comes as no surprise to me, that they all support Py3.  After all developers tend to take care of their needs first.</p>
+<p>These are the projects I considered as &#8220;infrastructure&#8221; projects:</p>
+<p>distribute<br />
+pip<br />
+virtualenv<br />
+nose<br />
+zc.buildout<br />
+coverage<br />
+docutils<br />
+mock<br />
+selenium<br />
+pep8<br />
+sphinx<br />
+setuptools-git<br />
+unittest2 (py3k)<br />
+zc.recipe.egg<br />
+logilab-common<br />
+d2to1<br />
+pylint<br />
+pyflakes<br />
+webtest<br />
+pytest<br />
+eggtestinfo<br />
+flake8<br />
+django-nose<br />
+virtualenvwrapper<br />
+nosexcover<br />
+tox<br />
+virtualenv-clone<br />
+testtools</p>
+<p>Now if you remove these &#8220;infrastructure&#8221; projects from WOS you will find that 74% the projects listed are compatible with Py3, the first 100 its at 82% and then drops to 67% for the second 100.</p>
+<p>Another thing to consider about the WOS website is that there are a number of influences that go into making the number of projects supporting Py3 look better.  The PSF has funded a number of projects as well as a number of GSOC projects that have helped push the conversion of many of these projects.  Also there have been a large number of individuals that have been pushing these projects to upgrade.  Projects off this list however are not receiving all this extra attention.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt thread-odd thread-alt depth-1" id="dsq-comment-1171">
+        <div id="dsq-comment-header-1171" class="dsq-comment-header">
+            <cite id="dsq-cite-1171">
+                <span id="dsq-author-user-1171">ffred60</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1171" class="dsq-comment-body">
+            <div id="dsq-comment-message-1171" class="dsq-comment-message"><p>same here.. why not Python 3 ?</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even thread-even depth-1" id="dsq-comment-1173">
+        <div id="dsq-comment-header-1173" class="dsq-comment-header">
+            <cite id="dsq-cite-1173">
+http://www.stealthmusic.net/                <span id="dsq-author-user-1173">jnwdl</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1173" class="dsq-comment-body">
+            <div id="dsq-comment-message-1173" class="dsq-comment-message"><p>I&#8217;m glad, that Concurrency is on the list (in GitHub), eventhough it&#8217;s the last one. We all know, concurrency is hard <img src="https://d3a9cj8nudt6dj.cloudfront.net/wp-includes/images/smilies/icon_wink.gif" alt=";)" class="wp-smiley" />  but why not implement an actor based concurrency model? I&#8217;m actually implementing this (using message passing using Queue) by myself whenever I need multi-threading in CPython. Why no provide that as a build feature allowing only immultible objects or copies to be passed?</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt thread-odd thread-alt depth-1" id="dsq-comment-1182">
+        <div id="dsq-comment-header-1182" class="dsq-comment-header">
+            <cite id="dsq-cite-1182">
+                <span id="dsq-author-user-1182">Mike</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1182" class="dsq-comment-body">
+            <div id="dsq-comment-message-1182" class="dsq-comment-message"><p>I&#8217;m also disappointed that they are targeting the outdated form of the Python language. I made the switch to Python3 a while ago and I have been much happier with the results. I have to point out that multi-threading under Python 3.3 is much improved. I can hit all cores with IO bound threads. It&#8217;s not perfect but works well enough. </p>
+<p>I&#8217;ve been waiting for PyPy to support Python 3.3 features so I can start experimenting with it. I was hoping that Pyston would be Python3 from the start. With them targeting Python2, it&#8217;s a non-starter.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-2" id="dsq-comment-1184">
+        <div id="dsq-comment-header-1184" class="dsq-comment-header">
+            <cite id="dsq-cite-1184">
+                <span id="dsq-author-user-1184">John Smith</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1184" class="dsq-comment-body">
+            <div id="dsq-comment-message-1184" class="dsq-comment-message"><p>Yeah, definitely a non-starter without Python 3.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt depth-2" id="dsq-comment-1272">
+        <div id="dsq-comment-header-1272" class="dsq-comment-header">
+            <cite id="dsq-cite-1272">
+                <span id="dsq-author-user-1272">Nafiul Islam</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1272" class="dsq-comment-body">
+            <div id="dsq-comment-message-1272" class="dsq-comment-message"><p>Really happier with Python 3? Try working with unicode.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-3" id="dsq-comment-1274">
+        <div id="dsq-comment-header-1274" class="dsq-comment-header">
+            <cite id="dsq-cite-1274">
+                <span id="dsq-author-user-1274">Mike</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1274" class="dsq-comment-body">
+            <div id="dsq-comment-message-1274" class="dsq-comment-message"><p>I work with Unicode every day. Its much easier in python3 plus you can use Unicode in your python3 code directly. </p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt thread-even depth-1" id="dsq-comment-1185">
+        <div id="dsq-comment-header-1185" class="dsq-comment-header">
+            <cite id="dsq-cite-1185">
+                <span id="dsq-author-user-1185">VZi8lJze49gtGR3h</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1185" class="dsq-comment-body">
+            <div id="dsq-comment-message-1185" class="dsq-comment-message"><p>While most questions here are about variants of Python, I was speculating if Dropbox could switch to a statically compiled language (<a href="http://gradha.github.io/articles/2014/04/could-dropbox-switch-to-nimrod.html" rel="nofollow">http://gradha.github.io/articles/2014/04/could-dropbox-switch-to-nimrod.html</a> ) like Nimrod <a href="http://nimrod-lang.org/" rel="nofollow">http://nimrod-lang.org/</a> but I guess that is not really possible.</p>
+<p>Still, developing Pyston seems like a Herculean task, or it would have already been done. I&#8217;m presuming that before taking the decision of starting Pyston you looked at other statically compiled languages and discarded them. Could you please share which languages you did look at and decided to not use?</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even thread-odd thread-alt depth-1" id="dsq-comment-1189">
+        <div id="dsq-comment-header-1189" class="dsq-comment-header">
+            <cite id="dsq-cite-1189">
+                <span id="dsq-author-user-1189">Cristóvão D. Sousa</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1189" class="dsq-comment-body">
+            <div id="dsq-comment-message-1189" class="dsq-comment-message"><p>I think the Julia language is worth mentioning here, as it can be seen as one of the most (the most?) successfully example of how far a dynamic language can go in terms of performance.<br />
+Of course, it was designed from the very beginning with that objective in mind: <a href="http://julialang.org/blog/2012/02/why-we-created-julia/" rel="nofollow">http://julialang.org/blog/2012/02/why-we-created-julia/</a> . C-like performance seems something really hard to achieve in a language already so well established as Python (something not impossible to money tough (JavaScript)).</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-2" id="dsq-comment-1202">
+        <div id="dsq-comment-header-1202" class="dsq-comment-header">
+            <cite id="dsq-cite-1202">
+                <span id="dsq-author-user-1202">VZi8lJze49gtGR3h</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1202" class="dsq-comment-body">
+            <div id="dsq-comment-message-1202" class="dsq-comment-message"><p>Most likely the reason Julia, Nimrod, D, C#, etc were not picked is because Dropbox already has tons of source code they don&#8217;t want to rewrite.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-3" id="dsq-comment-1220">
+        <div id="dsq-comment-header-1220" class="dsq-comment-header">
+            <cite id="dsq-cite-1220">
+                <span id="dsq-author-user-1220">Todd Martin</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1220" class="dsq-comment-body">
+            <div id="dsq-comment-message-1220" class="dsq-comment-message"><p>So they&#8217;ll rewrite a long term project like the JIT instead&#8230;.. Right, we&#8217;ll see how that works out</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt depth-3" id="dsq-comment-1232">
+        <div id="dsq-comment-header-1232" class="dsq-comment-header">
+            <cite id="dsq-cite-1232">
+                <span id="dsq-author-user-1232">zinking</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1232" class="dsq-comment-body">
+            <div id="dsq-comment-message-1232" class="dsq-comment-message"><p>is Nimrod a serious project ?</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even thread-even depth-1" id="dsq-comment-1191">
+        <div id="dsq-comment-header-1191" class="dsq-comment-header">
+            <cite id="dsq-cite-1191">
+                <span id="dsq-author-user-1191">Moidodyr</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1191" class="dsq-comment-body">
+            <div id="dsq-comment-message-1191" class="dsq-comment-message"><p>The roosters have revolted!</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt thread-odd thread-alt depth-1" id="dsq-comment-1193">
+        <div id="dsq-comment-header-1193" class="dsq-comment-header">
+            <cite id="dsq-cite-1193">
+                <span id="dsq-author-user-1193">PythonSaiGo</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1193" class="dsq-comment-body">
+            <div id="dsq-comment-message-1193" class="dsq-comment-message"><p>This is just a personal opinion. I think choose Python 2.7 is Right, because I think many module not Support Python 3, code migration is a boring and time-consuming process, Python 3 support can be completed at a later.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even thread-even depth-1" id="dsq-comment-1197">
+        <div id="dsq-comment-header-1197" class="dsq-comment-header">
+            <cite id="dsq-cite-1197">
+                <span id="dsq-author-user-1197">neuruss</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1197" class="dsq-comment-body">
+            <div id="dsq-comment-message-1197" class="dsq-comment-message"><p>The Unladen Swallow and Pypy guys already attempted to use LLVM in their projects and gave up. What makes you believe that this time will be different?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-2" id="dsq-comment-1205">
+        <div id="dsq-comment-header-1205" class="dsq-comment-header">
+            <cite id="dsq-cite-1205">
+                <span id="dsq-author-user-1205">Ivan Petrovich</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1205" class="dsq-comment-body">
+            <div id="dsq-comment-message-1205" class="dsq-comment-message"><p>Dropbox now armed with hidden Guido powers <img src="https://d3a9cj8nudt6dj.cloudfront.net/wp-includes/images/smilies/icon_biggrin.gif" alt=":D" class="wp-smiley" /> </p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-3" id="dsq-comment-1206">
+        <div id="dsq-comment-header-1206" class="dsq-comment-header">
+            <cite id="dsq-cite-1206">
+                <span id="dsq-author-user-1206">neuruss</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1206" class="dsq-comment-body">
+            <div id="dsq-comment-message-1206" class="dsq-comment-message"><p>Not really. They said he didn&#8217;t write a single line so far.<br />
+Remember that when Unladen Swallow was announced (by Google engineers), he was working there and he quickly endorsed the project.<br />
+A few months later, it was abandoned.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment odd alt depth-2" id="dsq-comment-1208">
+        <div id="dsq-comment-header-1208" class="dsq-comment-header">
+            <cite id="dsq-cite-1208">
+                <span id="dsq-author-user-1208">MarkL</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1208" class="dsq-comment-body">
+            <div id="dsq-comment-message-1208" class="dsq-comment-message"><p>I agree with this sentiment. This just seems like hubris on Dropbox&#8217;s part.</p>
+<p>Furthermore, what advantages will Pyston have over PyPy?  The only one claimed in the README is removal of the GIL, but:</p>
+<p>&#8220;We have no concrete ideas or plans for how to implement this, so this section is all optimistic, but our hope is that it will be possible to implement true parallelism.&#8221;</p>
+<p>Given that there have numerous unsuccessful attempts to remove the GIL in both CPython and PyPy, I can&#8217;t see how a team that has absolutely no idea how to do this will succeed.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-3" id="dsq-comment-1209">
+        <div id="dsq-comment-header-1209" class="dsq-comment-header">
+            <cite id="dsq-cite-1209">
+                <span id="dsq-author-user-1209">neuruss</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1209" class="dsq-comment-body">
+            <div id="dsq-comment-message-1209" class="dsq-comment-message"><p>That&#8217;s exactly what I feel about this project.<br />
+It&#8217;s a deja vu from Unladen Swallow. Looks like they haven&#8217;t done their homework and they ignore past failed attempts.<br />
+And I don&#8217;t understand why Guido is so quick to endorse these projects while, with pypy, he&#8217;s been always skeptical. </p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-4" id="dsq-comment-1271">
+        <div id="dsq-comment-header-1271" class="dsq-comment-header">
+            <cite id="dsq-cite-1271">
+                <span id="dsq-author-user-1271">Nafiul Islam</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1271" class="dsq-comment-body">
+            <div id="dsq-comment-message-1271" class="dsq-comment-message"><p>I totally agree with you mate. Whats more important is that Pypy is on its way to implement a GIL free python called pypy-stm. I feel like Dropbox is trying to flex its muscles or perhaps trying to be like FB?</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even thread-odd thread-alt depth-1" id="dsq-comment-1201">
+        <div id="dsq-comment-header-1201" class="dsq-comment-header">
+            <cite id="dsq-cite-1201">
+                <span id="dsq-author-user-1201">OrenT</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1201" class="dsq-comment-body">
+            <div id="dsq-comment-message-1201" class="dsq-comment-message"><p>Don&#8217;t write off reference counting. According to this article some relatively simple tricks can make it competitive with &#8220;modern&#8221; garbage collectors.<br />
+<a href="http://users.cecs.anu.edu.au/~steveb/downloads/pdf/rc-ismm-2012.pdf" rel="nofollow">http://users.cecs.anu.edu.au/~steveb/downloads/pdf/rc-ismm-2012.pdf</a></p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt thread-even depth-1" id="dsq-comment-1204">
+        <div id="dsq-comment-header-1204" class="dsq-comment-header">
+            <cite id="dsq-cite-1204">
+                <span id="dsq-author-user-1204">Joe</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1204" class="dsq-comment-body">
+            <div id="dsq-comment-message-1204" class="dsq-comment-message"><p>These days Python 3 is not only the future of Python, but the present for most new projects. I really think that targeting Python 2 will be proven wrong if this project succeeds.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-2" id="dsq-comment-1215">
+        <div id="dsq-comment-header-1215" class="dsq-comment-header">
+            <cite id="dsq-cite-1215">
+                <span id="dsq-author-user-1215">mattbillenstein</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1215" class="dsq-comment-body">
+            <div id="dsq-comment-message-1215" class="dsq-comment-message"><p>Where are you getting this data?  python-dev has moved on to Python3, but Python2 is still where most of the real-world action is happening.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-3" id="dsq-comment-1219">
+        <div id="dsq-comment-header-1219" class="dsq-comment-header">
+            <cite id="dsq-cite-1219">
+                <span id="dsq-author-user-1219">Todd Martin</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1219" class="dsq-comment-body">
+            <div id="dsq-comment-message-1219" class="dsq-comment-message"><p>Replace Python2 with Windows XP in your comment and see how ridiculous you sound.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-4" id="dsq-comment-1221">
+        <div id="dsq-comment-header-1221" class="dsq-comment-header">
+            <cite id="dsq-cite-1221">
+                <span id="dsq-author-user-1221">mattbillenstein</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1221" class="dsq-comment-body">
+            <div id="dsq-comment-message-1221" class="dsq-comment-message"><p>What does Windows have to do with it?  Nothing.</p>
+<p>Download stats from PyPi don&#8217;t support this idea that Python3 is anywhere close to &#8220;most&#8221; of anything that&#8217;s being developed in the real world:  <a href="http://alexgaynor.net/2014/jan/03/pypi-download-statistics/" rel="nofollow">http://alexgaynor.net/2014/jan/03/pypi-download-statistics/</a></p>
+<p>Python2 is the defacto python on most Linux distros &#8211; you can track Ubuntu&#8217;s goal of only shipping Python3 on 14.04:</p>
+<p><a href="https://wiki.ubuntu.com/Python/3" rel="nofollow">https://wiki.ubuntu.com/Python/3</a><br />
+<a href="https://docs.google.com/a/freestreammedia.com/spreadsheet/ccc?key=0AiT4gOXSkmapdGdFejk0MjFydUlNMDVoMXNRdGdkbFE#gid=0" rel="nofollow">https://docs.google.com/a/freestreammedia.com/spreadsheet/ccc?key=0AiT4gOXSkmapdGdFejk0MjFydUlNMDVoMXNRdGdkbFE#gid=0</a><br />
+<a href="http://people.canonical.com/~ubuntu-archive/transitions/onlypy3oncd.html" rel="nofollow">http://people.canonical.com/~ubuntu-archive/transitions/onlypy3oncd.html</a></p>
+<p>They&#8217;re failing.</p>
+<p>I also personally know about 10 python based startups &#8211; none of them are on Python3.</p>
+<p>Python3 is an island that python-dev works on and a few people have played on, there are few real-world companies doing anything significant in python3 AFAICT and it is a tragedy, but it is fact.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-5" id="dsq-comment-1222">
+        <div id="dsq-comment-header-1222" class="dsq-comment-header">
+            <cite id="dsq-cite-1222">
+                <span id="dsq-author-user-1222">Todd Martin</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1222" class="dsq-comment-body">
+            <div id="dsq-comment-message-1222" class="dsq-comment-message"><p>Give me a break. You&#8217;re like the bitter clingers of Windows XP. &#8220;No no don&#8217;t take away my shiny toy!&#8221;</p>
+<p>Get over it. Python3 is the future. Move the f*ck on already and stop holding the rest of the world up.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-5" id="dsq-comment-1223">
+        <div id="dsq-comment-header-1223" class="dsq-comment-header">
+            <cite id="dsq-cite-1223">
+                <span id="dsq-author-user-1223">mattbillenstein</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1223" class="dsq-comment-body">
+            <div id="dsq-comment-message-1223" class="dsq-comment-message"><p>I&#8217;ll move to Python3 when I think I can &#8211; the library support isn&#8217;t there (despite the former python wall of shame, there are still lots of dependencies which don&#8217;t play nice in python3) and the features people are looking for aren&#8217;t there to really put a fire under getting library maintainers to support both (remove the GIL, better multi-core story, better performance, etc)&#8230;</p>
+<p>The Windows XP story isn&#8217;t a bad analogy tho &#8211; people aren&#8217;t upgrading because they don&#8217;t think they need the new thing &#8211; and they&#8217;re mostly right.  You&#8217;re trivializing the amount of work it is for organizations to switch.</p>
+<p>BTW, is this you?  <a href="https://www.youtube.com/watch?v=lk9SA17lhAc" rel="nofollow">https://www.youtube.com/watch?v=lk9SA17lhAc</a></p>
+<p>If it is, kinda lol &#8211; python 2.7 and glad you&#8217;re not holding onto legacy tech like ftp!!</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt depth-5" id="dsq-comment-1224">
+        <div id="dsq-comment-header-1224" class="dsq-comment-header">
+            <cite id="dsq-cite-1224">
+                <span id="dsq-author-user-1224">Todd Martin</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1224" class="dsq-comment-body">
+            <div id="dsq-comment-message-1224" class="dsq-comment-message"><p>You know, this is the perfect example of why old guys like you get aged out of the business. You&#8217;re just bitter and useless by the time you hit 50, completely behind the times and utterly refuse to update your skill set. Instead everyone else is supposed to stop and rollback to your 10 years out of date setup because you say they should.</p>
+<p>I&#8217;m pretty glad you&#8217;ll be gone soon. I suspect Python3 will be mainstream as soon as old bastards like you die off or age out of the business in a few years.</p>
+<p>No that&#8217;s not me and ftp? Seriously? You ever hear of sftp? Of course not, that&#8217;s too new for you. God forbid we keep our skills up to date.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-5" id="dsq-comment-1225">
+        <div id="dsq-comment-header-1225" class="dsq-comment-header">
+            <cite id="dsq-cite-1225">
+                <span id="dsq-author-user-1225">mattbillenstein</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1225" class="dsq-comment-body">
+            <div id="dsq-comment-message-1225" class="dsq-comment-message"><p>LOL &#8211; you are the perfect example of the inexperienced that go for the newest hippest tech as soon as it comes out.</p>
+<p>You know what I do?  I use the right tool for the job and I get shit done &#8211; when Python3 becomes the right tool, I&#8217;ll have no qualms starting new projects in it &#8211; but I&#8217;m not going to be an early adopter and waste time trying to make it work when there is a very very good incumbent (Python2).</p>
+<p>Dude, I could rsync your ass from one state to another &#8211; I just found it ironic if that was your video and you were saying I&#8217;m the one holding us back.</p>
+<p>So in summary, 99% of Python is in Python2 &#8211; get over it &#8211; use Python3 if you think it fits your usecase &#8211; I don&#8217;t really give a shit, just don&#8217;t come to an argument without data and something a bit stronger than &#8220;you&#8217;re old, Python3 is the future, blah blah blah.&#8221;</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt depth-5" id="dsq-comment-1226">
+        <div id="dsq-comment-header-1226" class="dsq-comment-header">
+            <cite id="dsq-cite-1226">
+                <span id="dsq-author-user-1226">Todd Martin</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1226" class="dsq-comment-body">
+            <div id="dsq-comment-message-1226" class="dsq-comment-message"><p>You&#8217;re such a f*cking idiot. Yes I&#8217;ll take my masters degree and 14 years of &#8220;inexperience&#8221; and go kick rocks. Enjoy the twilight of your career douche bag. You&#8217;ll be working a cash register at the local Wal-Mart in a few years.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-5" id="dsq-comment-1227">
+        <div id="dsq-comment-header-1227" class="dsq-comment-header">
+            <cite id="dsq-cite-1227">
+                <span id="dsq-author-user-1227">mattbillenstein</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1227" class="dsq-comment-body">
+            <div id="dsq-comment-message-1227" class="dsq-comment-message"><p>LOL &#8211; well I take it your 14 years of experience is not in being diplomatic!</p>
+<p>Walmart is still hiring Python2 programmers &#8211; guess that&#8217;s all that&#8217;s left eh?</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt depth-5" id="dsq-comment-1230">
+        <div id="dsq-comment-header-1230" class="dsq-comment-header">
+            <cite id="dsq-cite-1230">
+                <span id="dsq-author-user-1230">James</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1230" class="dsq-comment-body">
+            <div id="dsq-comment-message-1230" class="dsq-comment-message"><p>I don&#8217;t know what these two are arguing about, but &#8220;Guest&#8221; seems more interested in verbal abuse than making his case, and mattbillenstein seems remarkably forbearing given the willful obnoxiousness of the other guy.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even depth-5" id="dsq-comment-1259">
+        <div id="dsq-comment-header-1259" class="dsq-comment-header">
+            <cite id="dsq-cite-1259">
+                <span id="dsq-author-user-1259">CO</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1259" class="dsq-comment-body">
+            <div id="dsq-comment-message-1259" class="dsq-comment-message"><p>Honestly I was thinking the same thing. &#8220;Guest&#8221; sounds like a fucking psycho&#8230; what the hell?</p>
+<p>Matt &#8211; good on you for being nice to this twat.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt depth-5" id="dsq-comment-1268">
+        <div id="dsq-comment-header-1268" class="dsq-comment-header">
+            <cite id="dsq-cite-1268">
+                <span id="dsq-author-user-1268">Jacko</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1268" class="dsq-comment-body">
+            <div id="dsq-comment-message-1268" class="dsq-comment-message"><p>@Guest</p>
+<p>Give me a break. You&#8217;re like the bitter clingers of Windows XP. &#8220;No no don&#8217;t take away my shiny toy!&#8221;</p>
+<p>Are you like 16 years old? Because it sure sounds like it &#8212; then again, there are immature people at any age.</p>
+<p>First, you sound like one that asks for the &#8220;shiny toy&#8221; (Python 3). Python 2, if anything is the old, battered, workhorse.</p>
+<p>Second, he never said he *prefers* Python 2. Just that not many people use it, with most businesses continuing to use 2. He also gave hard facts (numbers) as well as some examples. </p>
+<p>Third, if people haven&#8217;t upgraded from XP, they have their reasons. Vista was a half-baked, not that good, release. So XP are not really the best analogy to make the case for Python 3. And those people use older hardware and could not care less about shiny new toys and features (perhaps out of a lack of money for upgrading). It&#8217;s not like people buy new laptops or desktop and install XP on it today.</p>
+<p>Fourth, &#8220;move the fuck off&#8221;? &#8220;stop holding the rest of the world up&#8221;? &#8220;Give me a break&#8221;? &#8220;Get over it&#8221;?</p>
+<p>As I said. Are you, like, 16?</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even thread-odd thread-alt depth-1" id="dsq-comment-1207">
+        <div id="dsq-comment-header-1207" class="dsq-comment-header">
+            <cite id="dsq-cite-1207">
+                <span id="dsq-author-user-1207">neuruss</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1207" class="dsq-comment-body">
+            <div id="dsq-comment-message-1207" class="dsq-comment-message"><p>The quickest way to get a super fast jited python implementation: Hiring Mike Pall.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt thread-even depth-1" id="dsq-comment-1212">
+        <div id="dsq-comment-header-1212" class="dsq-comment-header">
+            <cite id="dsq-cite-1212">
+http://atom-symbol.rhcloud.com/                <span id="dsq-author-user-1212">atomsymbol</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1212" class="dsq-comment-body">
+            <div id="dsq-comment-message-1212" class="dsq-comment-message"><p>I would like to know which static code analysis methods do you plan to apply to Python code to make object-oriented code run fast. In my opinion, excessive speculation isn&#8217;t the way to go.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even thread-odd thread-alt depth-1" id="dsq-comment-1217">
+        <div id="dsq-comment-header-1217" class="dsq-comment-header">
+            <cite id="dsq-cite-1217">
+                <span id="dsq-author-user-1217">Henrik S Törnblom</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1217" class="dsq-comment-body">
+            <div id="dsq-comment-message-1217" class="dsq-comment-message"><p>Great project. Ruby has Rubinius so why shouldn&#8217;t Python have Pyston. (I failed to build it this weekend but maybe next, when I have more time to sort things out.)</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt thread-even depth-1" id="dsq-comment-1229">
+        <div id="dsq-comment-header-1229" class="dsq-comment-header">
+            <cite id="dsq-cite-1229">
+                <span id="dsq-author-user-1229">oka326</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1229" class="dsq-comment-body">
+            <div id="dsq-comment-message-1229" class="dsq-comment-message"><p>Have you research the HotPy project before starting the Pyston? I think it would be helpful because you are trying to challenge the similar idea with them.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even thread-odd thread-alt depth-1" id="dsq-comment-1231">
+        <div id="dsq-comment-header-1231" class="dsq-comment-header">
+            <cite id="dsq-cite-1231">
+                <span id="dsq-author-user-1231">Michał T. Lorenc</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1231" class="dsq-comment-body">
+            <div id="dsq-comment-message-1231" class="dsq-comment-message"><p>Remove all Python 3 features which causing problems with LLVM, remove GIL and introduce  inferred static typing and call it Python 4. Maybe a dream comes true?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-2" id="dsq-comment-1233">
+        <div id="dsq-comment-header-1233" class="dsq-comment-header">
+            <cite id="dsq-cite-1233">
+                <span id="dsq-author-user-1233">Michał T. Lorenc</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1233" class="dsq-comment-body">
+            <div id="dsq-comment-message-1233" class="dsq-comment-message"><p>And would be awesome to include Erlangs&#8217; features for distributed, fault-tolerant, soft-real-time, non-stop applications and hot swapping, so that code can be changed without stopping a system.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-3" id="dsq-comment-1236">
+        <div id="dsq-comment-header-1236" class="dsq-comment-header">
+            <cite id="dsq-cite-1236">
+                <span id="dsq-author-user-1236">knocte</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1236" class="dsq-comment-body">
+            <div id="dsq-comment-message-1236" class="dsq-comment-message"><p>Why don&#8217;t you instead start using Erlang? I don&#8217;t get it.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-4" id="dsq-comment-1237">
+        <div id="dsq-comment-header-1237" class="dsq-comment-header">
+            <cite id="dsq-cite-1237">
+                <span id="dsq-author-user-1237">Michał T. Lorenc</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1237" class="dsq-comment-body">
+            <div id="dsq-comment-message-1237" class="dsq-comment-message"><p>I found elixir-lang.org which syntax is similar to Ruby. On the other hand Python has more libraries to offer at the moment. Would be nice to have the both of two worlds.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even thread-even depth-1" id="dsq-comment-1235">
+        <div id="dsq-comment-header-1235" class="dsq-comment-header">
+            <cite id="dsq-cite-1235">
+                <span id="dsq-author-user-1235">Jose Miguel</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1235" class="dsq-comment-body">
+            <div id="dsq-comment-message-1235" class="dsq-comment-message"><p>I would say welcome to anything that can make python (2.x or 3.x) faster and without GIL, so, go ahead with this project!</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt thread-odd thread-alt depth-1" id="dsq-comment-1262">
+        <div id="dsq-comment-header-1262" class="dsq-comment-header">
+            <cite id="dsq-cite-1262">
+                <span id="dsq-author-user-1262">CO</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1262" class="dsq-comment-body">
+            <div id="dsq-comment-message-1262" class="dsq-comment-message"><p>No Python3 support is a deal-breaker. You&#8217;re saying we should be happy to wait for years for this package to mature only to be writing with a 10+ year old featureset? No thanks. I wish this project all the best but I can&#8217;t support it in good conscience &#8211; for the Python community as a whole.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even thread-even depth-1" id="dsq-comment-1269">
+        <div id="dsq-comment-header-1269" class="dsq-comment-header">
+            <cite id="dsq-cite-1269">
+                <span id="dsq-author-user-1269">mrts</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1269" class="dsq-comment-body">
+            <div id="dsq-comment-message-1269" class="dsq-comment-message"><p>Have you considered using type hinting? See <a href="https://groups.google.com/forum/#!topic/unladen-swallow/kaihNutNwok" rel="nofollow">https://groups.google.com/forum/#!topic/unladen-swallow/kaihNutNwok</a> for a possible way to go.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment odd alt thread-odd thread-alt depth-1" id="dsq-comment-1270">
+        <div id="dsq-comment-header-1270" class="dsq-comment-header">
+            <cite id="dsq-cite-1270">
+                <span id="dsq-author-user-1270">ser</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1270" class="dsq-comment-body">
+            <div id="dsq-comment-message-1270" class="dsq-comment-message"><p>I think trying python on top of HHVM would be a great test.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+    <li class="comment even thread-even depth-1" id="dsq-comment-1273">
+        <div id="dsq-comment-header-1273" class="dsq-comment-header">
+            <cite id="dsq-cite-1273">
+                <span id="dsq-author-user-1273">neuruss</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-1273" class="dsq-comment-body">
+            <div id="dsq-comment-message-1273" class="dsq-comment-message"><p>My initial eskepticism is now replaced by a light of hope. It seems there is already a quite successful dynamic language implemented in LLVM with a fast jit: Julia.<br />
+I hope Dropbox can replicate this success. Good luck guys!</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+            </ul>
+
+
+        </div>
+
+    </div>
+
+<script type="text/javascript">
+/* <![CDATA[ */
+    var disqus_url = 'https://tech.dropbox.com/2014/04/introducing-pyston-an-upcoming-jit-based-python-implementation/';
+    var disqus_identifier = '729 https://tech.dropbox.com/?p=729';
+    var disqus_container_id = 'disqus_thread';
+    var disqus_domain = 'disqus.com';
+    var disqus_shortname = 'dropbox-tech';
+    var disqus_title = "Introducing Pyston: an upcoming, JIT-based Python implementation";
+        var disqus_config = function () {
+        var config = this; // Access to the config object
+        config.language = '';
+
+        /*
+           All currently supported events:
+            * preData — fires just before we request for initial data
+            * preInit - fires after we get initial data but before we load any dependencies
+            * onInit  - fires when all dependencies are resolved but before dtpl template is rendered
+            * afterRender - fires when template is rendered but before we show it
+            * onReady - everything is done
+         */
+
+        config.callbacks.preData.push(function() {
+            // clear out the container (its filled for SEO/legacy purposes)
+            document.getElementById(disqus_container_id).innerHTML = '';
+        });
+                config.callbacks.onReady.push(function() {
+            // sync comments in the background so we don't block the page
+            var script = document.createElement('script');
+            script.async = true;
+            script.src = '?cf_action=sync_comments&post_id=729';
+
+            var firstScript = document.getElementsByTagName( "script" )[0];
+            firstScript.parentNode.insertBefore(script, firstScript);
+        });
+                    };
+/* ]]> */
+</script>
+
+<script type="text/javascript">
+/* <![CDATA[ */
+    var DsqLocal = {
+        'trackbacks': [
+        ],
+        'trackback_url': "https:\/\/tech.dropbox.com\/2014\/04\/introducing-pyston-an-upcoming-jit-based-python-implementation\/trackback\/"    };
+/* ]]> */
+</script>
+
+<script type="text/javascript">
+/* <![CDATA[ */
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.' + 'disqus.com' + '/embed.js?pname=wordpress&pver=2.74';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+/* ]]> */
+</script>
+        	    	    </div>
+        <div id="sidebar">
+            <div class="box"> 
+	    <h3>Links</h3>
+	    <ul>
+	        <li><a href="https://www.dropbox.com">Dropbox Home</a></li>
+	        <li><a href="https://www.dropbox.com/install">Download Dropbox</a></li>
+	        <li><a href="https://blog.dropbox.com/">Dropbox Blog</a></li>
+	        <li><a href="https://www.dropboxatwork.com/">Dropbox for Business Blog</a></li>
+	        <li><a href="https://blog.carousel.com/">Carousel Blog</a></li>
+		<li><a href="https://www.dropbox.com/about">About Us</a></li>
+	      	<li><a href="https://www.dropbox.com/contact">Contact Us</a></li>
+                <li><a href="https://www.dropbox.com/tour">Tour</a></li>
+	        <li><a href="https://www.dropbox.com/jobs">Jobs</a></li>
+        </ul>
+    </div>
+    <div id="social-buttons">
+	<a href="https://www.facebook.com/Dropbox"><img src="/wp-content/themes/dropbox/images/commonimages/spacer.gif" class="fb-sprite sprite20" /></a>
+	<a href="https://www.twitter.com/Dropbox"><img src="/wp-content/themes/dropbox/images/commonimages/spacer.gif" class="twitter-sprite sprite20" /></a>
+	<a href="https://tech.dropbox.com/feed/"><img src="/wp-content/themes/dropbox/images/commonimages/spacer.gif" class="rss-sprite sprite20" /></a>
+</div>
+    <div class="box">
+		<h3>Recently Written</h3>
+		<ul class="recent">
+				<li><a href='https://tech.dropbox.com/2014/04/building-carousel-part-i-how-we-made-our-networked-mobile-app-feel-fast-and-local/'>Building Carousel, Part I: How we made our networked mobile app feel fast and local</a></li>
+	<li><a href='https://tech.dropbox.com/2014/04/introducing-pyston-an-upcoming-jit-based-python-implementation/'>Introducing Pyston: an upcoming, JIT-based Python implementation</a></li>
+	<li><a href='https://tech.dropbox.com/2014/02/video-processing-at-dropbox/'>Video Processing at Dropbox</a></li>
+	<li><a href='https://tech.dropbox.com/2014/01/retrieving-thumbnails/'>Improving Dropbox Performance: Retrieving Thumbnails</a></li>
+	<li><a href='https://tech.dropbox.com/2014/01/outage-post-mortem/'>Outage post-mortem</a></li>
+	<li><a href='https://tech.dropbox.com/2014/01/dropbox-status-update/'>Dropbox Status Update</a></li>
+	<li><a href='https://tech.dropbox.com/2013/09/scaling-mongodb-at-mailbox/'>Scaling MongoDB at Mailbox</a></li>
+	<li><a href='https://tech.dropbox.com/2012/12/welcome-guido/'>Welcome Guido!</a></li>
+	<li><a href='https://tech.dropbox.com/2012/10/caching-in-theory-and-practice/'>Caching in theory and practice</a></li>
+	<li><a href='https://tech.dropbox.com/2012/10/adventures-with-comtypes/'>Comtypes: How Dropbox learned to stop worrying and love the COM</a></li>
+		</ul>
+	</div>
+     </div>
+    </div><!--#main#-->
+</div>
+<br style="clear:both;"/>
+<div id="footer">
+    <div style="margin: 5pt auto">
+    <div style="font-size: 8pt">
+<div><em>Please note: Sometimes we blog about upcoming products or features before they're released,</em><br /><em>but timing and exact functionality of these features may change from what's shared here.</em></div>
+  <div class="footer-col">
+    <ul>
+      <li class="header">Dropbox
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/install">Install</a>
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/mobile">Mobile</a>
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/plans">Pricing</a>
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/teams">Business</a>
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/tour">Tour</a>
+      </li>
+    </ul>
+  </div>
+  <div class="footer-col">
+    <ul>
+      <li class="header">About us
+      </li>
+      <li>
+        <a href="http://blog.dropbox.com/">Dropbox Blog</a>
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/about">Our team</a>
+      </li> 
+      <li>
+        <a href="https://www.dropbox.com/branding">Branding</a>
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/news">News</a>
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/jobs">Jobs</a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="footer-col">
+    <ul>
+      <li class="header">Community
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/referrals" onmouseup=
+        "javascript: MCLog.log('referrals_via_footer');">Referrals</a>
+      </li>
+      <li>
+        <a href="http://twitter.com/dropbox" target=
+        "_blank">Twitter</a>
+      </li>
+      <li>
+        <a href="http://facebook.com/Dropbox" target=
+        "_blank">Facebook</a>
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/developers">Developers</a>
+      </li>
+    </ul>
+  </div>
+  <div class="footer-col">
+    <ul>
+      <li class="header">Support
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/help">Help Center</a>
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/terms">Privacy &amp; Terms</a>
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/dmca">Copyright</a>
+      </li>
+      <li>
+        <a href="https://www.dropbox.com/contact">Contact us</a>
+      </li>
+    </ul>
+  </div>
+  <div class="clearfix"></div> 
+  
+</div>
+
+</body>
+</html>
+<!-- Dynamic page generated in 0.278 seconds. -->
+<!-- Cached page generated by WP-Super-Cache on 2014-06-30 12:00:59 -->
+
+<!-- super cache -->

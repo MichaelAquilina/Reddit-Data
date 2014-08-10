@@ -1,0 +1,425 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>NUMA and torque/Moab - Thoughts</title>
+  <meta name="author" content="Derek Gottlieb">
+
+  
+  <meta name="description" content="TL;DR Support for NUMA systems in torque/Moab breaks existing means of
+specifying shared memory jobs and limits scheduling flexibility in &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://thoughts.derekgottlieb.com/blog/2013/05/09/numa-and-torque-slash-moab">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Thoughts" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-2283455-3']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner">
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:thoughts.derekgottlieb.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="nav">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">NUMA and torque/Moab</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-09T11:22:00-04:00" pubdate data-updated="true">May 9<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>TL;DR Support for NUMA systems in torque/Moab breaks existing means of
+specifying shared memory jobs and limits scheduling flexibility in
+heterogeneous compute environments.</p>
+
+<!-- more -->
+
+
+<h2>Torque NUMA implementation</h2>
+
+<p>For torque NUMA, you manually define your NUMA nodes within a system, which
+gives you some flexibility for how topology information is exposed to the queue
+system.  The provided mom_gencfg utility defaults to defining a node per CPU
+sockets, but you can manually craft your mom.layout file to aggregate sockets
+together into larger NUMA nodes if desired.</p>
+
+<p>While you run a single pbs_mom on the SMP, you&#8217;ll see that torque tracks one
+&#8220;compute node&#8221; per NUMA node in your system. To illustrate, if you have a
+4-socket system with the hostname &#8220;smallsmp&#8221;, you may see the following:</p>
+
+<pre><code>&gt; pbsnodes -l
+smallsmp-0 offline
+smallsmp-1 offline
+smallsmp-2 offline
+smallsmp-3 offline
+</code></pre>
+
+<p>There are some interesting side effects to this approach. For one, yes you can
+offline individual sockets. The other side of that is you have to offline all
+of the sockets if you&#8217;re draining the system for maintenance. I think this also
+highlights why you may not want to do this on anything except your big SMPs
+(e.g., you have 1000 dual socket boxes, you suddenly see 2000 every time you
+type pbsnodes).</p>
+
+<h2>Submitting shared memory jobs</h2>
+
+<p>In our environment, we use two ways to submit shared memory jobs given our Moab
+configuration. We typically do &#8220;qsub -l nodes=1:ppn=N&#8221; to request N cores on a
+single shared memory node. I&#8217;ve used tpn as well since I found the
+interpretation of ppn a little unintuitive if you use something other than
+&#8220;nodes=1&#8221;. For distributed memory jobs, we use &#8220;nodes=N&#8221; and Moab is free to
+distribute or pack cores across systems (we aim to maximize throughput over
+single job performance and let jobs share nodes).</p>
+
+<h2>Moab NUMA limitations</h2>
+
+<p>In theory, Moab supports torque NUMA integration. But it is currently unable to
+grok that it&#8217;s dealing with an SMP and enforces unnecessary limitations if you
+specify a shared memory job using ppn/tpn. For example, if I have 8 cores per
+socket in my SMP and I configure a NUMA node per socket, then I can only run
+jobs requesting up to &#8220;ppn=8&#8221;.  If I request any more than that, Moab won&#8217;t
+schedule them because it is unable to aggregate NUMA nodes within the same
+system to run a shared memory job submitted in this manner.  Torque/Moab really
+treat your NUMA SMP as a distributed memory cluster.</p>
+
+<p>The way they address this is by telling you to submit shared memory jobs like
+you would distributed memory jobs, but tack on some extra flags to constrain it
+to one of your SMPs (e.g., &#8220;-l nodes=N,flags=sharedmem&#8221;).  This is less than
+ideal for our HPC environment, and Adaptive has been unable to recommend a
+satisfactory workaround for us since we raised the issue with them 4 months
+ago.</p>
+
+<h2>Our environment and NUMA scheduling limitations</h2>
+
+<p>Our HPC environment consists of two clusters managed by a single torque/Moab
+instance. One is a commodity cluster that&#8217;s a mix of 8-core and 16-core nodes
+with between 24 and 128GB of memory per node. The other is a small cluster of
+SMPs with the largest having 256 cores (8 cores per socket) and 4TB of memory
+in a single system image.</p>
+
+<p>When possible, we install new software packages on both clusters. We then write
+queue submit scripts for our users that abstracts away the details of the queue
+system and let&#8217;s them focus on the app and resources that they need for a
+particular job (e.g., cores, memory, runtime). By setting it up this way and
+managing it all with a single queue system instance, we are able to abstract
+away where the job runs as long as it&#8217;s installed on both clusters and allows
+jobs to run on the first cluster that has the required resources available,
+easily load balancing across the two clusters to keep our cores busy.</p>
+
+<p>We unfortunately didn&#8217;t realize the scheduling limitations imposed by
+torque/Moab NUMA until after deploying it on our new SMP.  Previously, we&#8217;d
+written custom utilities that handled processor core allocation to jobs in a
+NUMA topology-aware way and configured a single large node entry in the queue
+system config.  We&#8217;d hoped to move away from this toward using more
+standard/supported tools, but didn&#8217;t have the time/resources to adequately test
+the new NUMA support to discover its shortcomings.</p>
+
+<h2>How we submit shared memory jobs now</h2>
+
+<p>Here&#8217;s what we have implemented currently in our submit scripts based on how
+many cores a user requests for a shared memory app installed on both clusters:</p>
+
+<ul>
+<li>For up to 8 cores, &#8220;-l nodes=1:ppn=N,partition=commodity:smp&#8221;</li>
+<li>For 9-16 cores, &#8220;-l nodes=1:ppn=N,partition=commodity&#8221;</li>
+<li>For more than 16 cores, &#8220;-l nodes=N,partition=smp&#8221;</li>
+</ul>
+
+
+<p>Small jobs can take advantage of flexible scheduling across both clusters.
+Large jobs can only run on the SMP due to hardware constraints.  We were faced
+with a choice for medium-sized jobs.  We could either submit them so they&#8217;d run
+on the SMP only or submit them so they&#8217;d only run on the larger commodity
+nodes.  We opted for the latter since we have more capacity on the commodity
+cluster.</p>
+
+<h2>Next steps</h2>
+
+<p>During our next maintenance window, I intend to try reworking our NUMA config
+to aggregate both sockets on a node board into a single NUMA node so we&#8217;d have
+16 cores instead of 8 per NUMA node.  Assuming that works as advertised, we
+should be able to submit small to medium shared memory jobs so they&#8217;d run on
+either cluster&#8230; at least until we deploy commodity nodes with more than 16
+cores, which may happen as soon as this fall with the release of Ivy Bridge.</p>
+
+<p>I&#8217;ve had several discussions with high level folks at Adaptive about this (and
+other issues related to the 4.1 series).  I&#8217;m hopeful that I&#8217;ve pressed the
+issue strongly enough with them that they make it a priority on their
+development roadmap to better address these limitations, but it&#8217;s anyone&#8217;s
+guess when/if we&#8217;ll see a release that provides a satisfactory resolution to my
+complaints.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Derek Gottlieb</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-09T11:22:00-04:00" pubdate data-updated="true">May 9<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/geek/'>Geek</a>, <a class='category' href='/blog/categories/hpc/'>HPC</a>, <a class='category' href='/blog/categories/work/'>Work</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://thoughts.derekgottlieb.com/blog/2013/05/09/numa-and-torque-slash-moab/" data-via="derekgottlieb" data-counturl="http://thoughts.derekgottlieb.com/blog/2013/05/09/numa-and-torque-slash-moab/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/04/29/btrfs-production-experiences/" title="Previous Post: Btrfs production experiences">&laquo; Btrfs production experiences</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/05/09/numa-and-torque-slash-moab/">NUMA and torque/Moab</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/04/29/btrfs-production-experiences/">Btrfs production experiences</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/11/21/locking-your-mac-based-on-iphone-proximity/">Locking your Mac based on iPhone proximity</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/11/16/baby-eleanora/">Baby Eleanora</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/11/16/migration/">Migration</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section class="flickr">
+<h1>Flickr</h1>
+<style type="text/css">
+	#flickrList li{ text-align: center; }
+</style>
+<ul id="flickrList"></ul>
+
+<script lang="Javascript">
+var flickrNickname = "derekgottlieb";
+
+function jsonFlickrApi(rsp) {
+
+	if (rsp.stat != "ok"){
+  		return;
+ 	}
+
+ 	var list = "";
+
+ 	for (var i=0; i < rsp.photos.photo.length; i++) {
+ 	
+  		var photo    = rsp.photos.photo[i];
+  		var imgUrl   = 'http://farm'+ photo.farm +'.static.flickr.com/'+ photo.server +'/'+ photo.id +'_'+ photo.secret +'_m.jpg';
+  		var photoUrl = 'http://www.flickr.com/photos/'+ flickrNickname +'/'+ photo.id;
+
+  		list += '<li id="flickrItem_'+i+'"><a href="'+ photoUrl +'" title="'+ photo.title +'"><img alt="'+ photo.title +'" src="'+ imgUrl +'" /></a></li>';
+ 	}
+ 	
+ 	list += '<li class="flickrLink"><a href="http://www.flickr.com/photos/'+ flickrNickname + '">Flickr page</a></li>';
+ 	
+ 	document.getElementById('flickrList').innerHTML = list;
+}
+</script>
+<script lang="Javascript" src="http://api.flickr.com/services/rest/?format=json&method=flickr.photos.search&user_id=51189792@N00&per_page=5&api_key=972e3f15605409899531c8c725f61268"></script>
+
+</section>
+
+
+
+<section class="well">
+  <ul id="tweets" class="nav">
+    <li class="nav-header">Latest Tweets</li>
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $(document).ready(function(){
+      getTwitterFeed("derekgottlieb", 4, false);
+    });
+  </script>
+  <script src="/javascripts/asides/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/derekgottlieb" class="twitter-follow-button" data-show-count="false">Follow @derekgottlieb</a>
+  
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/113212574116812858363?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><hr>
+<p>
+  Copyright &copy; 2013 - Derek Gottlieb -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

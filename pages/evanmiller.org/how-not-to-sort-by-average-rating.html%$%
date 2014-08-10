@@ -1,0 +1,181 @@
+<html>
+<head>
+    <title>How Not To Sort By Average Rating</title>
+        <link rel="stylesheet" type="text/css" href="emiller.css">
+        <style type="text/css">
+            code {
+                background-color: #e3e3e3;
+            }
+            a.source {
+                font-family: monospace;
+            }
+            div.aside {
+                border: 2px dashed #6ecf4d;
+                margin: 20px;
+                padding: 10px;
+            }
+            div.aside code {
+                background-color: white;
+            }
+            div.figure {
+                border: 1px solid black;
+                margin: 20px;
+                padding: 10px;
+                padding-top: 20px;
+                text-align: center;
+            }
+        </style>
+</head>
+<body>
+        <div id="content">
+            <a href="index.html"><img src="header.png" /></a>
+            <div style="padding: 0px 20px;">
+<h1>How Not To Sort By Average Rating</h1>
+
+<p>By <a href="/">Evan Miller</a></p>
+
+<p><em>February 6, 2009</em> (<a href="#changes">Changes</a>)</p>
+
+<p><strong>PROBLEM</strong>: You are a web programmer. You have users. Your users rate stuff on your site. You want to put the highest-rated stuff at the top and lowest-rated at the bottom. You need some sort of "score" to sort by.</p>
+
+<p><strong>WRONG SOLUTION #1</strong>: Score = (Positive ratings) - (Negative ratings)</p>
+
+<p><em>Why it is wrong</em>: Suppose one item has 600 positive ratings and 400 negative ratings: 60% positive. Suppose item two has 5,500 positive ratings and 4,500 negative ratings: 55% positive. This algorithm puts item two (score = 1000, but only 55% positive) above item one (score = 200, and 60% positive). WRONG.</p>
+
+<p><em>Sites that make this mistake</em>: Urban Dictionary</p>
+
+<div class="figure">
+<img src="images/rating-urban-dictionary.png" />
+</div>
+
+<p><strong>WRONG SOLUTION #2</strong>: Score = Average rating = (Positive ratings) / (Total ratings)</p>
+
+<p><em>Why it is wrong</em>: Average rating works fine if you always have a ton of ratings, but suppose item 1 has 2 positive ratings and 0 negative ratings. Suppose item 2 has 100 positive ratings and 1 negative rating. This algorithm puts item two (tons of positive ratings) below item one (very few positive ratings). WRONG.</p>
+
+<p><em>Sites that make this mistake</em>: Amazon.com</p>
+
+<div class="figure">
+<img src="images/rating-amazon.png" />
+</div>
+
+<p><strong>CORRECT SOLUTION</strong>: Score = Lower bound of Wilson score confidence interval for a Bernoulli parameter</p>
+
+<p><em>Say what</em>: We need to balance the proportion of positive ratings with the uncertainty of a small number of observations. Fortunately, the math for this was worked out in 1927 by Edwin B. Wilson. What we want to ask is: <em>Given the ratings I have, there is a 95% chance that the "real" fraction of positive ratings is at least what?</em> Wilson gives the answer. Considering only positive and negative ratings (i.e. not a 5-star scale), the lower bound on the proportion of positive ratings is given by:</p>
+
+<div style="text-align: center;">
+<img src="images/rating-equation.png" />
+</div>
+
+<p>(Use minus where it says plus/minus to calculate the lower bound.) Here <em>p&#770;</em> is the <em>observed</em> fraction of positive ratings, <em>z</em><sub>&alpha;/2</sub> is the (1-&alpha;/2) quantile of the standard normal distribution, and <em>n</em> is the total number of ratings. The same formula implemented in Ruby:</p>
+
+<pre><code>
+require 'statistics2'
+
+def ci_lower_bound(pos, n, confidence)
+    if n == 0
+        return 0
+    end
+    z = Statistics2.pnormaldist(1-(1-confidence)/2)
+    phat = 1.0*pos/n
+    (phat + z*z/(2*n) - z * Math.sqrt((phat*(1-phat)+z*z/(4*n))/n))/(1+z*z/n)
+end
+</code></pre>
+
+<p><code>pos</code> is the number of positive ratings, <code>n</code> is the total number of ratings, and <code>confidence</code> refers to the statistical confidence level: pick 0.95 to have a 95% chance that your lower bound is correct, 0.975 to have a 97.5% chance, etc. The z-score in this function never changes, so if you don't have a statistics package handy or if performance is an issue you can always hard-code a value here for <code>z</code>. (Use 1.96 for a confidence level of 0.95.)</p>
+
+<hr>
+
+<p><strong>UPDATE, April 2012:</strong> Here is an illustrative SQL statement that will do the trick, assuming you have a <code>widgets</code> table with positive and negative ratings, and you want to sort them on the lower bound of a 95% confidence interval:</p>
+
+<pre><code>
+SELECT widget_id, ((positive + 1.9208) / (positive + negative) - 
+                   1.96 * SQRT((positive * negative) / (positive + negative) + 0.9604) / 
+                          (positive + negative)) / (1 + 3.8416 / (positive + negative)) 
+       AS ci_lower_bound FROM widgets WHERE positive + negative &gt; 0 
+       ORDER BY ci_lower_bound DESC;
+</code></pre>
+
+<p>If your boss doesn't believe that such a complicated SQL statement could possibly return a useful result, just compare the results to the other two method described above:</p>
+
+<pre><code>
+SELECT widget_id, (positive - negative) 
+       AS net_positive_ratings FROM widgets ORDER BY net_positive_ratings DESC;
+
+SELECT widget_id, positive / (positive + negative) 
+       AS average_rating FROM widgets ORDER BY average_rating DESC;
+</code></pre>
+
+<p>You will quickly see that the extra bit of math makes all the good stuff bubble up to the top. (But before running this SQL on a massive database, talk to your friendly neighborhood database administrator about proper use of indexes.)</p>
+
+<hr>
+
+<p>I initially devised this method for a Chuck Norris-style fact generator to honor of one of my professors, but it has since caught on at places like <a href="http://blog.reddit.com/2009/10/reddits-new-comment-sorting-system.html">Reddit</a>, <a href="http://officialblog.yelp.com/2011/02/the-most-romantic-city-on-yelp-is.html">Yelp</a>, and <a href="http://about.digg.com/blog/algorithm-experiments-better-comments">Digg</a>.</p>
+
+<p><strong>OTHER APPLICATIONS</strong></p>
+
+<p>The Wilson score confidence interval isn't just for sorting, of course. It is useful whenever you want to know with confidence what percentage of people took some sort of action. For example, it could be used to:</p>
+
+<ul>
+    <li>Detect spam/abuse: What percentage of people who see this item will mark it as spam?</li>
+    <li>Create a "best of" list: What percentage of people who see this item will mark it as "best of"?</li>
+    <li>Create a "Most emailed" list: What percentage of people who see this page will click "Email"?</li>
+</ul>
+
+<p>Indeed, it may be more useful in a "top rated" list to display those items with the highest number of positive ratings <em>per page view, download, or purchase</em>, rather than positive ratings per rating. Many people who find something mediocre will not bother to rate it at all; the act of viewing or purchasing something and declining to rate it contains useful information about that item's quality.</p>
+
+<a name="changes"></a>
+<p><strong>CHANGES</strong></p>
+<ul>
+    <li>Apr. 4, 2012: New SQL implementation</li>
+    <li>Nov. 13, 2011: Fixed statistical confidence language and altered code example accordingly</li>
+    <li>Feb. 15: Clarified the statistical power example</li>
+    <li>Feb. 13 II: "Other applications"</li>
+    <li>Feb. 13: General clarification, plus a link to the relevant Wikipedia article.</li>
+    <li>Feb. 12, 2009: The example in "Wrong Solution #1" was erroneous. It has been fixed.</li>
+</ul>
+
+<p><strong>REFERENCES</strong></p>
+
+<p><a href="http://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval">Binomial proportion confidence interval (Wikipedia)</a></p>
+
+<p>Agresti, Alan and Brent A. Coull (1998), &quot;Approximate is Better than 'Exact' for Interval Estimation of Binomial Proportions,&quot; <em>The American Statistician</em>, 52, 119-126.</p>
+
+<p>Wilson, E. B. (1927), &quot;Probable Inference, the Law of Succession, and Statistical Inference,&quot; <em>Journal of the American Statistical Association</em>, 22, 209-212.</p>
+
+<hr>
+
+<p>
+<em>You're reading <a href="/">evanmiller.org</a>, a random collection of math, tech, and musings. For a Bayesian perspective on average ratings, check out my other article, <a href="bayesian-average-ratings.html">Bayesian Average Ratings</a>.</em></p>
+    
+<p><em>If you run A/B tests frequently, be sure to check out my collection of <strong><a href="/ab-testing/">Awesome A/B Tools</a></strong>:</em>
+</p>
+<table style="text-align:center; margin: 30px 0px;" cellspacing="0" border="1">
+<tr>
+    <td style="padding: 20px 14px"><a href="ab-testing/sample-size.html"><img src="images/abtools-sample-small.png" height="112"><p><strong>Sample Size Calculator</strong></p></a>
+    </td>
+    <td style="padding: 20px 14px"><a href="ab-testing/chi-squared.html"><img src="images/abtools-chi-small.png" height="112"><p><strong>Chi-Squared Test</strong></p></a>
+    </td>
+    <td style="padding: 20px 14px"><a href="ab-testing/t-test.html"><img src="images/abtools-t-small.png" height="112"><p><strong>Two-Sample T-Test</strong></p></a>
+    </td>
+</tr>
+</table>
+<p><em>Finally, if you own a Mac, my desktop statistics software <strong><a href="http://www.wizardmac.com/">Wizard</a></strong> can help you analyze <strong>more data in less time</strong> and <strong>communicate discoveries visually</strong> without spending days struggling with pointless command syntax. Check it out!</em></p>
+<div style="text-align: center">
+<a href="http://www.wizardmac.com/"><img height="128" width="128" src="images/wizard-nonpro.png"></a><br>
+<strong><a href="http://www.wizardmac.com/">Wizard</a></strong><br><span style="color: #777; font-size: 14px">Statistical analyzer</span>
+</div>
+<hr>
+<p><a href="/">Back to Evan Miller's home page</a> &ndash; <a href="http://twitter.com/EvMill">Follow on Twitter</a> &ndash; <a href="/news.xml">Subscribe to RSS</a></p>
+</div>
+</div>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-5838049-1");
+pageTracker._trackPageview();
+</script>
+
+</body>
+</html>

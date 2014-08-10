@@ -1,0 +1,2258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <title>c++ - Why does changing 0.1f to 0 slow down performance by 10x? - Stack Overflow</title>
+    <link rel="shortcut icon" href="//cdn.sstatic.net/stackoverflow/img/favicon.ico?v=038622610830">
+    <link rel="apple-touch-icon image_src" href="//cdn.sstatic.net/stackoverflow/img/apple-touch-icon.png?v=fd7230a85918">
+    <link rel="search" type="application/opensearchdescription+xml" title="Stack Overflow" href="/opensearch.xml">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:domain" content="stackoverflow.com"/>
+    <meta name="og:type" content="website" />
+    <meta name="og:image" content="http://cdn.sstatic.net/stackoverflow/img/apple-touch-icon@2.png?v=fde65a5a78c6"/>
+    <meta name="og:title" content="Why does changing 0.1f to 0 slow down performance by 10x?" />
+    <meta name="og:description" content="Why does this bit of code,
+
+const float x[16] = {  1.1,   1.2,   1.3,     1.4,   1.5,   1.6,   1.7,   1.8,
+                       1.9,   2.0,   2.1,     2.2,   2.3,   2.4,   2.5,   2.6};
+const float " />
+    <meta name="og:url" content="http://stackoverflow.com/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x"/>
+    <link rel="canonical" href="http://stackoverflow.com/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x" />
+
+    
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="//cdn.sstatic.net/Js/stub.en.js?v=d142d951ee55"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.sstatic.net/stackoverflow/all.css?v=dc5a5d7ef830">
+    
+    <link rel="alternate" type="application/atom+xml" title="Feed for question &#39;Why does changing 0.1f to 0 slow down performance by 10x?&#39;" href="/feeds/question/9314534">
+    <script>
+        
+        StackExchange.ready(function () {
+            StackExchange.using("postValidation", function () {
+                StackExchange.postValidation.initOnBlurAndSubmit($('#post-form'), 2, 'answer');
+            });
+
+            
+            StackExchange.question.init({showAnswerHelp:true,totalCommentCount:16,shownCommentCount:5,highlightColor:'#F4A83D',backgroundColor:'#FFF',questionId:9314534});
+
+            styleCode();
+
+                StackExchange.realtime.subscribeToQuestion('1', '9314534');
+            
+                    });
+    </script>
+
+
+    <script>
+        StackExchange.init({"locale":"en","stackAuthUrl":"https://stackauth.com","serverTime":1404248427,"networkMetaHostname":"meta.stackexchange.com","styleCode":true,"enableUserHovercards":true,"site":{"name":"Stack Overflow","description":"Q&A for professional and enthusiast programmers","isNoticesTabEnabled":true,"recaptchaPublicKey":"6LdchgIAAAAAAJwGpIzRQSOFaO0pU6s44Xt8aTwc","recaptchaAudioLang":"en","enableNewTagCreationWarning":true,"nonAsciiTags":true,"enableSocialMediaInSharePopup":true},"user":{"fkey":"8c6b727b7d57e168eb0f1d8a05eba522","isAnonymous":true}});
+        StackExchange.using.setCacheBreakers({"js/prettify-full.en.js":"12ef2711e474","js/moderator.en.js":"e2c6bab58c56","js/full-anon.en.js":"a66b4586d8f3","js/full.en.js":"d43401f72f80","js/wmd.en.js":"d25c057c3f48","js/third-party/jquery.autocomplete.min.js":"e5f01e97f7c3","js/third-party/jquery.autocomplete.min.en.js":"","js/mobile.en.js":"5f0b5c72eaa8","js/help.en.js":"43b6b771d4d9","js/tageditor.en.js":"afabf8d8de91","js/tageditornew.en.js":"140e973e4037","js/inline-tag-editing.en.js":"21223186b436","js/revisions.en.js":"989c474e85a9","js/review.en.js":"c261687765b3","js/tagsuggestions.en.js":"bb4721d888d2","js/post-validation.en.js":"62fe2d3d1730","js/explore-qlist.en.js":"8b8b631bd679","js/events.en.js":"7263182fd2c2"});
+        StackExchange.using("gps", function() {
+             StackExchange.gps.init(true);
+        });
+    </script>
+    
+        <script>
+            StackExchange.ready(function () {
+                $('#nav-tour').click(function () {
+                    StackExchange.using("gps", function() {
+                        StackExchange.gps.track("aboutpage.click", { aboutclick_location: "headermain" }, true);
+                    });
+                });
+            });
+        </script>
+</head>
+<body class="question-page new-topbar">
+    <noscript><div id="noscript-padding"></div></noscript>
+    <div id="notify-container"></div>
+    <div id="overlay-header"></div>
+    <div id="custom-header"></div>
+<div class="topbar">
+    <div class="topbar-wrapper">
+        
+        <div class="js-topbar-dialog-corral">
+
+<div class="topbar-dialog siteSwitcher-dialog dno">
+    <div class="header">
+        <h3><a href="//stackoverflow.com">current community</a></h3>
+    </div>
+    <div class="modal-content current-site-container">
+        <ul class="current-site">
+                <li>
+                        <div class="related-links">
+            <a href="http://chat.stackoverflow.com"     data-gps-track="site_switcher.click({ item_type:6 })"
+>chat</a>
+                    <a href="http://blog.stackoverflow.com"     data-gps-track="site_switcher.click({ item_type:7 })"
+>blog</a>
+            </div>
+
+
+
+
+    <a href="//stackoverflow.com"
+       class="current-site-link site-link js-gps-track"
+       data-id="1"
+       data-gps-track="
+        site_switcher.click({ item_type:3 })">
+        <div class="site-icon favicon favicon-stackoverflow" title="Stack Overflow"></div>
+        Stack Overflow
+    </a>
+
+                </li>
+                <li class="related-site">
+                        <div class="L-shaped-icon-container">
+        <span class="L-shaped-icon"></span>
+    </div>
+
+                    
+
+
+
+    <a href="http://meta.stackoverflow.com"
+       class="site-link js-gps-track"
+       data-id="552"
+       data-gps-track="
+            site.switch({ target_site:552, item_type:3 }),
+        site_switcher.click({ item_type:4 })">
+        <div class="site-icon favicon favicon-stackoverflowmeta" title="Meta Stack Overflow"></div>
+        Meta Stack Overflow
+    </a>
+
+                </li>
+                            <li class="related-site">
+                        <div class="L-shaped-icon-container">
+        <span class="L-shaped-icon"></span>
+    </div>
+
+                    <a class="site-link"
+                       href="//careers.stackoverflow.com"
+                            data-gps-track="site_switcher.click({ item_type:9 })"
+>
+                        <div class="site-icon favicon favicon-careers" title="Stack Overflow Careers"></div>
+                        Careers 2.0
+                    </a>
+                </li>
+        </ul>
+    </div>
+    
+    <div class="header" id="your-communities-header">
+        <h3>
+your communities        </h3>
+            
+    </div>
+    <div class="modal-content" id="your-communities-section">
+            
+            <div class="call-to-login">
+                        <a href="https://stackoverflow.com/users/signup?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f9314534%2fwhy-does-changing-0-1f-to-0-slow-down-performance-by-10x" class="js-gps-track"     data-gps-track="site_switcher.click({ item_type:10 })"
+>Sign up</a>
+                    or
+                    <a href="https://stackoverflow.com/users/login?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f9314534%2fwhy-does-changing-0-1f-to-0-slow-down-performance-by-10x" class="js-gps-track"     data-gps-track="site_switcher.click({ item_type:11 })"
+>log in</a>
+
+                    to customize your list.
+            </div>
+    </div>
+    
+    <div class="header">
+        <h3><a href="//stackexchange.com/sites">more stack exchange communities</a></h3>
+    </div>
+    <div class="modal-content">
+            <div class="child-content"></div>
+    </div>
+</div>
+        </div>
+
+        <div class="network-items">
+            
+            <a href="//stackexchange.com" 
+               class="topbar-icon icon-site-switcher yes-hover js-site-switcher-button js-gps-track"
+               data-gps-track="site_switcher.show"
+               title="A list of all 128 Stack Exchange sites">
+                <span class="hidden-text">Stack Exchange</span>
+            </a>
+            
+        </div>
+
+        <div class="topbar-links">
+            
+                <div class="links-container">
+                    <span class="topbar-menu-links">
+                            <a href="https://stackoverflow.com/users/signup?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f9314534%2fwhy-does-changing-0-1f-to-0-slow-down-performance-by-10x" class="login-link">sign up</a>
+                            <a href="https://stackoverflow.com/users/login?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f9314534%2fwhy-does-changing-0-1f-to-0-slow-down-performance-by-10x" class="login-link">log in</a>
+                            <a href="/tour">tour</a>
+
+                            <a href="#" class="icon-help js-help-button" title="Help Center and other resources">
+        help
+        <span class="triangle"></span>
+    </a>
+    <div class="topbar-dialog help-dialog js-help-dialog dno">
+        <div class="modal-content">
+            <ul>
+                                    <li>
+                        <a href="/tour"     class="js-gps-track" data-gps-track="help_popup.click({ item_type:1 })"
+>
+                            Tour
+                            <span class="item-summary">
+                                Start here for a quick overview of the site
+                            </span>
+                        </a>
+                    </li>
+                <li>
+                    <a href="/help"     class="js-gps-track" data-gps-track="help_popup.click({ item_type:4 })"
+>
+                        Help Center
+                        <span class="item-summary">
+                            Detailed answers to any questions you might have
+                        </span>
+                    </a>
+                </li>
+                    <li>
+                        <a href="//meta.stackoverflow.com"     class="js-gps-track" data-gps-track="help_popup.click({ item_type:2 })"
+>
+                            Meta
+                            <span class="item-summary">
+                                Discuss the workings and policies of this site
+                            </span>
+                        </a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+
+                            <a href="//careers.stackoverflow.com">careers 2.0</a>
+                    </span>
+                </div>
+
+			<div class="search-container">
+                <form id="search" action="/search" method="get" autocomplete="off">
+                    <input name="q" type="text" placeholder="search" value="" tabindex="1" autocomplete="off" maxlength="240" />
+                </form>
+			</div>
+            	
+        </div>      
+    </div> 
+</div>
+<script>
+    StackExchange.ready(function () { StackExchange.topbar.init(); });
+</script>
+    <div class="container">
+        <div id="header" class=headeranon>
+            <br class="cbt">
+            <div id="hlogo">
+                <a href="/">
+                    Stack Overflow
+                </a>
+            </div>
+            <div id="hmenus">
+                <div class="nav mainnavs mainnavsanon">
+                    <ul>
+                        <li class="youarehere"><a id="nav-questions" href="/questions">Questions</a></li>
+                        <li><a id="nav-tags" href="/tags">Tags</a></li>
+                        <li><a id="nav-users" href="/users">Users</a></li>
+                        <li><a id="nav-badges" href="/help/badges">Badges</a></li>
+                        <li><a id="nav-unanswered" href="/unanswered">Unanswered</a></li>
+                    </ul>
+                </div>
+                <div class="nav askquestion">
+                    <ul>
+                        <li>
+                            <a id="nav-askquestion"  href="/questions/ask">Ask Question</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+
+
+
+        <div id="content">
+            
+
+<div itemscope itemtype="http://schema.org/Article">
+	<link itemprop="image" href="//cdn.sstatic.net/stackoverflow/img/apple-touch-icon.png">
+			<!--googleoff: all-->
+
+<div id="herobox-mini">
+    <div id="hero-content">
+        <span id="controls">
+            <a href="/tour" id="tell-me-more" class="button">Take the 2-minute tour</a>
+            <span id="close"><a title="click to dismiss">&times;</a></span>
+        </span>
+        <div id="blurb">
+            Stack Overflow is a question and answer site for professional and enthusiast programmers. It&#39;s 100% free, no registration required.
+        </div>        
+    </div>
+    <script>
+        $('#tell-me-more').click(function () {
+            var clickSource = $("body").attr("class") + '-mini';
+            if ($("body").hasClass("questions-page")) {
+                clickSource = 'questionpagemini';
+            } else if ($("body").hasClass("question-page")) {
+                clickSource = 'questionpagemini';
+            } else if ($("body").hasClass("home-page")) {
+                clickSource = 'homepagemini';
+            }
+
+            StackExchange.using("gps", function () {
+                StackExchange.gps.track("aboutpage.click", { aboutclick_location: clickSource } , true);
+            });
+        });
+        $('#herobox-mini #close').click(function () {
+            StackExchange.using("gps", function () {
+                StackExchange.gps.track("hero.action", { hero_action_type: "close" }, true);
+            });
+            $.cookie("hero", "none", { path: "/" });
+            var $hero = $("#herobox-mini");
+            $hero.slideUp('fast', function () { $hero.remove(); });
+            return false;
+        });
+    </script>
+</div>
+			<!--googleon: all-->
+			<div id="question-header">
+			<h1 itemprop="name"><a href="/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x" class="question-hyperlink">Why does changing 0.1f to 0 slow down performance by 10x?</a></h1>
+		</div>
+			<div id="mainbar">
+
+			
+
+<div class="question" data-questionid="9314534"  id="question">
+
+    <div class="everyonelovesstackoverflow" id="careers1">
+        </div>    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="9314534">
+    <a class="vote-up-off" title="This question shows research effort; it is useful and clear">up vote</a>
+    <span class="vote-count-post ">812</span>
+    <a class="vote-down-off" title="This question does not show any research effort; it is unclear or not useful">down vote</a>
+    
+    <a class="star-off" href="#" title="This is a favorite question (click again to undo)">favorite</a>
+    <div class="favoritecount"><b>354</b></div>   
+
+</div>
+
+            </td>
+            
+<td class="postcell">
+<div>
+    <div class="post-text" itemprop="description">
+
+        <p>Why does this bit of code,</p>
+
+<pre><code>const float x[16] = {  1.1,   1.2,   1.3,     1.4,   1.5,   1.6,   1.7,   1.8,
+                       1.9,   2.0,   2.1,     2.2,   2.3,   2.4,   2.5,   2.6};
+const float z[16] = {1.123, 1.234, 1.345, 156.467, 1.578, 1.689, 1.790, 1.812,
+                     1.923, 2.034, 2.145,   2.256, 2.367, 2.478, 2.589, 2.690};
+float y[16];
+for (int i = 0; i &lt; 16; i++)
+{
+    y[i] = x[i];
+}
+
+for (int j = 0; j &lt; 9000000; j++)
+{
+    for (int i = 0; i &lt; 16; i++)
+    {
+        y[i] *= x[i];
+        y[i] /= z[i];
+        y[i] = y[i] + 0.1f; // &lt;--
+        y[i] = y[i] - 0.1f; // &lt;--
+    }
+}
+</code></pre>
+
+<p>run more than 10 times faster than the following bit (identical except where noted)?</p>
+
+<pre><code>const float x[16] = {  1.1,   1.2,   1.3,     1.4,   1.5,   1.6,   1.7,   1.8,
+                       1.9,   2.0,   2.1,     2.2,   2.3,   2.4,   2.5,   2.6};
+const float z[16] = {1.123, 1.234, 1.345, 156.467, 1.578, 1.689, 1.790, 1.812,
+                     1.923, 2.034, 2.145,   2.256, 2.367, 2.478, 2.589, 2.690};
+float y[16];
+for (int i = 0; i &lt; 16; i++)
+{
+    y[i] = x[i];
+}
+
+for (int j = 0; j &lt; 9000000; j++)
+{
+    for (int i = 0; i &lt; 16; i++)
+    {
+        y[i] *= x[i];
+        y[i] /= z[i];
+        y[i] = y[i] + 0; // &lt;--
+        y[i] = y[i] - 0; // &lt;--
+    }
+}
+</code></pre>
+
+<p>when compiling with Visual Studio 2010 SP1. (I haven't tested with other compilers.)</p>
+
+    </div>
+    <div class="post-taglist">
+        <a href="/questions/tagged/c%2b%2b" class="post-tag" title="show questions tagged &#39;c++&#39;" rel="tag">c++</a> <a href="/questions/tagged/performance" class="post-tag" title="show questions tagged &#39;performance&#39;" rel="tag">performance</a> <a href="/questions/tagged/visual-studio-2010" class="post-tag" title="show questions tagged &#39;visual-studio-2010&#39;" rel="tag">visual-studio-2010</a> <a href="/questions/tagged/compilation" class="post-tag" title="show questions tagged &#39;compilation&#39;" rel="tag">compilation</a> <a href="/questions/tagged/floating-point" class="post-tag" title="show questions tagged &#39;floating-point&#39;" rel="tag">floating-point</a> 
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/q/9314534" title="short permalink to this question" class="short-link" id="link-post-9314534">share</a><span class="lsep">|</span><a href="/posts/9314534/edit" class="suggest-edit-post" title="">improve this question</a></div>        
+    </td>
+    <td align="right" class="post-signature">
+<div class="user-info user-hover">
+    <div class="user-action-time">
+        <a href="/posts/9314534/revisions" title="show all edits to this post">edited <span title="2012-04-29 22:16:40Z" class="relativetime">Apr 29 '12 at 22:16</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/63550/peter-mortensen"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/RIZKi.png?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/63550/peter-mortensen">Peter Mortensen</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">7,406</span><span title="8 gold badges"><span class="badge1"></span><span class="badgecount">8</span></span><span title="51 silver badges"><span class="badge2"></span><span class="badgecount">51</span></span><span title="82 bronze badges"><span class="badge3"></span><span class="badgecount">82</span></span>
+    </div>
+</div>    </td>
+    <td class="post-signature owner">
+        <div class="user-info ">
+    <div class="user-action-time">
+        asked <span title="2012-02-16 15:58:39Z" class="relativetime">Feb 16 '12 at 15:58</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1214219/dragarro"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/108e0f542061720793bffdfed4c25458?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1214219/dragarro">Dragarro</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">3,403</span><span title="3 gold badges"><span class="badge1"></span><span class="badgecount">3</span></span><span title="6 silver badges"><span class="badge2"></span><span class="badgecount">6</span></span><span title="16 bronze badges"><span class="badge3"></span><span class="badgecount">16</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</div>
+</td>
+        </tr>
+                
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-9314534" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="11" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-11750670" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">32</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy"><code>0</code> is an integer literal, so it is possible that it has to be converted to float at runtime.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1121104/zyx-2000"
+                       title="534 reputation"
+                       class="comment-user">Zyx 2000</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-16 16:14:27Z" class="relativetime-clean">Feb 16 '12 at 16:14</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-11750791" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">7</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">How did you measure the difference?  And what options did you use when you compiled?</span>
+                &ndash;&nbsp;
+                    <a href="/users/649665/james-kanze"
+                       title="90077 reputation"
+                       class="comment-user">James Kanze</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-16 16:19:16Z" class="relativetime-clean">Feb 16 '12 at 16:19</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-11750950" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">76</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Why isn&#39;t the compiler just dropping the +/- 0 in this case?!?</span>
+                &ndash;&nbsp;
+                    <a href="/users/527574/michael-dorgan"
+                       title="7814 reputation"
+                       class="comment-user">Michael Dorgan</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-16 16:25:02Z" class="relativetime-clean">Feb 16 '12 at 16:25</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-11755613" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">4</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">This is closely related to the issue in <a href="http://stackoverflow.com/questions/5180150/floating-multiplication-performing-slower-depending-of-operands-in-c" title="floating multiplication performing slower depending of operands in c">stackoverflow.com/questions/5180150/&hellip;</a></span>
+                &ndash;&nbsp;
+                    <a href="/users/142434/stephen-canon"
+                       title="57316 reputation"
+                       class="comment-user">Stephen Canon</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-16 19:46:15Z" class="relativetime-clean">Feb 16 '12 at 19:46</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-11761880" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">49</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@Zyx2000 The compiler isn&#39;t anywhere near that stupid. Disassembling a trivial example in LINQPad shows that it spits out the same code whether you use <code>0</code>, <code>0f</code>, <code>0d</code>, or even <code>(int)0</code> in a context where a <code>double</code> is needed.</span>
+                &ndash;&nbsp;
+                    <a href="/users/41655/millimoose"
+                       title="22454 reputation"
+                       class="comment-user">millimoose</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-17 02:20:06Z" class="relativetime-clean">Feb 17 '12 at 2:20</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-9314534" data-rep=50 data-anon=true
+			   class="comments-link " 
+			   title="Use comments to ask for more information or suggest improvements. Avoid answering questions in comments." 
+				>show <b>11</b> more comments</a>
+    </td>
+</tr>        </table>
+</div>
+
+
+			<div id="answers">
+
+				<a name="tab-top"></a>
+				<div id="answers-header">
+					<div class="subheader answers-subheader">
+						<h2>
+								4 Answers
+						</h2>
+						<div>
+							<div id="tabs">
+        <a href="/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x?answertab=active#tab-top" title="Answers with the latest activity first">active</a>
+        <a href="/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x?answertab=oldest#tab-top" title="Answers in the order they were provided">oldest</a>
+        <a class="youarehere" href="/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x?answertab=votes#tab-top" title="Answers with the highest score first">votes</a>
+</div>
+						</div>
+					</div>    
+				</div>    
+
+
+
+
+  
+<a name="9314926"></a>
+<div id="answer-9314926" class="answer accepted-answer" data-answerid="9314926" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="9314926">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post high-scored-post">1015</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+        <span class="vote-accepted-on load-accepted-answer-date" title="loading when this answer was accepted...">accepted</span>
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p><strong>Welcome to the world of <a href="http://en.wikipedia.org/wiki/Denormal_number">denormalized floating-point</a>!</strong> They can wreak havoc on performance!!!</p>
+
+<p>Denormal (or subnormal) numbers are kind of a hack to get some extra values very close to zero out of the floating point representation. Operations on denormalized floating-point can be <strong><em>tens to hundreds of times slower</em></strong> than on normalized floating-point. This is because many processors can't handle them directly and must trap and resolve them using microcode.</p>
+
+<p>If you print out the numbers after 10,000 iterations, you will see that they have converged to different values depending on whether <code>0</code> or <code>0.1</code> is used.</p>
+
+<p>Here's the test code compiled on x64:</p>
+
+<pre><code>int main() {
+
+    double start = omp_get_wtime();
+
+    const float x[16]={1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6};
+    const float z[16]={1.123,1.234,1.345,156.467,1.578,1.689,1.790,1.812,1.923,2.034,2.145,2.256,2.367,2.478,2.589,2.690};
+    float y[16];
+    for(int i=0;i&lt;16;i++)
+    {
+        y[i]=x[i];
+    }
+    for(int j=0;j&lt;9000000;j++)
+    {
+        for(int i=0;i&lt;16;i++)
+        {
+            y[i]*=x[i];
+            y[i]/=z[i];
+#ifdef FLOATING
+            y[i]=y[i]+0.1f;
+            y[i]=y[i]-0.1f;
+#else
+            y[i]=y[i]+0;
+            y[i]=y[i]-0;
+#endif
+
+            if (j &gt; 10000)
+                cout &lt;&lt; y[i] &lt;&lt; "  ";
+        }
+        if (j &gt; 10000)
+            cout &lt;&lt; endl;
+    }
+
+    double end = omp_get_wtime();
+    cout &lt;&lt; end - start &lt;&lt; endl;
+
+    system("pause");
+    return 0;
+}
+</code></pre>
+
+<p><strong>Output:</strong></p>
+
+<pre><code>#define FLOATING
+1.78814e-007  1.3411e-007  1.04308e-007  0  7.45058e-008  6.70552e-008  6.70552e-008  5.58794e-007  3.05474e-007  2.16067e-007  1.71363e-007  1.49012e-007  1.2666e-007  1.11759e-007  1.04308e-007  1.04308e-007
+1.78814e-007  1.3411e-007  1.04308e-007  0  7.45058e-008  6.70552e-008  6.70552e-008  5.58794e-007  3.05474e-007  2.16067e-007  1.71363e-007  1.49012e-007  1.2666e-007  1.11759e-007  1.04308e-007  1.04308e-007
+
+//#define FLOATING
+6.30584e-044  3.92364e-044  3.08286e-044  0  1.82169e-044  1.54143e-044  2.10195e-044  2.46842e-029  7.56701e-044  4.06377e-044  3.92364e-044  3.22299e-044  3.08286e-044  2.66247e-044  2.66247e-044  2.24208e-044
+6.30584e-044  3.92364e-044  3.08286e-044  0  1.82169e-044  1.54143e-044  2.10195e-044  2.45208e-029  7.56701e-044  4.06377e-044  3.92364e-044  3.22299e-044  3.08286e-044  2.66247e-044  2.66247e-044  2.24208e-044
+</code></pre>
+
+<p>Note how in the second run the numbers are very close to zero.</p>
+
+<p>Denormalized numbers are generally rare and thus most processors don't try to handle them efficiently.</p>
+
+<hr>
+
+<p>To demonstrate that this has everything to do with denormalized numbers, if we <strong>flush denormals to zero</strong> by adding this to the start of the code:</p>
+
+<pre><code>_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+</code></pre>
+
+<p>Then the version with <code>0</code> is no longer 10x slower and actually becomes faster. (This requires that the code be compiled with SSE enabled.)</p>
+
+<p>This means that rather than using these weird lower precision almost-zero values, we just round to zero instead.</p>
+
+<p><strong>Timings: Core i7 920 @ 3.5 GHz:</strong></p>
+
+<pre><code>//  Don't flush denormals to zero.
+0.1f: 0.564067
+0   : 26.7669
+
+//  Flush denormals to zero.
+0.1f: 0.587117
+0   : 0.341406
+</code></pre>
+
+<p>In the end, this really has nothing to do with whether it's an integer or floating-point. The <code>0</code> or <code>0.1f</code> is converted/stored into a register outside of both loops. So that has no effect on performance.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/9314926" title="short permalink to this answer" class="short-link" id="link-post-9314926">share</a><span class="lsep">|</span><a href="/posts/9314926/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/9314926/revisions" title="show all edits to this post">edited <span title="2012-02-17 01:19:26Z" class="relativetime">Feb 17 '12 at 1:19</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/579344/johv"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/7a2f58184200f7768a551ae5fd2ac9ac?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/579344/johv">johv</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">1,081</span><span title="6 silver badges"><span class="badge2"></span><span class="badgecount">6</span></span><span title="19 bronze badges"><span class="badge3"></span><span class="badgecount">19</span></span>
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2012-02-16 16:20:09Z" class="relativetime">Feb 16 '12 at 16:20</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/922184/mysticial"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/Wv6qh.jpg?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/922184/mysticial">Mysticial</a><br>
+        <span class="reputation-score" title="reputation score 163390" dir="ltr">163k</span><span title="27 gold badges"><span class="badge1"></span><span class="badgecount">27</span></span><span title="182 silver badges"><span class="badge2"></span><span class="badgecount">182</span></span><span title="221 bronze badges"><span class="badge3"></span><span class="badgecount">221</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-9314926" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="29" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-11754829" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">47</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I&#39;m still finding it a little weird that the &quot;+ 0&quot; isn&#39;t completely optimized out by the compiler by default. Would this have happened if he had put &quot;+ 0.0f&quot;?</span>
+                &ndash;&nbsp;
+                    <a href="/users/439356/s73v3r"
+                       title="512 reputation"
+                       class="comment-user">s73v3r</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-16 19:10:35Z" class="relativetime-clean">Feb 16 '12 at 19:10</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-11755277" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="hot">17</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@s73v3r That&#39;s a very good question. Now that I look at the assembly, not even <code>+ 0.0f</code> gets optimized out. If I had to guess, it could be that <code>+ 0.0f</code> would have side-effects if <code>y&#91;i&#93;</code> happened to be a signalling <code>NaN</code> or something... I could be wrong though.</span>
+                &ndash;&nbsp;
+                    <a href="/users/922184/mysticial"
+                       title="163390 reputation"
+                       class="comment-user">Mysticial</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-16 19:31:19Z" class="relativetime-clean">Feb 16 '12 at 19:31</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-11755368" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">145</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">This is a common issue in audio signal processing. Signal followed by silence fed into recursive filters (common in &quot;virtual analog&quot; synthesizers, EQs, etc) yields exponentially decaying values within the filter&#39;s memory, and when they decay into the denormal realm, performance falls off a cliff. Different CPU architectures handle denormals differently, with Intel&#39;s Pentium 4 notorious for being about 250 times slower on denorms, while AMD takes more like a 10:1 hit.</span>
+                &ndash;&nbsp;
+                    <a href="/users/374746/russell-borogove"
+                       title="8198 reputation"
+                       class="comment-user">Russell Borogove</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-16 19:35:31Z" class="relativetime-clean">Feb 16 '12 at 19:35</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-11771653" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">10</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@Isaac because when y[i] is significantly smaller than 0.1 adding it results in a loss of precision because the most significant digit in the number becomes higher.</span>
+                &ndash;&nbsp;
+                    <a href="/users/85661/dan-neely"
+                       title="2249 reputation"
+                       class="comment-user">Dan Neely</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-17 13:28:29Z" class="relativetime-clean">Feb 17 '12 at 13:28</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14976506" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="hot">20</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@s73v3r: The +0.f cannot be optimized out because floating-point has a negative 0, and the result of adding +0.f to -.0f is +0.f. So adding 0.f is not an identity operation and cannot be optimized out.</span>
+                &ndash;&nbsp;
+                    <a href="/users/298225/eric-postpischil"
+                       title="36219 reputation"
+                       class="comment-user">Eric Postpischil</a>
+                <span class="comment-date" dir="ltr"><span title="2012-07-06 17:59:42Z" class="relativetime-clean">Jul 6 '12 at 17:59</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-9314926" data-rep=50 data-anon=true
+			   class="comments-link " 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>show <b>29</b> more comments</a>
+    </td>
+</tr>    </table>
+</div>
+<div class="everyonelovesstackoverflow" id="careers3">
+        </div>
+  
+<a name="9314913"></a>
+<div id="answer-9314913" class="answer" data-answerid="9314913" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="9314913">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">274</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>Using <code>gcc</code> and applying a diff to the generated assembly yields only this difference:</p>
+
+<pre><code>73c68,69
+&lt;   movss   LCPI1_0(%rip), %xmm1
+---
+&gt;   movabsq $0, %rcx
+&gt;   cvtsi2ssq   %rcx, %xmm1
+81d76
+&lt;   subss   %xmm1, %xmm0
+</code></pre>
+
+<p>The <code>cvtsi2ssq</code> one being 10 times slower indeed.</p>
+
+<p>Apparently, the <code>float</code> version uses an <a href="http://en.wikipedia.org/wiki/Streaming_SIMD_Extensions#Registers">XMM</a> register loaded from memory, while the <code>int</code> version converts a real <code>int</code> value 0 to <code>float</code> using the <code>cvtsi2ssq</code> instruction, taking a lot of time. Passing <code>-O3</code> to gcc doesn't help. (gcc version 4.2.1.)</p>
+
+<p>(Using <code>double</code> instead of <code>float</code> doesn't matter, except that it changes the <code>cvtsi2ssq</code> into a <code>cvtsi2sdq</code>.)</p>
+
+<p><strong>Update</strong> </p>
+
+<p>Some extra tests show that it is not necessarily the <code>cvtsi2ssq</code> instruction. Once eliminated (using a <code>int ai=0;float a=ai;</code> and using <code>a</code> instead of <code>0</code>), the speed difference remains. So @Mysticial is right, the denormalized floats make the difference. This can be seen by testing values between <code>0</code> and <code>0.1f</code>. The turning point in the above code is approximately at <code>0.00000000000000000000000000000001</code>, when the loops suddenly takes 10 times as long.</p>
+
+<p><strong>Update&lt;&lt;1</strong> </p>
+
+<p>A small visualisation of this interesting phenomenon:</p>
+
+<ul>
+<li>Column 1: a float, divided by 2 for every iteration</li>
+<li>Column 2: the binary representation of this float</li>
+<li>Column 3: the time taken to sum this float 1e7 times</li>
+</ul>
+
+<p>You can clearly see the exponent (the last 9 bits) change to its lowest value, when denormalization sets in. At that point, simple addition becomes 20 times slower.</p>
+
+<pre><code>0.000000000000000000000000000000000100000004670110: 10111100001101110010000011100000 45 ms
+0.000000000000000000000000000000000050000002335055: 10111100001101110010000101100000 43 ms
+0.000000000000000000000000000000000025000001167528: 10111100001101110010000001100000 43 ms
+0.000000000000000000000000000000000012500000583764: 10111100001101110010000110100000 42 ms
+0.000000000000000000000000000000000006250000291882: 10111100001101110010000010100000 48 ms
+0.000000000000000000000000000000000003125000145941: 10111100001101110010000100100000 43 ms
+0.000000000000000000000000000000000001562500072970: 10111100001101110010000000100000 42 ms
+0.000000000000000000000000000000000000781250036485: 10111100001101110010000111000000 42 ms
+0.000000000000000000000000000000000000390625018243: 10111100001101110010000011000000 42 ms
+0.000000000000000000000000000000000000195312509121: 10111100001101110010000101000000 43 ms
+0.000000000000000000000000000000000000097656254561: 10111100001101110010000001000000 42 ms
+0.000000000000000000000000000000000000048828127280: 10111100001101110010000110000000 44 ms
+0.000000000000000000000000000000000000024414063640: 10111100001101110010000010000000 42 ms
+0.000000000000000000000000000000000000012207031820: 10111100001101110010000100000000 42 ms
+0.000000000000000000000000000000000000006103515209: 01111000011011100100001000000000 789 ms
+0.000000000000000000000000000000000000003051757605: 11110000110111001000010000000000 788 ms
+0.000000000000000000000000000000000000001525879503: 00010001101110010000100000000000 788 ms
+0.000000000000000000000000000000000000000762939751: 00100011011100100001000000000000 795 ms
+0.000000000000000000000000000000000000000381469876: 01000110111001000010000000000000 896 ms
+0.000000000000000000000000000000000000000190734938: 10001101110010000100000000000000 813 ms
+0.000000000000000000000000000000000000000095366768: 00011011100100001000000000000000 798 ms
+0.000000000000000000000000000000000000000047683384: 00110111001000010000000000000000 791 ms
+0.000000000000000000000000000000000000000023841692: 01101110010000100000000000000000 802 ms
+0.000000000000000000000000000000000000000011920846: 11011100100001000000000000000000 809 ms
+0.000000000000000000000000000000000000000005961124: 01111001000010000000000000000000 795 ms
+0.000000000000000000000000000000000000000002980562: 11110010000100000000000000000000 835 ms
+0.000000000000000000000000000000000000000001490982: 00010100001000000000000000000000 864 ms
+0.000000000000000000000000000000000000000000745491: 00101000010000000000000000000000 915 ms
+0.000000000000000000000000000000000000000000372745: 01010000100000000000000000000000 918 ms
+0.000000000000000000000000000000000000000000186373: 10100001000000000000000000000000 881 ms
+0.000000000000000000000000000000000000000000092486: 01000010000000000000000000000000 857 ms
+0.000000000000000000000000000000000000000000046243: 10000100000000000000000000000000 861 ms
+0.000000000000000000000000000000000000000000022421: 00001000000000000000000000000000 855 ms
+0.000000000000000000000000000000000000000000011210: 00010000000000000000000000000000 887 ms
+0.000000000000000000000000000000000000000000005605: 00100000000000000000000000000000 799 ms
+0.000000000000000000000000000000000000000000002803: 01000000000000000000000000000000 828 ms
+0.000000000000000000000000000000000000000000001401: 10000000000000000000000000000000 815 ms
+0.000000000000000000000000000000000000000000000000: 00000000000000000000000000000000 42 ms
+0.000000000000000000000000000000000000000000000000: 00000000000000000000000000000000 42 ms
+0.000000000000000000000000000000000000000000000000: 00000000000000000000000000000000 44 ms
+</code></pre>
+
+<p>An equivalent discussion about ARM can be found in Stack&nbsp;Overflow question <em><a href="http://stackoverflow.com/questions/9350810/denormalized-floating-point-in-objective-c/9350820#9350820">Denormalized floating point in Objective-C?</a></em>.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/9314913" title="short permalink to this answer" class="short-link" id="link-post-9314913">share</a><span class="lsep">|</span><a href="/posts/9314913/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info user-hover">
+    <div class="user-action-time">
+        <a href="/posts/9314913/revisions" title="show all edits to this post">edited <span title="2012-04-29 22:05:34Z" class="relativetime">Apr 29 '12 at 22:05</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/63550/peter-mortensen"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/RIZKi.png?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/63550/peter-mortensen">Peter Mortensen</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">7,406</span><span title="8 gold badges"><span class="badge1"></span><span class="badgecount">8</span></span><span title="51 silver badges"><span class="badge2"></span><span class="badgecount">51</span></span><span title="82 bronze badges"><span class="badge3"></span><span class="badgecount">82</span></span>
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2012-02-16 16:19:47Z" class="relativetime">Feb 16 '12 at 16:19</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/371793/mvds"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/1a6d3b0db3618140ff1fcf57cefc23a1?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/371793/mvds">mvds</a><br>
+        <span class="reputation-score" title="reputation score 26216" dir="ltr">26.2k</span><span title="3 gold badges"><span class="badge1"></span><span class="badgecount">3</span></span><span title="46 silver badges"><span class="badge2"></span><span class="badgecount">46</span></span><span title="65 bronze badges"><span class="badge3"></span><span class="badgecount">65</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-9314913" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="1" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-11759865" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">31</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">+1 for the effort, and showing that empirical testing could have shown the trigger condition there</span>
+                &ndash;&nbsp;
+                    <a href="/users/85371/sehe"
+                       title="120788 reputation"
+                       class="comment-user">sehe</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-16 23:18:09Z" class="relativetime-clean">Feb 16 '12 at 23:18</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-11761658" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">134</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">This is cool ASCII art for the tip of a blade. Metaphor?</span>
+                &ndash;&nbsp;
+                    <a href="/users/13700/chris"
+                       title="3453 reputation"
+                       class="comment-user">Chris</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-17 01:53:50Z" class="relativetime-clean">Feb 17 '12 at 1:53</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-11766281" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">11</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Cloud Strife&#39;s sword instantly comes to mind!</span>
+                &ndash;&nbsp;
+                    <a href="/users/67825/dave"
+                       title="2925 reputation"
+                       class="comment-user">Dave</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-17 08:51:36Z" class="relativetime-clean">Feb 17 '12 at 8:51</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-11767908" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">11</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy"><code>-O</code>s don&#39;t fix it, but <code>-ffast-math</code> does. (I use that all the time, IMO the corner cases where it causes precision trouble shouldn&#39;t turn up in a properly designed program anyway.)</span>
+                &ndash;&nbsp;
+                    <a href="/users/745903/leftaroundabout"
+                       title="21577 reputation"
+                       class="comment-user">leftaroundabout</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-17 10:17:40Z" class="relativetime-clean">Feb 17 '12 at 10:17</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-11891862" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">4</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Wish I could +1 again for that pretty &#39;almost-ascii-art&#39; visualization. I guess it will work wonders for people who never looked at binary floating point representations before!</span>
+                &ndash;&nbsp;
+                    <a href="/users/85371/sehe"
+                       title="120788 reputation"
+                       class="comment-user">sehe</a>
+                <span class="comment-date" dir="ltr"><span title="2012-02-23 08:44:50Z" class="relativetime-clean">Feb 23 '12 at 8:44</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-9314913" data-rep=50 data-anon=true
+			   class="comments-link " 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>show <b>1</b> more comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="12684625"></a>
+<div id="answer-12684625" class="answer" data-answerid="12684625" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="12684625">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">10</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>In gcc you can enable FTZ and DAZ with this:</p>
+
+<pre><code>#include &lt;xmmintrin.h&gt;
+
+#define FTZ 1
+#define DAZ 1   
+
+void enableFtzDaz()
+{
+    int mxcsr = _mm_getcsr ();
+
+    if (FTZ) {
+            mxcsr |= (1&lt;&lt;15) | (1&lt;&lt;11);
+    }
+
+    if (DAZ) {
+            mxcsr |= (1&lt;&lt;6);
+    }
+
+    _mm_setcsr (mxcsr);
+}
+</code></pre>
+
+<p>also use gcc switches: -msse -mfpmath=sse</p>
+
+<p>(corresponding credits to Carl Hetherington [1])</p>
+
+<p>[1] <a href="http://carlh.net/plugins/denormals.php">http://carlh.net/plugins/denormals.php</a></p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/12684625" title="short permalink to this answer" class="short-link" id="link-post-12684625">share</a><span class="lsep">|</span><a href="/posts/12684625/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2012-10-02 04:40:26Z" class="relativetime">Oct 2 '12 at 4:40</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/398041/german-garcia"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/694d42dd6583c0003e5b9a4235ccfb9b?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/398041/german-garcia">German Garcia</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">642</span><span title="6 silver badges"><span class="badge2"></span><span class="badgecount">6</span></span><span title="7 bronze badges"><span class="badge3"></span><span class="badgecount">7</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-12684625" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-17131771" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Also see <code>fesetround()</code> from <code>fenv.h</code> (defined for C99) for another, more portable way of rounding (<a href="http://linux.die.net/man/3/fesetround" rel="nofollow">linux.die.net/man/3/fesetround</a>) (but this <a href="http://gcc.gnu.org/ml/gcc-help/2011-12/msg00163.html" rel="nofollow">would affect all FP operations, not just subnormals</a>)</span>
+                &ndash;&nbsp;
+                    <a href="/users/398041/german-garcia"
+                       title="642 reputation"
+                       class="comment-user">German Garcia</a>
+                <span class="comment-date" dir="ltr"><span title="2012-10-02 13:52:09Z" class="relativetime-clean">Oct 2 '12 at 13:52</span></span>
+                    <span class="edited-yes" title="this comment was edited 4 times"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-33414833" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Are you sure you need 1&lt;&lt;15 and 1&lt;&lt;11 for FTZ? I have only seen 1&lt;&lt;15 quoted elsewhere...</span>
+                &ndash;&nbsp;
+                    <a href="/users/944999/fig"
+                       title="115 reputation"
+                       class="comment-user">fig</a>
+                <span class="comment-date" dir="ltr"><span title="2014-02-26 11:45:31Z" class="relativetime-clean">Feb 26 at 11:45</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-33427928" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@fig: 1&lt;&lt;11 is for the Underflow Mask. More info here: <a href="http://softpixel.com/~cwright/programming/simd/sse.php" rel="nofollow">softpixel.com/~cwright/programming/simd/sse.php</a></span>
+                &ndash;&nbsp;
+                    <a href="/users/398041/german-garcia"
+                       title="642 reputation"
+                       class="comment-user">German Garcia</a>
+                <span class="comment-date" dir="ltr"><span title="2014-02-26 16:29:40Z" class="relativetime-clean">Feb 26 at 16:29</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-12684625" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="22041085"></a>
+<div id="answer-22041085" class="answer" data-answerid="22041085" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="22041085">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">1</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>Having scoured the internet for ways of killing denormal numbers, it seems there is no "best" way to do this yet. I have found these three methods that may work best in different environments:</p>
+
+<p>1 Might not work in some GCC environments:</p>
+
+<pre><code>// Requires #include &lt;fenv.h&gt;
+fesetenv(FE_DFL_DISABLE_SSE_DENORMS_ENV);
+</code></pre>
+
+<p>2 Might not work in some Visual Studio environments:</p>
+
+<pre><code>// Requires #include &lt;xmmintrin.h&gt;
+_mm_setcsr( _mm_getcsr() | (1&lt;&lt;15) | (1&lt;&lt;6) );
+// Does both FTZ and DAZ bits. You can also use just hex value 0x8040 to do both.
+// You might also want to use the underflow mask (1&lt;&lt;11) - see answer by German Garcia
+</code></pre>
+
+<p>3 Appears to work in both GCC and Visual Studio:</p>
+
+<pre><code>// Requires #include &lt;xmmintrin.h&gt;
+// Requires #include &lt;pmmintrin.h&gt;
+_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+</code></pre>
+
+<p>4 GCC compiler switches. This one will disable denormals and make a few other things faster, but unfortunately also do lots of other approximations that might break your code. Test carefully!</p>
+
+<pre><code>-ffast-math
+</code></pre>
+
+<p>5 The equivalent of fast-math for the Visual Studio compiler is <code>/fp:fast</code> but I haven't been able to confirm whether this also disables denormals.</p>
+
+<p>6 The Intel compiler has options to disable denormals by default on modern Intel CPUs. <a href="http://software.intel.com/sites/products/documentation/doclib/iss/2013/compiler/cpp-lin/GUID-1659EAE1-583E-44EE-BDEA-7C68C46061C7.htm" rel="nofollow">More details here</a></p>
+
+<p>You can put #1 and #2 in a header, by e.g:</p>
+
+<pre><code>const int denormal = (fesetenv(FE_DFL_DISABLE_SSE_DENORMS_ENV), 1);
+</code></pre>
+
+<p>To do that with #3 you can create a mini class to put them in and create a static instance of it underneath.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/22041085" title="short permalink to this answer" class="short-link" id="link-post-22041085">share</a><span class="lsep">|</span><a href="/posts/22041085/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/22041085/revisions" title="show all edits to this post">edited <span title="2014-02-26 20:49:23Z" class="relativetime">Feb 26 at 20:49</span></a>
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        <br>
+        
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2014-02-26 12:15:45Z" class="relativetime">Feb 26 at 12:15</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/944999/fig"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/d2f617d71ba8de25501bea78ebfd7ff3?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/944999/fig">fig</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">115</span><span title="7 bronze badges"><span class="badge3"></span><span class="badgecount">7</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-22041085" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-37639989" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">This sounds like a decent answer to a different but related question (How can I prevent numeric computations from producing denormal results?)  It doesn&#39;t answer this question, though.</span>
+                &ndash;&nbsp;
+                    <a href="/users/103167/ben-voigt"
+                       title="148714 reputation"
+                       class="comment-user">Ben Voigt</a>
+                <span class="comment-date" dir="ltr"><span title="2014-06-21 21:28:34Z" class="relativetime-clean">Jun 21 at 21:28</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-22041085" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+									<a name='new-answer'></a>
+						<form id="post-form" action="/questions/9314534/answer/submit" method="post"  class="post-form">
+						    <input type="hidden" id="post-id" value="9314534" />
+                            <input type="hidden" id="qualityBanWarningShown" name="qualityBanWarningShown" value="false" />
+							<h2 class="space">Your Answer</h2>
+
+
+
+    
+
+<script>
+    StackExchange.ready(function() {
+        initTagRenderer("".split(" "), "".split(" "));
+         
+        prepareEditor({
+            heartbeatType: 'answer',
+            bindNavPrevention: true,
+            postfix: "",
+            onDemand: true,
+            discardSelector: ".discard-answer"
+            ,immediatelyShowMarkdownHelp:true
+        });
+        
+
+    });  
+</script>
+
+
+<div id="post-editor" class="post-editor">
+
+    <div style="position: relative;">     
+        <div class="wmd-container">
+            <div id="wmd-button-bar" class="wmd-button-bar"></div>
+            <textarea id="wmd-input" class="wmd-input" name="post-text" cols="92" rows="15" tabindex="101" data-min-length=""></textarea>
+        </div>
+    </div>
+
+    <div class="fl" style="margin-top: 8px; height:24px;">&nbsp;</div>
+    <div id="draft-saved" class="draft-saved community-option fl" style="margin-top: 8px; height:24px; display:none;">draft saved</div>
+
+    <div id="draft-discarded" class="draft-discarded community-option fl" style="margin-top: 8px; height:24px; display:none;">draft discarded</div>
+
+
+
+    <div id="wmd-preview" class="wmd-preview"></div>
+    <div></div>
+    <div class="edit-block">
+        <input id="fkey" name="fkey" type="hidden" value="8c6b727b7d57e168eb0f1d8a05eba522">
+        <input id="author" name="author" type="text">
+    </div>
+</div>
+							<div style="position: relative;">
+								
+            <div class="form-item dno new-post-login">
+        
+                <div class="new-login-form">
+                    <div class="new-login-left">
+                        <h3>Sign up or <a id="login-link" href="/users/login?returnurl=%2fquestions%2f9314534%2fwhy-does-changing-0-1f-to-0-slow-down-performance-by-10x%23new-answer">log in</a></h3>
+                        <script>
+                            StackExchange.ready(function () {
+                                StackExchange.helpers.onClickDraftSave('#login-link');
+                            });
+                        </script>
+                        <div class="preferred-login google-login">
+                            <p><span class="icon"></span><span>Sign up using Google</span></p>
+                        </div>
+                        <div class="preferred-login facebook-login">
+                            <p><span class="icon"></span><span>Sign up using Facebook</span></p>
+                        </div>
+                        <div class="preferred-login stackexchange-login">
+                            <p><span class="icon"></span><span>Sign up using Stack Exchange</span></p>
+                        </div>
+                    </div>
+                    <input type="hidden" name="manual-openid" class="manual-openid" />
+                    <input type="hidden" name="use-facebook" class="use-facebook" value="false" />
+                    <input type="button" class="submit-openid" value="Submit" style="display:none" />
+                    <div class="new-login-right">
+                                <h3>Post as a guest</h3>
+    <div class="form-item">
+        <table>
+        <tr>
+                    <script>
+                StackExchange.ready(function () {
+                    StackExchange.helpers.bindHelpOverlayEvents($('.vm input'));
+                });
+            </script>
+            <td class="vm">
+                <div>
+                    <label for="display-name">Name</label>
+                    <input id="display-name" name="display-name" type="text" size="30" maxlength="30" value="" tabindex="105">
+                </div>
+                <div>
+                    <label for="m-address">Email</label>
+                    <input id="m-address" name="m-address" type="text" size="30" maxlength="100" value="" tabindex="106">
+                    <span class="edit-field-overlay">required, but not shown</span>
+                </div>
+            </td>
+        </tr>
+        </table>
+    </div>
+
+                    </div>
+                </div>
+            </div>
+            <script>
+                StackExchange.ready(
+                    function () {
+                        StackExchange.openid.initPostLogin('.new-post-login', '%2fquestions%2f9314534%2fwhy-does-changing-0-1f-to-0-slow-down-performance-by-10x%23new-answer');
+                    }
+                );
+            </script>
+            <noscript>
+                        <h3>Post as a guest</h3>
+    <div class="form-item">
+        <table>
+        <tr>
+                    <script>
+                StackExchange.ready(function () {
+                    StackExchange.helpers.bindHelpOverlayEvents($('.vm input'));
+                });
+            </script>
+            <td class="vm">
+                <div>
+                    <label for="display-name">Name</label>
+                    <input id="display-name" name="display-name" type="text" size="30" maxlength="30" value="" tabindex="105">
+                </div>
+                <div>
+                    <label for="m-address">Email</label>
+                    <input id="m-address" name="m-address" type="text" size="30" maxlength="100" value="" tabindex="106">
+                    <span class="edit-field-overlay">required, but not shown</span>
+                </div>
+            </td>
+        </tr>
+        </table>
+    </div>
+
+            </noscript>
+							</div>
+           
+															<div class="form-submit cbt">
+									<input id="submit-button" type="submit" value="Post Your Answer" tabindex="110">
+									<a href="#" class="discard-answer dno">discard</a>
+
+<p class="privacy-policy-agreement">
+By posting your answer, you agree to the <a href='http://stackexchange.com/legal/privacy-policy' target='_blank'>privacy policy</a> and <a href='http://stackexchange.com/legal/terms-of-service' target='_blank'>terms of service</a>.</p>
+<input type="hidden" name="legalLinksShown" value="1" />								</div>
+						</form>
+
+
+
+						<h2 class="bottom-notice" data-loc="1">
+Not the answer you&#39;re looking for?							Browse other questions tagged <a href="/questions/tagged/c%2b%2b" class="post-tag" title="show questions tagged &#39;c++&#39;" rel="tag">c++</a> <a href="/questions/tagged/performance" class="post-tag" title="show questions tagged &#39;performance&#39;" rel="tag">performance</a> <a href="/questions/tagged/visual-studio-2010" class="post-tag" title="show questions tagged &#39;visual-studio-2010&#39;" rel="tag">visual-studio-2010</a> <a href="/questions/tagged/compilation" class="post-tag" title="show questions tagged &#39;compilation&#39;" rel="tag">compilation</a> <a href="/questions/tagged/floating-point" class="post-tag" title="show questions tagged &#39;floating-point&#39;" rel="tag">floating-point</a>  or <a href="/questions/ask">ask your own question</a>.						</h2>
+			</div>
+		</div>
+				<div id="sidebar" class="show-votes">
+						    <div class="module question-stats">
+			        <table id="qinfo">
+			            <tr>
+			                <td>
+			                    <p class="label-key">asked</p>
+			                </td>
+			                <td style="padding-left: 10px">
+			                    <p class="label-key" title="2012-02-16 15:58:39Z"><b>2 years ago</b></p>
+			                </td>
+			            </tr>
+			            <tr>
+			                <td>
+			                    <p class="label-key">viewed</p>
+			                </td>
+
+			                <td style="padding-left: 10px">
+			                    <p class="label-key">
+			                        <b>83234 times</b>
+			                    </p>
+			                </td>
+			            </tr>
+			                <tr>
+			                    <td>
+			                        <p class="label-key">active</p>
+			                    </td>
+			                    <td style="padding-left: 10px">
+			                        <p class="label-key"><b><a href="?lastactivity" class="lastactivity-link" title="2014-02-26 20:49:23Z">4 months ago</a></b></p>
+			                    </td>
+			                </tr>
+			        </table>
+			    </div>
+						
+			<div class="everyonelovesstackoverflow" id="careers2">
+        </div>
+    <div id="hireme">
+        <script>
+window.careers_adurl="//careers.stackoverflow.com/ad/companyjs",window.careers_cssurl="//cdn-careers.sstatic.net/careers/gethired/company.min.css?v=86ee8c8bfa3e",window.careers_cssurl2="//cdn-careers.sstatic.net/careers/gethired/sidebar.min.css?v=88f3fd5e2263",window.careers_adselector="#hireme",StackExchange.ready(function(){$.ajax({url:"//cdn-careers.sstatic.net/careers/gethired/company-loader.min.js?v=d38fcbba30f7",dataType:"script",cache:!1})});        </script>
+    </div>
+			<div class="module" id="chat-feature">
+    
+
+    
+<h4><a href="http://chat.stackoverflow.com" id="h-chat-link">Visit Chat</a></h4>
+
+<div class="related" id="ad502-rooms"></div>
+<script>
+// <!--
+    StackExchange.ready(
+    function () {
+        var options = {
+            chatUrl: 'http://chat.stackoverflow.com',
+            reloadUrl: '/api/recent-chat',
+            preloadData: {"activeUsers":81,"activeRooms":25,"rooms":[{"name":"JavaScript","id":17,"lastPost":1404244498,"posts":1970136,"users":[{"name":"Zirak","id":617762,"emailhash":"348d335cd13298e475eeaefa1841dee6","lastPost":1404244498},{"name":"towc","id":3161092,"emailhash":"!http://i.stack.imgur.com/kUITc.png?s=128\u0026g=1","lastPost":1404244493},{"name":"Florian Margaine","id":851498,"emailhash":"138a5bfc83f7df06b2701ccd722531c3","lastPost":1404244492},{"name":"shortCircuit","id":2974953,"emailhash":"!http://i.stack.imgur.com/CoCBk.jpg?s=128\u0026g=1","lastPost":1404244464},{"name":"Oleg","id":632133,"emailhash":"!http://i.stack.imgur.com/wHtfm.jpg?s=128\u0026g=1","lastPost":1404244399},{"name":"rlemon","id":829835,"emailhash":"!http://i.stack.imgur.com/YYo1x.jpg?s=128\u0026g=1","lastPost":1404244245},{"name":"Jhawins","id":1596138,"emailhash":"!http://i.stack.imgur.com/kmK25.jpg?s=128\u0026g=1","lastPost":1404244192}],"messages":[{"date":1404244498,"user":"Zirak","userid":617762}],"singleImage":false,"tags":["ecmascript","javascript","undefined"]},{"name":"Lounge\u003cC++\u003e","id":10,"lastPost":1404244583,"posts":2889832,"users":[{"name":"Alex M.","id":932887,"emailhash":"!http://i.stack.imgur.com/KjOz6.png?s=128\u0026g=1","lastPost":1404244583},{"name":"Filip Roséen - refp","id":1090079,"emailhash":"!http://i.stack.imgur.com/uWGaU.png?s=128\u0026g=1","lastPost":1404244564},{"name":"Rapptz","id":1381108,"emailhash":"0a55e1b257487441cd435f66bfb413f1","lastPost":1404244497},{"name":"Sam DeHaan","id":866193,"emailhash":"37c792bcab875140fc2898cf07740492","lastPost":1404244441},{"name":"Tony The Lion","id":174614,"emailhash":"ca9a84fecd3f2fea333e8a1ef16edf98","lastPost":1404244252},{"name":"Václav Zeman","id":341065,"emailhash":"8e57fe4b0f7381288a8e1e4c6cd77a8e","lastPost":1404243629},{"name":"Borgleader","id":583833,"emailhash":"791a00235c66b6c32effd4291101087f","lastPost":1404243394}],"messages":[{"date":1404244583,"user":"Alex M.","userid":932887}],"singleImage":false,"tags":["c++","c++11","c++1y","c++-faq"]}]} 
+        };
+
+        StackExchange.chatAd.init(options);
+    });
+// -->
+</script>
+
+</div>  
+    
+            <div class="module sidebar-linked">
+	<h4 id="h-linked">Linked</h4>
+	<div class="linked" data-tracker="lq=1">
+<div class="spacer">
+	<a href="/q/21216398" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">0</div>
+	</a>
+	<a href="/questions/21216398/huge-elapsed-time-for-multiplication-of-flt-min" class="question-hyperlink">huge elapsed time for multiplication of FLT_MIN</a>
+</div><div class="spacer">
+	<a href="/q/2487653" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">14</div>
+	</a>
+	<a href="/questions/2487653/avoiding-denormal-values-in-c" class="question-hyperlink">Avoiding denormal values in C++</a>
+</div><div class="spacer">
+	<a href="/q/8341395" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">13</div>
+	</a>
+	<a href="/questions/8341395/what-is-a-subnormal-floating-point-number" class="question-hyperlink">What is a subnormal floating point number?</a>
+</div><div class="spacer">
+	<a href="/q/22915543" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">23</div>
+	</a>
+	<a href="/questions/22915543/how-are-denormalized-floats-handled-in-c-sharp-apps" class="question-hyperlink">How are denormalized floats handled in C# apps?</a>
+</div><div class="spacer">
+	<a href="/q/10007243" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes  default">77</div>
+	</a>
+	<a href="/questions/10007243/c-code-loop-performance-continued" class="question-hyperlink">C code loop performance [continued]</a>
+</div><div class="spacer">
+	<a href="/q/18237150" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">7</div>
+	</a>
+	<a href="/questions/18237150/wheres-the-24th-fraction-bit-on-a-single-precision-float-ieee-754" class="question-hyperlink">Where&#39;s the 24th fraction bit on a single precision float? IEEE 754</a>
+</div><div class="spacer">
+	<a href="/q/16477037" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">16</div>
+	</a>
+	<a href="/questions/16477037/why-does-msvs-not-optimize-away-0-instead-it-turns-it-into-a-denormalized-flo" class="question-hyperlink">Why does MSVS not optimize away +0? Instead, it turns it into a denormalized float?</a>
+</div><div class="spacer">
+	<a href="/q/5180150" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">11</div>
+	</a>
+	<a href="/questions/5180150/floating-multiplication-performing-slower-depending-of-operands-in-c" class="question-hyperlink">Floating multiplication performing slower depending of operands in C</a>
+</div><div class="spacer">
+	<a href="/q/14001910" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">9</div>
+	</a>
+	<a href="/questions/14001910/what-is-this-denormal-data-about-c" class="question-hyperlink">What is this &ldquo;denormal data&rdquo; about ? - C++</a>
+</div><div class="spacer">
+	<a href="/q/11616941" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">11</div>
+	</a>
+	<a href="/questions/11616941/structure-of-arrays-and-array-of-structures-performance-difference" class="question-hyperlink">Structure of arrays and array of structures - performance difference</a>
+</div>					<div class="spacer more">
+				<a href="http://stackoverflow.com/questions/linked/9314534">see more linked questions…</a>
+			</div>
+	</div>
+</div>
+
+				<div class="module sidebar-related">
+					<h4 id="h-related">Related</h4>
+                    <div class="related js-gps-related-questions" data-tracker="rq=1">
+                        <div class="spacer">
+<a href="/q/318398" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted large">249
+    </div>
+</a><a href="/questions/318398/why-does-c-compilation-take-so-long" class="question-hyperlink">Why does C++ compilation take so long?</a>
+</div>
+<div class="spacer">
+<a href="/q/1554099" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes extra-large">1373
+    </div>
+</a><a href="/questions/1554099/why-is-the-android-emulator-so-slow" class="question-hyperlink">Why is the Android emulator so slow?</a>
+</div>
+<div class="spacer">
+<a href="/q/2392932" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">6
+    </div>
+</a><a href="/questions/2392932/why-does-the-speed-of-this-sor-solver-depend-on-the-input" class="question-hyperlink">Why does the speed of this SOR solver depend on the input?</a>
+</div>
+<div class="spacer">
+<a href="/q/2735245" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes default">5
+    </div>
+</a><a href="/questions/2735245/compiler-optimization-causing-the-performance-to-slow-down" class="question-hyperlink">Compiler optimization causing the performance to slow down</a>
+</div>
+<div class="spacer">
+<a href="/q/5492236" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">2
+    </div>
+</a><a href="/questions/5492236/why-does-reflection-slow-down-android-phone" class="question-hyperlink">why does reflection slow down android phone</a>
+</div>
+<div class="spacer">
+<a href="/q/12264970" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted large">497
+    </div>
+</a><a href="/questions/12264970/why-is-my-program-slow-when-looping-over-exactly-8192-elements" class="question-hyperlink">Why is my program slow when looping over exactly 8192 elements?</a>
+</div>
+<div class="spacer">
+<a href="/q/12324223" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">5
+    </div>
+</a><a href="/questions/12324223/does-having-old-commented-code-and-a-lot-of-whitespaces-in-code-slow-down-perfor" class="question-hyperlink">Does having old commented code and a lot of whitespaces in code slow down performance?</a>
+</div>
+<div class="spacer">
+<a href="/q/18013060" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes default">0
+    </div>
+</a><a href="/questions/18013060/different-runs-for-c-exe-gives-different-distance-calculation-results" class="question-hyperlink">different runs for c++ exe gives different distance calculation results</a>
+</div>
+<div class="spacer">
+<a href="/q/19470873" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted large">143
+    </div>
+</a><a href="/questions/19470873/why-does-gcc-generate-15-20-faster-code-if-i-optimize-for-size-instead-of-speed" class="question-hyperlink">Why does gcc generate 15-20% faster code if I optimize for SIZE instead of speed?</a>
+</div>
+<div class="spacer">
+<a href="/q/20153363" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes default">0
+    </div>
+</a><a href="/questions/20153363/why-does-openmp-slow-down-my-code-proportional-to-number-of-threads" class="question-hyperlink">Why does OpenMP SLOW down my code proportional to number of threads</a>
+</div>
+
+                    </div>
+				</div>
+            
+<div id="hot-network-questions" class="module">
+    <h4>
+        <a href="//stackexchange.com/questions?tab=hot" 
+           class="js-gps-track" 
+           data-gps-track="posts_hot_network.click({ item_type:1, location:11 })">
+            Hot Network Questions
+        </a>
+    </h4>
+    <ul>
+            <li >
+                <div class="favicon favicon-skeptics" title="Skeptics Stack Exchange"></div><a href="http://skeptics.stackexchange.com/questions/22180/do-european-countries-maintain-air-force-on-high-alert" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:212 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Do European countries maintain Air Force on high alert?
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-math" title="Mathematics Stack Exchange"></div><a href="http://math.stackexchange.com/questions/853164/i-need-a-relation-which-is-not-reflexive-not-symmetric-and-not-transitive" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:69 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    I need a relation which is not reflexive, not symmetric, and not transitive
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-unix" title="Unix &amp; Linux Stack Exchange"></div><a href="http://unix.stackexchange.com/questions/140198/what-is-the-difference-between-these-two-sshd-configs" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:106 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What is the difference between these two SSHD configs?
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-blender" title="Blender Stack Exchange"></div><a href="http://blender.stackexchange.com/questions/13663/how-to-see-bundles-and-back-projecting-points-of-different-colors" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:502 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How to see bundles and back projecting points of different colors?
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-gamedev" title="Game Development Stack Exchange"></div><a href="http://gamedev.stackexchange.com/questions/79553/how-do-action-rpgs-make-different-weapon-types-feel-unique" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:53 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How do Action RPGs make different weapon types feel unique?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-electronics" title="Electrical Engineering Stack Exchange"></div><a href="http://electronics.stackexchange.com/questions/117217/why-cant-wi-fi-run-at-2-4-gbit-s" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:135 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why can&#39;t Wi-Fi run at 2.4 Gbit/s?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-english" title="English Language &amp; Usage Stack Exchange"></div><a href="http://english.stackexchange.com/questions/181434/what-to-call-the-area-where-the-hair-directions-all-change-on-the-head" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:97 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What to call the area where the hair directions all change on the head?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-money" title="Personal Finance &amp; Money Stack Exchange"></div><a href="http://money.stackexchange.com/questions/33817/whats-the-catch-with-less-than-monthly-mortgage-payments" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:93 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What&#39;s the catch with less-than-monthly mortgage payments?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-philosophy" title="Philosophy Stack Exchange"></div><a href="http://philosophy.stackexchange.com/questions/14352/why-does-the-universe-obey-scientific-laws" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:265 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why does the universe obey scientific laws?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-craftcms" title="Craft CMS Stack Exchange"></div><a href="http://craftcms.stackexchange.com/questions/651/overwrite-entry-title-in-template" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:563 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Overwrite entry.title in template
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-money" title="Personal Finance &amp; Money Stack Exchange"></div><a href="http://money.stackexchange.com/questions/33805/am-i-using-my-credit-card-wrong" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:93 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Am I using my credit card wrong?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-gamedev" title="Game Development Stack Exchange"></div><a href="http://gamedev.stackexchange.com/questions/79594/how-can-i-determine-the-extreme-color-values-in-a-texture" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:53 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How can I determine the extreme color values in a texture?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-hinduism" title="Hinduism Stack Exchange"></div><a href="http://hinduism.stackexchange.com/questions/639/why-do-hindus-remove-their-footwear-before-entering-temples" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:567 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why do Hindus remove their footwear before entering temples?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-salesforce" title="Salesforce Stack Exchange"></div><a href="http://salesforce.stackexchange.com/questions/42048/on-deploying-2-triggers-in-same-org-it-fails-with-system-limitexception-too-m" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:459 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    On deploying 2 triggers in same org, it fails with &#39;System.LimitException: Too many SOQL queries: 101 &#39;, but on deploying either of the one it works
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-scifi" title="Science Fiction &amp; Fantasy Stack Exchange"></div><a href="http://scifi.stackexchange.com/questions/60405/who-is-was-the-lord-of-the-rings" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:186 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Who is / was the &quot;Lord of the Rings&quot;?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-math" title="Mathematics Stack Exchange"></div><a href="http://math.stackexchange.com/questions/853602/what-should-i-use-latex-or-microsoft-word-professional" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:69 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What should I use Latex or Microsoft Word Professional?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-scifi" title="Science Fiction &amp; Fantasy Stack Exchange"></div><a href="http://scifi.stackexchange.com/questions/60488/old-scifi-movie-glowing-lights-in-chests-to-indicate-attraction" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:186 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Old SciFi movie - glowing lights in chests to indicate attraction
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-dba" title="Database Administrators Stack Exchange"></div><a href="http://dba.stackexchange.com/questions/69361/is-select-still-a-big-no-no-on-sql-server-2012" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:182 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Is select * still a big no-no on SQL Server 2012?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-gaming" title="Arqade"></div><a href="http://gaming.stackexchange.com/questions/174472/can-i-move-all-pokemon-at-once" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:41 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Can I move All Pokemon at once?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-physics" title="Physics Stack Exchange"></div><a href="http://physics.stackexchange.com/questions/121879/can-i-compute-the-mass-of-a-coin-based-on-the-sound-of-its-fall" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:151 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Can I compute the mass of a coin based on the sound of its fall?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-physics" title="Physics Stack Exchange"></div><a href="http://physics.stackexchange.com/questions/122505/why-is-filling-a-balloon-from-your-mouth-much-harder-initially" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:151 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why is filling a balloon from your mouth much harder initially?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-cstheory" title="Theoretical Computer Science Stack Exchange"></div><a href="http://cstheory.stackexchange.com/questions/25097/what-is-the-axiomatic-set-theory-context-of-the-p-vs-np-and-np-exptime-conject" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:114 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What is the axiomatic (set theory) context of the P vs NP and NP=EXPTIME conjectures?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-askubuntu" title="Ask Ubuntu"></div><a href="http://askubuntu.com/questions/490366/how-to-retain-installed-software-between-ubuntu-installations-tools-for-softwa" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:89 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How to retain installed software between Ubuntu installations / Tools for software inventory?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-math" title="Mathematics Stack Exchange"></div><a href="http://math.stackexchange.com/questions/853085/is-n-1-often-a-prime" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:69 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Is n! + 1 often a prime?
+                </a>
+
+            </li>
+    </ul>
+
+        <a href="#" 
+           class="show-more js-show-more js-gps-track" 
+           data-gps-track="posts_hot_network.click({ item_type:3, location:11 })">
+            more hot questions
+        </a>
+</div>
+		</div>
+	
+<div id="feed-link">
+    <div id="feed-link-text">
+        <a href="/feeds/question/9314534" title="feed of this question and its answers">
+            <span class="feed-icon"></span>question feed
+        </a>
+    </div>
+</div>	<script>
+StackExchange.ready(function(){$.get('/posts/9314534/ivc/1393');});
+</script>
+<noscript>
+    <div><img src="/posts/9314534/ivc/1393" class="dno" alt="" width="0" height="0"></div>
+</noscript><div style="display:none" id="prettify-lang">lang-cpp</div></div>
+
+
+
+        </div>
+    </div>
+    <div id="footer" class="categories">
+        <div class="footerwrap">
+            <div id="footer-menu">
+                <div class="top-footer-links">
+                        <a href="/tour">tour</a>
+                    <a href="/help">help</a>
+                        <a href="/help/badges">badges</a>
+                    <a href="http://blog.stackoverflow.com?blb=1">blog</a>
+                        <a href="http://chat.stackoverflow.com">chat</a>
+                    <a href="http://data.stackexchange.com">data</a>
+                    <a href="http://stackexchange.com/legal">legal</a>
+                    <a href="http://stackexchange.com/legal/privacy-policy">privacy policy</a>
+                    <a href="http://stackexchange.com/work-here">work here</a>
+                    <a href="http://stackexchange.com/mediakit">advertising info</a>
+
+                    <a onclick='StackExchange.switchMobile("on")'>mobile</a>
+                    <b><a href="/contact">contact us</a></b>
+                        <b><a href="http://meta.stackoverflow.com">feedback</a></b>
+                    
+                </div>
+                <div id="footer-sites">
+                    <table>
+    <tr>
+            <th colspan=3>
+                Technology
+            </th>
+            <th >
+                Life / Arts
+            </th>
+            <th >
+                Culture / Recreation
+            </th>
+            <th >
+                Science
+            </th>
+            <th >
+                Other
+            </th>
+    </tr>
+    <tr>
+            <td>
+                <ol>
+                        <li><a href="http://stackoverflow.com" title="professional and enthusiast programmers">Stack Overflow</a></li>
+                        <li><a href="http://serverfault.com" title="professional system and network administrators">Server Fault</a></li>
+                        <li><a href="http://superuser.com" title="computer enthusiasts and power users">Super User</a></li>
+                        <li><a href="http://webapps.stackexchange.com" title="power users of web applications">Web Applications</a></li>
+                        <li><a href="http://askubuntu.com" title="Ubuntu users and developers">Ask Ubuntu</a></li>
+                        <li><a href="http://webmasters.stackexchange.com" title="pro webmasters">Webmasters</a></li>
+                        <li><a href="http://gamedev.stackexchange.com" title="professional and independent game developers">Game Development</a></li>
+                        <li><a href="http://tex.stackexchange.com" title="users of TeX, LaTeX, ConTeXt, and related typesetting systems">TeX - LaTeX</a></li>
+                            </ol></td><td><ol>
+                        <li><a href="http://programmers.stackexchange.com" title="professional programmers interested in conceptual questions about software development">Programmers</a></li>
+                        <li><a href="http://unix.stackexchange.com" title="users of Linux, FreeBSD and other Un*x-like operating systems.">Unix &amp; Linux</a></li>
+                        <li><a href="http://apple.stackexchange.com" title="power users of Apple hardware and software">Ask Different (Apple)</a></li>
+                        <li><a href="http://wordpress.stackexchange.com" title="WordPress developers and administrators">WordPress Development</a></li>
+                        <li><a href="http://gis.stackexchange.com" title="cartographers, geographers and GIS professionals">Geographic Information Systems</a></li>
+                        <li><a href="http://electronics.stackexchange.com" title="electronics and electrical engineering professionals, students, and enthusiasts">Electrical Engineering</a></li>
+                        <li><a href="http://android.stackexchange.com" title="enthusiasts and power users of the Android operating system">Android Enthusiasts</a></li>
+                        <li><a href="http://security.stackexchange.com" title="Information security professionals">Information Security</a></li>
+                            </ol></td><td><ol>
+                        <li><a href="http://dba.stackexchange.com" title="database professionals who wish to improve their database skills and learn from others in the community">Database Administrators</a></li>
+                        <li><a href="http://drupal.stackexchange.com" title="Drupal developers and administrators">Drupal Answers</a></li>
+                        <li><a href="http://sharepoint.stackexchange.com" title="SharePoint enthusiasts">SharePoint</a></li>
+                        <li><a href="http://ux.stackexchange.com" title="user experience researchers and experts">User Experience</a></li>
+                        <li><a href="http://mathematica.stackexchange.com" title="users of Mathematica">Mathematica</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#technology" class="more">
+                                more (14)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://photo.stackexchange.com" title="professional, enthusiast and amateur photographers">Photography</a></li>
+                        <li><a href="http://scifi.stackexchange.com" title="science fiction and fantasy enthusiasts">Science Fiction &amp; Fantasy</a></li>
+                        <li><a href="http://graphicdesign.stackexchange.com" title="professional graphic designers and non-designers trying to do their own graphic design">Graphic Design</a></li>
+                        <li><a href="http://cooking.stackexchange.com" title="professional and amateur chefs">Seasoned Advice (cooking)</a></li>
+                        <li><a href="http://diy.stackexchange.com" title="contractors and serious DIYers">Home Improvement</a></li>
+                        <li><a href="http://money.stackexchange.com" title="people who want to be financially literate">Personal Finance &amp; Money</a></li>
+                        <li><a href="http://academia.stackexchange.com" title="academics and those enrolled in higher education">Academia</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#lifearts" class="more">
+                                more (10)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://english.stackexchange.com" title="linguists, etymologists, and serious English language enthusiasts">English Language &amp; Usage</a></li>
+                        <li><a href="http://skeptics.stackexchange.com" title="scientific skepticism">Skeptics</a></li>
+                        <li><a href="http://judaism.stackexchange.com" title="those who base their lives on Jewish law and tradition and anyone interested in learning more">Mi Yodeya (Judaism)</a></li>
+                        <li><a href="http://travel.stackexchange.com" title="road warriors and seasoned travelers">Travel</a></li>
+                        <li><a href="http://christianity.stackexchange.com" title="committed Christians, experts in Christianity and those interested in learning more">Christianity</a></li>
+                        <li><a href="http://gaming.stackexchange.com" title="passionate videogamers on all platforms">Arqade (gaming)</a></li>
+                        <li><a href="http://bicycles.stackexchange.com" title="people who build and repair bicycles, people who train cycling, or commute on bicycles">Bicycles</a></li>
+                        <li><a href="http://rpg.stackexchange.com" title="gamemasters and players of tabletop, paper-and-pencil role-playing games">Role-playing Games</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#culturerecreation" class="more">
+                                more (21)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://math.stackexchange.com" title="people studying math at any level and professionals in related fields">Mathematics</a></li>
+                        <li><a href="http://stats.stackexchange.com" title="people interested in statistics, machine learning, data analysis, data mining, and data visualization">Cross Validated (stats)</a></li>
+                        <li><a href="http://cstheory.stackexchange.com" title="theoretical computer scientists and researchers in related fields">Theoretical Computer Science</a></li>
+                        <li><a href="http://physics.stackexchange.com" title="active researchers, academics and students of physics">Physics</a></li>
+                        <li><a href="http://mathoverflow.net" title="professional mathematicians">MathOverflow</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#science" class="more">
+                                more (7)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://stackapps.com" title="apps, scripts, and development with the Stack Exchange API">Stack Apps</a></li>
+                        <li><a href="http://meta.stackexchange.com" title="meta-discussion of the Stack Exchange family of Q&amp;A websites">Meta Stack Exchange</a></li>
+                        <li><a href="http://area51.stackexchange.com" title="proposing new sites in the Stack Exchange network">Area 51</a></li>
+                        <li><a href="http://careers.stackoverflow.com">Stack Overflow Careers</a></li>
+                    
+                </ol>
+            </td>
+    </tr>
+</table>
+                </div>
+            </div>
+
+            <div id="copyright">
+                site design / logo &#169; 2014 stack exchange inc; user contributions licensed under <a href="http://creativecommons.org/licenses/by-sa/3.0/" rel="license">cc by-sa 3.0</a> 
+                with <a href="http://blog.stackoverflow.com/2009/06/attribution-required/" rel="license">attribution required</a>
+            </div>
+            <div id="svnrev">
+                rev 2014.6.30.1688
+            </div>
+            
+        </div>
+    </div>
+    <noscript>
+        <div id="noscript-warning">Stack Overflow works best with JavaScript enabled<img src="http://pixel.quantserve.com/pixel/p-c1rF4kxgLUzNc.gif" alt="" class="dno"></div>
+    </noscript>
+
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () { (i[r].q = i[r].q || []).push(arguments) }, i[r].l = 1 * new Date(); a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m);
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+        ga('create', 'UA-5620270-1');        
+        
+        ga('set', 'dimension2', '|c++|performance|visual-studio-2010|compilation|floating-point|');         
+        ga('send', 'pageview');
+        var _qevents = _qevents || [],
+            _comscore = _comscore || [];
+        (function () {
+            var ssl='https:'==document.location.protocol,
+                s=document.getElementsByTagName('script')[0],
+                qc=document.createElement('script');
+            qc.async=true;
+            qc.src=(ssl?'https://secure':'http://edge')+'.quantserve.com/quant.js';
+            s.parentNode.insertBefore(qc, s);
+            var sc=document.createElement('script');
+            sc.async=true;
+            sc.src=(ssl?'https://sb':'http://b') + '.scorecardresearch.com/beacon.js';
+            s.parentNode.insertBefore(sc, s);
+        })();
+        _comscore.push({ c1: "2", c2: "17440561" });
+        _qevents.push({ qacct: "p-c1rF4kxgLUzNc" });
+    </script>        
+    
+    </body>
+</html>

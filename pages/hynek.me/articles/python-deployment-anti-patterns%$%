@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+
+        <title>Python Deployment Anti-Patterns — Hynek Schlawack</title>
+        <meta name="description" content="Homepage and blog of Hynek Schlawack. Pythonista, C hacker, and JavaScript dabbler from Berlin/Germany." />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/ico" />
+
+        <link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="https://hynek.me/atom" />
+
+        <!--Stylesheets-->
+        <link rel="stylesheet" href="/assets/css/style.css" media="screen" title="screen">
+        <link rel="stylesheet" href="/assets/css/pygments.css" media="screen" title="screen">
+
+        <!--[if lt IE 9]>
+        <script src="//vmcdn.de/html5shim/3.7.0/html5shiv.js"></script>
+        <script src="//vmcdn.de/selectivizr/1.0.2/selectivizr-min.js" type="text/javascript"></script>
+        <![endif]-->
+    </head>
+    <body>
+        <header>
+            <div class="top-nav">
+                <ul>
+                    <li class="page_item"><a href="/">Home</a></li>
+                    <li class="page_item"><a href="/about/">About Me</a></li>
+                    <li class="page_item"><a href="/articles/">Articles</a></li>
+                    <li class="page_item"><a href="/talks/">Talks</a></li>
+                    <li class="page_item"></li>
+                </ul>
+            </div>
+        </header>
+        
+    <section id="post">
+        <h2>Python Deployment Anti-Patterns</h2>
+        <header id="meta">
+            <ul>
+                <li><time pubdate datetime="2012-04-23">April 23, 2012</time></li>
+                <li><a href="/articles/python-deployment-anti-patterns/">∞</a></li>
+            </ul>
+        </header>
+        <article><p>Deploying web applications is hard. No shiny continuous deployment talk and no DevOps coolness can change that. Or to use DevOp Borat’s <a href="https://twitter.com/#!/DEVOPS_BORAT/status/192271992253190144">words</a>: “Is all fun and game until you are need of put it in production.“ There are some mistakes I see people doing again and again so I’d like to address them here.</p>
+
+<p>This article is also laying ground for the <a href="/articles/python-app-deployment-with-native-packages/">second part</a> where I’ll describe the way <em>we</em> deploy Python applications.</p>
+<h3>My background</h3>
+<p>Before I start preaching, let me tell you a bit about me and what I do in order to give you some perspective from which I’m writing.</p>
+
+<p><a href="/about/">I</a> work for a German <a href="http://www.variomedia.de/">web hoster and domain registrar</a>. And I’m deploying Python based applications all the time. Most parts of our infrastructure are built using Python. And those that aren’t, will be eventually.</p>
+
+<p>The sizes range from tiny glue to mission-critical APIs. We have legacy <a href="http://www.pylonsproject.org/projects/pylons-framework/about">Pylons</a>, new <a href="http://www.pylonsproject.org/projects/pyramid/about">Pyramid</a>, some <a href="http://www.djangoproject.com/">Django</a> and a lot of <a href="http://twistedmatrix.com/">Twisted</a> apps. And everything is seasoned with a hint of <a href="http://celeryproject.org/">Celery</a>.</p>
+
+<p>So if I say “application”, I don’t mean just some Django CRUD front end. Python lives in all layers here. And all layers have to be deployed somehow.</p>
+
+<p>Deploying so many diverse applications requires solid and consistent deployment standards if you don’t want to lose your mind.  The main <a href="http://www.infoq.com/presentations/Simple-Made-Easy">mantra</a> is to go for <em>simple</em> solutions, <em>not</em> for easy ones. Something that is easy now, can become a major PITA down the road.</p>
+<h3>Don’t use ancient system Python versions</h3>
+<p>Every time someone whines about lack of support for Python 2.4 in recent packages, I hear Kenneth Reitz <a href="https://github.com/kennethreitz/requests/issues/351">saying</a>]:</p>
+
+<blockquote>
+<p>Python 2.4 is not supported. It came out 8 years ago. That&#39;s older than Youtube. Upgrade.</p>
+</blockquote>
+
+<p>If you’re serious about using Python you should be prepared to roll your own RPMs/DEBs. We’re running even <a href="http://en.wikipedia.org/wiki/RHEL#Life_Cycle_Dates">RHEL 4</a> on some of our servers; but we’re a Python company so we use the best thing we can get – even if it means extra work.</p>
+
+<p>We also have to compile our own Apaches and MySQLs for our customer servers (we don’t use any of them for our own systems, but our customers demand a solid <a href="http://en.wikipedia.org/wiki/LAMP_(software_bundle)">LAMP</a> stack) because we need that fine-grained control. Why should be Python an exception? Rolling an own DEB/RPM is a lot of less of a nuisance than writing code for Python &lt; 2.6.</p>
+
+<p>This works also both ways. It’s totally possible that you have some mission critical web app that isn’t compatible with Python newer than 2.4. Are you going to install a single server with an ancient OS, just to accommodate? Key infrastructure <em>must not</em> be dictated by third parties.</p>
+
+<p>On the other hand I’m <strong>not</strong> saying that you <em>have</em> to compile Python yourself! Oneiric and later have Python 2.7 on board, there’s absolutely no reason to build it for yourself. The stress is on “ancient”, not on “system” in this caption.</p>
+<h3>Use virtual environments</h3>
+<p>Gentlepeople, if you’re deploying software, <em>always</em> use <a href="http://docs.python-guide.org/en/latest/dev/virtualenvs/">virtualenv</a>. Actually, that same goes for local development – look into <a href="http://www.doughellmann.com/projects/virtualenvwrapper/">virtualenvwrapper</a> which makes the handling of them a breeze. So never install into your global site-packages! The only exception is the aforementioned virtualenv – which in turn installs <a href="http://www.pip-installer.org/">pip</a> in each environment it installs to.</p>
+
+<p>Test your software against certain versions of packages, pinpoint them using <code>pip freeze</code> and be confident that the identical Python environment is just a <code>pip install -r requirements.txt</code> away. For the record, I split up my requirement files; more on that in the next installment.</p>
+
+<p>Also, use real version pinning like <code>package==1.3</code>. Don’t do <code>package&gt;=1.3</code>, it <em>will</em> bite you eventually, just as it has bitten me and many others.</p>
+<h3>Never use Python packages from your distribution</h3>
+<p>This one is in fact an extreme version of the previous anti-pattern.</p>
+
+<p>First of all, there’s no reason to succumb to a dictate of your distribution which version of a package to use. They don’t know your application. Maybe you need the latest version, maybe you need a slightly older one. </p>
+
+<ol>
+<li>If I write and test software, I do it against certain packages. Packages tend to change APIs, introduce bugs, etc.</li>
+<li>My software is supposed to run on any UNIXy platform as long as the Python it’s written against is present. </li>
+</ol>
+
+<p>What if the next Ubuntu ships with a different <a href="http://www.sqlalchemy.org/">SQLAlchemy</a> by default? Do I have to fix all my applications before upgrading our servers? Or what if I need to deploy an app to an older server? Do I have to rewrite it so it runs with older packages? I prefer not to.</p>
+
+<p>I really wish the Linux distributions wouldn’t ship anything more than the Python interpreter and virtualenv. Anything else just leverages bad behavior.</p>
+
+<p>The only good they may be doing is automatically updating packages with security vulnerabilities that you may have missed. That said, I’m convinced that if you deploy software to the net, <em>you</em> have the <em>responsibility</em> to monitor them yourself anyway. Relying on your distribution gives you just a false sense of security – if your customer’s data gets hacked, they <em>don’t</em> care that Ubuntu was to slow to issue a security update.</p>
+<h3>Don’t run your daemons in a tmux/screen</h3>
+<p>It seems to be part of everyone’s evolution to do it, so be the first one to skip it! </p>
+
+<p>Yes, <a href="http://tmux.sourceforge.net/">tmux</a> is full of awesome (and wayyy better than screen), but <em>please</em> don’t just ssh on your host and start the service in a tmux or screen. You have nothing that brings the daemon back up if it crashes. You can’t restart it on 10 servers without ssh’ing on 10 servers, get the screen and Ctrl-C it. Granted, it’s easy in the beginning but it doesn’t scale and lacks basic features that simple-to-use tools have to offer.</p>
+
+<p>A common favorite is <a href="http://supervisord.org/">supervisord</a>. A definition for a service looks as simple as:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="k">[program:yourapp]</span>
+<span class="na">command</span><span class="o">=</span><span class="s">/path/to/venv/bin/gunicorn_django --config deploy/gunicorn-config.py settings/production.py</span>
+<span class="na">user</span><span class="o">=</span><span class="s">yourapp</span>
+<span class="na">directory</span><span class="o">=</span><span class="s">/apps/yourapp</span>
+</pre></div>
+</td></tr></table></div></div>
+<p>You add the file to <code>/etc/supervisor/conf.d/</code>, make a <code>supervisorctl update</code> and your service is up an running. It’s a no-brainer and much easier than juggling rc.d scripts. Crash recovery and optional web interface included.</p>
+<h3>Configuration is not part of the application</h3>
+<p>Your production configuration doesn’t belong into the (same) source repository. There are configuration management tools like <a href="http://www.ansibleworks.com">Ansible</a>, <a href="http://saltstack.org/">Salt</a>, <a href="http://puppetlabs.com/">Puppet</a> or <a href="http://www.opscode.com/chef/">Chef</a> that do exactly that for you.</p>
+
+<p><strong>Just better and reliably.</strong> While installing the configuration, Puppet can make sure that the directories have always certain permissions. Configuration templates make it perfect for mass deployments. Some service IP changed? Just fix it in Puppet’s repo and deploy the changes. Eventually all services will catch up. If you want, you can always trigger a run, for example using a simple <a href="http://docs.fabfile.org/">Fabric</a> script.</p>
+
+<p>But don’t use Fabric for actual deployments! This is the perfect example of the battle between “simple” and “easy”. At first, it’s easier to put everything inside of the repo and run a Fabric script that does a <code>git pull</code> and restarts your daemon. On the long run, you’ll regret it like many before you did.</p>
+
+<p>Just to stress this point: I love Fabric and couldn’t live without. But it’s not the right tool for orchestrating deployments – that’s where Puppet and Chef step in.</p>
+<h3>Look into alternatives to Apache + mod_wsgi setups</h3>
+<p>Many people go for <a href="http://httpd.apache.org/">Apache</a> and <a href="http://code.google.com/p/modwsgi/">mod_wsgi</a> by default, because everybody has already heard about Apache.</p>
+
+<p>To me, Apache feels like a <a href="http://www.laputan.org/mud/">big ball of mud</a> and I find the modular combination of <a href="http://gunicorn.org/">gunicorn</a> or <a href="http://projects.unbit.it/uwsgi/">uwsgi</a> together with <a href="http://www.nginx.com/">nginx</a> much more pleasing and easier to control.</p>
+
+<p>YMMV, but have a look around before you settle.</p>
+<h3>Enough negativity</h3>
+<p>I don’t claim that I’ve discovered the sorcerer’s stone, however I’ve developed a system for us that proved solid and simple on <em>the long run</em>.</p>
+
+<p>The trick is to build a debian package (but it can be done using RPMs just as well) with the application and the whole virtualenv inside. The configuration goes into Puppet and Puppet also takes care that the respective servers have always the correct version of the DEB.</p>
+
+<p>The advantage is that such a DEB is totally self-contained, doesn’t require to have build tools and libraries on the target servers and paired with solid Puppet configuration, it makes consistent deployments over a wide range of hosts easy, fast and reliable. But you have to do your homework first.</p>
+
+<p>If you find this approach intriguing, make sure you check out <a href="/articles/python-app-deployment-with-native-packages/">my article</a> where I describe just that! I&#39;ve also presented at PyCon US 2013 about Python deployments and the <a href="/talks/python-deployments/">talk notes</a> may have some value to you.</p>
+
+<hr>
+
+<p>Achievement unlocked: this article has been featured in my favorite magazine <a href="http://hackermonthly.com/issue-26.html">Hacker Monthly, Issue 26, July 2012</a>. Yes, I’m bursting with pride. ;)</p>
+</article>
+        <p id="footer">❧</p>
+    </section>
+    <p><a href="/articles/">&larr; See all posts</a></p>
+
+        <footer id="bottom">
+            © 2005–2014 Hynek Schlawack
+            <div id="arr">All Rights Reserved • <a href="/imprint/">Impressum</a></div>
+        </footer>
+        <!--Javascript-->
+        <script src="//vmcdn.de/jquery/1.11.0/jquery-1.11.0.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="//vmcdn.de/jqwidont/0.1/jqwidont-compressed.js" type="text/javascript" charset="utf-8"></script>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                    // Load JQWidon't
+                    $('article>p').widont();
+            });
+            var pkBaseURL = "https://stats.ox.cx/";
+            document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
+            </script><script type="text/javascript">
+            try {
+                var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 2);
+                piwikTracker.trackPageView();
+                piwikTracker.enableLinkTracking();
+            } catch( err ) {}
+        </script><noscript><p><img src="https://stats.ox.cx/piwik.php?idsite=2" style="border:0" alt="" /></p></noscript>
+    </body>
+</html>

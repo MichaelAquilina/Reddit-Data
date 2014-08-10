@@ -1,0 +1,485 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">
+
+<head profile="http://gmpg.org/xfn/11"><link rel="stylesheet" type="text/css" href="http://inventwithpython.com/blog/wp-content/cache/minify/000000/M9DPzEvLzC3N1S8uqcxJ1THUz8hMSdUtycgs1i1ILCqBCAMA.css?ce84c4" media="all" />
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="generator" content="WordPress 3.9.1" />
+	
+	<title>The âInvent with Pythonâ Blog  &mdash; Stop Using &#8220;print&#8221; for Debugging: A 5 Minute Quickstart Guide to Pythonâs logging Module</title>
+	
+	
+	<link rel="alternate" type="application/rss+xml" title="The âInvent with Pythonâ Blog RSS Feed" href="http://inventwithpython.com/blog/feed/" />
+	<link rel="pingback" href="http://inventwithpython.com/blog/xmlrpc.php" />
+	
+	
+            <script type="text/javascript">//<![CDATA[
+            // Google Analytics for WordPress by Yoast v4.3.5 | http://yoast.com/wordpress/google-analytics/
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-5459430-3']);
+				            _gaq.push(['_trackPageview']);
+            (function () {
+                var ga = document.createElement('script');
+                ga.type = 'text/javascript';
+                ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ga, s);
+            })();
+            //]]></script>
+			<link rel="alternate" type="application/rss+xml" title="The âInvent with Pythonâ Blog &raquo; Stop Using &#8220;print&#8221; for Debugging: A 5 Minute Quickstart Guide to Pythonâs logging Module Comments Feed" href="http://inventwithpython.com/blog/2012/04/06/stop-using-print-for-debugging-a-5-minute-quickstart-guide-to-pythons-logging-module/feed/" />
+<script type="text/javascript" src="http://inventwithpython.com/blog/wp-content/cache/minify/000000/S8rJT9cvL9DNzEvOKU1JLdbPAqLC0tSiSiilk0RIhW5uZnpRYkmqXm5mno6hfkZmSqpuSUZmsW5BYlEJUDUA.js?ce84c4"></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://inventwithpython.com/blog/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://inventwithpython.com/blog/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='How to Code a Twitter Bot in Python on Dreamhost' href='http://inventwithpython.com/blog/2012/03/25/how-to-code-a-twitter-bot-in-python-on-dreamhost/' />
+<link rel='next' title='Implement a &#8220;Save Game&#8221; Feature in Python with the shelve Module' href='http://inventwithpython.com/blog/2012/05/03/implement-a-save-game-feature-in-python-with-the-shelve-module/' />
+<meta name="generator" content="WordPress 3.9.1" />
+<link rel='canonical' href='http://inventwithpython.com/blog/2012/04/06/stop-using-print-for-debugging-a-5-minute-quickstart-guide-to-pythons-logging-module/' />
+<link rel='shortlink' href='http://inventwithpython.com/blog/?p=675' />
+
+<script type="text/javascript"><!--
+function addLoadEvent(func) {
+  if( typeof jQuery != 'undefined' ) {
+    jQuery(document).ready( func );
+  } else if( typeof Prototype != 'undefined' ) {
+    Event.observe( window, 'load', func );
+  } else {
+    var oldonload = window.onload;
+    if (typeof window.onload != 'function') {
+      window.onload = func;
+    } else {
+      window.onload = function() {
+        if (oldonload)
+          oldonload();
+        
+        func();
+      }
+    }
+  }
+}
+function wphc(){
+	var wphc_data = [656512637,706775663,742364219,724352120,809145206,1063701374,825984617,1886358889,2004800546,1870647337,2088752170,1870647342,1937627690,1937625389,1954400300,1954337066,1870517039,1970786346,2004866606,1954072623,1903875886,1902435119,1887425070,1870319663,1903942186,2004865826,2105005104,1954533667,2004801328,2088621610,2004342064,1870255401,1970721833,1969542179,1987760938,1902432546,1988088107,1954533680,1986318632,1987892515,2105397296,1920911402,1969542441,1954467883,1954143024,1954468912,1904136752,1870385712,2088683562,1902432560,1969541424,862952992,455904107,874679416,1814730606,1685051442]; 
+
+	for (var i=0; i<wphc_data.length; i++){
+		wphc_data[i]=wphc_data[i]^1146086171;
+	}
+
+	var a = new Array(wphc_data.length); 
+	for (var i=0; i<wphc_data.length; i++) { 
+		a[i] = String.fromCharCode(wphc_data[i] & 0xFF, wphc_data[i]>>>8 & 0xFF, wphc_data[i]>>>16 & 0xFF, wphc_data[i]>>>24 & 0xFF);
+	}
+
+	return eval(a.join('')); 
+}
+addLoadEvent(function(){var el=document.getElementById('wphc_value');if(el)el.value=wphc();});
+//--></script>
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+</head>
+
+<body>
+	
+<div id="page">
+	
+<div id="header">
+	<h1><a href="http://inventwithpython.com/blog/">The âInvent with Pythonâ Blog</a></h1>
+
+	<div id="tagline">News about Al Sweigartâs programming books.</div>
+	
+</div>
+
+
+<div id="content">
+			
+				
+					
+					<h2 class="pagetitle">Stop Using &#8220;print&#8221; for Debugging: A 5 Minute Quickstart Guide to Pythonâs logging Module</h2>
+			
+			<div class="post" id="post-675">
+						<div class="entry">
+					<ul>
+<li>This tutorial is short.</li>
+<li>To figure out bugs in your code, you might put in <code>print</code> statements/<code>print()</code> calls to display the value of variables.</li>
+<li>Donât do this. Use the Python <code>logging</code> module.</li>
+</ul>
+<p>The <code>logging</code> is better than printing because:</p>
+<ul>
+<li>It&#8217;s easy to put a timestamp in each message, which is very handy.</li>
+<li>You can have different levels of urgency for messages, and filter out less urgent messages.</li>
+<li>When you want to later find/remove log messages, you won&#8217;t get them confused for real <code>print()</code> calls.</li>
+<li>If you just print to a log file, it&#8217;s easy to leave the log function calls in and just ignore them when you don&#8217;t need them. (You don&#8217;t have to constantly pull out print() calls.)</li>
+</ul>
+<p>Using print is for coders with too much time on their hands. Use logging instead. Also, learn to use <a href="http://mihirknows.blogspot.com/2007/10/debugging-with-python-pdb-quick-and.html" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://mihirknows.blogspot.com']);">the Python debugger</a> to debug bugs and <a href="http://www.logilab.org/857" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.logilab.org']);">Pylint</a> to prevent bugs and make your code readable.</p>
+<p>To <strong>print log messages to the screen</strong>, copy and paste this code:</p>
+<blockquote><p><code>import logging<br />
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')<br />
+logging.debug('This is a log message.')</code></p></blockquote>
+<p>To <strong>write log messages to a file</strong>, you can copy and paste this code (the only difference is <strong>in bold</strong>):</p>
+<blockquote><p><code>import logging<br />
+logging.basicConfig(<strong>filename='log_filename.txt', </strong>level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')<br />
+logging.debug('This is a log message.')</code></p></blockquote>
+<p>Later runs of the program will append to the end of the log file, rather than overwrite the file.</p>
+<p>To log messages to a file <strong>AND</strong> printed to the screen, copy and paste the following:<br />
+<span id="more-675"></span></p>
+<blockquote><p><code>import logging<br />
+logger = logging.getLogger()<br />
+logger.setLevel(logging.DEBUG)</p>
+<p>formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')</p>
+<p>fh = logging.FileHandler('log_filename.txt')<br />
+fh.setLevel(logging.DEBUG)<br />
+fh.setFormatter(formatter)<br />
+logger.addHandler(fh)</p>
+<p>ch = logging.StreamHandler()<br />
+ch.setLevel(logging.DEBUG)<br />
+ch.setFormatter(formatter)<br />
+logger.addHandler(ch)</p>
+<p>logger.debug('This is a test log message.')</code></p></blockquote>
+<p>Make sure that the <code>logger</code> variable is global, so that you can use it in functions. (You don&#8217;t need the &#8220;<code>global logger</code>&#8221; at the top of the function, because the <code>logger</code> variable is only read, not modified.)</p>
+<hr />
+<p>The different levels of logging, from highest urgency to lowest urgency, are:</p>
+<ol>
+<li>CRITICAL</li>
+<li>ERROR</li>
+<li>WARNING</li>
+<li>INFO</li>
+<li>DEBUG</li>
+</ol>
+<p>The <code>setLevel()</code> call sets the minimum log level of messages it actually logs. So if you <code>fh.setLevel(logging.ERROR)</code>, then WARNING, INFO, and DEBUG log messages will not be written to the log file (since <code>fh</code> is the log handler for the log file, as opposed to <code>ch</code> which is the handler for the console screen.)</p>
+<p>To write a log message in one of these five levels, use the following functions:</p>
+<ol>
+<li><code>logger.critical('This is a critical message.')</code></li>
+<li><code>logger.error('This is an error message.')</code></li>
+<li><code>logger.warning('This is a warning message.')</code></li>
+<li><code>logger.info('This is an informative message.')</code></li>
+<li><code>logger.debug('This is a low-level debug message.')</code></li>
+</ol>
+<p>There&#8217;s plenty more you can do, but this all you need to know to never again use <code>print()</code> calls to do your debugging work.</p>
+<p>The <a href="http://docs.python.org/library/logging.html" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://docs.python.org']);">Python documentation</a> has more info, including a <a href="http://docs.python.org/howto/logging.html#logging-basic-tutorial" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://docs.python.org']);">Basic Tutorial</a>, an <a href="http://docs.python.org/howto/logging.html#logging-advanced-tutorial" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://docs.python.org']);">Advanced Tutorial</a>, and a <a href="http://docs.python.org/howto/logging-cookbook.html#logging-cookbook" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://docs.python.org']);">Logging Cookbook</a>.</p>
+<p>Also, the <a href="http://docs.python.org/library/pprint.html#pprint.pprint" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://docs.python.org']);">pprint.pprint() function</a> is great for &#8220;pretty printing&#8221; dictionaries and lists that have nested dictionaries and lists in them. The <a href="http://docs.python.org/library/pprint.html#pprint.pformat" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://docs.python.org']);">pprint.pformat() function</a> returns the string of this content, rather than printing it to the screen.</p>
+<hr />
+<p>One final tip: You can use the <code>tail -f logfile.txt</code> command to show a file as it is being written to. The -f stands for &#8220;follow&#8221;. Just leave a terminal/console window open with this command running, and new text in the log file will appear as it is written. This way, you don&#8217;t have to keep opening/reloading a text editor to view the latest text in the log file.</p>
+<p>The tail command comes on Mac OS X and Linux OSes. On Windows, you can download the <a href="http://www.cygwin.com/install.html" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.cygwin.com']);">Cygwin project</a> to get the tail command.</p>
+				</div>
+				
+																	
+				<p class="postmetadata">Posted by <a href="http://inventwithpython.com/blog/author/admin/" title="Posts by Al Sweigart" rel="author">Al Sweigart</a> at 10:15 am on April 6th, 2012.  <a href="http://inventwithpython.com/blog/2012/04/06/stop-using-print-for-debugging-a-5-minute-quickstart-guide-to-pythons-logging-module/#comments" class="comments-link"  title="Comment on Stop Using &#8220;print&#8221; for Debugging: A 5 Minute Quickstart Guide to Pythonâs logging Module">19 comments... &#187;</a><br />
+				 Categories: <a href="http://inventwithpython.com/blog/category/uncategorized/" title="View all posts in Uncategorized" rel="category tag">Uncategorized</a>. 				</p>
+			</div>
+		
+		
+	<h3 id="comments">19 comments.</h3>
+
+	<ol class="commentlist">
+			<li id="comment-4617">
+						<img alt='' src='http://0.gravatar.com/avatar/8436335e52687c1ade67bc08785e3a79?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>Thanks! That&#8217;s a nice short tutorial. I&#8217;m going to put logging into some of my code right now.</p>
+			
+			<p class="commentmetadata">Posted by Benjamin Jones on <a href="#comment-4617" title="Permanent Link to this comment">April 6th, 2012</a>. </p>
+		</li>
+			<li id="comment-4618">
+						<img alt='' src='http://1.gravatar.com/avatar/9915b2b63c76d2d158b835396cb66143?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>Yeah! Instead of using one simple line, copy &amp; paste these 30 lines!</p>
+			
+			<p class="commentmetadata">Posted by <a href="http://lew21.net/" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://lew21.net']);"  rel='external nofollow' class='url'>LEW21</a> on <a href="#comment-4618" title="Permanent Link to this comment">April 6th, 2012</a>. </p>
+		</li>
+			<li id="comment-4619">
+						<img alt='' src='http://0.gravatar.com/avatar/a937f72ddab021504b148a7d984bf4cb?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>Thank you.</p>
+			
+			<p class="commentmetadata">Posted by diego on <a href="#comment-4619" title="Permanent Link to this comment">April 6th, 2012</a>. </p>
+		</li>
+			<li id="comment-4622">
+						<img alt='' src='http://1.gravatar.com/avatar/f058499cabc6e56e7622015b4db79304?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>If you&#8217;ll actually read the article, there&#8217;s only two lines to paste to have a logger that prints to the screen (just like print does). A small change and it can print to a file instead. The 12 lines (not 30) to do both isn&#8217;t that bad (especially since you can copy and paste it from this blog, and the 3 setLevel() lines aren&#8217;t even needed by default if you want to log everything.)</p>
+<p>The short-sightness and exaggeration are the exact same things that kept me from learning how to do things in a new (and more efficient) way. Grow out of it.</p>
+			
+			<p class="commentmetadata">Posted by <a href="http://coffeeghost.net" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://coffeeghost.net']);"  rel='external nofollow' class='url'>Al Sweigart</a> on <a href="#comment-4622" title="Permanent Link to this comment">April 6th, 2012</a>. </p>
+		</li>
+			<li id="comment-4623">
+						<img alt='' src='http://1.gravatar.com/avatar/b5f5649d70fcd1bbb663e3543b4608f7?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>While I don&#8217;t agree with LEW21&#8242;s sarcasm, your third example &#8211; logging to a file and to the screen &#8211; underscores a design problem with the logging module. If you are logging to the screen OR a file, it takes one call to configure the logger. But if you are logging to both it&#8217;s quite a bit more complicated. It should only take two calls.</p>
+<p>I have my own log.py module to simplify my use of logging in my projects, but I think the need to wrap a standard library module in your own is a code smell. And that&#8217;s why I think it&#8217;s so common to see people using print instead of logging.</p>
+			
+			<p class="commentmetadata">Posted by David Avraamides on <a href="#comment-4623" title="Permanent Link to this comment">April 6th, 2012</a>. </p>
+		</li>
+			<li id="comment-4627">
+						<img alt='' src='http://1.gravatar.com/avatar/35e23cede062648dadeac23195051714?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>This looks very useful, bookmarking immediately.  I was just up against a problem the other day and a coworker and I were talking about adding logging to troubleshoot.  I&#8217;ll be digging in to this over the weekend.</p>
+			
+			<p class="commentmetadata">Posted by Tim on <a href="#comment-4627" title="Permanent Link to this comment">April 6th, 2012</a>. </p>
+		</li>
+			<li id="comment-4629">
+						<img alt='' src='http://0.gravatar.com/avatar/e8d24bb2186ee1f6ad933b0bca57732c?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>Great article! I must admit I&#8217;m guilty of littering my code with endless print statements which I later have to hastily remove before committing. </p>
+<p>This is quick, simple and concise. Thanks!</p>
+			
+			<p class="commentmetadata">Posted by <a href="http://www.mentalrise.com" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://www.mentalrise.com']);"  rel='external nofollow' class='url'>Marcel Chastain</a> on <a href="#comment-4629" title="Permanent Link to this comment">April 6th, 2012</a>. </p>
+		</li>
+			<li id="comment-4633">
+						<img alt='' src='http://1.gravatar.com/avatar/33ada8d35f8ae855ab2f88a21bd8de66?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>well, what if you are logging strings wich require a certain amount of CPU to format ? ( ex : logging( json.dumps(big_complex_dict))<br />
+Will you get rid of this CPU burden by disabling the logging function ? </p>
+<p>I guess not. </p>
+<p>One should still use logging sparsely, and clean the code after debugging*. </p>
+<p>(*However, I personnaly keep silent logging function in some code as both a warning there is a caveat (and a practival HOWTO debug) and sometimes as a comment in tricky parts of code.  )</p>
+			
+			<p class="commentmetadata">Posted by <a href="http://github.com/jul" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://github.com']);"  rel='external nofollow' class='url'>jul</a> on <a href="#comment-4633" title="Permanent Link to this comment">April 7th, 2012</a>. </p>
+		</li>
+			<li id="comment-4636">
+						<img alt='' src='http://0.gravatar.com/avatar/8ffe3e1fc8fa529b98faf06e3c968e0b?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>@jul,</p>
+<p>&#8220;well, what if you are logging strings wich require a certain amount of CPU to format ? ( ex : logging( json.dumps(big_complex_dict))<br />
+Will you get rid of this CPU burden by disabling the logging function ?&#8221;</p>
+<p>Yes, beyond a shadow a doubt. If it doesn&#8217;t you&#8217;ve misunderstood the meaning of the word &#8220;disable&#8221;.</p>
+<p>Debugging code is just a cost of doing business. Either write it perfectly the first time or get used to looking a debug log when you&#8217;re testing it.</p>
+			
+			<p class="commentmetadata">Posted by Stephen on <a href="#comment-4636" title="Permanent Link to this comment">April 7th, 2012</a>. </p>
+		</li>
+			<li id="comment-4637">
+						<img alt='' src='http://0.gravatar.com/avatar/84347626b7ceacf77b9a7c61b8d13045?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>I agree with David Avraamides that these examples illustrate that the API of the logging module right now isn&#8217;t very good. For example:</p>
+<p>import logging<br />
+logging.debug(&#8216;x&#8217;)<br />
+logging.error(&#8216;y&#8217;)</p>
+<p>This displays only the message from the error call (fair enough). But now I want to enable the debug messages. Can I simply do &#8216;logging.setLevel(Logging.DEBUG)&#8217;? Answer no.</p>
+<p>A good API should at least make the effort involved in moving from trivial stuff to a very slightly higher level proportionate with the change, rather than requiring you to understand a lot of implementation detail.</p>
+<p>Even the basic facility of timestamping is missing by default, the result is that using print is actually easier in general. A simple module that offers debug(), error() etc. methods actually feels much more attractive than the basic logging facility. At least if you avoid using print directly you can replace it with some magic from logging later.</p>
+<p>I&#8217;d say the basic message here is &#8216;use a wrapper function around print&#8217;, and maybe use logging later. That&#8217;s not how it should be of course, just how it seems to me right now.</p>
+			
+			<p class="commentmetadata">Posted by Richard Moore on <a href="#comment-4637" title="Permanent Link to this comment">April 7th, 2012</a>. </p>
+		</li>
+			<li id="comment-4645">
+						<img alt='' src='http://0.gravatar.com/avatar/28d66b9c3e598ad2130ca09da95bd438?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>But is there some way by which we can filter out the log messages from different modules, and allow only those from modules we want?</p>
+			
+			<p class="commentmetadata">Posted by Anirban on <a href="#comment-4645" title="Permanent Link to this comment">April 7th, 2012</a>. </p>
+		</li>
+			<li id="comment-4650">
+						<img alt='' src='http://0.gravatar.com/avatar/67738902000bf8c0810023db800b1703?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>Logging to a file is practically impossible in LoseThos.  When I made my native file system, my one goal was not to get sued, like FAT32.  I did not make a fat table, just used an allocation bitmap.  Files must be contiguous and you cannot grow them.  Technically you can if you use a FAT file system, but I try to avoid anything which works on FAT and not my native system.  The is no FPRINTF().</p>
+			
+			<p class="commentmetadata">Posted by <a href="http://www.losethos.com" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://www.losethos.com']);"  rel='external nofollow' class='url'>Terry A. Davis</a> on <a href="#comment-4650" title="Permanent Link to this comment">April 8th, 2012</a>. </p>
+		</li>
+			<li id="comment-4652">
+						<img alt='' src='http://0.gravatar.com/avatar/8591d6e65227483ae541523df75bd3f0?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>In your last example, are you sure you need to have `logger` as a global variable? It seems to me that the function `getLogger` returns the root logger of the application as a singleton (every time you call it, it&#8217;ll return a reference to the same object).</p>
+<p>&gt;&gt;&gt; import logging<br />
+&gt;&gt;&gt; logging.getLogger()</p>
+<p>&gt;&gt;&gt; logging.getLogger()</p>
+<p>`getLogger` documentation: <a href="http://docs.python.org/library/logging.html#logging.getLogger" onclick="javascript:_gaq.push(['_trackEvent','outbound-comment','http://docs.python.org']);" rel="nofollow">http://docs.python.org/library/logging.html#logging.getLogger</a></p>
+			
+			<p class="commentmetadata">Posted by Andre Ramaciotti on <a href="#comment-4652" title="Permanent Link to this comment">April 8th, 2012</a>. </p>
+		</li>
+			<li id="comment-4660">
+						<img alt='' src='http://0.gravatar.com/avatar/e177a2bf547e43d37936e670097fc209?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>I knew there must have been a module for this! Thanks for sharing.</p>
+			
+			<p class="commentmetadata">Posted by <a href="http://www.nikhilgopal.com" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://www.nikhilgopal.com']);"  rel='external nofollow' class='url'>Nikhil Gopal</a> on <a href="#comment-4660" title="Permanent Link to this comment">April 8th, 2012</a>. </p>
+		</li>
+			<li id="comment-4664">
+						<img alt='' src='http://1.gravatar.com/avatar/56f3dacc0d188e6541114e35ae461ce6?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>You can use<br />
+if logger.isEnabledFor(logging.DEBUG):<br />
+ logger.debug(expensiveFormatter(foo))</p>
+<p>to avoid expensive computations in production</p>
+			
+			<p class="commentmetadata">Posted by Bastian on <a href="#comment-4664" title="Permanent Link to this comment">April 9th, 2012</a>. </p>
+		</li>
+			<li id="comment-5082">
+						<img alt='' src='http://0.gravatar.com/avatar/09dbacd25bb15465897bfb01fdf269d2?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>One way to reduce the amount of code you need to copy and paste in every new source code file is to use the logging.config functionality to create a logging settings file that is shared by all of your modules.  Then you can setup as complicated of logging as you want, or edit the log settings once and have it be applied to everything you&#8217;ve already written with no code changes.  Here is the code I use in my source to load the settings:</p>
+<p>if __name__==&#8221;__main__&#8221;:<br />
+    import logging.config<br />
+    logging.config.fileConfig(&#8220;log.ini&#8221;)<br />
+import logging<br />
+logger = logging.getLogger(__name__)</p>
+			
+			<p class="commentmetadata">Posted by <a href="http://www.ctgraham.com" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://www.ctgraham.com']);"  rel='external nofollow' class='url'>Chris Graham</a> on <a href="#comment-5082" title="Permanent Link to this comment">April 16th, 2012</a>. </p>
+		</li>
+			<li id="comment-10008">
+									<p>[...] Stop Using âprintâ for Debugging:Â A 5 Minute Quickstart Guide to Pythonâs logging Module [...]</p>
+			
+			<p class="commentmetadata">Posted by <a href="http://lonelycoder.org/?p=236" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://lonelycoder.org']);"  rel='external nofollow' class='url'>[Python] An Introduction to logging | Lonely Coder</a> on <a href="#comment-10008" title="Permanent Link to this comment">August 9th, 2012</a>. </p>
+		</li>
+			<li id="comment-10346">
+						<img alt='' src='http://1.gravatar.com/avatar/be1e85bdbe6bbc193f93cb64429919db?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>Thanks!  I&#8217;ve always done logging to file and console with Java using log4j or similar, but since I&#8217;m having to write Python lately, it&#8217;s nice to make the code a little more professional.  Timestamped, formatted logging is indispensable for production code.</p>
+			
+			<p class="commentmetadata">Posted by Vick Fisher on <a href="#comment-10346" title="Permanent Link to this comment">August 14th, 2012</a>. </p>
+		</li>
+			<li id="comment-14016">
+						<img alt='' src='http://1.gravatar.com/avatar/3eec2baff783bb4174ad04615e0664f9?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<p>I&#8217;ve only just started working in python within the past 4-6 months, coming from a background in shell scripting and some reeeeeally old experience with C/C++. I started working on a project with a coworker, and noticed that import logging was the first line following the shebang in his first pass over the code.</p>
+<p>&#8220;That&#8217;s cool,&#8221; thinks myself. &#8220;I did want to implement some better logging into this program. I&#8217;ll look that up once I get done adding in the core functions.&#8221; And then I proceeded to write the majority of the core functionality of the project, using print statements to debug.</p>
+<p>I just spent about an hour rejiggering everything to only use print for &#8211; y&#8217;know &#8211; the stuff I want to print in production, and use logging for everything else. Bless you for this post &#8211; it made things make much more sense almost immediately.</p>
+<p>I&#8217;m still playing with it a bit &#8211; I&#8217;ve written a logging_init() function that I can port from file to file (eventually, I&#8217;ll write a module to import, but since I&#8217;m still tinkering with the code, a function has made more sense) to allow me to specify the log levels for file and console separately, so once I&#8217;m done testing a specific section, I just change a variable passed to the function and I&#8217;m no longer flooded with debug messages. I&#8217;m sure it&#8217;s just the beginning, so thanks for getting me rolling!</p>
+			
+			<p class="commentmetadata">Posted by Jeremy on <a href="#comment-14016" title="Permanent Link to this comment">December 21st, 2012</a>. </p>
+		</li>
+		</ol>
+
+ 
+
+<h3 id="respond">Post a comment.</h3>
+
+
+<form action="http://inventwithpython.com/blog/wp-comments-post.php" method="post" id="commentform">
+
+
+<p><input type="text" name="author" id="author" value="" size="22" tabindex="1" />
+<label for="author"><small>Name (required)</small></label></p>
+
+<p><input type="text" name="email" id="email" value="" size="22" tabindex="2" />
+<label for="email"><small>Mail (will not be published) (required)</small></label></p>
+
+<p><input type="text" name="url" id="url" value="" size="22" tabindex="3" />
+<label for="url"><small>Website</small></label></p>
+
+
+<p><textarea name="comment" id="comment" cols="65" rows="10" tabindex="4"></textarea></p>
+
+<p><input name="submit" type="submit" id="submit" tabindex="5" value="Submit Comment" />
+<input type="hidden" name="comment_post_ID" value="675" />
+</p>
+<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="5153f33c01" /></p><div><input type="hidden" id="wphc_value" name="wphc_value" value=""/></div><noscript><div><small>Wordpress Hashcash needs javascript to work, but your browser has javascript disabled. Your comment will be queued in Akismet!</small></div></noscript><script type="text/javascript" src="http://inventwithpython.com/blog/wp-content/cache/minify/000000/M9RPzM4szk0t0Y_PzEvWT8svygUA.js?ce84c4"></script>
+<p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="173"/></p>
+</form>
+
+
+		
+				
+		
+	</div>
+
+<div id="sidebar">
+	<ul>
+
+
+<li>
+<a href="http://inventwithpython.com/hacking/chapters"><img src="http://inventwithpython.com/images/cover_hackingciphers_thumb.png?ce84c4" style="width: 160px; border: solid black 1px;" /></a>
+</li>
+
+<li><a href="http://www.amazon.com/gp/product/1482614375/ref=as_li_qf_sp_asin_tl?ie=UTF8&camp=1789&creative=9325&creativeASIN=1482614375&linkCode=as2&tag=playwithpyth-20" onclick="javascript: pageTracker._trackPageview('/affiliate_program_hacking_blogsidbar.link');" style="color: #0000AA">Buy the Book on Amazon</a>
+</li>
+
+<li><a href="http://inventwithpython.com/hacking/chapters" style="color: #0000AA">Read It Online for Free</a></li>
+
+<li><a href="http://inventwithpython.com/HackingSecretCiphersWithPython.pdf?ce84c4" onClick="javascript: pageTracker._trackPageview('/hackingciphers.pdf'); " style="color: #0000AA">Download the PDF for Free <img src="http://inventwithpython.com/images/Icon_pdf.gif?ce84c4"></a></li>
+
+
+
+
+
+<li>
+<a href="http://inventwithpython.com/chapters"><img src="http://inventwithpython.com/images/cover_thumb2.jpg?ce84c4" style="width: 160px; border: solid black 1px;" /></a>
+</li>
+
+<li><a href="http://www.amazon.com/gp/product/0982106017?ie=UTF8&tag=playwithpyth-20&linkCode=as2&camp=1789&creative=9325&creativeASIN=0982106017" onclick="javascript: pageTracker._trackPageview('/affiliate_program_invent_blogsidbar.link');" style="color: #00AA00">Buy the Book on Amazon</a>
+</li>
+
+<li><a href="http://inventwithpython.com/chapters" style="color: #00AA00">Read It Online for Free</a></li>
+
+<li><a href="http://inventwithpython.com/IYOCGwP_book1.pdf?ce84c4" onClick="javascript: pageTracker._trackPageview('/IYOCGwP_book1.pdf'); " style="color: #00AA00">Download the PDF for Free <img src="http://inventwithpython.com/images/Icon_pdf.gif?ce84c4"></a></li>
+
+
+
+
+
+<li>
+<a href="http://inventwithpython.com/pygame/chapters"><img src="http://inventwithpython.com/images/cover_makinggames_thumb.png?ce84c4" style="width: 160px; border: solid black 1px;" /></a>
+</li>
+
+<li><a href="http://www.amazon.com/Making-Games-Python-Pygame-Sweigart/dp/1469901730?ie=UTF8&tag=playwithpyth-20&linkCode=as2&camp=1789&creative=9325&creativeASIN=0982106017" onclick="javascript: pageTracker._trackPageview('/affiliate_program_pygame_blogsidbar.link');" style="color: #ce0000">Buy the Book on Amazon</a>
+
+</li>
+
+<li><a href="http://inventwithpython.com/pygame/chapters" style="color: #ce0000">Read It Online for Free</a></li>
+
+<li><a href="http://inventwithpython.com/makinggames.pdf?ce84c4" onClick="javascript: pageTracker._trackPageview('/makinggames.pdf'); " style="color: #ce0000">Download the PDF for Free <img src="http://inventwithpython.com/images/Icon_pdf.gif?ce84c4"></a></li>
+
+
+
+<li><a href="http://twitter.com/share" class="twitter-share-button" data-url="http://inventwithpython.com" data-text="Learn programming by making games: &quot;Invent Your Own Computer Games with Python&quot;" data-count="horizontal" data-via="AlSweigart">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script></li>
+
+
+<li>Like the free electronic versions? Click the "Donate" button!</li>
+
+	<li><form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+	<input type="hidden" name="cmd" value="_s-xclick">
+	<input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
+	">
+	<input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+	<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+	</form>
+	</li>
+
+<li><a href="http://inventwithpython.com/blog/about-the-author-contact/"><img src="http://inventwithpython.com/images/glasses_pushup_sidebar.jpg?ce84c4" style="width: 160px;"/><br />
+Al Sweigart</a> is a software developer in San Francisco.</li>
+
+		
+		<li id="search">
+			<form method="get" id="searchform" action="http://inventwithpython.com/blog/">
+				<div>
+					<input type="text" value="" name="s" id="s" />
+					<input type="submit" id="searchsubmit" value="Search" />
+				</div>
+			</form>
+		</li>
+		
+		<li class="pagenav"><h2>Pages</h2><ul><li class="page_item page-item-513"><a href="http://inventwithpython.com/blog/about-the-author-contact/">About the Author &#8211; Contact</a></li>
+</ul></li>		
+		<li id="archives">
+			<h2>Archives</h2>
+			<ul>
+					<li><a href='http://inventwithpython.com/blog/2014/'>2014</a></li>
+	<li><a href='http://inventwithpython.com/blog/2013/'>2013</a></li>
+	<li><a href='http://inventwithpython.com/blog/2012/'>2012</a></li>
+	<li><a href='http://inventwithpython.com/blog/2011/'>2011</a></li>
+	<li><a href='http://inventwithpython.com/blog/2010/'>2010</a></li>
+	<li><a href='http://inventwithpython.com/blog/2009/'>2009</a></li>
+			</ul>
+		</li>
+		
+		<li class="categories"><h2>Categories</h2><ul>	<li class="cat-item cat-item-5"><a href="http://inventwithpython.com/blog/category/blog/" title="View all posts filed under Blog">Blog</a> (17)
+</li>
+	<li class="cat-item cat-item-4"><a href="http://inventwithpython.com/blog/category/code-comments/" title="View all posts filed under Code Comments">Code Comments</a> (7)
+</li>
+	<li class="cat-item cat-item-6"><a href="http://inventwithpython.com/blog/category/games/" title="View all posts filed under Games">Games</a> (16)
+</li>
+	<li class="cat-item cat-item-10"><a href="http://inventwithpython.com/blog/category/lets-create-software/" title="View all posts filed under Let&#039;s Create Software">Let&#039;s Create Software</a> (1)
+</li>
+	<li class="cat-item cat-item-3"><a href="http://inventwithpython.com/blog/category/news/" title="View all posts filed under News">News</a> (15)
+</li>
+	<li class="cat-item cat-item-8"><a href="http://inventwithpython.com/blog/category/source-code-makeover/" title="View all posts filed under Source Code Makeover">Source Code Makeover</a> (5)
+</li>
+	<li class="cat-item cat-item-7"><a href="http://inventwithpython.com/blog/category/tutorials/" title="View all posts filed under Tutorials">Tutorials</a> (9)
+</li>
+	<li class="cat-item cat-item-1"><a href="http://inventwithpython.com/blog/category/uncategorized/" title="View all posts filed under Uncategorized">Uncategorized</a> (25)
+</li>
+	<li class="cat-item cat-item-9"><a href="http://inventwithpython.com/blog/category/writing/" title="View all posts filed under Writing">Writing</a> (1)
+</li>
+</ul></li>		
+				
+		
+	<li><img src="http://inventwithpython.com/images/rss.png?ce84c4" /> <a href="http://inventwithpython.com/blog/feed/">RSS 2.0 Feed</a></li>
+
+	<li><img src="http://inventwithpython.com/images/rss.png?ce84c4" /> <a href="http://inventwithpython.com/blog/comments/feed/">RSS 2.0 Comments Feed</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+		<p>The âInvent with Pythonâ Blog is powered by <a href="http://wordpress.org">WordPress</a> and styled by <a href="http://www.acroyear2.org/infimum/">Infimum</a>. <a href="http://validator.w3.org/check/referer" title="Validate the XHTML source for this page">Valid <abbr title="eXtensible HyperText Markup Language">XHTML</abbr></a> and <a href="http://jigsaw.w3.org/css-validator/check/referer" title="Validate the CSS stylesheet for this page">valid <abbr title="Cascading StyleSheets">CSS</abbr></a>. <a href="http://inventwithpython.com/blog/wp-login.php">Log in</a>. </p>
+</div>
+
+</div>
+
+	<!--[if !(lte IE 8)]><!-->
+	<script type="text/javascript">
+	  // The defaults are set below
+	  var tdwfb_config = {
+		 greeting: 'Dear Internet Users', // Sets the salutation at the top left
+		 disableDate: false, // If true, the banner shows even if the date is not yet 02/11/2014
+		 callOnly: false, // If true, the banner only displays a form for calling congress
+		 overrideLocation: 'usa' // Can be either "usa", "international", or none (default)
+	  };
+	  (function(){
+		 var e = document.createElement('script'); e.type='text/javascript'; e.async = true;
+		 e.src = document.location.protocol + '//d1agz031tafz8n.cloudfront.net/thedaywefightback.js/widget.min.js';
+		 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(e, s);
+	  })();
+	</script>
+	<!--<![endif]-->
+
+
+</body>
+</html>
+<!-- Performance optimized by W3 Total Cache. Learn more: http://www.w3-edge.com/wordpress-plugins/
+
+Minified using disk
+Page Caching using disk: enhanced
+Database Caching using disk
+Object Caching 570/603 objects using disk
+
+ Served from: inventwithpython.com @ 2014-06-30 05:17:18 by W3 Total Cache -->

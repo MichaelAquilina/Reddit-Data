@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Building websites in Python with Flask | The Traveling Coder</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    <meta name="author" content="Maxime Bouroumeau-Fuseau" />
+    <meta name="description" content="I'm a developer based in Paris. I mostly code for web backends in PHP, Python and Javascript using Node.js. I work using PostgreSQL, Mysql, Mongodb, Rabbitmq, Redis and many more technologies. I also occasionaly do frontend development using HTML5, CSS3, jQuery. I love all-things web-related." />
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="/favicon.png" />
+    <link href='http://fonts.googleapis.com/css?family=Patua+One' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/assets/vendor/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/assets/css/framework.css" type="text/css" />
+    <link rel="stylesheet" href="/assets/css/common.css" type="text/css" />
+    <link rel="stylesheet" href="/assets/css/print.css" type="text/css" media="print" />
+    <!-- <script type="text/javascript" src="/assets/vendor/jquery-1.8.3.min.js"></script> -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <!--[if lte IE 8]>
+    <script src="/assets/vendor/html5shiv.js"></script>
+    <![endif]-->
+    <script type="text/javascript" src="/assets/js/common.js"></script>
+
+
+    <link rel="stylesheet" href="/assets/css/maximebf.css" type="text/css" />
+    <link rel="stylesheet" href="/assets/css/print_cv.css" type="text/css" media="print" />
+    <link href="http://feeds.feedburner.com/maximebf" rel="alternate" title="maximebf.com's feed" type="application/atom+xml" />
+    <script type="text/javascript" src="/assets/js/maximebf.js"></script>
+
+    <script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-4384243-1', 'maximebf.com');
+  ga('send', 'pageview');
+
+</script>
+    
+
+
+
+</head>
+<body>
+    <div id="topbgbar"></div>
+    <div id="page">
+        <div class="navbar">
+            <div class="container clearfix">
+                <ul class="nav">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/blog">Blog</a></li>
+                    <li><a href="http://travelingcoder.com">Travel Journal</a></li>
+                    <li><a href="http://shortsvsties.com">Shorts vs. Ties</a></li>
+                    <li><a href="/projects">Projects</a></li>
+                    <li><a href="/freelancing">Hire me for your next project</a></li>
+                </ul>
+            </div>
+        </div>
+        <header id="header">
+            <div class="container">
+                <a href="/" class="title">The Traveling Coder</a>
+                <span class="tagline">by Maxime Bouroumeau-Fuseau</span>
+            </div>
+        </header>
+        <div id="main" class="container">
+            <div id="content" class="post row">
+    <div class="span9">
+        <h1>
+            Building websites in Python with Flask
+            
+        </h1>
+        <div class="content">
+            <p>For some times now, I have been doing some projects in Python and some were web applications. <a href='http://flask.pocoo.org/'>Flask</a> is a small framework to do exactly that and I have found it perfect for the job. It&#8217;s really easy to use, fast, has good documentation and a good community.</p>
+
+<p>This is the first post in a series dedicated to building websites with Python and more notably Flask. In this post, I will talk about setting up Flask with a database, using configuration environments, managing assets and deploying the app to production.</p>
+
+<h2 id='first_steps_with_flask'>First steps with Flask</h2>
+
+<p>I use <a href='http://pypi.python.org/pypi/pip/'>pip</a> to install Python modules and I would strongly recommend it (as well as using <a href='http://www.virtualenv.org/en/latest/index.html'>virtualenv</a>).<br />Installing Flask is as easy as:</p>
+
+<pre><code>pip install Flask</code></pre>
+
+<p>Flask has an excellent <a href='http://flask.pocoo.org/docs/quickstart/'>quickstart tutorial</a> so I will only do a quick overview of the basics.</p>
+
+<p>As a framework, Flask is similar to <a href='http://www.sinatrarb.com/'>Sinatra</a> in Ruby or <a href='http://www.slimframework.com/'>Slim</a> in PHP. A main application object is instanciated and is used to map urls to functions.</p>
+
+<pre><code>from flask import Flask
+app = Flask(__name__)
+
+@app.route(&#39;/&#39;)
+def hello_world():
+    return &#39;Hello World!&#39;
+
+if __name__ == &#39;__main__&#39;:
+    app.run()</code></pre>
+
+<p>In this example taken from Flask&#8217;s quickstart tutorial, <code>app</code> is our application object and is used to map the <code>hello_world()</code> function to the path <code>/</code>. This is done using the <code>@app.route()</code> <a href='http://wiki.python.org/moin/PythonDecorators'>decorator</a>.</p>
+
+<p><code>app.run()</code> starts the built-in web server on port 5000. Thus, your first Flask web app is available at <a href='http://localhost:5000'>http://localhost:5000</a>. Starts the webserver by calling the script:</p>
+
+<pre><code>python app.py</code></pre>
+
+<p>As stated earlier I would suggest you to read Flask&#8217;s <a href='http://flask.pocoo.org/docs/quickstart/'>quickstart tutorial</a>. Let&#8217;s dive in another example:</p>
+
+<pre><code>from flask import Flask, render_template, request, redirect, url_for, abort, session
+
+app = Flask(__name__)
+app.config[&#39;SECRET_KEY&#39;] = &#39;F34TF$($e34D&#39;;
+
+@app.route(&#39;/&#39;)
+def home():
+    return render_template(&#39;index.html&#39;)
+
+@app.route(&#39;/signup&#39;, methods=[&#39;POST&#39;])
+def signup():
+    session[&#39;username&#39;] = request.form[&#39;username&#39;]
+    session[&#39;message&#39;] = request.form[&#39;message&#39;]
+    return redirect(url_for(&#39;message&#39;))
+
+@app.route(&#39;/message&#39;)
+def message():
+    if not &#39;username&#39; in session:
+        return abort(403)
+    return render_template(&#39;message.html&#39;, username=session[&#39;username&#39;], 
+                                           message=session[&#39;message&#39;])
+
+if __name__ == &#39;__main__&#39;:
+    app.run()</code></pre>
+
+<p>In this example users will enter their name and what they want to say on the first page. The data will be stored in the <a href='http://flask.pocoo.org/docs/quickstart/#sessions'>session</a> and will be displayed on the /message page.</p>
+
+<p>A really important concept in Flask is the <a href='http://flask.pocoo.org/docs/reqcontext/'>request context</a>. Flask uses <a href='http://flask.pocoo.org/docs/advanced_foreword/#thread-locals-in-flask'>thread-local</a> objects, like <code>request</code>, <code>session</code> and others to represent elements of the current request. These objects are only available when a request context has been initialized, which is done by Flask when it receives an HTTP request.</p>
+
+<p>Some observations:</p>
+
+<ul>
+<li><code>app.config</code> is a dict containing configuration parameters</li>
+
+<li><code>@app.route()</code> is by default limited to GET requests. Allowed HTTP methods of an action can be specified using the <code>methods</code> keyword arg.</li>
+
+<li><code>url_for(route_name, **kwargs)</code> should be used to generate urls for your handlers. It takes as first parameter the function name and as keyword args any needed parameters to generate the url.</li>
+
+<li><code>redirect(url)</code> creates an HTTP response with a redirect code and location</li>
+
+<li><code>abort(http_code)</code> is used to create error responses and stop the executing function.</li>
+</ul>
+
+<p>In the <code>signup()</code> function, the request&#8217;s data is accessed through the <code>request</code> object. <code>request.form</code> is a <a href='http://werkzeug.pocoo.org/docs/datastructures/#werkzeug.datastructures.MultiDict'>MultiDict</a> (which acts like a normal dict for the most part) with all POST data, <code>request.args</code> is a MultiDict with GET params and <code>request.values</code> is a combination of both.</p>
+
+<p>Flask is natively integrated with <a href='http://jinja.pocoo.org/docs/'>jinja2</a>, a very good templating engine. Templates should be saved as .html files under the <code>templates/</code> folder. The <code>render_template(filename, **kwargs)</code> function is a pretty straightforward method to render them.</p>
+
+<p>index.html:</p>
+
+<pre><code>{% extends &quot;layout.html&quot; %}
+{% block content %}
+    &lt;h1&gt;Say something&lt;/h1&gt;
+    &lt;form method=&quot;post&quot; action=&quot;{{ url_for(&#39;signup&#39;) }}&quot;&gt;
+        &lt;p&gt;&lt;label&gt;Username:&lt;/label&gt; &lt;input type=&quot;text&quot; name=&quot;username&quot; required&gt;&lt;/p&gt;
+        &lt;p&gt;&lt;label&gt;Message:&lt;/label&gt; &lt;textarea name=&quot;message&quot;&gt;&lt;/textarea&gt;&lt;/p&gt;
+        &lt;p&gt;&lt;button type=&quot;submit&quot;&gt;Send&lt;/button&gt;&lt;/p&gt;
+    &lt;/form&gt;
+{% endblock %}</code></pre>
+
+<p>message.html:</p>
+
+<pre><code>{% extends &quot;layout.html&quot; %}
+{% block content %}
+    &lt;h1&gt;{{ username }} said:&lt;/h1&gt;
+    &lt;p&gt;
+        {{Â message }}
+    &lt;/p&gt;
+    &lt;a href=&quot;{{ url_for(&#39;home&#39;) }}&quot;&gt;Say something else&lt;/a&gt;
+{% endblock %}</code></pre>
+
+<p>layout.html:</p>
+
+<pre><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+    &lt;head&gt;
+        &lt;title&gt;Say somthing&lt;/title&gt;
+        &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=utf-8&quot;&gt;
+        &lt;link rel=&quot;shortcut icon&quot; href=&quot;{{ url_for(&#39;static&#39;, filename=&#39;favicon.ico&#39;) }}&quot;&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        {% block content %}{% endblock %}
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+<p>As you can see, I have used jinja&#8217;s <a href='http://jinja.pocoo.org/docs/templates/#template-inheritance'>template inheritance</a> to add a common layout to all of my templates.</p>
+
+<p>I have also used the <code>url_for()</code> function to get the urls of files located in the <code>static/</code> folder using the <em>static</em> route.</p>
+
+<h2 id='file_organization_and_management_script'>File organization and management script</h2>
+
+<p>In our example, our application is a single file. As you can guess, this will not suffice as it becomes larger.</p>
+
+<p>I find a good approach is to treat the app as a <a href='http://docs.python.org/tutorial/modules.html'>python package</a>. The package name will be the app name and the initialization of the Flask object is done in the <code>__init__.py</code> file.</p>
+
+<p>The <code>templates/</code> folder will be located inside the package&#8217;s directory as well as any other files related to our application (eg. settings.py, models.py&#8230;).</p>
+
+<pre><code>example/
+  __init__.py
+  static/
+    favicon.ico
+  templates/
+    index.html
+    hello.html</code></pre>
+
+<p>Note: as the application grows larger, you should use Flask&#8217;s <a href='http://flask.pocoo.org/docs/blueprints/'>Blueprints</a> to organize your code as modules. I will cover this in another tutorial.</p>
+
+<p>I also like to use the <a href='http://flask-script.readthedocs.org/en/latest/index.html'>Flask-Script</a> extension to manage my application from the command line. This extension provides built-in commands as well as a mechanism to define your own ones.</p>
+
+<pre><code>$ pip install Flask-Assets</code></pre>
+
+<p>I configure and run the extension from a <code>manage.py</code> file located <em>outside</em> the module&#8217;s directory:</p>
+
+<pre><code>#!/usr/bin/env python
+from flaskext.script import Manager, Shell, Server
+from example import app
+
+manager = Manager(app)
+manager.add_command(&quot;runserver&quot;, Server())
+manager.add_command(&quot;shell&quot;, Shell())
+manager.run()</code></pre>
+
+<p>To start the server from the command line:</p>
+
+<pre><code>$ ./manage.py runserver</code></pre>
+
+<h2 id='using_a_database'>Using a database</h2>
+
+<p>There is no out of the box support for any database with Flask. Which is not a problem as there are many database libraries in Python. The most known and the one I prefer is <a href='http://www.sqlalchemy.org/'>SqlAlchemy</a>. In addition to its excellent database toolkit, it features an awesome ORM.</p>
+
+<p>Integrating SqlAlchemy with Flask cannot be simpler, thanks to the <a href='http://packages.python.org/Flask-SQLAlchemy/'>Flask-SqlAlchemy</a> extension.</p>
+
+<pre><code>$ pip install Flask-SqlAlchemy</code></pre>
+
+<p>If it&#8217;s your first time with SqlAlchemy, I would advice reading the <a href='http://docs.sqlalchemy.org/en/rel_0_7/orm/tutorial.html'>ORM tutorial</a> which is a very good start.</p>
+
+<p>I like to initialize the extension and configure my models in a <code>models.py</code> file.</p>
+
+<pre><code>from flask_sqlalchemy import SQLAlchemy
+from example import app
+
+db = SQLAlchemy(app)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String)
+    message = db.Column(db.String)
+
+    def __init__(self, username, message):
+        self.username = username
+        self.message = message</code></pre>
+
+<p>We&#8217;ll then need to add the database connection parameters to the configuration. For this example, we&#8217;ll use <a href='http://www.sqlite.org/'>sqlite</a>. In <code>__init__.py</code> add this line after the previous <code>app.config</code> one:</p>
+
+<pre><code>app.config[&#39;SQLALCHEMY_DATABASE_URI&#39;] = &#39;sqlite://example.db&#39;</code></pre>
+
+<p>To initialize the database, I add a <em>createdb</em> command to the <em>manage.py</em> file. Add the following lines before <code>manager.run()</code>:</p>
+
+<pre><code>@manager.command
+def createdb():
+    from example.models import db
+    db.create_all()</code></pre>
+
+<p>Then run:</p>
+
+<pre><code>$ ./manage.py createdb</code></pre>
+
+<p>We can now modify our example to use the model, in <code>__init__.py</code> add the following lines after the creation of the <code>app</code> object:</p>
+
+<pre><code># ...
+
+from models import *
+
+# ...
+
+@app.route(&#39;/signup&#39;, methods=[&#39;POST&#39;])
+def signup():
+    user = User(request.form[&#39;username&#39;], request.form[&#39;message&#39;])
+    db.session.add(user)
+    db.session.commit()
+    return redirect(url_for(&#39;message&#39;, username=user.username))
+
+@app.route(&#39;/message/&lt;username&gt;&#39;)
+def message(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    return render_template(&#39;message.html&#39;, username=user.username,
+                                           message=user.message)</code></pre>
+
+<p>Instead of using the session we are now creating a <code>User</code> object, storing it into the database using <code>db.session.add()</code> and <code>db.session.commit()</code> (which is the <a href='http://docs.sqlalchemy.org/en/rel_0_7/orm/tutorial.html#adding-new-objects'>standard SqlAlchemy way of doing it</a>).</p>
+
+<p>In the <code>message()</code> function I have added a username parameter which must be given through the url&#8217;s path. We next perform a database query using <code>User.query</code>. Note the <code>first_or_404()</code> function which is provided by the flask extension and is a nice addition.</p>
+
+<h2 id='configuration'>Â Configuration</h2>
+
+<p>As we&#8217;ve seen in the previous example, the configuration can be defined using the <code>app.config</code> dict. While this is the easier method, it is not the most practical one once you factor in configuration environments. Indeed, the configuration of your app will most of the time be different between your development environment and your production one.</p>
+
+<p>The Flask documentation suggests a <a href='http://flask.pocoo.org/docs/config/#development-production'>nice way of handling these configuration environments</a>.</p>
+
+<p>We&#8217;ll store our configuration as attributes of plain old python objects in a file called <code>settings.py</code>. After reading the current environment form a system environment variable (EXAMPLE_ENV in our case) we&#8217;ll load the config from the correct config object.</p>
+
+<p>In the settings.py file as follow:</p>
+
+<pre><code>class Config(object):
+    SECRET_KEY = &#39;secret key&#39;
+
+class ProdConfig(Config):
+    SQLALCHEMY_DATABASE_URI = &#39;postgresql://localhost/example&#39;
+
+class DevConfig(Config):
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = &#39;sqlite://example.db&#39;
+    SQLALCHEMY_ECHO = True</code></pre>
+
+<p>In our package&#8217;s <code>__init__.py</code>:</p>
+
+<pre><code>import os
+
+# ...
+
+env = os.environ.get(&#39;EXAMPLE_ENV&#39;, &#39;prod&#39;)
+app.config.from_object(&#39;example.settings.%sConfig&#39; % env.capitalize())
+app.config[&#39;ENV&#39;] = env</code></pre>
+
+<h2 id='assets'>Assets</h2>
+
+<p>With the rise of rich frontends and of alternative syntaxes to css and javascript, assets manaegement has become an important aspect of web apps.</p>
+
+<p>We&#8217;ll once again use a great extension, <a href='http://elsdoerfer.name/docs/flask-assets/'>Flask-Assets</a>, which is a wrapper for the <a href='http://elsdoerfer.name/docs/webassets/'>webassets</a> python library.</p>
+
+<pre><code>$ pip install Flask-Assets</code></pre>
+
+<p>I store my assets file in <code>static/</code>, organizing them inside a <code>css/</code>, <code>js/</code> and <code>vendor/</code> folders. Below you can see that I&#8217;ve added <a href='http://jquery.com'>jquery</a> and <a href='http://twitter.github.com/bootstrap/'>bootstrap</a> in the vendor dir.</p>
+
+<pre><code>example/
+  static/
+    css/
+      layout.less
+    js/
+      main.js
+    vendor/
+      bootstrap/
+        css/
+          bootstrap.css
+        js/
+          bootstrap.min.js
+      jquery/
+        jquery-1.7.2.min.js</code></pre>
+
+<p>With webassets, files are grouped as bundles. Each bundle can have custom filters (eg: transform less files to css). I define my bundles inside an <code>assets.py</code> file:</p>
+
+<pre><code>from flask_assets import Bundle
+
+common_css = Bundle(
+    &#39;vendor/bootstrap/css/bootstrap.css&#39;,
+    Bundle(
+        &#39;css/layout.less&#39;,
+        filters=&#39;less&#39;
+    ),
+    filters=&#39;cssmin&#39;, output=&#39;public/css/common.css&#39;)
+
+common_js = Bundle(
+    &#39;vendor/jquery/jquery-1.7.2.min.js&#39;,
+    &#39;vendor/bootstrap/js/bootstrap.min.js&#39;,
+    Bundle(
+        &#39;js/main.js&#39;,
+        filters=&#39;closure_js&#39;
+    ),
+    output=&#39;public/js/common.js&#39;)</code></pre>
+
+<p>Here I have defined 2 bundles, one for css files and one for js files. I&#8217;ve also use nested bundles to apply specific filters to some files.</p>
+
+<p>To include the bundles in our pages, webassets provides some jinja2 helpers (which we should add to <code>layout.html</code>):</p>
+
+<pre><code>{% assets &quot;common_css&quot; %}
+    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;{{ ASSET_URL }}&quot; /&gt;
+{% endassets %}
+{% assets &quot;common_js&quot; %}
+    &lt;script type=&quot;text/javascript&quot; src=&quot;{{ ASSET_URL }}&quot;&gt;&lt;/script&gt;
+{% endassets %}</code></pre>
+
+<p>Now we&#8217;ll need to configure the webassets environment in <code>__init__.py</code>:</p>
+
+<pre><code>from flask_assets import Environment
+from webassets.loaders import PythonLoader as PythonAssetsLoader
+import assets
+
+# ...
+
+assets_env = Environment(app)
+assets_loader = PythonAssetsLoader(assets)
+for name, bundle in assets_loader.load_bundles().iteritems():
+    assets_env.register(name, bundle)</code></pre>
+
+<p>As you can see, I use webassets&#8217;s PythonLoader to load bundles from the assets module and register each bundle into the environment.</p>
+
+<p>You can add <code>ASSETS_DEBUG=True</code> in <code>DevConfig</code> to get debugging info. There are many other configuration parameters <a href='http://elsdoerfer.name/docs/webassets/environment.html#environment-configuration'>listed here</a>. Param names should be prefixed with ASSETS_ and uppercased (eg. <code>Environment.versions</code> becomes <code>ASSETS_VERSIONS</code>).</p>
+
+<p>Finally, the Flask-Assets extension provides some command line utilities that we&#8217;ll need to register in the <code>manage.py</code> file:</p>
+
+<pre><code>from flask_assets import ManageAssets
+from example import assets_env
+
+# ...
+
+manager.add_command(&quot;assets&quot;, ManageAssets(assets_env))</code></pre>
+
+<p><a href='http://elsdoerfer.name/docs/webassets/script.html#script-commands'>Available commands</a> are listed in webassets documentation but the most important one is <code>rebuild</code> which regenerates all your bundle files:</p>
+
+<pre><code>$ ./manage.py assets rebuild</code></pre>
+
+<h2 id='deploying_to_production'>Â Deploying to production</h2>
+
+<p>Now that we have a fully working Flask application, we&#8217;ll need to deploy it on a production machine. I like to use <a href='http://projects.unbit.it/uwsgi/'>uWSGI</a> + <a href='http://nginx.org/'>Nginx</a> + <a href='http://supervisord.org/'>Supervisor</a> for my setup.</p>
+
+<p>Note: this part assumes <a href='http://ubuntu.com'>Ubuntu</a> as your Linux distribution</p>
+
+<p>Nginx acts as the frontend web server and will serve static files. uWSGI acts as the WSGI server which runs our flask app. Finally, I use supervisor to manage processes. I like to use Supervisor instead of init.d scripts as I often have other processes to manage.</p>
+
+<pre><code>$ sudo apt-get install nginx supervisor
+$ pip install uwsgi</code></pre>
+
+<p><a href='http://projects.unbit.it/uwsgi/wiki/Quickstart'>Configure</a> an uWSGI app in <code>/etc/uwsgi.ini</code>:</p>
+
+<pre><code>[uwsgi]
+socket = 127.0.0.1:3031
+chdir = /path/to/my/app
+module = example:app
+env = EXAMPLE_ENV=prod</code></pre>
+
+<p>Add a server entry in Nginx in <code>/etc/nginx/sites-enabled/example.conf</code>:</p>
+
+<pre><code>server {
+    listen 80;
+    server_name example.com;
+    root /path/to/my/app/example/static;
+
+    location / {
+        try_files $uri @uwsgi;
+    }
+
+    location @uwsgi {
+            include uwsgi_params;
+            uwsgi_pass 127.0.0.1:3031;
+    }
+}</code></pre>
+
+<p>Finally, configure Supervisor to manage the uWSGI process in <code>/etc/supervisor/conf.d/example.conf</code>:</p>
+
+<pre><code>[program:example]
+command=/usr/local/bin/uwsgi --ini /etc/uwsgi.ini
+autostart=true
+autorestart=true
+stopsignal=INT</code></pre>
+
+<p>And restart everything:</p>
+
+<pre><code>$ sudo /etc/init.d/nginx restart
+$ sudo /etc/init.d/supervisor reload</code></pre>
+
+<p><strong>Update</strong>: the next part in the series has been published: <a href='http://maximebf.com/blog/2012/11/getting-bigger-with-flask'>Getting bigger with Flask</a></p>
+
+<p><strong>Update 2</strong>: fixed the bugs and added database initialization</p>
+        </div>
+        <div class="share-widget clearfix">
+    <!-- AddThis Button BEGIN -->
+    <div class="addthis_toolbox addthis_default_style">
+        <a class="addthis_button_preferred_1"></a>
+        <a class="addthis_button_preferred_2"></a>
+        <a class="addthis_button_preferred_3"></a>
+        <a class="addthis_button_preferred_4"></a>
+        <a class="addthis_button_compact"></a>
+        <a class="addthis_counter addthis_bubble_style"></a>
+    </div>
+    <script type="text/javascript">var addthis_config = {"data_track_addressbar":true};</script>
+    <script type="text/javascript" src="http://s7.addthis.com/js/300/addthis_widget.js#pubid=ra-500476172da8726f"></script>
+    <!-- AddThis Button END -->
+</div>
+
+        
+        <hr>
+        <div class="related-posts">
+            <strong>You might also like:</strong>
+            <ul>
+                
+                <li><a href="/blog/2013/07/multi-site-jekyll">Multi-site setup using Jekyll</a></li>
+                
+                <li><a href="/blog/2013/07/jekyll-dropbox-crontab">Publishing with Jekyll, Dropbox and Crontab</a></li>
+                
+                <li><a href="/blog/2013/02/publishing-php-libraries-with-github-travis-composer">Publishing PHP libraries using Github, Travis and Composer</a></li>
+                
+                <li><a href="/blog/2013/01/the-little-detail-that-make-flask-great">It's in the details!</a></li>
+                
+            </ul>
+        </div>
+        
+        <hr>
+        <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'maximebf';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </div>
+    <div class="span3 blog-sidebar">
+        <div class="sidebar-aboutme">
+    <img src="/assets/img/avatar.jpg" width="50" height="50" alt="Profile Pic">
+    <p>
+        I'm Maxime, a freelance full stack web developer who loves the startup world and entrepreneurship.
+    </p>
+    <p>
+        Most of <a href="/projects">my projects</a> are web related. 
+        My daily work involves coding in PHP and Python but I like to put my hands on as many things as
+        possible.
+    </p>
+    <p>
+        I'm <a href="/freelancing"><strong>available for hire</strong></a>.
+    </p>
+    <p class="connect clearfix">
+        <a href="http://twitter.com/maximebf" title="Twitter" rel="me"><i class="icon-twitter"></i></a>
+        <a href="http://www.linkedin.com/in/maximebouroumeaufuseau" title="LinkedIn" rel="me"><i class="icon-linkedin"></i></a>
+        <a href="https://github.com/maximebf" title="Github" rel="me"><i class="icon-github"></i></a>
+    </p>
+</div>
+
+        <hr>
+        <p><i class="icon-time"></i> 10/10/2012</p>
+    </div>
+</div>
+
+            <div class="clear"></div>
+        </div>
+        <footer id="footer">
+  <div class="container">
+    <div class="row">
+      <div class="span4">
+        <a href="http://maximebf.com" class="title">About me</a>
+        <p>
+          I'm a 20-something guy working as a <a href="http://maximebf.com/freelancing">freelance software engineer</a>, 
+          passionate about all tech-related stuff and with a growing entrepreneurial side.
+        </p>
+        <p>
+          I have lived in multiple countries and have traveled to many others.
+          Traveling is part of my life and I love discovering new places. I write about
+          my adventures on <a href="http://travelingcoder.com">my travel blog</a>.
+        </p>
+        <p>
+          I try to experience new stuff as often as possible and I tend to like extreme sports while
+          not being too crazy. I also love food, cooking and geeky stuff.
+        </p>
+      </div>
+      <div class="twitter span4">
+        <a href="http://twitter.com/maximebf" class="title">Latest tweets</a>
+        <a class="twitter-timeline" data-dnt="true" href="https://twitter.com/maximebf" data-widget-id="347559233237155840" height="270" data-theme="dark" data-chrome="noheader nofooter noscrollbar noborders transparent">Tweets by @maximebf</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+      </div>
+      <div class="flickr span4">
+        <a href="http://www.flickr.com/photos/maximebf" title="Flickr" class="title">Photo stream</a>
+        <div class="photos">Loading photo stream...</div>
+        <div class="clear"></div>
+      </div>
+    </div>
+  </div>
+  <div class="menu">
+    <a href="http://maximebf.com">maximebf.com</a> &middot; 
+    <a href="http://maximebf.com/blog">Blog</a> &middot; 
+    <a href="http://travelingcoder.com">Travel Journal</a> &middot; 
+    <a href="http://shortsvsties.com">Shorts vs. Ties</a> &middot; 
+    <a href="http://maximebf.com/freelancing">Hire Me</a>
+  </div>
+  <div class="container">
+    <div class="copyright">
+      &copy; 2014 <a href="http://maximebf.com">Maxime Bouroumeau-Fuseau</a> - 
+      Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> - 
+      Social Icons by <a href="http://veodesign.com/">Veodesign</a> -
+      <a href="#">Top â</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <a href="https://github.com/maximebf" id="forkme"></a>
+</body>
+</html>

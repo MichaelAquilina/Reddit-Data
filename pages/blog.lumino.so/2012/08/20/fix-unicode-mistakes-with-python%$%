@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<!--
+	generated 119 seconds ago
+	generated in 0.665 seconds
+	served from batcache in 0.003 seconds
+	expires in 181 seconds
+-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>Fixing common Unicode mistakes with Python â€” after they&#8217;ve been made | Luminoso Blog</title>
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="http://s2.wp.com/wp-content/themes/pub/twentyeleven/style.css?m=1398102582g" />
+<link rel="pingback" href="http://blog.luminoso.com/xmlrpc.php" />
+<!--[if lt IE 9]>
+<script src="http://s2.wp.com/wp-content/themes/pub/twentyeleven/js/html5.js?m=1394055389g" type="text/javascript"></script>
+<![endif]-->
+		<script src='//r-login.wordpress.com/remote-login.php?action=js&amp;host=blog.luminoso.com&amp;id=26373703&amp;t=1404131969&amp;back=http%3A%2F%2Fblog.luminoso.com%2F2012%2F08%2F20%2Ffix-unicode-mistakes-with-python%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel="alternate" type="application/rss+xml" title="Luminoso Blog &raquo; Feed" href="http://blog.luminoso.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Luminoso Blog &raquo; Comments Feed" href="http://blog.luminoso.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Luminoso Blog &raquo; Fixing common Unicode mistakes with Python â€” after they&#8217;ve been&nbsp;made Comments Feed" href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/feed/" />
+<script type="text/javascript">
+/* <![CDATA[ */
+function addLoadEvent(func){var oldonload=window.onload;if(typeof window.onload!='function'){window.onload=func;}else{window.onload=function(){oldonload();func();}}}
+/* ]]> */
+</script>
+<link rel='stylesheet' id='all-css-0' href='http://s2.wp.com/_static/??-eJx9kt1OwzAMhV+I4BUqxA3iWbLES9M5cZS4q/r2pC0wxiBX8bH8Hf8oMCdlOApGgTCpRJPzsUAJnnBJmUc0cqseTSkP8DdG/owFRpSkzVlt6q78SOyuADuHlidRJybiGWZvHTZ7ZCQtaFXiIr9UCzOcseZD0rJWBLReI2GoZS0spJcvag2Hutd9GxmqT4E0HUHmmliq8QUjFFkI1Zyqwc54iCy+YuU7aDV3yIrYaPEcb4Q6kfa5faX1zjV0UKt+yBa0HnG3hjLovMKfb3vKiHlf6hr+d6OhB0d81NRy3D9B2SZ3zDajtpvje3jr+kPfdU+vh+fxA28ACEU=' type='text/css' media='all' />
+<script type='text/javascript'>
+/* <![CDATA[ */
+var LoggedOutFollow = {"invalid_email":"Your subscription did not succeed, please try again with a valid email address."};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s1.wp.com/_static/??-eJyFj90OwiAMhV9IZFs08cb4LNvoSBEoUpDo08sSNTpNdtW/7/S0sgQxkk/gkzQsHQ1oQWSG2OvaE+gn2hreyMqhH21WwDNoLhni7RlWAeFQxz7B1qF/wR+ugTg5YK6Wf6bfVuivCGUVM5BCP55FBMb7z9bBkhbBZo2eZc01KMpJTGQtFVlQaUhLjctvRQRbn1FivntRVdXJHdtd0+wPbdd05gFmiIRF'></script>
+<link rel='stylesheet' id='all-css-0' href='http://s2.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1377793621g' type='text/css' media='all' />
+<!--[if lt IE 8]>
+<link rel='stylesheet' id='highlander-comments-ie7-css'  href='http://s2.wp.com/wp-content/mu-plugins/highlander-comments/style-ie7.css?m=1351637563g&#038;ver=20110606' type='text/css' media='all' />
+<![endif]-->
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://luminosoinsight.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://luminosoinsight.wordpress.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Need to compress some&nbsp;vectors?' href='http://blog.luminoso.com/2012/08/14/need-to-compress-some-vectors/' />
+<link rel='next' title='Fixing Unicode mistakes and more: the ftfy&nbsp;package' href='http://blog.luminoso.com/2012/08/24/fixing-unicode-mistakes-and-more-the-ftfy-package/' />
+<meta name="generator" content="WordPress.com" />
+<link rel='canonical' href='http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/' />
+<link rel='shortlink' href='http://wp.me/p1MF0j-1H' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=json&amp;url=http%3A%2F%2Fblog.luminoso.com%2F2012%2F08%2F20%2Ffix-unicode-mistakes-with-python%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=xml&amp;url=http%3A%2F%2Fblog.luminoso.com%2F2012%2F08%2F20%2Ffix-unicode-mistakes-with-python%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Fixing common Unicode mistakes with Python â€” after they&#039;ve been made" />
+<meta property="og:url" content="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/" />
+<meta property="og:description" content="Update: not only can you fix Unicode mistakes with Python, you can fix Unicode mistakes with our open source Python package ftfy. It&#039;s on PyPI and everything. You have almost certainly seen text on..." />
+<meta property="article:published_time" content="2012-08-20T16:43:26+00:00" />
+<meta property="article:modified_time" content="2012-10-25T19:45:47+00:00" />
+<meta property="article:author" content="http://blog.luminoso.com/author/luminosoinsight/" />
+<meta property="og:site_name" content="Luminoso Blog" />
+<meta property="og:image" content="http://0.gravatar.com/blavatar/4286e9e860dc13b9adb8b123cc38e54c?s=200" />
+<meta name="twitter:site" content="@LuminosoInsight" />
+<meta name="twitter:image" content="http://0.gravatar.com/blavatar/4286e9e860dc13b9adb8b123cc38e54c?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:creator" content="@LuminosoInsight" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<link rel="shortcut icon" type="image/x-icon" href="http://1.gravatar.com/blavatar/9c2fddc8ea89f7cdaa0a931f2f8f7648?s=16" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="http://1.gravatar.com/blavatar/9c2fddc8ea89f7cdaa0a931f2f8f7648?s=16" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="http://0.gravatar.com/blavatar/4286e9e860dc13b9adb8b123cc38e54c?s=114" />
+<link rel='openid.server' href='http://luminosoinsight.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='http://luminosoinsight.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="http://blog.luminoso.com/osd.xml" title="Luminoso Blog" />
+<link rel="search" type="application/opensearchdescription+xml" href="http://wordpress.com/opensearch.xml" title="WordPress.com" />
+<meta name="application-name" content="Luminoso Blog" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Text understanding and analytics for humans" /><meta name="msapplication-task" content="name=Subscribe;action-uri=http://blog.luminoso.com/feed/;icon-uri=http://1.gravatar.com/blavatar/9c2fddc8ea89f7cdaa0a931f2f8f7648?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="title" content="Fixing common Unicode mistakes with Python â€” after they&#8217;ve been&nbsp;made | Luminoso Blog on WordPress.com" />
+<meta name="description" content="Update: not only can you fix Unicode mistakes with Python, you can fix Unicode mistakes with our open source Python package ftfy. It&#039;s on PyPI and everything. You have almost certainly seen text on a computer that looks something like this: If numbers arenâ€™t beautiful, I donâ€™t know what is. â€“Paul ErdÅ‘s Somewhere, a computer&hellip;" />
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="http://blog.luminoso.com/?custom-css=1&#038;csblog=1MF0j&#038;cscache=6&#038;csrev=19" />
+		</head>
+
+<body class="single single-post postid-105 single-format-standard mp6 typekit-enabled singular one-column content highlander-enabled highlander-light">
+<div id="page" class="hfeed">
+	<header id="branding" role="banner">
+			<hgroup>
+				<h1 id="site-title"><span><a href="http://blog.luminoso.com/" rel="home">Luminoso Blog</a></span></h1>
+				<h2 id="site-description">Text understanding and analytics for humans</h2>
+			</hgroup>
+
+			
+								<form method="get" id="searchform" action="http://blog.luminoso.com/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access" role="navigation">
+				<h3 class="assistive-text">Main menu</h3>
+								<div class="skip-link"><a class="assistive-text" href="#content">Skip to primary content</a></div>
+												<div class="menu-our-company-container"><ul id="menu-our-company" class="menu"><li id="menu-item-71" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-71"><a href="http://lumino.so">Luminoso</a></li>
+<li id="menu-item-148" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-148"><a href="http://blog.lumino.so">Blog</a></li>
+<li id="menu-item-149" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-149"><a href="http://blog.luminoso.com/about/">About</a></li>
+</ul></div>			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="http://blog.luminoso.com/2012/08/14/need-to-compress-some-vectors/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="http://blog.luminoso.com/2012/08/24/fixing-unicode-mistakes-and-more-the-ftfy-package/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-105" class="post-105 post type-post status-publish format-standard hentry category-code tag-python tag-unicode">
+	<header class="entry-header">
+		<h1 class="entry-title">Fixing common Unicode mistakes with Python â€” after they&#8217;ve been&nbsp;made</h1>
+
+				<div class="entry-meta">
+						<span class="sep">Posted on </span><a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/" title="12:43 pm" rel="bookmark"><time class="entry-date" datetime="2012-08-20T12:43:26+00:00">August 20, 2012</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="http://blog.luminoso.com/author/luminosoinsight/" title="View all posts by luminosoinsight" rel="author">luminosoinsight</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p><strong><em>Update: </em></strong><em>not only can you fix Unicode mistakes with Python, you can <a title="Fixing Unicode mistakes and more: the ftfy package" href="http://blog.lumino.so/2012/08/24/fixing-unicode-mistakes-and-more-the-ftfy-package/">fix Unicode mistakes with our open source </a></em><em><a title="Fixing Unicode mistakes and more: the ftfy package" href="http://blog.lumino.so/2012/08/24/fixing-unicode-mistakes-and-more-the-ftfy-package/">Python package ftfy</a>. It&#8217;s on PyPI and everything.</em><strong><em><br />
+</em></strong></p>
+<p>You have almost certainly seen text on a computer that looks something like this:</p>
+<blockquote><p>If numbers arenâ€™t beautiful, I donâ€™t know what is. â€“Paul ErdÅ‘s</p></blockquote>
+<p>Somewhere, a computer got hold of a list of numbers that were intended to constitute a quotation and did something distinctly un-beautiful with it. A person reading that can deduce that it was actually supposed to say this:</p>
+<blockquote><p>If numbers aren’t beautiful, I don’t know what is. –Paul Erdős</p></blockquote>
+<p>Here&#8217;s what&#8217;s going on. A modern computer has the ability to display text that uses over 100,000 different characters, but unfortunately that text sometimes passes through a doddering old program that believes there are only the 256 that it can fit in a single byte. The program doesn&#8217;t even bother to check what encoding the text is in; it just uses its own favorite encoding and turns a bunch of characters into strings of completely different characters.</p>
+<p>Now, <em>you&#8217;re</em> not the programmer causing the encoding problems, right? Because you&#8217;ve read something like Joel Spolsky&#8217;s <a href="http://www.joelonsoftware.com/articles/Unicode.html">The Absolute Minimum Every Developer Absolutely, Positively Must Know About Unicode And Character Sets</a> or the <a href="http://docs.python.org/howto/unicode">Python Unicode HOWTO</a> and you&#8217;ve learned the difference between text and bytestrings and how to get them right.</p>
+<p>But the problem is that sometimes you might have to deal with text that comes out of <em>other</em> code. We deal with this a lot at <a href="http://lumino.so">Luminoso</a>, where the text our customers want us to analyze has often passed through several different pieces of software, each with their own quirks, probably with Microsoft Office somewhere in the chain.</p>
+<p>So this post isn&#8217;t about how to do Unicode right. It&#8217;s about a tool we came up with for damage control after some other program does Unicode wrong. It detects some of the most common encoding mistakes and does what it can to undo them.</p>
+<p><span id="more-105"></span></p>
+<p>Here&#8217;s the type of Unicode mistake we&#8217;re fixing.</p>
+<ul>
+<li>Some text, somewhere, was encoded into bytes using UTF-8 (which is quickly becoming the standard encoding for text on the Internet).</li>
+<li>The software that received this text wasn&#8217;t expecting UTF-8. It instead decodes the bytes in an encoding with only 256 characters. The simplest of these encodings is the one called &#8220;ISO-8859-1&#8243;, or &#8220;Latin-1&#8243; among friends. In Latin-1, you map the 256 possible bytes to the first 256 Unicode characters. This encoding can arise naturally from software that doesn&#8217;t even consider that different encodings exist.</li>
+<li>The result is that every non-ASCII character turns into two or three garbage characters.</li>
+</ul>
+<p>The three most commonly-confused codecs are UTF-8, Latin-1, and Windows-1252. There are lots of other codecs in use in the world, but they are so obviously different from these three that everyone can tell when they&#8217;ve gone wrong. We&#8217;ll focus on fixing cases where text was encoded as one of these three codecs and decoded as another.</p>
+<h1>A first attempt</h1>
+<p>When you look at the kind of junk that&#8217;s produced by this process, the character sequences seem so ugly and meaningless that you could just replace <em>anything</em> that looks like it should have been UTF-8. Just find those sequences, replace them unconditionally with what they would be in UTF-8, and you&#8217;re done. In fact, that&#8217;s what my first version did. Skipping a bunch of edge cases and error handling, it looked something like this:</p>
+<pre class="brush: python; collapse: false; light: true; title: ; notranslate" title="">
+# POSSIBLE_UTF8_SEQUENCE is a big nasty compiled regex of all sequences that
+# look like valid UTF-8.
+def naive_unicode_fixer(text):
+    while True:
+        match = POSSIBLE_UTF8_SEQUENCE.search(text)
+        if match:
+            fixed = match.group(1).encode('latin-1').decode('utf-8')
+            text = text[:match.start()] + fixed + text[match.end():]
+        else:
+            return text
+</pre>
+<p>This does a perfectly fine job at decoding UTF-8 that was read as Latin-1 with hardly any false positives. But a lot of erroneous text out there in the wild <em>wasn&#8217;t</em> decoded as Latin-1. It was instead decoded in a slightly different codec, Windows-1252, the default in widely-used software such as Microsoft Office.</p>
+<p>Windows-1252 is totally non-standard, but you can see why people want it: it fills an otherwise useless area of Latin-1 with lots of word-processing-friendly characters, such as curly quotes, bullets, the Euro symbol, the trademark symbol, and the Czech letter <em>š</em>. When these characters show up where you didn&#8217;t expect them, they&#8217;re called &#8220;<a title="Mapping Windows CP1252 Gremlins to Unicode" href="http://effbot.org/zone/unicode-gremlins.htm">gremlins</a>&#8220;.</p>
+<p>When we might encounter text that was meant to be UTF-8 with these characters in it, the problem isn&#8217;t so simple anymore. I started finding things that people <em>might actually say</em> that included these characters and were also valid in UTF-8. Maybe these are improbable edge cases, but I don&#8217;t want to write a Unicode fixer that actually <em>introduces</em> errors.</p>
+<pre class="brush: plain; collapse: false; light: true; title: ; notranslate" title="">
+&gt;&gt;&gt; print naive_unicode_fixer(u'“I'm not such a fan of Charlotte Brontë…”')
+“I'm not such a fan of Charlotte Bront녔
+
+&gt;&gt;&gt; print naive_unicode_fixer(u'AHÅ™, the new sofa from IKEA®')
+AHř, the new sofa from IKEA®
+</pre>
+<h1>An intelligent Unicode fixer</h1>
+<p>Because encoded text can actually be ambiguous, we have to figure out whether the text is better when we fix it or when we leave it alone. The venerable Mark Pilgrim has a key insight when discussing his <a href="http://pypi.python.org/pypi/chardet">chardet</a> module:</p>
+<blockquote><p>Encoding detection is really language detection in drag. –Mark Pilgrim, <em>Dive Into Python 3</em></p></blockquote>
+<p>The reason the word &#8220;Bront녔&#8221; is so clearly wrong is that the first five characters are Roman letters, while the last one is Hangul, and most words in most languages don&#8217;t mix two different scripts like that.</p>
+<p>This is where Python&#8217;s standard library starts to shine. The <code>unicodedata</code> module can tell us lots of things we want to know about any given character:</p>
+<pre class="brush: plain; collapse: false; light: true; title: ; notranslate" title="">
+&gt;&gt;&gt; import unicodedata
+&gt;&gt;&gt; unicodedata.category(u't')
+'Ll'
+&gt;&gt;&gt; unicodedata.name(u't')
+'LATIN SMALL LETTER T'
+&gt;&gt;&gt; unicodedata.category(u'녔')
+'Lo'
+&gt;&gt;&gt; unicodedata.name(u'녔')
+'HANGUL SYLLABLE NYEOSS'
+</pre>
+<p>Now we can write a more complicated but much more principled Unicode fixer by following some rules of thumb:</p>
+<ul>
+<li>We want to apply a consistent transformation that minimizes the number of &#8220;weird things&#8221; that happen in a string.</li>
+<li>Obscure single-byte characters, such as <a title="Pilcrow" href="http://en.wikipedia.org/wiki/Pilcrow">¶</a> and <a title="Ƒ" href="http://en.wikipedia.org/wiki/%C6%91">ƒ</a>, are weird.<a title="Pilcrow" href="http://en.wikipedia.org/wiki/Pilcrow"><br />
+</a></li>
+<li>Math and currency symbols adjacent to other symbols are weird.</li>
+<li>Having two adjacent letters from different scripts is <em>very</em> weird.</li>
+<li>Causing new decoding errors that turn normal characters into � is unacceptable and should count for much more than any other problem.</li>
+<li>Favor shorter strings over longer ones, as long as the shorter string isn&#8217;t weirder.</li>
+<li>Favor correctly-decoded Windows-1252 gremlins over incorrectly-decoded ones.</li>
+</ul>
+<p>That leads us to a complete Unicode fixer that applies these rules. It does an excellent job at fixing files full of garble line-by-line, such as the <a href="http://corpus.leeds.ac.uk/">University of Leeds</a> <a href="http://corpus.leeds.ac.uk/frqc/internet-es-forms.num">Internet Spanish frequency list</a>, which picked up that &#8220;mÃ¡s&#8221; is a really common word in Spanish text because there is so much incorrect Unicode on the Web.</p>
+<p>The final code appears below, as well as in <a href="http://code.activestate.com/recipes/578243-repair-common-unicode-mistakes-after-theyve-been-m/">this recipe</a> and in our open source (MIT license) natural language wrangling package, <a href="https://github.com/commonsense/metanl">metanl</a>.</p>
+<pre class="brush: python; gutter: false; title: ; notranslate" title="">
+# -*- coding: utf-8 -*-
+
+import unicodedata
+
+def fix_bad_unicode(text):
+    u&quot;&quot;&quot;
+    Something you will find all over the place, in real-world text, is text
+    that's mistakenly encoded as utf-8, decoded in some ugly format like
+    latin-1 or even Windows codepage 1252, and encoded as utf-8 again.
+
+    This causes your perfectly good Unicode-aware code to end up with garbage
+    text because someone else (or maybe &quot;someone else&quot;) made a mistake.
+
+    This function looks for the evidence of that having happened and fixes it.
+    It determines whether it should replace nonsense sequences of single-byte
+    characters that were really meant to be UTF-8 characters, and if so, turns
+    them into the correctly-encoded Unicode character that they were meant to
+    represent.
+
+    The input to the function must be Unicode. It's not going to try to
+    auto-decode bytes for you -- then it would just create the problems it's
+    supposed to fix.
+
+        &gt;&gt;&gt; print fix_bad_unicode(u'Ãºnico')
+        único
+
+        &gt;&gt;&gt; print fix_bad_unicode(u'This text is fine already :þ')
+        This text is fine already :þ
+
+    Because these characters often come from Microsoft products, we allow
+    for the possibility that we get not just Unicode characters 128-255, but
+    also Windows's conflicting idea of what characters 128-160 are.
+
+        &gt;&gt;&gt; print fix_bad_unicode(u'This â€” should be an em dash')
+        This — should be an em dash
+
+    We might have to deal with both Windows characters and raw control
+    characters at the same time, especially when dealing with characters like
+    \x81 that have no mapping in Windows.
+
+        &gt;&gt;&gt; print fix_bad_unicode(u'This text is sad .â\x81”.')
+        This text is sad .⁔.
+
+    This function even fixes multiple levels of badness:
+
+        &gt;&gt;&gt; wtf = u'\xc3\xa0\xc2\xb2\xc2\xa0_\xc3\xa0\xc2\xb2\xc2\xa0'
+        &gt;&gt;&gt; print fix_bad_unicode(wtf)
+        ಠ_ಠ
+
+    However, it has safeguards against fixing sequences of letters and
+    punctuation that can occur in valid text:
+
+        &gt;&gt;&gt; print fix_bad_unicode(u'not such a fan of Charlotte Brontë…”')
+        not such a fan of Charlotte Brontë…”
+
+    Cases of genuine ambiguity can sometimes be addressed by finding other
+    characters that are not double-encoding, and expecting the encoding to
+    be consistent:
+
+        &gt;&gt;&gt; print fix_bad_unicode(u'AHÅ™, the new sofa from IKEA®')
+        AHÅ™, the new sofa from IKEA®
+
+    Finally, we handle the case where the text is in a single-byte encoding
+    that was intended as Windows-1252 all along but read as Latin-1:
+
+        &gt;&gt;&gt; print fix_bad_unicode(u'This text was never Unicode at all\x85')
+        This text was never Unicode at all…
+    &quot;&quot;&quot;
+    if not isinstance(text, unicode):
+        raise TypeError(&quot;This isn't even decoded into Unicode yet. &quot;
+                        &quot;Decode it first.&quot;)
+    if len(text) == 0:
+        return text
+
+    maxord = max(ord(char) for char in text)
+    tried_fixing = []
+    if maxord &lt; 128:
+        # Hooray! It's ASCII!
+        return text
+    else:
+        attempts = [(text, text_badness(text) + len(text))]
+        if maxord &lt; 256:
+            tried_fixing = reinterpret_latin1_as_utf8(text)
+            tried_fixing2 = reinterpret_latin1_as_windows1252(text)
+            attempts.append((tried_fixing, text_cost(tried_fixing)))
+            attempts.append((tried_fixing2, text_cost(tried_fixing2)))
+        elif all(ord(char) in WINDOWS_1252_CODEPOINTS for char in text):
+            tried_fixing = reinterpret_windows1252_as_utf8(text)
+            attempts.append((tried_fixing, text_cost(tried_fixing)))
+        else:
+            # We can't imagine how this would be anything but valid text.
+            return text
+
+        # Sort the results by badness
+        attempts.sort(key=lambda x: x[1])
+        #print attempts
+        goodtext = attempts[0][0]
+        if goodtext == text:
+            return goodtext
+        else:
+            return fix_bad_unicode(goodtext)
+
+def reinterpret_latin1_as_utf8(wrongtext):
+    newbytes = wrongtext.encode('latin-1', 'replace')
+    return newbytes.decode('utf-8', 'replace')
+
+def reinterpret_windows1252_as_utf8(wrongtext):
+    altered_bytes = []
+    for char in wrongtext:
+        if ord(char) in WINDOWS_1252_GREMLINS:
+            altered_bytes.append(char.encode('WINDOWS_1252'))
+        else:
+            altered_bytes.append(char.encode('latin-1', 'replace'))
+    return ''.join(altered_bytes).decode('utf-8', 'replace')
+
+def reinterpret_latin1_as_windows1252(wrongtext):
+    &quot;&quot;&quot;
+    Maybe this was always meant to be in a single-byte encoding, and it
+    makes the most sense in Windows-1252.
+    &quot;&quot;&quot;
+    return wrongtext.encode('latin-1').decode('WINDOWS_1252', 'replace')
+
+def text_badness(text):
+    u'''
+    Look for red flags that text is encoded incorrectly:
+
+    Obvious problems:
+    - The replacement character \ufffd, indicating a decoding error
+    - Unassigned or private-use Unicode characters
+
+    Very weird things:
+    - Adjacent letters from two different scripts
+    - Letters in scripts that are very rarely used on computers (and
+      therefore, someone who is using them will probably get Unicode right)
+    - Improbable control characters, such as 0x81
+
+    Moderately weird things:
+    - Improbable single-byte characters, such as ƒ or ¬
+    - Letters in somewhat rare scripts
+    '''
+    assert isinstance(text, unicode)
+    errors = 0
+    very_weird_things = 0
+    weird_things = 0
+    prev_letter_script = None
+    for pos in xrange(len(text)):
+        char = text[pos]
+        index = ord(char)
+        if index &lt; 256:
+            # Deal quickly with the first 256 characters.
+            weird_things += SINGLE_BYTE_WEIRDNESS[index]
+            if SINGLE_BYTE_LETTERS[index]:
+                prev_letter_script = 'latin'
+            else:
+                prev_letter_script = None
+        else:
+            category = unicodedata.category(char)
+            if category == 'Co':
+                # Unassigned or private use
+                errors += 1
+            elif index == 0xfffd:
+                # Replacement character
+                errors += 1
+            elif index in WINDOWS_1252_GREMLINS:
+                lowchar = char.encode('WINDOWS_1252').decode('latin-1')
+                weird_things += SINGLE_BYTE_WEIRDNESS[ord(lowchar)] - 0.5
+
+            if category.startswith('L'):
+                # It's a letter. What kind of letter? This is typically found
+                # in the first word of the letter's Unicode name.
+                name = unicodedata.name(char)
+                scriptname = name.split()[0]
+                freq, script = SCRIPT_TABLE.get(scriptname, (0, 'other'))
+                if prev_letter_script:
+                    if script != prev_letter_script:
+                        very_weird_things += 1
+                    if freq == 1:
+                        weird_things += 2
+                    elif freq == 0:
+                        very_weird_things += 1
+                prev_letter_script = script
+            else:
+                prev_letter_script = None
+
+    return 100 * errors + 10 * very_weird_things + weird_things
+
+def text_cost(text):
+    &quot;&quot;&quot;
+    Assign a cost function to the length plus weirdness of a text string.
+    &quot;&quot;&quot;
+    return text_badness(text) + len(text)
+
+#######################################################################
+# The rest of this file is esoteric info about characters, scripts, and their
+# frequencies.
+#
+# Start with an inventory of &quot;gremlins&quot;, which are characters from all over
+# Unicode that Windows has instead assigned to the control characters
+# 0x80-0x9F. We might encounter them in their Unicode forms and have to figure
+# out what they were originally.
+
+WINDOWS_1252_GREMLINS = [
+    # adapted from http://effbot.org/zone/unicode-gremlins.htm
+    0x0152,  # LATIN CAPITAL LIGATURE OE
+    0x0153,  # LATIN SMALL LIGATURE OE
+    0x0160,  # LATIN CAPITAL LETTER S WITH CARON
+    0x0161,  # LATIN SMALL LETTER S WITH CARON
+    0x0178,  # LATIN CAPITAL LETTER Y WITH DIAERESIS
+    0x017E,  # LATIN SMALL LETTER Z WITH CARON
+    0x017D,  # LATIN CAPITAL LETTER Z WITH CARON
+    0x0192,  # LATIN SMALL LETTER F WITH HOOK
+    0x02C6,  # MODIFIER LETTER CIRCUMFLEX ACCENT
+    0x02DC,  # SMALL TILDE
+    0x2013,  # EN DASH
+    0x2014,  # EM DASH
+    0x201A,  # SINGLE LOW-9 QUOTATION MARK
+    0x201C,  # LEFT DOUBLE QUOTATION MARK
+    0x201D,  # RIGHT DOUBLE QUOTATION MARK
+    0x201E,  # DOUBLE LOW-9 QUOTATION MARK
+    0x2018,  # LEFT SINGLE QUOTATION MARK
+    0x2019,  # RIGHT SINGLE QUOTATION MARK
+    0x2020,  # DAGGER
+    0x2021,  # DOUBLE DAGGER
+    0x2022,  # BULLET
+    0x2026,  # HORIZONTAL ELLIPSIS
+    0x2030,  # PER MILLE SIGN
+    0x2039,  # SINGLE LEFT-POINTING ANGLE QUOTATION MARK
+    0x203A,  # SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+    0x20AC,  # EURO SIGN
+    0x2122,  # TRADE MARK SIGN
+]
+
+# a list of Unicode characters that might appear in Windows-1252 text
+WINDOWS_1252_CODEPOINTS = range(256) + WINDOWS_1252_GREMLINS
+
+# Rank the characters typically represented by a single byte -- that is, in
+# Latin-1 or Windows-1252 -- by how weird it would be to see them in running
+# text.
+#
+#   0 = not weird at all
+#   1 = rare punctuation or rare letter that someone could certainly
+#       have a good reason to use. All Windows-1252 gremlins are at least
+#       weirdness 1.
+#   2 = things that probably don't appear next to letters or other
+#       symbols, such as math or currency symbols
+#   3 = obscure symbols that nobody would go out of their way to use
+#       (includes symbols that were replaced in ISO-8859-15)
+#   4 = why would you use this?
+#   5 = unprintable control character
+#
+# The Portuguese letter Ã (0xc3) is marked as weird because it would usually
+# appear in the middle of a word in actual Portuguese, and meanwhile it
+# appears in the mis-encodings of many common characters.
+
+SINGLE_BYTE_WEIRDNESS = (
+#   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+    5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 5, 5, 5, 5, 5,  # 0x00
+    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,  # 0x10
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 0x20
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 0x30
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 0x40
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 0x50
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 0x60
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5,  # 0x70
+    2, 5, 1, 4, 1, 1, 3, 3, 4, 3, 1, 1, 1, 5, 1, 5,  # 0x80
+    5, 1, 1, 1, 1, 3, 1, 1, 4, 1, 1, 1, 1, 5, 1, 1,  # 0x90
+    1, 0, 2, 2, 3, 2, 4, 2, 4, 2, 2, 0, 3, 1, 1, 4,  # 0xa0
+    2, 2, 3, 3, 4, 3, 3, 2, 4, 4, 4, 0, 3, 3, 3, 0,  # 0xb0
+    0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 0xc0
+    1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0,  # 0xd0
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 0xe0
+    1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0,  # 0xf0
+)
+
+# Pre-cache the Unicode data saying which of these first 256 characters are
+# letters. We'll need it often.
+SINGLE_BYTE_LETTERS = [
+    unicodedata.category(unichr(i)).startswith('L')
+    for i in xrange(256)
+]
+
+# A table telling us how to interpret the first word of a letter's Unicode
+# name. The number indicates how frequently we expect this script to be used
+# on computers. Many scripts not included here are assumed to have a frequency
+# of &quot;0&quot; -- if you're going to write in Linear B using Unicode, you're
+# probably aware enough of encoding issues to get it right.
+#
+# The lowercase name is a general category -- for example, Han characters and
+# Hiragana characters are very frequently adjacent in Japanese, so they all go
+# into category 'cjk'. Letters of different categories are assumed not to
+# appear next to each other often.
+SCRIPT_TABLE = {
+    'LATIN': (3, 'latin'),
+    'CJK': (2, 'cjk'),
+    'ARABIC': (2, 'arabic'),
+    'CYRILLIC': (2, 'cyrillic'),
+    'GREEK': (2, 'greek'),
+    'HEBREW': (2, 'hebrew'),
+    'KATAKANA': (2, 'cjk'),
+    'HIRAGANA': (2, 'cjk'),
+    'HIRAGANA-KATAKANA': (2, 'cjk'),
+    'HANGUL': (2, 'cjk'),
+    'DEVANAGARI': (2, 'devanagari'),
+    'THAI': (2, 'thai'),
+    'FULLWIDTH': (2, 'cjk'),
+    'MODIFIER': (2, None),
+    'HALFWIDTH': (1, 'cjk'),
+    'BENGALI': (1, 'bengali'),
+    'LAO': (1, 'lao'),
+    'KHMER': (1, 'khmer'),
+    'TELUGU': (1, 'telugu'),
+    'MALAYALAM': (1, 'malayalam'),
+    'SINHALA': (1, 'sinhala'),
+    'TAMIL': (1, 'tamil'),
+    'GEORGIAN': (1, 'georgian'),
+    'ARMENIAN': (1, 'armenian'),
+    'KANNADA': (1, 'kannada'),  # mostly used for looks of disapproval
+    'MASCULINE': (1, 'latin'),
+    'FEMININE': (1, 'latin')
+}
+</pre>
+<div id="jp-post-flair" class="sharedaddy sd-like-enabled sd-sharing-enabled"><div class="sharedaddy sd-sharing-enabled"><div class="robots-nocontent sd-block sd-social sd-social-icon-text sd-sharing"><h3 class="sd-title">Share this:</h3><div class="sd-content"><ul><li class="share-twitter"><a rel="nofollow" class="share-twitter sd-button share-icon" href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/?share=twitter" title="Click to share on Twitter" id="sharing-twitter-105"><span>Twitter</span></a></li><li class="share-facebook"><a rel="nofollow" class="share-facebook sd-button share-icon" href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/?share=facebook" title="Share on Facebook" id="sharing-facebook-105"><span>Facebook</span></a></li><li class="share-end"></li></ul></div></div></div><div class='sharedaddy sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-unloaded' id='like-post-wrapper-26373703-105-53b15a81d0f0f' data-src='//widgets.wp.com/likes/#blog_id=26373703&amp;post_id=105&amp;origin=luminosoinsight.wordpress.com&amp;obj_id=26373703-105-53b15a81d0f0f' data-name='like-post-frame-26373703-105-53b15a81d0f0f'><h3 class='sd-title'>Like this:</h3><div class='likes-widget-placeholder post-likes-widget-placeholder' style='height:55px'><span class='button'><span>Like</span></span> <span class="loading">Loading...</span></div><span class='sd-text-color'></span><a class='sd-link-color'></a></div>
+<div id='jp-relatedposts' class='jp-relatedposts' >
+	<h3 class="jp-relatedposts-headline"><em>Related</em></h3>
+</div></div>			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="http://blog.luminoso.com/category/code/" rel="category tag">Code</a> and tagged <a href="http://blog.luminoso.com/tag/python/" rel="tag">python</a>, <a href="http://blog.luminoso.com/tag/unicode/" rel="tag">unicode</a> by <a href="http://blog.luminoso.com/author/luminosoinsight/">luminosoinsight</a>. Bookmark the <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/" title="Permalink to Fixing common Unicode mistakes with Python â€” after they&#8217;ve been&nbsp;made" rel="bookmark">permalink</a>.		
+				<div id="author-info">
+			<div id="author-avatar">
+				<img alt='' src='http://0.gravatar.com/avatar/0f16f6e914d7a3109e367410b95ae336?s=68&#038;d=identicon&#038;r=G' class='avatar avatar-68' height='68' width='68' />			</div><!-- #author-avatar -->
+			<div id="author-description">
+				<h2>About luminosoinsight</h2>
+				Luminoso is a text understanding company in Cambridge, MA.				<div id="author-link">
+					<a href="http://blog.luminoso.com/author/luminosoinsight/" rel="author">
+						View all posts by luminosoinsight <span class="meta-nav">&rarr;</span>					</a>
+				</div><!-- #author-link	-->
+			</div><!-- #author-description -->
+		</div><!-- #author-info -->
+			</footer><!-- .entry-meta -->
+</article><!-- #post-105 -->
+
+						<div id="comments">
+	
+	
+			<h2 id="comments-title">
+			18 thoughts on &ldquo;<span>Fixing common Unicode mistakes with Python â€” after they&#8217;ve been&nbsp;made</span>&rdquo;		</h2>
+
+		
+		<ol class="commentlist">
+				<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-70">
+		<article id="comment-70" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='http://2.gravatar.com/avatar/e99ca64d159d708d030ac56678241f11?s=68&#038;d=identicon&#038;r=G' class='avatar avatar-68' height='68' width='68' /><span class="fn">Pallin</span> on <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/#comment-70"><time datetime="2012-08-21T10:09:18+00:00">August 21, 2012 at 10:09 am</time></a> <span class="says">said:</span>
+									</div><!-- .comment-author .vcard -->
+
+				
+			</footer>
+
+			<div class="comment-content"><p>I takes issues with you use of the term &#8216;codecs&#8217;. These is not codecs but &#8216;character encodings&#8217;.</p>
+</div>
+
+			<div class="reply">
+				<a class='comment-reply-link' href='/2012/08/20/fix-unicode-mistakes-with-python/?replytocom=70#respond' onclick='return addComment.moveForm("comment-70", "70", "respond", "105")'>Reply <span>&darr;</span></a>			</div><!-- .reply -->
+		</article><!-- #comment-## -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-rspeer23 odd alt depth-2 highlander-comment" id="li-comment-72">
+		<article id="comment-72" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='http://1.gravatar.com/avatar/4a8ff761f5d046326a04927935be3979?s=39&#038;d=identicon&#038;r=G' class='avatar avatar-39' height='39' width='39' /><span class="fn">Rob Speer</span> on <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/#comment-72"><time datetime="2012-08-21T12:41:51+00:00">August 21, 2012 at 12:41 pm</time></a> <span class="says">said:</span>
+									</div><!-- .comment-author .vcard -->
+
+				
+			</footer>
+
+			<div class="comment-content"><p>That&#8217;s probably more accurate. The Python standard library uses the word &#8220;codecs&#8221; with this meaning, however.</p>
+</div>
+
+			<div class="reply">
+				<a class='comment-reply-link' href='/2012/08/20/fix-unicode-mistakes-with-python/?replytocom=72#respond' onclick='return addComment.moveForm("comment-72", "72", "respond", "105")'>Reply <span>&darr;</span></a>			</div><!-- .reply -->
+		</article><!-- #comment-## -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-71">
+		<article id="comment-71" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='http://2.gravatar.com/avatar/8722a73d66d9fc7dbc076bdb29a3cc1f?s=68&#038;d=identicon&#038;r=G' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://gravatar.com/davidblewett' rel='external nofollow' class='url'>David Blewett</a></span> on <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/#comment-71"><time datetime="2012-08-21T11:14:35+00:00">August 21, 2012 at 11:14 am</time></a> <span class="says">said:</span>
+									</div><!-- .comment-author .vcard -->
+
+				
+			</footer>
+
+			<div class="comment-content"><p>Have you compared your approach with the chardet package?</p>
+<p><a href="http://pypi.python.org/pypi/chardet" rel="nofollow">http://pypi.python.org/pypi/chardet</a></p>
+</div>
+
+			<div class="reply">
+				<a class='comment-reply-link' href='/2012/08/20/fix-unicode-mistakes-with-python/?replytocom=71#respond' onclick='return addComment.moveForm("comment-71", "71", "respond", "105")'>Reply <span>&darr;</span></a>			</div><!-- .reply -->
+		</article><!-- #comment-## -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-rspeer23 odd alt depth-2 highlander-comment" id="li-comment-73">
+		<article id="comment-73" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='http://1.gravatar.com/avatar/4a8ff761f5d046326a04927935be3979?s=39&#038;d=identicon&#038;r=G' class='avatar avatar-39' height='39' width='39' /><span class="fn">Rob Speer</span> on <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/#comment-73"><time datetime="2012-08-21T12:57:19+00:00">August 21, 2012 at 12:57 pm</time></a> <span class="says">said:</span>
+									</div><!-- .comment-author .vcard -->
+
+				
+			</footer>
+
+			<div class="comment-content"><p>chardet is great, and when used responsibly would make this code unnecessary. </p>
+<p>At one point I decided I was just going to add &#8220;utf-8 misread as latin-1&#8243; and &#8220;utf-8 misread as windows-1252&#8243; as new encodings by registering them with the Python &#8220;codecs&#8221; library, and then try to wrap chardet so it understood these new encodings. There are a few reasons I decided against that.</p>
+<p>One of them is that, as useful as the chardet module is, it&#8217;s not the most extensible thing ever. It&#8217;s mostly a bunch of undocumented finite state machines.</p>
+<p>Another is that chardet reads in bytes, while fix_bad_unicode reads in what is supposedly Unicode. Working with the UTF-8 representation of it would be rather indirect and make the problem much harder (now you&#8217;re three steps away from what the text should be instead of two). And then everything that fix_bad_unicode could fix would also appear to chardet as totally valid UTF-8 &#8212; I&#8217;d have to actually change its UTF-8 detector.</p>
+<p>Basically, chardet is what you should use for reading text in an unknown encoding. fix_bad_unicode is what you should use when someone else didn&#8217;t know they were reading text in the wrong encoding. (Perhaps they should have used chardet.)</p>
+</div>
+
+			<div class="reply">
+				<a class='comment-reply-link' href='/2012/08/20/fix-unicode-mistakes-with-python/?replytocom=73#respond' onclick='return addComment.moveForm("comment-73", "73", "respond", "105")'>Reply <span>&darr;</span></a>			</div><!-- .reply -->
+		</article><!-- #comment-## -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-74">
+		<article id="comment-74" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='http://2.gravatar.com/avatar/b2507d479af955f05ee995b8d5daa6ac?s=68&#038;d=identicon&#038;r=G' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://tartley.com' rel='external nofollow' class='url'>tartley</a></span> on <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/#comment-74"><time datetime="2012-08-21T13:26:16+00:00">August 21, 2012 at 1:26 pm</time></a> <span class="says">said:</span>
+									</div><!-- .comment-author .vcard -->
+
+				
+			</footer>
+
+			<div class="comment-content"><p>Thanks for the post, that&#8217;s wonderfully enlightening.</p>
+<p>I&#8217;m decoding characters sent from a variety of sources, and haven&#8217;t (yet) got each source to specify what encoding they are sending me. Many of them are not technically astute, and will likely not be able to tell me. However, when integrating with a new source, I&#8217;m in close communication with them, and will be able to request that they send me a particular string. Is there a string of characters I could ask them to send which will disambiguate the encoding they are using?</p>
+<p>I guess the answer depends on the set of possible encodings I expect to be receiving. Just common English language ones, for the time being.</p>
+<p>I just realised this is a bit off-topic, and probably better suited to a Stack Overflow question:<br />
+<a href="http://stackoverflow.com/questions/12059957/what-string-of-characters-should-a-source-send-to-disambiguate-the-byte-encoding" rel="nofollow">http://stackoverflow.com/questions/12059957/what-string-of-characters-should-a-source-send-to-disambiguate-the-byte-encoding</a></p>
+</div>
+
+			<div class="reply">
+				<a class='comment-reply-link' href='/2012/08/20/fix-unicode-mistakes-with-python/?replytocom=74#respond' onclick='return addComment.moveForm("comment-74", "74", "respond", "105")'>Reply <span>&darr;</span></a>			</div><!-- .reply -->
+		</article><!-- #comment-## -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-rspeer23 odd alt depth-2 highlander-comment" id="li-comment-108">
+		<article id="comment-108" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='http://1.gravatar.com/avatar/4a8ff761f5d046326a04927935be3979?s=39&#038;d=identicon&#038;r=G' class='avatar avatar-39' height='39' width='39' /><span class="fn">Rob Speer</span> on <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/#comment-108"><time datetime="2012-08-27T16:10:37+00:00">August 27, 2012 at 4:10 pm</time></a> <span class="says">said:</span>
+									</div><!-- .comment-author .vcard -->
+
+				
+			</footer>
+
+			<div class="comment-content"><p>That&#8217;s a pretty fun question. I&#8217;m not sure it has a single good answer.</p>
+<p>All these encodings can basically be disambiguated in a single character. But when it comes to the single-byte encodings, the characters where they disagree are generally going to be characters another single-byte encoding doesn&#8217;t support at all.</p>
+<p>I&#8217;d ask them to send something like &#8220;¢a$h mon€¥&#8221;, which aside from looking like an irritating teenager&#8217;s username would make a pretty good test. The plain ASCII characters are a reference point. The ¢ and ¥ will distinguish whether they&#8217;re using UTF-8 or a single-byte encoding. The € will distinguish ISO-8859-15 (which I don&#8217;t know if anyone uses) from Windows-1252. The ¥ will distinguish all of these from crazy Japanese encodings that put ¥ where a backslash should be.</p>
+<p>However, in many encodings including ISO-8859-1, they won&#8217;t have any representation for the Euro symbol. They might not be able to see that you&#8217;re asking them for the Euro symbol. On Windows, you could ask them to type Alt+0128 and see what happens.</p>
+</div>
+
+			<div class="reply">
+				<a class='comment-reply-link' href='/2012/08/20/fix-unicode-mistakes-with-python/?replytocom=108#respond' onclick='return addComment.moveForm("comment-108", "108", "respond", "105")'>Reply <span>&darr;</span></a>			</div><!-- .reply -->
+		</article><!-- #comment-## -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-tartley even depth-3 highlander-comment" id="li-comment-120">
+		<article id="comment-120" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='http://2.gravatar.com/avatar/b2507d479af955f05ee995b8d5daa6ac?s=39&#038;d=identicon&#038;r=G' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://tartley.com' rel='external nofollow' class='url'>tartley</a></span> on <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/#comment-120"><time datetime="2012-08-28T06:21:47+00:00">August 28, 2012 at 6:21 am</time></a> <span class="says">said:</span>
+									</div><!-- .comment-author .vcard -->
+
+				
+			</footer>
+
+			<div class="comment-content"><p>Interesting reply, thanks for the thoughts Rob.</p>
+<p>I&#8217;m communicating with each sender out of band, person-to-person, as they initially integrate, so I&#8217;m reasonably confident that I&#8217;ll be able to communicate the required string to them, for example by email, assuming that handles the encodings ok, and iterate if the bytes they send don&#8217;t make sense to me.</p>
+<p>I guess if I ask for a character they can&#8217;t encode, then things with either blow up on their end, or I&#8217;ll get some junk or a missing character. I guess I need to try a few experiments. I&#8217;ll report back if anything interesting happens.</p>
+</div>
+
+			<div class="reply">
+							</div><!-- .reply -->
+		</article><!-- #comment-## -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-76">
+		<article id="comment-76" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='http://i2.wp.com/a0.twimg.com/profile_images/1110556587/dani3-small_normal.JPG?resize=68%2C68' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://twitter.com/dmoisset' rel='external nofollow' class='url'>Daniel Moisset (@dmoisset)</a></span> on <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/#comment-76"><time datetime="2012-08-21T14:26:15+00:00">August 21, 2012 at 2:26 pm</time></a> <span class="says">said:</span>
+									</div><!-- .comment-author .vcard -->
+
+				
+			</footer>
+
+			<div class="comment-content"><p>«the University of Leeds Internet Spanish frequency list, which picked up that “mÃ¡s” is a really common word in Spanish text because there is so much incorrect Unicode on the Web.»</p>
+<p>Actually that&#8217;s not true. The page linked is just a text/plain page that is UTF-8 encoded but is not reporting an encoding in the HTTP response headers. So your browser is incorrectly guessing Latin-1, resulting in what you see.</p>
+<p>So the problem is in how your browser is rendering that listing (and the server being slightly rude and not telling it how to decode, forcing a guess), not the amount of incorrect Unicode in the web.</p>
+</div>
+
+			<div class="reply">
+				<a class='comment-reply-link' href='/2012/08/20/fix-unicode-mistakes-with-python/?replytocom=76#respond' onclick='return addComment.moveForm("comment-76", "76", "respond", "105")'>Reply <span>&darr;</span></a>			</div><!-- .reply -->
+		</article><!-- #comment-## -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-rspeer23 even depth-2 highlander-comment" id="li-comment-77">
+		<article id="comment-77" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='http://1.gravatar.com/avatar/4a8ff761f5d046326a04927935be3979?s=39&#038;d=identicon&#038;r=G' class='avatar avatar-39' height='39' width='39' /><span class="fn">Rob Speer</span> on <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/#comment-77"><time datetime="2012-08-21T14:42:04+00:00">August 21, 2012 at 2:42 pm</time></a> <span class="says">said:</span>
+									</div><!-- .comment-author .vcard -->
+
+				
+			</footer>
+
+			<div class="comment-content"><p>Nope &#8212; this just shows how sneaky Unicode problems can be! Indeed, when I click on the link to that file in some browsers, the entire thing looks like UTF-8 misread as Latin-1.</p>
+<p>But if you read the file correctly as UTF-8, you will see that the 24th most common word is &#8220;más&#8221; and the 175th most common word is &#8220;mÃ¡s&#8221;.</p>
+<p>Look at the 175th most common word in your browser, then, and it will look like &#8220;mÃƒÂ¡s&#8221;. It&#8217;s gone through the mis-encoding cycle *twice*. And that&#8217;s why I made sure fix_bad_unicode works recursively.</p>
+</div>
+
+			<div class="reply">
+				<a class='comment-reply-link' href='/2012/08/20/fix-unicode-mistakes-with-python/?replytocom=77#respond' onclick='return addComment.moveForm("comment-77", "77", "respond", "105")'>Reply <span>&darr;</span></a>			</div><!-- .reply -->
+		</article><!-- #comment-## -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://www.brucelawson.co.uk/2012/reading-list-24/' rel='external nofollow' class='url'>Bruce Lawson&#8217;s personal site&nbsp; : Reading list</a></p>
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://blog.lumino.so/2012/08/24/fixing-unicode-mistakes-and-more-the-ftfy-package/' rel='external nofollow' class='url'>Fixing Unicode mistakes and more: the ftfy package | Luminoso Blog</a></p>
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://pythonadventures.wordpress.com/2012/09/02/print-unicode-text-to-the-terminal/' rel='external nofollow' class='url'>Print unicode text to the terminal &laquo; Python Adventures</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-196">
+		<article id="comment-196" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='http://0.gravatar.com/avatar/91f487c63a8e85a18bdd37a3b315136a?s=68&#038;d=identicon&#038;r=G' class='avatar avatar-68' height='68' width='68' /><span class="fn">S. K.</span> on <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/#comment-196"><time datetime="2012-09-11T13:03:56+00:00">September 11, 2012 at 1:03 pm</time></a> <span class="says">said:</span>
+									</div><!-- .comment-author .vcard -->
+
+				
+			</footer>
+
+			<div class="comment-content"><p>Typo: &#8220;differentcharacters&#8221; without space</p>
+</div>
+
+			<div class="reply">
+				<a class='comment-reply-link' href='/2012/08/20/fix-unicode-mistakes-with-python/?replytocom=196#respond' onclick='return addComment.moveForm("comment-196", "196", "respond", "105")'>Reply <span>&darr;</span></a>			</div><!-- .reply -->
+		</article><!-- #comment-## -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-luminosoinsight bypostauthor even depth-2 highlander-comment" id="li-comment-197">
+		<article id="comment-197" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='http://0.gravatar.com/avatar/0f16f6e914d7a3109e367410b95ae336?s=39&#038;d=identicon&#038;r=G' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://luminosoinsight.wordpress.com' rel='external nofollow' class='url'>luminosoinsight</a></span> on <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/#comment-197"><time datetime="2012-09-11T14:17:03+00:00">September 11, 2012 at 2:17 pm</time></a> <span class="says">said:</span>
+									</div><!-- .comment-author .vcard -->
+
+				
+			</footer>
+
+			<div class="comment-content"><p>Fixed! Thanks.</p>
+</div>
+
+			<div class="reply">
+				<a class='comment-reply-link' href='/2012/08/20/fix-unicode-mistakes-with-python/?replytocom=197#respond' onclick='return addComment.moveForm("comment-197", "197", "respond", "105")'>Reply <span>&darr;</span></a>			</div><!-- .reply -->
+		</article><!-- #comment-## -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://yrrsinn.de/2012/09/17/gelesen-kw37/' rel='external nofollow' class='url'>Gelesen, KW37 &#8211; Yrrsinnige sZeiten</a></p>
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://isabelcastillo.com/fix-international-characters-encoding-for-fpdf-output' rel='external nofollow' class='url'>Fix International Characters Encoding For FPDF Output</a></p>
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://blog.luminoso.com/2013/08/26/ftfy-fixes-text-for-you-version-3-0/' rel='external nofollow' class='url'>ftfy (fixes text for you) version 3.0 | Luminoso Blog</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-851">
+		<article id="comment-851" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='http://1.gravatar.com/avatar/d42b4930224786561c62acff928f87f1?s=68&#038;d=identicon&#038;r=G' class='avatar avatar-68' height='68' width='68' /><span class="fn">spaceknight</span> on <a href="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/#comment-851"><time datetime="2013-10-04T12:54:19+00:00">October 4, 2013 at 12:54 pm</time></a> <span class="says">said:</span>
+									</div><!-- .comment-author .vcard -->
+
+				
+			</footer>
+
+			<div class="comment-content"><p>Nicely done. I wish there&#8217;d be a PHP version of this.</p>
+</div>
+
+			<div class="reply">
+				<a class='comment-reply-link' href='/2012/08/20/fix-unicode-mistakes-with-python/?replytocom=851#respond' onclick='return addComment.moveForm("comment-851", "851", "respond", "105")'>Reply <span>&darr;</span></a>			</div><!-- .reply -->
+		</article><!-- #comment-## -->
+
+	</li><!-- #comment-## -->
+		</ol>
+
+		
+		
+	
+									<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2012/08/20/fix-unicode-mistakes-with-python/#respond" style="display:none;">Cancel reply</a></small></h3>
+									<form action="http://blog.luminoso.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+																										
+
+
+												<input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="fa7dc6d475" /><input type="hidden" name="_wp_http_referer" value="/2012/08/20/fix-unicode-mistakes-with-python/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" title="Guest">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" title="WordPress.com">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" title="Twitter">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" title="Facebook">
+					<span></span>
+				</a>
+			</li>
+			<li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="text" value="" /></div>
+				</div>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://s2.wp.com/wp-content/mu-plugins/highlander-comments/images/wplogo.png?m=1391188133g" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+				<p class="comment-form-posting-as pa-wordpress"><strong></strong> You are commenting using your WordPress.com account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+				<p class="comment-form-posting-as pa-twitter"><strong></strong> You are commenting using your Twitter account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+				<p class="comment-form-posting-as pa-facebook"><strong></strong> You are commenting using your Facebook account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-googleplus" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Google+ photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="googleplus_avatar" id="googleplus-avatar" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_user_id" id="googleplus-user_id" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_access_token" id="googleplus-access_token" class="comment-meta-googleplus" value="" />
+				<p class="comment-form-posting-as pa-googleplus"><strong></strong> You are commenting using your Google+ account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'googleplus' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+	
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function(){
+	var input = document.createElement( 'input' ),
+	    comment = jQuery( '#comment' );
+
+	if ( 'placeholder' in input ) {
+		comment.attr( 'placeholder', jQuery( '.comment-textarea label' ).remove().text() );
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	jQuery( '#comment-form-identity' ).hide();
+	jQuery( '#comment-form-subscribe' ).hide();
+	jQuery( '#commentform .form-submit' ).hide();
+
+	comment.css( { 'height':'10px' } ).one( 'focus', function() {
+		var timer = setInterval( HighlanderComments.resizeCallback, 10 )
+		jQuery( this ).animate( { 'height': HighlanderComments.initialHeight } ).delay( 100 ).queue( function(n) { clearInterval( timer ); HighlanderComments.resizeCallback(); n(); } );
+		jQuery( '#comment-form-identity' ).slideDown();
+		jQuery( '#comment-form-subscribe' ).slideDown();
+		jQuery( '#commentform .form-submit' ).slideDown();
+	});
+}
+jQuery(document).ready( highlander_expando_javascript );
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;" tabindex="6"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of follow-up comments via email.</label></p></div>
+
+												<p class="form-submit">
+							<input name="submit" type="submit" id="comment-submit" value="Post Comment" />
+							<input type='hidden' name='comment_post_ID' value='105' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+						</p>
+						<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="c5ad4bcb73" /></p>
+<input type="hidden" name="genseq" value="1404131969" />
+<p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="128"/></p>					</form>
+							</div><!-- #respond -->
+			<div style="clear: both"></div>
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon" role="contentinfo">
+
+			
+
+			<div id="site-generator">
+				<a href="http://theme.wordpress.com/credits/blog.luminoso.com/" title="Learn about customizing this theme with the Custom Design upgrade">Customized Twenty Eleven Theme</a>. <span class="sep"> | </span>				<a href="http://wordpress.com/?ref=footer_blog">Blog at WordPress.com</a>.
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201427x'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s2.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781g'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-0f16f6e914d7a3109e367410b95ae336">
+	</div>
+	<div class="grofile-hash-map-e99ca64d159d708d030ac56678241f11">
+	</div>
+	<div class="grofile-hash-map-4a8ff761f5d046326a04927935be3979">
+	</div>
+	<div class="grofile-hash-map-8722a73d66d9fc7dbc076bdb29a3cc1f">
+	</div>
+	<div class="grofile-hash-map-b2507d479af955f05ee995b8d5daa6ac">
+	</div>
+	<div class="grofile-hash-map-b2507d479af955f05ee995b8d5daa6ac">
+	</div>
+	<div class="grofile-hash-map-a95aafb16f5ba52e6cede0f733112d4b">
+	</div>
+	<div class="grofile-hash-map-91f487c63a8e85a18bdd37a3b315136a">
+	</div>
+	<div class="grofile-hash-map-0f16f6e914d7a3109e367410b95ae336">
+	</div>
+	<div class="grofile-hash-map-d42b4930224786561c62acff928f87f1">
+	</div>
+	</div>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"http:\/\/luminosoinsight.wordpress.com\/public.api\/connect\/?action=request","logoutURL":"https:\/\/luminosoinsight.wordpress.com\/wp-login.php?action=logout&_wpnonce=a7abb165c8","homeURL":"http:\/\/blog.luminoso.com\/","postID":"105","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"0","userIsLoggedIn":"","isJetpack":"0"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s1.wp.com/_static/??/wp-content/js/jquery/jquery.autoresize.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1403644162j'></script>
+
+	<div id="bit" class="loggedout-follow-normal">
+		<a class="bsub" href="javascript:void(0)"><span id='bsub-text'>Follow</span></a>
+		<div id="bitsubscribe">
+
+					<h3><label for="loggedout-follow-field">Follow &ldquo;Luminoso Blog&rdquo;</label></h3>
+
+			<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="loggedout-follow">
+			<p>Get every new post delivered to your Inbox.</p>
+
+			<p id="loggedout-follow-error" style="display: none;"></p>
+
+						<p class="bit-follow-count">Join 709 other followers</p>
+			<p><input type="email" name="email" value="Enter your email address" onfocus='this.value=(this.value=="Enter your email address") ? "" : this.value;' onblur='this.value=(this.value=="") ? "Enter email address" : this.value;'  id="loggedout-follow-field"/></p>
+
+			<input type="hidden" name="action" value="subscribe"/>
+			<input type="hidden" name="blog_id" value="26373703"/>
+			<input type="hidden" name="source" value="http://blog.luminoso.com/2012/08/20/fix-unicode-mistakes-with-python/"/>
+			<input type="hidden" name="sub-type" value="loggedout-follow"/>
+
+			<input type="hidden" id="_wpnonce" name="_wpnonce" value="7311325f40" /><input type="hidden" name="_wp_http_referer" value="/2012/08/20/fix-unicode-mistakes-with-python/" />
+			<p id='bsub-subscribe-button'><input type="submit" value="Sign me up" /></p>
+			</form>
+					<div id='bsub-credit'><a href="http://wordpress.com/signup/?ref=lof">Powered by WordPress.com</a></div>
+		</div><!-- #bitsubscribe -->
+	</div><!-- #bit -->
+
+	<script type="text/javascript">
+		WPCOM_sharing_counts = {"http:\/\/blog.luminoso.com\/2012\/08\/20\/fix-unicode-mistakes-with-python\/":105}	</script>
+		<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-twitter' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomtwitter', 'menubar=1,resizable=1,width=600,height=350' );
+				return false;
+			});
+		});
+		</script>
+				<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-facebook' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomfacebook', 'menubar=1,resizable=1,width=600,height=400' );
+				return false;
+			});
+		});
+		</script>
+				<iframe src='http://widgets.wp.com/likes/master.html?ver=20140528#ver=20140528&amp;mp6=1' scrolling='no' id='likes-master' name='likes-master' style='display:none;'></iframe>
+		<div id='likes-other-gravatars'><div class="likes-text"><span>%d</span> bloggers like this:</div><ul class="wpl-avatars sd-like-gravatars"></ul></div>
+		<script type="text/javascript">
+		//<![CDATA[
+			var jetpackLikesWidgetQueue = [];
+			var jetpackLikesWidgetBatch = [];
+			var jetpackLikesMasterReady = false;
+
+			function JetpackLikespostMessage( message, target ) {
+				if ( "string" === typeof message ){
+					try{
+						message = JSON.parse( message );
+					}
+					catch(e) {
+						return;
+					}
+				}
+
+				pm( {
+					target: target,
+					type: 'likesMessage',
+					data: message,
+					origin: '*'
+				} );
+			}
+
+			function JetpackLikesBatchHandler() {
+				var requests = [];
+				jQuery( 'div.jetpack-likes-widget-unloaded' ).each( function( i ) {
+					if ( jetpackLikesWidgetBatch.indexOf( this.id ) > -1 )
+						return;
+					jetpackLikesWidgetBatch.push( this.id );
+					var regex = /like-(post|comment)-wrapper-(\d+)-(\d+)-(\w+)/;
+					var match = regex.exec( this.id );
+					if ( ! match || match.length != 5 )
+						return;
+
+					var info = {
+						blog_id: match[2],
+						width:   this.width
+					};
+
+					if ( 'post' == match[1] ) {
+						info.post_id = match[3];
+					} else if ( 'comment' == match[1] ) {
+						info.comment_id = match[3];
+					}
+
+					info.obj_id = match[4];
+
+					requests.push( info );
+				});
+
+				if ( requests.length > 0 ) {
+					JetpackLikespostMessage( { event: 'initialBatch', requests: requests }, window.frames['likes-master'] );
+				}
+			}
+
+			function JetpackLikesMessageListener( event ) {
+				if ( "undefined" == typeof event.event )
+					return;
+
+				if ( 'masterReady' == event.event ) {
+					jQuery( document ).ready( function() {
+						jetpackLikesMasterReady = true;
+
+						var stylesData = {
+								event: 'injectStyles'
+						};
+
+						if ( jQuery( 'iframe.admin-bar-likes-widget' ).length > 0 ) {
+							JetpackLikespostMessage( { event: 'adminBarEnabled' }, window.frames[ 'likes-master' ] );
+
+							stylesData.adminBarStyles = {
+								background: jQuery( '#wpadminbar .quicklinks li#wp-admin-bar-wpl-like > a' ).css( 'background' ),
+								isRtl: ( 'rtl' == jQuery( '#wpadminbar' ).css( 'direction' ) )
+							};
+						}
+
+						if ( !window.addEventListener )
+							jQuery( '#wp-admin-bar-admin-bar-likes-widget' ).hide();
+
+						stylesData.textStyles = {
+							color: jQuery( '.sd-text-color').css( 'color' ),
+							fontFamily: jQuery( '.sd-text-color' ).css( 'font-family' ),
+							fontSize: jQuery( '.sd-text-color' ).css( 'font-size' ),
+							direction: jQuery( '.sd-text-color' ).css( 'direction' ),
+							fontWeight: jQuery( '.sd-text-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-text-color' ).css( 'font-style' ),
+							textDecoration: jQuery( '.sd-text-color' ).css('text-decoration')
+						};
+
+						stylesData.linkStyles = {
+							color: jQuery( '.sd-link-color' ).css('color'),
+							fontFamily: jQuery( '.sd-link-color' ).css('font-family'),
+							fontSize: jQuery( '.sd-link-color' ).css('font-size'),
+							textDecoration: jQuery( '.sd-link-color' ).css('text-decoration'),
+							fontWeight: jQuery( '.sd-link-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-link-color' ).css( 'font-style' )
+						};
+
+						JetpackLikespostMessage( stylesData, window.frames[ 'likes-master' ] );
+
+						JetpackLikesBatchHandler();
+
+						jQuery( document ).on( 'inview', 'div.jetpack-likes-widget-unloaded', function() {
+							jetpackLikesWidgetQueue.push( this.id );
+						});
+					});
+				}
+
+				if ( 'showLikeWidget' == event.event ) {
+					jQuery( '#' + event.id + ' .post-likes-widget-placeholder'  ).fadeOut( 'fast', function() {
+						jQuery( '#' + event.id + ' .post-likes-widget' ).fadeIn( 'fast', function() {
+							JetpackLikespostMessage( { event: 'likeWidgetDisplayed', blog_id: event.blog_id, post_id: event.post_id, obj_id: event.obj_id }, window.frames['likes-master'] );
+						});
+					});
+				}
+
+				if ( 'clickReblogFlair' == event.event ) {
+					wpcom_reblog.toggle_reblog_box_flair( event.obj_id );
+				}
+
+				if ( 'showOtherGravatars' == event.event ) {
+					var $container = jQuery( '#likes-other-gravatars' );
+					var $list = $container.find( 'ul' );
+
+					$container.hide();
+					$list.html( '' );
+
+					$container.find( '.likes-text span' ).text( event.total );
+
+					jQuery.each( event.likers, function( i, liker ) {
+						$list.append( '<li class="' + liker.css_class + '"><a href="' + liker.profile_URL + '" class="wpl-liker" rel="nofollow" target="_parent"><img src="' + liker.avatar_URL + '" alt="' + liker.name + '" width="30" height="30" style="padding-right: 3px;" /></a></li>');
+					} );
+
+					var offset = jQuery( "[name='" + event.parent + "']" ).offset();
+
+					$container.css( 'left', offset.left + event.position.left - 10 + 'px' );
+					$container.css( 'top', offset.top + event.position.top - 33 + 'px' );
+
+					var rowLength = Math.floor( event.width / 37 );
+					var height = ( Math.ceil( event.likers.length / rowLength ) * 37 ) + 13;
+					if ( height > 204 ) {
+						height = 204;
+					}
+
+					$container.css( 'height', height + 'px' );
+					$container.css( 'width', rowLength * 37 - 7 + 'px' );
+
+					$list.css( 'width', rowLength * 37 + 'px' );
+
+					$container.fadeIn( 'slow' );
+
+					var scrollbarWidth = $list[0].offsetWidth - $list[0].clientWidth;
+					if ( scrollbarWidth > 0 ) {
+						$container.width( $container.width() + scrollbarWidth );
+						$list.width( $list.width() + scrollbarWidth );
+					}
+				}
+			}
+
+			pm.bind( 'likesMessage', function(e) { JetpackLikesMessageListener(e); } );
+
+			jQuery( document ).click( function( e ) {
+				var $container = jQuery( '#likes-other-gravatars' );
+
+				if ( $container.has( e.target ).length === 0 ) {
+					$container.fadeOut( 'slow' );
+				}
+			});
+
+			function JetpackLikesWidgetQueueHandler() {
+				var wrapperID;
+				if ( ! jetpackLikesMasterReady ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				if ( jetpackLikesWidgetQueue.length > 0 ) {
+					// We may have a widget that needs creating now
+					var found = false;
+					while( jetpackLikesWidgetQueue.length > 0 ) {
+						// Grab the first member of the queue that isn't already loading.
+						wrapperID = jetpackLikesWidgetQueue.splice( 0, 1 )[0];
+						if ( jQuery( '#' + wrapperID ).hasClass( 'jetpack-likes-widget-unloaded' ) ) {
+							found = true;
+							break;
+						}
+					}
+					if ( ! found ) {
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				} else if ( jQuery( 'div.jetpack-likes-widget-unloaded' ).length > 0 ) {
+					// Grab any unloaded widgets for a batch request
+					JetpackLikesBatchHandler();
+
+					// Get the next unloaded widget
+					wrapperID = jQuery( 'div.jetpack-likes-widget-unloaded' ).first()[0].id;
+					if ( ! wrapperID ) {
+						// Everything is currently loaded
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				}
+
+				if ( 'undefined' === typeof wrapperID ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				var $wrapper = jQuery( '#' + wrapperID );
+				$wrapper.find( 'iframe' ).remove();
+
+				if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='22px' width='68px' frameBorder='0' scrolling='no' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				} else {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='55px' width='100%' frameBorder='0' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				}
+
+				$wrapper.removeClass( 'jetpack-likes-widget-unloaded' ).addClass( 'jetpack-likes-widget-loading' );
+
+				$wrapper.find( 'iframe' ).load( function( e ) {
+					var $iframe = jQuery( e.target );
+					$wrapper.removeClass( 'jetpack-likes-widget-loading' ).addClass( 'jetpack-likes-widget-loaded' );
+
+					JetpackLikespostMessage( { event: 'loadLikeWidget', name: $iframe.attr( 'name' ), width: $iframe.width() }, window.frames[ 'likes-master' ] );
+
+					if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+						$wrapper.find( 'iframe' ).Jetpack( 'resizeable' );
+					}
+				});
+				setTimeout( JetpackLikesWidgetQueueHandler, 250 );
+			}
+			JetpackLikesWidgetQueueHandler();
+		//]]>
+		</script>
+<script type='text/javascript' src='http://s0.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgioLMnIz6OqiTmJmSAD7XNtDY0tzc3NjEyNDLMAsi5g5g=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "http://s0.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?m=1395343499g&amp;ver=3.0.83c";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "http://s0.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414g&amp;ver=3.0.83c";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var recaptcha_options = {"lang":"en"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s0.wp.com/_static/??-eJx9jEEOwiAQRS8kTJsmRhbGoxhCaR1kBsJA1duLC7au/uK99+GVlUtcPVcIAqs/0Pn81kFO0BGyi2318mMuEXVNFZ/jRxPykEZPTeXYdmQB+0QhX9WiJ7j3E9hSoT9+TlLVFi0WkIctyPvYHt3oOi/GmNlM50v4AgRVQGc='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="http://s.stats.wordpress.com/w.js?21" type="text/javascript"></script>
+<script type="text/javascript">
+st_go({'blog':'26373703','v':'wpcom','tz':'-4','user_id':'0','post':'105','subd':'luminosoinsight'});
+ex_go({'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1dzK3YrWW1CbjZiL2VlLnR6QkUsbDdSejJMclp1JjF8LWJsMi1MWEE1Ll83OXVBTy5vV3pYekVlV1R2XXJRZThaX2padS9yN3NLZzMmaytucWtqfEtaOWsmQS5EeXNHNWdYMSs1LzQtOTVdXVombXh+VUQ3QSxSejAzY3F8c10sV3hYQU9oL2ZULSxXMHZIS1haNlZubjl1aHBobGtjZTNnJS5hLEY2LUdLQV9hY2VVOTNbPS1ZcmxFUFJbYzNiZ0hFV3ZvdUYyRkRzQ0hDS1FOOUtXUjdYT21uX3lQZi4vbHR8ciwvfDBxOFdteWklVy4='});
+addLoadEvent(function(){linktracker_init('26373703',105);});
+	</script>
+<noscript><img src="http://stats.wordpress.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//stats.wordpress.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>

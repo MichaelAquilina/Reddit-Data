@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Blërg Documentation</title>
+<link rel="stylesheet" href="/css/doc.css">
+<meta http-equiv="content-type" content="text/html; charset=utf8">
+</head>
+<body>
+
+<h1>Blërg</h1>
+
+Blërg is a minimalistic tagged text document database engine that also
+pretends to be a <a href="/">microblogging system</a>.  It is designed
+to efficiently store small (&lt; 64K) pieces of text in a way that they
+can be quickly retrieved by record number or by querying for tags
+embedded in the text.  Its native interface is HTTP &mdash; Blërg comes
+as either a standalone HTTP server, or a CGI.  Blërg is written in pure
+C.
+
+<ul class="toc">
+  <li><a href="#running">Running Blërg</a>
+    <ul>
+      <li><a href="#getting_the_source">Getting the source</a></li>
+      <li><a href="#requirements">Requirements</a></li>
+      <li><a href="#configuring">Configuring</a></li>
+      <li><a href="#building">Building</a></li>
+      <li><a href="#installing">Installing</a></li>
+    </ul>
+  </li>
+  <li><a href="#api">API</a>
+    <ul>
+      <li><a href="#api_definitions">API Definitions</a></li>
+      <li><a href="#api_create">/create - create a new user</a></li>
+      <li><a href="#api_login">/login - log in</a></li>
+      <li><a href="#api_logout">/logout - log out</a></li>
+      <li><a href="#api_put">/put - add a new record</a></li>
+      <li><a href="#api_get">/get/(user), /get/(user)/(start record)-(end record) - get records for a user</a></li>
+      <li><a href="#api_info">/info/(user) - Get information about a user</a></li>
+      <li><a href="#api_tag">/tag/(#|H|@)(tagname) - Retrieve records containing tags</a></li>
+      <li><a href="#api_subscribe">/subscribe/(user) - Subscribe to a user's updates</a></li>
+      <li><a href="#api_unsubscribe">/unsubscribe/(user) - Unsubscribe from a user's updates</a></li>
+      <li><a href="#api_feed">/feed - Get updates for subscribed users</a></li>
+      <li><a href="#api_feedinfo">/feedinfo, /feedinfo/(user) - Get subscription status</a></li>
+      <li><a href="#api_passwd">/passwd - Change a user's password</a></li>
+    </ul>
+  </li>
+  <li><a href="#libraries">Libraries</a>
+    <ul>
+      <li><a href="#lib_c">C</a></li>
+      <li><a href="#lib_perl">Perl</a></li>
+    </ul>
+  </li>
+  <li><a href="#design">Design</a>
+    <ul>
+      <li><a href="#motivation">Motivation</a></li>
+      <li><a href="#web_app_stack">Web App Stack</a></li>
+      <li><a href="#database">Database</a></li>
+      <li><a href="#subscriptions">Subscriptions</a></li>
+      <li><a href="#problems">Problems and Future Work</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2><a name="running">Running Blërg</a></h2>
+
+<h3><a name="getting_the_source">Getting the source</a></h3>
+
+<p>There's no stable release yet, but you can get everything currently
+running on blerg.dominionofawesome.com by cloning the git repository at
+http://git.bytex64.net/blerg.git.
+
+<h3><a name="requirements">Requirements</a></h3>
+
+<p>Blërg has varying requirements depending on how you want to run it
+&mdash; as a standalone HTTP server, or as a CGI.  You will need:
+
+<ul>
+<li><a href="http://lloyd.github.com/yajl/">yajl</a> &gt;= 1.0.0
+(yajl is a JSON parser/generator written in C which, by some twisted
+sense of humor, requires ruby to compile)</li>
+</ul>
+
+<p>As a standalone HTTP, server, you will also need:
+
+<ul>
+<li><a href="http://www.gnu.org/software/libmicrohttpd/">GNU libmicrohttpd</a> &gt;= 0.9.3</li>
+</ul>
+
+<p>Or, as a CGI, you will need:
+
+<ul>
+<li><a href="http://www.newbreedsoftware.com/cgi-util/download/">cgi-util</a> &gt;= 2.2.1</li>
+</ul>
+
+<h3><a name="configuring">Configuring</a></h3>
+
+<p>There is now an experimental autoconf build system.  If you run
+<code>add-autoconf</code>, it'll do the magic and create a
+<code>configure</code> script that'll do the familiar things.  If I ever
+get around to distributing source packages, you should find that this
+has already been done.
+
+<p>If you'd rather stick with the manual system, you should edit libs.mk
+and put in the paths where you can find headers and libraries for the
+above requirements.
+
+<p>Also, further apologies to BSD folks &mdash; I've probably committed
+several unconscious Linux-isms.  It would not surprise me if the
+makefile refuses to work with BSD make, or if it fails to compile even
+with gmake.  If you have patches or suggestions on how to make Blërg
+more portable, I'd be happy to hear them.
+
+<h3><a name="building">Building</a></h3>
+
+<p>At this point, it should be gravy.  Type 'make' and in a few seconds,
+you should have <code>blerg.httpd</code>, <code>blerg.cgi</code>,
+<code>rss.cgi</code>, and <code>blergtool</code>.  Each of those can be
+made individually as well, if you, for example, don't want to install
+the prerequisites for <code>blerg.httpd</code> or
+<code>blerg.cgi</code>.
+
+<p><strong>NOTE</strong>: blerg.httpd is deprecated and will not be
+updated with new features.
+
+<h3><a name="installing">Installing</a></h3>
+
+<p>While it's not strictly required, Blërg will be easier to set up if
+you configure it to work from the root of your website.  For this
+reason, it's better to use a subdomain (i.e., blerg.yoursite.com is
+easier than yoursite.com/blerg/).  If you do want to put it in a
+subdirectory, you will have to modify <code>www/js/blerg.js</code> and
+change baseURL at the top as well as a number of other self-references
+in that file and <code>www/index.html</code>.
+
+<p>You cannot serve the database and client from different domains
+(i.e., yoursite.com vs othersite.net, or even foo.yoursite.com and
+bar.yoursite.com).  This is a requirement of the web browser &mdash; the
+same origin policy will not allow an AJAX request to travel across
+domains (though you can probably get around it these days with <a
+  href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">Cross-origin
+  resource sharing</a>).
+
+<h4>For straight CGI with Apache</h4>
+
+<p>Copy the files in www/ to the root of your web server.  Copy
+<code>blerg.cgi</code> to your web server.  Included in www-configs/ is
+a .htaccess file for Apache that will rewrite the URLs.  If you need to
+call the CGI something other than <code>blerg.cgi</code>, the .htaccess
+file will need to be modified.
+
+<h4>For nginx</h4>
+
+<p>Nginx can't run CGI directly, and there's currently no FastCGI
+version of Blërg, so you will have to run it under some kind of CGI to
+FastCGI gateway, like the one described <a
+href="http://wiki.nginx.org/SimpleCGI">here on the nginx wiki</a>.  This
+pretty much destroys the performance of Blërg, but it's all we've got
+right now.
+
+<h4>The extra RSS CGI</h4>
+
+<p>There is an optional RSS cgi (<code>rss.cgi</code>) that will serve
+RSS feeds for users.  Install this like <code>blerg.cgi</code> above.
+As of 1.9.0, this is a perl FastCGI script, so you will have to make
+sure the perl libraries are available to it.  A good way of doing that
+is to install to an environment directory, as described below.
+
+<h4>Installing to an environment directory</h4>
+
+<p>The Makefile has support for installing Blërg into a directory that
+includes tools, libraries, and configuration snippets for shell and web
+servers.  Use it as <code>make install-environment
+  ENV_DIR=&lt;directory&gt;</code>.  Under &lt;directory&gt;/etc will be
+a shell script that sets environment variables, and configuration
+snippets for nginx and apache to do the same.  This should make it
+somewhat easier to use Blërg in a self-contained way.
+
+<p>For example, this will install Blërg to an environment directory
+inside your home directory:
+
+<pre>user@devhost:~/blerg$ make install-environment ENV_DIR=$HOME/blerg-env
+...
+user@devhost:~/blerg$ . ~/blerg-env/etc/env.sh
+</pre>
+
+<p>Then, you will be able to run tools like <code>blergtool</code>, and
+it will operate on data inside <code>~/blerg-env/data</code>.  Likewise,
+you can include
+<code>/home/user/blerg-env/etc/nginx-fastcgi-vars.conf</code> or
+<code>/home/user/blerg-env/etc/apache-setenv.conf</code> in your
+webserver to make the CGI/FastCGI scripts to the same thing.
+
+
+<h2><a name="api">API</a></h2>
+
+<p>Blërg's API was designed to be as simple as possible.  Data sent from
+the client is POSTed with the application/x-www-form-urlencoded
+encoding, and a successful response is always JSON.  The API endpoints
+will be described as though the server were serving requests from the
+root of the wesite.
+
+<h3><a name="api_definitions">API Definitions</a></h3>
+
+<p>On failure, all API calls return either a standard HTTP error
+response, like 404 Not Found if a record or user doesn't exist, or a 200
+response with a 'JSON failure', which will look like this:
+
+<p><code>{"status": "failure"}</code>
+
+<p>Blërg doesn't currently explain <i>why</i> there is a failure, and
+I'm not sure it ever will.
+
+<p>On success, you'll either get some JSON relating to your request (for
+/get, /tag, or /info), or a 'JSON success' response (for /create, /put,
+/login, or /logout), which looks like this:
+
+<p><code>{"status": "success"}</code>
+
+<p>For the CGI backend, you may get a 500 error if something goes wrong.
+For the HTTP backend, you'll get nothing (since it will have crashed),
+or maybe a 502 Bad Gateway if you have it behind another web server.
+
+<p>All usernames must be 32 characters or less.  Usernames must contain
+only the ASCII characters 0-9, A-Z, a-z, underscore (_), and hyphen (-).
+Passwords can be at most 64 bytes, and have no limits on characters (but
+beware: if you have a null in the middle, it will stop checking there
+because I use <code>strncmp(3)</code> to compare).
+
+<p>Tags must be 64 characters or less, and can contain only the ASCII
+characters 0-9, A-Z, a-z, underscore (_), and hyphen (-).
+
+<h3><a name="api_create">/create</a> - create a new user</a></h3>
+
+<p>To create a user, POST to /create with <code>username</code> and
+<code>password</code> parameters for the new user.  The server will
+respond with JSON failure if the user exists, or if the user can't be
+created for some other reason.  The server will respond with JSON
+success if the user is created.
+
+<h3><a name="api_login">/login</a> - log in</a></h3>
+
+<p>POST to /login with the <code>username</code> and
+<code>password</code> parameters for an existing user.  The server will
+respond with JSON failure if the user does not exist or if the password
+is incorrect.  On success, the server will respond with JSON success,
+and will set a cookie named 'auth' that must be sent by the client when
+accessing restricted API functions (/put and /logout).
+
+<h3><a name="api_logout">/logout</a> - log out</a></h3>
+
+<p>POST to /logout with with <code>username</code>, the user to log out,
+along with the auth cookie in a Cookie header.  The server will respond
+with JSON failure if the user does not exist or if the auth cookie is
+bad.  The server will respond with JSON success after the user is
+successfully logged out.
+
+<h3><a name="api_put">/put</a> - add a new record</a></h3>
+
+<p>POST to /put with <code>username</code> and <code>data</code>
+parameters, and an auth cookie.  The server will respond with JSON
+failure if the auth cookie is bad, if the user doesn't exist, or if
+<code>data</code> contains more than 65535 bytes <i>after</i> URL
+decoding.  The server will respond with JSON success after the record is
+successfully added.
+
+<h3><a name="api_get">/get/(user), /get/(user)/(start record)-(end record)</a> - get records for a user</a></h3>
+
+<p>A GET request to /get/(user), where (user) is the user desired, will
+return the last 50 records for that user in a list of objects.  The
+record objects look like this:
+
+<pre>
+{
+  "record":"0",
+  "timestamp":1294309438,
+  "data":"eatin a taco on fifth street"
+}
+</pre>
+
+<p><code>record</code> is the record number, <code>timestamp</code> is
+the UNIX epoch timestamp (i.e., the number of seconds since Jan 1 1970
+00:00:00 GMT), and <code>data</code> is the content of the record.  The
+record number is sent as a string because while Blërg supports record
+numbers up to 2<sup>64</sup> - 1, Javascript uses floating point for all
+its numbers, and can only support integers without truncation up to
+2<sup>53</sup>.  This difference is largely academic, but I didn't want
+this problem to sneak up on anyone who is more insane than I am. :]
+
+<p>The second form, /get/(user)/(start record)-(end record), retrieves a
+specific range of records, from (start record) to (end record)
+inclusive.  You can retrieve at most 100 records this way.  If (end
+record) - (start record) specifies more than 100 records, or if the
+range specifies invalid records, or if the end record is before the
+start record, the server will respond with JSON failure.
+
+<h3><a name="api_info">/info/(user)</a> - Get information about a user</a></h3>
+
+<p>A GET request to /info/(user) will return a JSON object with
+information about the user (currently only the number of records).  The
+info object looks like this:
+
+<pre>
+{
+  "record_count": "544"
+}
+</pre>
+
+<p>Again, the record count is sent as a string for 64-bit safety.
+
+<h3><a name="api_tag">/tag/(#|H|@)(tagname)</a> - Retrieve records containing tags</a></h3>
+
+<p>A GET request to this endpoint will return the last 50 records
+associated with the given tag.  The first character is either # or H for
+hashtags, or @ for mentions (I call them ref tags).  You should URL
+encode the # or @, lest some servers complain at you.  The H alias for #
+was created because Apache helpfully strips the fragment of a URL
+(everything from the # to the end) before handing it off to the CGI,
+even if the hash is URL encoded.  The record objects also contain an
+extra <code>author</code> field, like so:
+
+<pre>
+{
+  "author":"Jon",
+  "record":"57",
+  "timestamp":1294555793,
+  "data":"I'm taking #garfield to the vet."
+}
+</pre>
+
+<p>There is currently no support for getting more than 50 tags, but /tag
+will probably mutate to work like /get.
+
+<h3><a name="api_subscribe">/subscribe/(user)</a> - Subscribe to a
+user's updates</a></h3>
+
+<p>POST to /subscribe/(user) with a <code>username</code> parameter and
+an auth cookie, where (user) is the user whose updates you wish to
+subscribe to.  The server will respond with JSON failure if the auth
+cookie is bad or if the user doesn't exist.  The server will respond
+with JSON success after the subscription is successfully registered.
+
+<h3><a name="api_unsubscribe">/unsubscribe/(user)</a> - Unsubscribe from
+a user's updates</h3>
+
+<p>Identical to /subscribe, but removes the subscription.
+
+<h3><a name="api_feed">/feed</a> - Get updates for subscribed users</h3>
+
+<p>POST to /feed, with a <code>username</code> parameter and an auth
+cookie.  The server will respond with a JSON list of the last 50 updates
+from all subscribed users, in reverse chronological order.  Fetching
+/feed resets the new message count returned from /feedinfo.
+
+<p>NOTE: subscription notifications are only stored while subscriptions
+are active.  Any records inserted before or after a subscription is
+active will not show up in /feed.
+
+<h3><a name="api_feedinfo">/feedinfo, /feedinfo/(user)</a> - Get subscription
+status for a user</a></h3>
+
+<p>POST to /feedinfo with a <code>username</code> parameter and an auth
+cookie to get general information about your subscribed feeds.
+Currently, this only tells you how many new records there are since the
+last time /feed was fetched.  The server will respond with a JSON
+object:
+
+<pre>
+{"new":3}
+</pre>
+
+<p>POST to /feedinfo/(user) with a <code>username</code> parameter and
+an auth cookie, where (user) is a user whose subscription status you are
+interested in.  The server will respond with a simple JSON object:
+
+<pre>
+{"subscribed":true}
+</pre>
+
+<p>The value of "subscribed" will be either true or false depending on
+the subscription status.
+
+<h3><a name="api_passwd">/passwd</a> - Change a user's password</a></h3>
+
+<p>POST to /passwd with a <code>username</code> parameter and an auth
+cookie, plus <code>password</code> and <code>new_password</code>
+parameters to change the user's password.  For extra protection,
+changing a password requires sending the user's current password in the
+<code>password</code> parameter.  If authentication is successful and
+the password matches, the user's password is set to
+<code>new_password</code> and the server responds with JSON success.
+
+If the password doesn't match, or one of <code>password</code> or
+<code>new_password</code> are missing, the server returns JSON failure.
+
+<h2><a name="libraries">Libraries</a></h2>
+
+<h3><a name="lib_c">C</a></h3>
+
+<p>Most of Blërg's core functionality is packaged in a static library
+called <code>blerg.a</code>.  It's not designed to be public or
+installed with `make install-environment`, but it should be relatively
+straightforward to use it in C programs.  Look at the headers under the
+<code>databse</code> directory.
+
+<p>A secondary library called <code>blerg_auth.a</code> handles the
+authentication layer of Blërg.  To use it, look at
+<code>common/auth.h</code>.
+
+<h3><a name="lib_perl">Perl</a></h3>
+
+<p>As of 1.9.0, Blërg includes a perl library called
+<code>Blerg::Database</code>.  It wraps the core and authentication
+functionality in a perlish interface.  The module has its own POD
+documentation, which you can read with your favorite POD reader, from
+the manual installed in an environment directory, or in HTML <a
+href="perl/Blerg-Database.html">here</a>.
+
+<h2><a name="design">Design</a></h2>
+
+<h3><a name="motivation">Motivation</a></h3>
+
+<p>Blërg was created as the result of a thought experiment: "What if
+Twitter didn't need thousands of servers? What if its millions of users
+could be handled by a single highly efficient server?"  This is probably
+an unreachable goal due to the sheer amount of I/O, but we can certainly
+try to do better.  Blërg was thus designed as a system with very simple
+requirements:
+
+<ol>
+<li>Store and fetch small chunks of text efficiently</li>
+<li>Create fast indexes for hash tags and @ mentions</li>
+<li>Provide a HTTP interface web apps can use</li>
+</ol>
+
+<p>And to further simplify, I didn't bother handling deletes, full text
+search, or more complicated tag searches.  Blërg only does the basics.
+
+<h3><a name="web_app_stack">Web App Stack</a></h3>
+
+<table class="pizzapie">
+<tr><th>Classical model</th></tr>
+<tr>
+  <td style="background-color: blue; color: white"><b>Client App</b><br>HTML/Javascript</td>
+</tr>
+<tr>
+  <td style="background-color: #9F0000; color: white"><b>Webserver</b><br>Apache, lighttpd, nginx, etc.</td>
+</tr>
+<tr>
+  <td style="background-color: #009F00; color: white"><b>Server App</b><br>Python, Perl, Ruby, etc.</td>
+</tr>
+<tr>
+  <td style="background-color: #404040; color: white"><b>Database</b><br>MySQL, PostgreSQL, MongoDB, CouchDB, etc.</td>
+</tr>
+</table>
+
+<p>Modern web applications have at least a four-layer approach.  You
+have the client-side browser app, the web server, the server-side
+application, and the database.  Your data goes through a lot of layers
+before it actually resides on disk somewhere (or, as they're calling it
+these days, "The Cloud" *waves hands*).  Each of those layers requires
+some amount of computing resources, so to increase throughput, we must
+make the layers more efficient, or reduce the number of layers.
+
+<table class="pizzapie">
+<tr><th>Blërg model</th></tr>
+<tr>
+  <td style="background-color: blue; color: white"><b>Blërg Client App</b><br>HTML/Javascript</td>
+</tr>
+<tr>
+  <td style="background-color: #404040; color: white"><b>Blërg Database</b><br>Fuckin' hardcore C and shit</td>
+</tr>
+</table>
+
+<p>Blërg does both by smashing the last two or three layers into one
+application.  Blërg can be run as either a standalone web server
+(currently deprecated because maintaining two versions is hard), or as a
+CGI (FastCGI support is planned, but I just don't care right now).  Less
+waste, more throughput.  As a consequence of this, the entirety of the
+application logic that the user sees is implemented in the client app in
+Javascript.  That's why all the URLs have #'s &mdash; the page is loaded
+once and switched on the fly to show different views, further reducing
+load on the server.  Even parsing hash tags and URLs are done in client
+JS.
+
+<p>The API is simple and pragmatic.  It's not entirely RESTful, but is
+rather designed to work well with web-based front-ends.  Client data is
+always POSTed with the usual application/x-www-form-urlencoded encoding,
+and server data is always returned in JSON format.
+
+<p>The HTTP interface to the database idea has already been done by <a
+href="http://couchdb.apache.org/">CouchDB</a>, though I didn't know that
+until after I wrote Blërg. :)
+
+<h3><a name="database">Database</a></h3>
+
+<p>I was impressed by <a
+href="http://www.varnish-cache.org/">varnish</a>'s design, so I decided
+early in the design process that I'd try out mmaped I/O.  Each user in
+Blërg has their own database, which consists of a metdata file, and one
+or more data and index files.  The data and index files are memory
+mapped, which hopefully makes things more efficient by letting the OS
+handle when to read from disk (or maybe not &mdash; I haven't
+benchmarked it).  The index files are preallocated because I believe
+it's more efficient than writing to it 40 bytes at a time as records are
+added.  The database's limits are reasonable:
+
+<table class="statistics">
+<tr><td>maximum record size</td><td>65535 bytes</td></tr>
+<tr><td>maximum number of records per database</td><td>2<sup>64</sup> - 1</td></tr>
+<tr><td>maximum number of tags per record</td><td>1024</td></tr>
+<table>
+
+<p>So as not to create grossly huge and unwieldy data files, the
+database layer splits data and index files into many "segments"
+containing at most 64K entries each.  Those of you doing some quick
+mental math may note that this could cause a problem on 32-bit machines
+&mdash; if a full segment contains entries of the maximum length, you'll
+have to mmap 4GB (32-bit Linux gives each process only 3GB of virtual
+address space).  Right now, 32-bit users should change
+<code>RECORDS_PER_SEGMENT</code> in <code>config.h</code> to something
+lower like 32768.  In the future, I might do something smart like not
+mmaping the whole fracking file.
+
+<table class="bitstructure">
+<tr><th>Record Index Structure</th></tr>
+<tr><td class="B4">offset (32-bit integer)</td></tr>
+<tr><td class="B2">length (16-bit integer)</td></tr>
+<tr><td class="B2">flags (16-bit integer)</td></tr>
+<tr><td class="B4">timestamp (32-bit integer)</td></tr>
+</table>
+
+<p>A record is stored by first appending the data to the data file, then
+writing an entry in the index file containing the offset and length of
+the data, as well as the timestamp.  Since each index entry is fixed
+length, we can find the index entry simply by multiplying the record
+number we want by the size of the index entry.  Upshot: constant-time
+random-access reads and constant-time writes.  As an added bonus,
+because we're using append-only files, we get lockless reads.
+
+<table class="bitstructure">
+<tr><th>Tag Structure</th></tr>
+<tr><td class="B32">username (32 bytes)</td></tr>
+<tr><td class="B8">record number (64-bit integer)</td></tr>
+</table>
+
+<p>Tags are handled by a separate set of indices, one per tag.  When a
+record is added, it is scanned for tags, then entries are appended to
+each tag index for the tags found.  Each index record simply stores the
+user and record number.  Tags are searched by opening the tag file,
+reading the last 50 entries or so, and then reading all the records
+listed.  Voila, fast tag lookups.
+
+<p>At this point, you're probably thinking, "Is that it?"  Yep, that's
+it.  Blërg isn't revolutionary, it's just a system whose requirements
+were pared down until the implementation could be made dead simple.
+
+<p>Also, keeping with the style of modern object databases, I haven't
+implemented any data safety (har har).  Blërg does not sync anything to
+disk before returning success.  This should make Blërg extremely fast,
+and totally unreliable in a crash.  But that's the way you want it,
+right? :]
+
+<h3><a name="subscriptions">Subscriptions</a></h3>
+
+<p>When I first started thinking about the idea of subscriptions, I
+immediately came up with the naïve solution: keep a list of users to
+which users are subscribed, then when you want to get updates, iterate
+over the list and find the last entries for each user.  And that would
+work, but it's kind of costly in terms of disk I/O.  I have to visit
+each user in the list, retrieve their last few entries, and store them
+somewhere else to be sorted later.  And worse, that computation has to
+be done every time a user checks their feed. As the number of users and
+subscriptions grows, that will become a problem.
+
+<p>So instead, I thought about it the other way around. Instead of doing
+all the work when the request is received, Blërg tries to do as much as
+possible by "pushing" updates to subscribed users.  You can think of it
+kind of like a mail system.  When a user posts new content, a
+notification is "sent" out to each of that user's subscribers.  Later,
+when the subscribers want to see what's new, they simply check their
+mailbox.  Checking your mailbox is usually a lot more efficient than
+going around and checking everyone's records yourself, even with the
+overhead of the "mailman."
+
+<p>The "mailbox" is a subscription index, which is identical to a tag
+index, but is a per-user construct.  When a user posts a new record, a
+subscription index record is written for every subscriber.  It's a
+similar amount of I/O as the naïve version above, but the important
+difference is that it's only done once.  Retrieving records for accounts
+you're subscribed to is then as simple as reading your subscription
+index and reading the associated records.  This is hopefully less I/O
+than the naïve version, since you're reading, at most, as many accounts
+as you have records in the last N entries of your subscription index,
+instead of all of them.  And as an added bonus, since subscription index
+records are added as posts are created, the subscription index is
+automatically sorted by time!  To support this "mail" architecture, we
+also keep a list of subscribers and subscrib...ees in each account.
+
+<h3><a name="problems">Problems, Caveats, and Future Work</a></h3>
+
+<p>Blërg probably doesn't actually work like Twitter because I've never
+actually had a Twitter account.
+
+<p>I couldn't find a really good fast HTTP server library.
+Libmicrohttpd is small, but it's focused on embedded applications, so it
+often eschews speed for small memory footprint.  This is especially
+apparent when you watch it chew through a POST request 300 bytes at a
+time even though you've specified a buffer size of 256K.
+<code>blerg.httpd</code> is still pretty fast this way &mdash; on my
+2GHz Opteron 246, <a
+href="http://www.joedog.org/index/siege-home">siege</a> says it serves a
+690-byte /get request at about 945 transactions per second, average
+response time 0.05 seconds, with 100 concurrent accesses &mdash; but a
+fast HTTP server implementation could knock this out of the park.
+
+<p>Libmicrohttpd is also really difficult to work with.  If you look at
+the code, <code>http_blerg.c</code> is about 70% longer than
+<code>cgi_blerg.c</code> simply because of all the iterator hoops I had
+to jump through to process POST requests.  And if you can believe it, I
+wrote <code>http_blerg.c</code> first. If I'd done it the other way
+around, I probably would have given up on libmicrohttpd. :-/
+
+<p>The data structures written to disk are dependent on the size and
+endianness of the primitive data types on your architecture and OS.
+This means that the databases are not portable.  A dump/import tool is
+probably the easiest way to handle this.
+
+<p>I do want to make a FastCGI version eventually, and this will
+probably be a rather simple modification of cgi_blerg.
+
+<p>Implementing deletes will be... interesting.  There is room in the
+record index for a 'deleted' flag, but the problem is deleting any tags
+referenced in the data.  This requires rescanning the record content and
+putting a 'deleted' flag in the tag indices.  This will not be pretty,
+so I'm just going to ignore it and hope nobody makes any mistakes. ;]
+
+<p>Tag indices can grow arbitrarily large, which will cause problems for
+32-bit machines around the 3GB mark.  Still, that's something like 80
+million tags, so maybe it's not something to worry about.
+
+<p>The API currently requires the client to transmit the user's password
+in the clear.  A digest-based authentication scheme would be better,
+though for real security, the app should run over HTTPS.
+
+</body>
+</html>

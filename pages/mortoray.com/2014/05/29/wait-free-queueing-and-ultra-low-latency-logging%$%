@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<!--
+	generated in 1.152 seconds
+	106735 bytes batcached for 300 seconds
+-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>Wait-free queueing and ultra-low latency logging | Musing Mortoray</title>
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="pingback" href="http://mortoray.com/xmlrpc.php" />
+<!--[if lt IE 9]>
+<script src="http://s0.wp.com/wp-content/themes/pub/chateau/js/html5.js?m=1315596887g" type="text/javascript"></script>
+<![endif]-->
+<meta name="google-site-verification" content="Q8sWvJVz_P6OLtH0DNMcJuvEJFo7eHzidfvfqzFSZME" />
+		<script src='//r-login.wordpress.com/remote-login.php?action=js&amp;host=mortoray.com&amp;id=11292855&amp;t=1404219139&amp;back=http%3A%2F%2Fmortoray.com%2F2014%2F05%2F29%2Fwait-free-queueing-and-ultra-low-latency-logging%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel="alternate" type="application/rss+xml" title="Musing Mortoray &raquo; Feed" href="http://mortoray.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Musing Mortoray &raquo; Comments Feed" href="http://mortoray.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Musing Mortoray &raquo; Wait-free queueing and ultra-low latency&nbsp;logging Comments Feed" href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/feed/" />
+<script type="text/javascript">
+/* <![CDATA[ */
+function addLoadEvent(func){var oldonload=window.onload;if(typeof window.onload!='function'){window.onload=func;}else{window.onload=function(){oldonload();func();}}}
+/* ]]> */
+</script>
+<link rel='stylesheet' id='all-css-0' href='http://s1.wp.com/_static/??-eJyNktFuwyAMRX9ozM0WTXuZ9i0EXEJrMAJH0f5+0GxrtmqoT9joHvtiDGtShqNgFAiLSrQ4HwuQP2OBE0rS5qwu2aMp5QF28onYXQF2Di0voo5MxCus3jqUPrRyttoWcMSTphvtzk9G0oJWJS7yJ+thhjPW+5C0NEVA6zUShirrYSG9fFMtnOsMbtvIXOsUSMsEZq529AJFPgjvEfpoNrFaU220IR4ii69U+Ql6Jh2yIjZaPMdfiTqS9rk/zfYNNXRQVbu0B7Vhb6WhzDo3+Ovsu4yYt0ddw/9GNI93rMK2WOXi3DHbjHWFGvAe3obxMA7D0+vh+fQJTv0R6A==' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-0' href='http://s0.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1387483371g' type='text/css' media='print' />
+<script type='text/javascript'>
+/* <![CDATA[ */
+var LoggedOutFollow = {"invalid_email":"Your subscription did not succeed, please try again with a valid email address."};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s1.wp.com/_static/??-eJyFj90OwiAMhV9IZFs08cb4LNvoSBEoUpDo08sSNTpNdtW/7/S0sgQxkk/gkzQsHQ1oQWSG2OvaE+gn2hreyMqhH21WwDNoLhni7RlWAeFQxz7B1qF/wR+ugTg5YK6Wf6bfVuivCGUVM5BCP55FBMb7z9bBkhbBZo2eZc01KMpJTGQtFVlQaUhLjctvRQRbn1FivntRVdXJHdtd0+wPbdd05gFmiIRF'></script>
+<link rel='stylesheet' id='all-css-0' href='http://s2.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1377793621g' type='text/css' media='all' />
+<!--[if lt IE 8]>
+<link rel='stylesheet' id='highlander-comments-ie7-css'  href='http://s2.wp.com/wp-content/mu-plugins/highlander-comments/style-ie7.css?m=1351637563g&#038;ver=20110606' type='text/css' media='all' />
+<![endif]-->
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://mortoray.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://mortoray.wordpress.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='The uninitialized variable anathema: non-deterministic C++' href='http://mortoray.com/2014/04/16/the-uninitialized-variable-anathema-non-deterministic-c/' />
+<meta name="generator" content="WordPress.com" />
+<link rel='canonical' href='http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/' />
+<link rel='shortlink' href='http://wp.me/pLnMP-D3' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=json&amp;url=http%3A%2F%2Fmortoray.com%2F2014%2F05%2F29%2Fwait-free-queueing-and-ultra-low-latency-logging%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=xml&amp;url=http%3A%2F%2Fmortoray.com%2F2014%2F05%2F29%2Fwait-free-queueing-and-ultra-low-latency-logging%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Wait-free queueing and ultra-low latency logging" />
+<meta property="og:url" content="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/" />
+<meta property="og:description" content="To support a low-latency trading system I needed a logging call that had minimal impact on the calling thread. It was imperative to be responsive to market events at all times. My solution was a wa..." />
+<meta property="article:published_time" content="2014-05-29T03:42:51+00:00" />
+<meta property="article:modified_time" content="2014-05-29T14:37:35+00:00" />
+<meta property="article:author" content="https://www.facebook.com/profile.php?id=789102607" />
+<meta property="og:site_name" content="Musing Mortoray" />
+<meta property="og:image" content="http://0.gravatar.com/blavatar/0320f006b561b121759b081fe16899eb?s=200" />
+<meta name="twitter:site" content="@edaqa" />
+<meta name="twitter:image" content="http://0.gravatar.com/blavatar/0320f006b561b121759b081fe16899eb?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:creator" content="@edaqa" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<link rel="shortcut icon" type="image/x-icon" href="http://1.gravatar.com/blavatar/9ebee341349abbbf49a9686856073671?s=16" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="http://1.gravatar.com/blavatar/9ebee341349abbbf49a9686856073671?s=16" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="http://0.gravatar.com/blavatar/0320f006b561b121759b081fe16899eb?s=114" />
+<link rel='openid.server' href='http://mortoray.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='http://mortoray.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="http://mortoray.com/osd.xml" title="Musing Mortoray" />
+<link rel="search" type="application/opensearchdescription+xml" href="http://wordpress.com/opensearch.xml" title="WordPress.com" />
+	<style>
+		#page {
+			border-color: #eb6c09;
+		}
+		#main-title #site-title a:hover,
+		.post-title h1,
+		.post-title h1 a,
+		.post-extras .post-edit-link,
+		.post-entry a,
+		.post-entry .more-link:hover,
+		#author-description a,
+		.more-posts .page-title em,
+		#more-posts-inner a:hover,
+		#comments li a:hover,
+		.comment-text p a,
+		.comment-text .reply-link a:hover,
+		#comments li.byuser .comment-author,
+		#comments #respond h3,
+		.sidebar-widget a:active,
+		#calendar_wrap table td a,
+		#nav-below a:active,
+		#error404 a:hover,
+		#menu .current-menu-item > a,
+		#menu .current_page_item > a,
+		#comment-nav-above a,
+		#comment-nav-below a,
+		.comment-text table a {
+			color: #eb6c09;
+		}
+	</style>
+<style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Musing Mortoray" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="On Programming and Language Design" /><meta name="msapplication-task" content="name=Subscribe;action-uri=http://mortoray.com/feed/;icon-uri=http://1.gravatar.com/blavatar/9ebee341349abbbf49a9686856073671?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="title" content="Wait-free queueing and ultra-low latency&nbsp;logging | Musing Mortoray on WordPress.com" />
+<meta name="description" content="To support a low-latency trading system I needed a logging call that had minimal impact on the calling thread. It was imperative to be responsive to market events at all times. My solution was a wait-free producer-consumer system. It allowed logging in constant time, around 70ns. The Basic Design A key requirement for logging is&hellip;" />
+		<style type="text/css">
+					#site-title a,
+			#site-description {
+				color: #603b00 !important;
+			}
+			</style>
+	
+<script type="text/javascript">
+var wpcom_ads = { bid: 11292855, pt: 'permalink', wa: 1, colorscheme: 'light', domain: 'mortoray.com', url: 'http://mortoray.com', gid: '', };
+</script>
+
+		<script type="text/javascript" src="http://partner.googleadservices.com/gampad/google_service.js"></script>
+		<script type="text/javascript">
+			GS_googleAddAdSenseService("ca-pub-3443918307802676");
+			GS_googleEnableAllServices();
+		</script>
+		<script type="text/javascript" src="http://c.amazon-adsystem.com/aax2/amzn_ads.js"></script>
+		<script type="text/javascript">
+			try {
+				amznads.getAds("3033");
+			} catch(e) { /* ignore */ }
+		</script>
+		<script type="text/javascript">
+		var amznKeys = amznads.getKeys();
+		if (typeof amznKeys != "undefined" && amznKeys != "") { for (var i =0; i < amznKeys.length; i++) { var key = amznKeys[i]; GA_googleAddAttr("amzn", key);} }
+		document.close();
+		</script>
+		<script type="text/javascript">
+		GA_googleAddAttr( 'WordAds', '1' );
+GA_googleAddAttr( 'BlogId', '11292855' );
+GA_googleAddAttr( 'Domain', 'mortoray.com' );
+GA_googleAddAttr( 'PageURL', 'http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/' );
+GA_googleAddAttr( 'WordAds-MI', '1' );
+GA_googleAddAttr( 'AdSafe', '1' );
+GA_googleAddAttr( 'NoNetFill', '0' );
+GA_googleAddAttr( 'Partner', 'AOL' );
+GA_googleAddAttr( 'LangId', '1' );
+GA_googleAddAttr( 'MarkupVer', '2' );
+GA_googleAddAttr( 'Autotag', 'technology' );
+GA_googleAddAttr( 'Autotag', 'business' );
+GA_googleAddAttr( 'Tag', 'efficiency-programming' )
+GA_googleAddAttr( 'Tag', 'programming' )
+GA_googleAddAttr( 'Tag', 'c' )
+GA_googleAddAttr( 'Tag', 'concurrency' )
+GA_googleAddAttr( 'Tag', 'efficiency' )
+GA_googleAddAttr( 'Tag', 'lock' )
+GA_googleAddAttr( 'Tag', 'memory' )
+GA_googleAddAttr( 'Tag', 'programming' )
+GA_googleAddAttr( 'theme_bg', 'ffffff' );
+GA_googleAddAttr( 'theme_border', 'dddddd' );
+GA_googleAddAttr( 'theme_text', '333333' );
+GA_googleAddAttr( 'theme_link', '990000' );
+GA_googleAddAttr( 'theme_url', '990000' );
+
+		</script>
+		<script type="text/javascript">
+			GA_googleAddSlot('ca-pub-3443918307802676', 'Wordads_MIS_Mrec_Below_adsafe');
+
+		</script>
+		<script type="text/javascript">
+			GA_googleFetchAds();
+		</script>
+		<script type="text/javascript">
+		jQuery( window ).load( function() {
+			jQuery( "a.wpadvert-about" ).text( "About these ads" );
+		} );
+		</script>
+		<script type="text/javascript">
+		var wpcom_adclk_hovering = false;
+		var wpcom_adclk_recorded = false;
+		var wpcom_adclk_theme = "Chateau";
+		var wpcom_adclk_slot = "belowpost";
+		var wpcom_adclk_network = ( typeof wpcom_adclk_network === "undefined" ) ? "" : wpcom_adclk_network ;
+
+		jQuery(document).ready( function() {
+			function wpcom_adclk_hover_yes() { wpcom_adclk_hovering = true; }
+			function wpcom_adclk_hover_no() { wpcom_adclk_hovering = false; }
+			jQuery(".wpa").click(wpcom_adclk_click);
+			jQuery(".wpa iframe").hover( wpcom_adclk_hover_yes, wpcom_adclk_hover_no );
+			jQuery(".wpa object").hover( wpcom_adclk_hover_yes, wpcom_adclk_hover_no );
+
+			jQuery(window).blur( function() {
+				if ( wpcom_adclk_hovering ) { wpcom_adclk_click(); }
+			});
+		});
+
+		function wpcom_adclk_impression() {
+			var stat_gif = document.location.protocol + "//stats.wordpress.com/g.gif?v=wpcom-no-pv";
+			stat_gif += "&x_ads_imp_theme=" + wpcom_adclk_theme;
+			stat_gif += "&x_ads_imp_placement="+wpcom_adclk_slot;
+			stat_gif += "&x_ads_imp_network=" + wpcom_adclk_network;
+			stat_gif += "&x_ads_imp_theme_network="+wpcom_adclk_theme+"_"+wpcom_adclk_network;
+			new Image().src = stat_gif + "&baba=" + Math.random();
+			return true;
+		}
+
+		function wpcom_adclk_click() {
+			if (wpcom_adclk_recorded) { return true; } // no double counting
+			var stat_gif = document.location.protocol + "//stats.wordpress.com/g.gif?v=wpcom-no-pv";
+			stat_gif += "&x_ads_click_theme=" + wpcom_adclk_theme;
+			stat_gif += "&x_ads_click_placement="+wpcom_adclk_slot;
+			stat_gif += "&x_ads_click_network=" + wpcom_adclk_network;
+			stat_gif += "&x_ads_click_theme_network="+wpcom_adclk_theme+"_"+wpcom_adclk_network;
+
+			new Image().src = stat_gif + "&baba=" + Math.random();
+			wpcom_adclk_recorded = true;
+			var now=new Date(); var end=now.getTime()+250;
+			while(true){now=new Date();if(now.getTime()>end){break;}}
+			return true;
+		}
+		</script><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="http://mortoray.com/?custom-css=1&#038;csblog=LnMP&#038;cscache=6&#038;csrev=15" />
+		<script type="text/javascript">
+	window.google_analytics_uacct = "UA-52447-2";
+</script>
+
+<script type="text/javascript">
+	var _gaq = _gaq || [];
+	_gaq.push(['_setAccount', 'UA-52447-2']);
+	_gaq.push(['_setDomainName', 'none']);
+	_gaq.push(['_setAllowLinker', true]);
+	_gaq.push(['_initData']);
+	_gaq.push(['_trackPageview']);
+
+	(function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ga);
+	})();
+</script>
+</head>
+
+<body class="single single-post postid-2421 single-format-standard mp6 typekit-enabled two-column sidebar-content highlander-enabled highlander-light">
+<div id="page" class="hfeed">
+		<div id="page-inner">
+		<header id="branding" role="banner">
+			<nav id="menu" role="navigation">
+							</nav><!-- end #menu -->
+
+			<div id="main-title">
+				<hgroup>
+					<h1 id="site-title"><a href="http://mortoray.com/" title="Musing Mortoray" rel="home">Musing Mortoray</a></h1>
+												<h2 id="site-description">~ On Programming and Language Design</h2>
+									</hgroup>
+			</div><!-- end #main-title -->
+
+							<div id="search">
+					
+<form method="get" action="http://mortoray.com//" >
+	<div>
+		<label for="s" class="assistive-text">Search:</label>
+		<input type="text" value="Search&hellip;" name="s" id="s" onfocus="this.value=''" />
+		<input type="submit" name="search" value="Go" />
+	</div>
+</form>				</div><!-- end #search -->
+			
+			<div id="main-image">
+							<a href="http://mortoray.com/">
+													<img src="http://mortoray.files.wordpress.com/2013/10/wizard2.jpg" width="960" height="259" alt="Musing Mortoray" title="Musing Mortoray" />
+									</a>
+						</div><!-- end #main-image -->
+		</header><!-- #branding -->
+		<div id="main" class="clear-fix">
+
+	<div id="primary">
+		<div id="content" class="clear-fix">
+
+		
+			<article id="post-2421" class="post-2421 post type-post status-publish format-standard hentry category-efficiency-programming category-programming tag-c tag-concurrency tag-efficiency tag-lock tag-memory tag-programming">
+	<header class="post-title">
+				<h1>Wait-free queueing and ultra-low latency&nbsp;logging</h1>			<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/" class="post-permalink">		<p class="post-date">
+			<strong>29</strong>
+			<em>Thursday</em>
+			<span>May 2014</span>
+		</p>
+	</a>
+	<div class="post-info clear-fix">
+		<p>
+			Posted <span class="by-author"> by <span class="author vcard"><a class="url fn n" href="http://mortoray.com/author/mortoray/" title="View all posts by mortoray" rel="author">mortoray</a></span></span> in <a href="http://mortoray.com/category/programming/efficiency-programming/" rel="category tag">Efficiency</a>, <a href="http://mortoray.com/category/programming/" rel="category tag">Programming</a>		</p>
+		<p class="post-com-count">
+			<strong>&asymp; <a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comments" title="Comment on Wait-free queueing and ultra-low latency&nbsp;logging">21 Comments</a></strong>
+		</p>
+	</div><!-- end .post-info -->
+	</header><!-- end .post-title -->
+
+	<div class="post-content clear-fix">
+			<div class="post-extras">
+				<p><strong>Tags</strong></p><p><a href="http://mortoray.com/tag/c/" rel="tag">c++</a>, <a href="http://mortoray.com/tag/concurrency/" rel="tag">concurrency</a>, <a href="http://mortoray.com/tag/efficiency/" rel="tag">efficiency</a>, <a href="http://mortoray.com/tag/lock/" rel="tag">lock</a>, <a href="http://mortoray.com/tag/memory/" rel="tag">memory</a>, <a href="http://mortoray.com/tag/programming/" rel="tag">Programming</a></p>	</div><!-- end .post-extras -->
+
+		<div class="post-entry">
+			<p>To support a low-latency trading system I needed a logging call that had minimal impact on the calling thread. It was imperative to be responsive to market events at all times. My solution was a wait-free producer-consumer system. It allowed logging in constant time, around 70ns.</p>
+<h3>The Basic Design</h3>
+<p>A key requirement for logging is to write statements, from any thread, in order, to a single log-file. A multiple producer and single consumer model is a good match for this. The pseudo-code for this system may look like below.</p>
+<div class='codehilitewrap'>
+<table class="codehilitetable">
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre>
+</div>
+</td>
+<td class="code">
+<div class="codehilite">
+<pre><span class="c1">//Producer</span>
+<span class="n">write_log</span><span class="p">(</span> <span class="n">log_statement</span> <span class="n">item</span> <span class="p">)</span> 
+    <span class="n">lock</span><span class="p">(</span> <span class="n">buffer</span> <span class="p">)</span>
+        <span class="n">buffer</span><span class="p">.</span><span class="n">append</span><span class="p">(</span> <span class="n">item</span> <span class="p">)</span>
+    <span class="n">consumer_event</span><span class="p">.</span><span class="n">notify</span><span class="p">()</span>
+
+
+<span class="c1">//Consumer</span>
+<span class="n">read</span><span class="p">()</span>
+    <span class="k">while</span> <span class="kc">true</span>
+        <span class="n">consumer_event</span><span class="p">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="n">lock</span><span class="p">(</span> <span class="n">buffer</span> <span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span> <span class="n">buffer</span> <span class="p">)</span>
+            <span class="n">log_file</span><span class="p">.</span><span class="n">write</span><span class="p">(</span> <span class="n">data</span> <span class="p">)</span>
+</pre>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<p>This is a standard approach to concurrency. It uses a shared buffer, a vector or list, and a mutex to serialize access. An event notifies the consumer that new data is available in the buffer.</p>
+<h3>It&#8217;s Slow</h3>
+<p>For most projects I&#8217;ve seen this is an acceptable solution. For low-latency coding this approach is awful. It is slow and, more importantly, it has a large variance. Please keep in mind the term &#8220;slow&#8221; here is relative to the nanosecond scale at which I was measuring the system.</p>
+<p>There are two parts that make it slow. The first is the lock itself. Acquiring and releasing a mutex is slow if there is any contention on that mutex. In our project there was often contention. This results in hundreds of nanoseconds used just by the locking alone. I&#8217;ll put the signalling in this lot as well since it&#8217;s essentially the same kernel operation. The second slow part is memory management for the buffer. A linked list is slow since every log entry requires new memory to be allocated. A vector was faster, except for the time when it needed to be reallocated.</p>
+<blockquote>
+<p>Refer to <a href="/2011/12/16/how-does-a-mutex-work-what-does-it-cost/">how a mutex works</a> for more details.</p>
+</blockquote>
+<p>The same two aspects also have variable performance. Locking can block, so it&#8217;s uncertain how long writing a log statement will take. The consumer and producer are optimized to hold the lock as briefly as possible, but contention will still be high during bursts of log activity. The memory allocation, and potential buffer copying, also adds variance. Even after heavy optimization I had variances up to the millisecond level!</p>
+<h3>Off-loading work</h3>
+<p>Formatting strings, required by a log system, is a slow operation. One of the first improvements was moving all string formatting to the consumer thread. The producer thread assembled a list of arguments; the <code>log_statement</code> in the pseudo-code is a small container of <code>boost::variant</code> items.</p>
+<p>To avoid dynamic allocation of individual log items the number of parameters had to be limited. The lower the number the better, but I still needed enough to be useful. I think we settled on around 8 parameters. This wasn&#8217;t chosen lightly, it was based on speed tests determining the cost-benefit trade-off of additional parameters.</p>
+<p>The consumer thread is responsible for formatting these parameters and writing the string to the log file. There was a dangerous problem waiting in this logic. While the consumer is formatting strings it isn&#8217;t reading from the buffers. This gives the buffer a longer time to accumulate a high number of log items, resulting in more memory overhead. This large buffer in turn causes the consumer to take even more time formatting, thus the subsequent buffer could be even larger!</p>
+<p>The system had lots of idle time; activity came in bursts. It was important for the consumer to cleanup the buffers quickly during those bursts, and then use the idle time to format the strings. I made the consumer write only a few log statements before returning to buffer cleanup. This slowed down the consumer with added locks and memory use, but prevented the worst of the burst problem.</p>
+<h4>Literal Strings</h4>
+<p>Profiling revealed that copying the format string was a significant part of the overall time. Since a string is a dynamic container it had to be dynamically copied. It seemed wasteful since the format strings are actually static: they are known at compile time.</p>
+<p>The solution is to pass pointers to the strings instead. I was a bit concerned about the safety of this approach. If somebody accidentally called this with a dynamic string the consumer would end up reading a dangling pointer. I created a <code>literal_string</code> type; the log system only accepted this type and it couldn&#8217;t be created implicitly.</p>
+<p>I took advantage of a macro trick to make this easy to use. C++ offers automatic string concatenation of string literals.</p>
+<div class='codehilitewrap'>
+<table class="codehilitetable">
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre>1
+2
+3</pre>
+</div>
+</td>
+<td class="code">
+<div class="codehilite">
+<pre><span class="c">#define SAFE_LITERAL( str ) &quot;&quot; str</span>
+
+<span class="c">#define WRITE_LOG( str, ... ) write_log( literal_string( SAFE_LITERAL(str) ), params( VA_ARGS ) )</span>
+</pre>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<p>The <code>"" str</code> part only works if <code>str</code> is an actual string literal. The second macro can be used without worrying about the string literal aspect. If something other than a literal is passed compilation fails.</p>
+<p>This approach improved the performance of logging.</p>
+<h3>The Bottleneck</h3>
+<p>Even after excessive optimization the locking overhead remained. The system had very good average performance but still had an awful variance. This is also a good lesson in profiling: always profile the maximum and variance and not just average times.</p>
+<p>The locks had to go. The signalling had to go.</p>
+<p>A first idea was to give each producer thread its own buffer. This alone doesn&#8217;t help. The resource is still being shared and that means locks must still be used. It does reduce the overall memory use during burst times, but the difference is marginal. Some way is needed to decouple the threads.</p>
+<p>One important observation was how our logging thread was behaving. During active times that thread was at 100% utilization. When there was no activity we didn&#8217;t care how loaded that thread was. This gave us the option of having the logging thread burn a core. That is, it does a hot polling loop and never relinquishes control to the kernel.</p>
+<h4>Spin-Lock</h4>
+<p>The polling consumer opens up one new possibility: spin-locks.</p>
+<blockquote>
+<p>I previously misused the term &#8220;lock-free&#8221; to refer to a spin-lock. I was always concerned it wasn&#8217;t correct, and now another helpful individual has clarified for me. Spin-locks are still definitely locks. The difference is that it is managed entirely in user-space and doesn&#8217;t make any kernel calls. The users of a spin-lock use a small loop that continually checks if the lock is available. Though slightly confusing, the <a href="https://en.wikipedia.org/wiki/Lock-free">Wikipedia article</a> on &#8220;non-blocking algorithms&#8221; is a good start to get more into the theory of &#8220;lock-free&#8221; and &#8220;wait-free&#8221;.</p>
+</blockquote>
+<p>I had sufficient conditions to use a spin-lock. Neither the producer nor consumer needed to hold the lock very long. The consumer thread can be high priority and allowed to spin. This guarantees the consumer acquires the lock for only the briefest of moments, ensuring the producer infrequently finds contention, and then only be blocked briefly.</p>
+<p>Brief is of course relative. At the scale of nanoseconds these brief times still caused significant variance in the system.</p>
+<blockquote>
+<p>At this point I&#8217;m coding at a fairly low-level. Using spin-locks requires <a href="2011/03/23/what-is-an-atomic-operation/">atomic operations</a> and a very good understanding of <a href="/2010/11/18/cpu-memory-why-do-i-need-a-mutex/">memory visibility</a>.</p>
+</blockquote>
+<h3>Ring Buffer</h3>
+<p>The next step was to have a completely static memory size and remove all locking. Instead of competition over access to a vector based buffer, I decided to allow simultaneous access to a ring buffer.</p>
+<p>The producer writes to the head of the ring buffer. After each write it updates the position of the head. The consumer reads from the tail of the buffer. After each read it updates the tail of the buffer. So long as the head never catches up the tail we&#8217;re fine.</p>
+<p>This works because both the producer and consumer know they can safely access the memory without any kind of lock. Each <code>log_statement</code> in the buffer is distinct and can safely be accessed in parallel. The information about tail and head position is maintained with atomic operations.</p>
+<blockquote>
+<p>Now, even more than on lock-free, a strong understanding of memory ordering is required. Having two threads access the ring buffer in this manner, in a low-latency system, leaves absolutely no room for error. Recall the consumer is continually polling so it immediately sees changes. I didn&#8217;t have access to C++11&#8242;s <code>atomic</code> type at the time. I was relying on GCC internals.</p>
+</blockquote>
+<p>I wasn&#8217;t content to leave open the &#8220;what happens&#8221; scenario should the head catch up to the tail. I built in a warning when it reached 2/3 full. If somehow it caught up it then fell back to an actual mutex lock and waited for the consumer to catch up. The consumer placed a priority on cleaning out these buffers. As often as possible it moved data out of the ring buffer into its own private memory. Thus the warning only sometimes appeared, and the actual lock almost never. I used the occurrence of the warning as an indication to increase buffer size.</p>
+<p>This approach, without any kind locks, is known as a &#8220;wait-free&#8221; algorithm. It provides a guarantee that the producer will always make progress. It never waits. For real-time systems this is great since it means the logging code path has a nearly constant execution time (near-zero variance). For us that was around 70ns.</p>
+<h4>A note on the consumer</h4>
+<p>The consumer takes the brunt of the work. It&#8217;s priority is to clean out the ring buffers. This results in having a lot of pending log statements from several threads mixed up in memory. Before actually writing to the log it needs to sort these statements. This could of course be done afterwards, but we wanted to have sane logs we could look at in real-time.</p>
+<p>Formatting was quite slow, so the consumer actually falls behind the producers during any burst of activity. Fortunately, the behaviour of low-latency trading leaves a lot of essentially idle time. When something happens all cores are utilized to 100% for several milliseconds, but then long periods, even up to 1 second, can pass with nothing happening. This idle time was essential for the consumer thread to catch up with logging.</p>
+<p>It is also important to use asynchronous IO, which just complicates it more. In order to clear ring buffers in time the consumer can never be waiting on a write operation to complete. I don&#8217;t recall now if I actually used async IO, or created yet another thread which simply blocked on IO. Though the actual danger of blocking here is somewhat limited. The file buffers on Linux are relatively large, and even with thousands of log items to write, the amount of data relatively small.</p>
+<h3>Recommended</h3>
+<p>I still highly recommend this approach. It is suitable not just for logging, but for any situation where you need to offload processing from a real-time thread. The solution is only practically available to a language like C++. The basic ring buffer can be done in C easily, but to get a clean logging solution would be hard without C++&#8217;s conveniences (in particular variants, tuple types, and parametric functions). The requirement to tightly control memory means it outside the reach of any language that doesn&#8217;t provide pointers and raw memory access.</p>
+<p>Note, if you don&#8217;t need nanosecond level optimizations then don&#8217;t do this approach. It&#8217;s easy to get the atomic operations wrong. It&#8217;s also hard to find standard libraries for this type of ring buffer; the performance gains are heavily tied to the exact use case. Most systems can use the normal mutex approach I presented at the beginning of the article.</p>
+<p>But of course it&#8217;s a fun thing to program. So even if you&#8217;ll never actually need it, I do recommend you try it out.</p>
+		<div class="wpcnt">
+		<div class="wpa">
+
+			<a class="wpa-about" href="http://en.wordpress.com/about-these-ads/" rel="nofollow">About these ads</a>
+
+			<div class="u"><script type='text/javascript'>
+			GA_googleFillSlot("Wordads_MIS_Mrec_Below_adsafe");
+
+			</script></div>
+
+		</div>
+		</div><div id="jp-post-flair" class="sharedaddy sd-like-enabled sd-sharing-enabled"><div class="sharedaddy sd-sharing-enabled"><div class="robots-nocontent sd-block sd-social sd-social-icon-text sd-sharing"><div class="sd-content"><ul><li class="share-reddit"><a rel="nofollow" class="share-reddit sd-button share-icon" href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?share=reddit" title="Click to share on Reddit"><span>Reddit</span></a></li><li class="share-twitter"><a rel="nofollow" class="share-twitter sd-button share-icon" href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?share=twitter" title="Click to share on Twitter" id="sharing-twitter-2421"><span>Twitter</span></a></li><li class="share-email"><a rel="nofollow" class="share-email sd-button share-icon" href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?share=email" title="Click to email this to a friend"><span>Email</span></a></li><li><a href="#" class="sharing-anchor sd-button share-more"><span>More</span></a></li><li class="share-end"></li></ul><div class="sharing-hidden"><div class="inner" style="display: none;"><ul><li class="share-facebook"><a rel="nofollow" class="share-facebook sd-button share-icon" href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?share=facebook" title="Share on Facebook" id="sharing-facebook-2421"><span>Facebook</span></a></li><li class="share-pocket"><a rel="nofollow" class="share-pocket sd-button share-icon" href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?share=pocket" title="Click to share on Pocket"><span>Pocket</span></a></li><li class="share-end"></li><li class="share-linkedin"><a rel="nofollow" class="share-linkedin sd-button share-icon" href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?share=linkedin" title="Click to share on LinkedIn" id="sharing-linkedin-2421"><span>LinkedIn</span></a></li><li class="share-digg"><a rel="nofollow" class="share-digg sd-button share-icon" href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?share=digg" title="Click to Digg this post"><span>Digg</span></a></li><li class="share-end"></li><li class="share-tumblr"><a rel="nofollow" class="share-tumblr sd-button share-icon" href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?share=tumblr" title="Click to share on Tumblr"><span>Tumblr</span></a></li><li class="share-stumbleupon"><a rel="nofollow" class="share-stumbleupon sd-button share-icon" href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?share=stumbleupon" title="Click to share on StumbleUpon"><span>StumbleUpon</span></a></li><li class="share-end"></li><li class="share-google-plus-1"><a rel="nofollow" class="share-google-plus-1 sd-button share-icon" href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?share=google-plus-1" title="Click to share on Google+" id="sharing-google-2421"><span>Google</span></a></li><li class="share-end"></li></ul></div></div></div></div></div><div class='sharedaddy sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-unloaded' id='like-post-wrapper-11292855-2421-53b2af036cbed' data-src='//widgets.wp.com/likes/#blog_id=11292855&amp;post_id=2421&amp;origin=mortoray.wordpress.com&amp;obj_id=11292855-2421-53b2af036cbed' data-name='like-post-frame-11292855-2421-53b2af036cbed'><h3 class='sd-title'>Like this:</h3><div class='likes-widget-placeholder post-likes-widget-placeholder' style='height:55px'><span class='button'><span>Like</span></span> <span class="loading">Loading...</span></div><span class='sd-text-color'></span><a class='sd-link-color'></a></div>
+<div id='jp-relatedposts' class='jp-relatedposts' >
+	<h3 class="jp-relatedposts-headline"><em>Related</em></h3>
+</div></div>					</div><!-- end .post-entry -->
+	</div><!-- end .post-content -->
+
+	</article><!-- #post-2421 -->
+			<nav id="nav-below" class="clear-fix">
+				<h1 class="assistive-text">Post navigation</h1>
+				<span class="nav-previous"><a href="http://mortoray.com/2014/04/16/the-uninitialized-variable-anathema-non-deterministic-c/" rel="prev">&larr; Previous post</a></span>
+				<span class="nav-next"></span>
+			</nav><!-- #nav-below -->
+
+			<div id="comments">
+	
+	
+			<h3 id="comments-title">
+			<span>21</span> thoughts on &ldquo;Wait-free queueing and ultra-low latency&nbsp;logging&rdquo;		</h3>
+
+		
+		<ol class="commentlist">
+			
+			<li class="comment even thread-even depth-1 parent highlander-comment" id="comment-10015">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://0.gravatar.com/avatar/326a04ead96579342e809534ab231e63?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span>Pat</span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10015"><time pubdate datetime="2014-05-29T11:12:13+00:00">2014-05-29 at 11:12</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>Interesting. How did you coordinate multiple producers writing to the ring-buffer?</p>
+										<p class="reply-link"><a class='comment-reply-link' href='/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?replytocom=10015#respond' onclick='return addComment.moveForm("comment-10015", "10015", "respond", "2421")'>Reply</a></p>
+					<p class="edit-comment"></p>
+				</div>
+		<ul class="children">
+
+			<li class="comment byuser comment-author-mortoray bypostauthor odd alt depth-2 highlander-comment" id="comment-10017">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://2.gravatar.com/avatar/e6ce612702a34f9bcebee2f34139c3f1?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://mortoray.wordpress.com' rel='external nofollow' class='url'>mortoray</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10017"><time pubdate datetime="2014-05-29T11:26:10+00:00">2014-05-29 at 11:26</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>Each thread had it&#8217;s own ring-buffer. This removed any need to coordinate between producers. The consumer then checked all of the ring buffers.</p>
+<p>The first call to log would create the ring-buffer if the thread didn&#8217;t have one. A thread teardown function (using boost&#8217;s thread_local_ptr) would mark the ring-buffer as free once the thread was finished. The consumer would then remove unused buffers.  However, in our situation we weren&#8217;t really creating/destroying threads other than at startup/shutdown.</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+			<li class="comment even thread-odd thread-alt depth-1 parent highlander-comment" id="comment-10020">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://1.gravatar.com/avatar/d037ff7ec258ab06b4d05c4997b18309?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://gravatar.com/easytiger' rel='external nofollow' class='url'>Gerry</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10020"><time pubdate datetime="2014-05-29T12:31:25+00:00">2014-05-29 at 12:31</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>So you didn&#8217;t use boost spsc_queue as the ringbuffer but rolled your own??</p>
+										<p class="reply-link"><a class='comment-reply-link' href='/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?replytocom=10020#respond' onclick='return addComment.moveForm("comment-10020", "10020", "respond", "2421")'>Reply</a></p>
+					<p class="edit-comment"></p>
+				</div>
+		<ul class="children">
+
+			<li class="comment byuser comment-author-mortoray bypostauthor odd alt depth-2 highlander-comment" id="comment-10022">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://2.gravatar.com/avatar/e6ce612702a34f9bcebee2f34139c3f1?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://mortoray.wordpress.com' rel='external nofollow' class='url'>mortoray</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10022"><time pubdate datetime="2014-05-29T12:42:34+00:00">2014-05-29 at 12:42</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>Yes, I created my own. At the time I looked around and couldn&#8217;t find anything suitable (I&#8217;m not sure if spsc_queue existed at the time).</p>
+<p>By this point I also knew exactly what I wanted out of my ring buffer and was certain how to optimize it for what we needed. The tailored solution probably buys a bit of performance. It&#8217;d be hard to know without profiling both approaches.</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+			<li class="comment even thread-even depth-1 parent highlander-comment" id="comment-10024">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://0.gravatar.com/avatar/f9ae0d5994a443dac05782fee99fc376?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span>rleisti</span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10024"><time pubdate datetime="2014-05-29T12:59:54+00:00">2014-05-29 at 12:59</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>Very good work.  It would be interesting to compare this approach with the Disruptor pattern, which also uses a ring buffer as a queue to reduce contention and optimize CPU caching, but was designed for few producers and many consumers.</p>
+										<p class="reply-link"><a class='comment-reply-link' href='/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?replytocom=10024#respond' onclick='return addComment.moveForm("comment-10024", "10024", "respond", "2421")'>Reply</a></p>
+					<p class="edit-comment"></p>
+				</div>
+		<ul class="children">
+
+			<li class="comment byuser comment-author-mortoray bypostauthor odd alt depth-2 highlander-comment" id="comment-10026">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://2.gravatar.com/avatar/e6ce612702a34f9bcebee2f34139c3f1?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://mortoray.wordpress.com' rel='external nofollow' class='url'>mortoray</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10026"><time pubdate datetime="2014-05-29T13:11:15+00:00">2014-05-29 at 13:11</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>I&#8217;m not familiar with the Disruptor pattern, but from what I read it sounds familiar. Our message passing used more traditional vectors and swapped pointers (contention was higher and we were forced to used mutexes). Though the pattern of reserving space for a message, then committing it is something we used. It doesn&#8217;t seem like much, but avoiding that one copy operation does help.</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+			<li class="comment even thread-odd thread-alt depth-1 parent highlander-comment" id="comment-10025">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://0.gravatar.com/avatar/90fbd0548419bc7006ca6161f02014f0?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span>Tim</span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10025"><time pubdate datetime="2014-05-29T13:10:14+00:00">2014-05-29 at 13:10</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>Thank u for the article.</p>
+<p>I think LMAX does a pretty good job with its java implementation of the pattern.<br />
+<a href="http://www.evanjones.ca/lmax-disruptor.html" rel="nofollow">http://www.evanjones.ca/lmax-disruptor.html</a></p>
+										<p class="reply-link"><a class='comment-reply-link' href='/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?replytocom=10025#respond' onclick='return addComment.moveForm("comment-10025", "10025", "respond", "2421")'>Reply</a></p>
+					<p class="edit-comment"></p>
+				</div>
+		<ul class="children">
+
+			<li class="comment byuser comment-author-mortoray bypostauthor odd alt depth-2 highlander-comment" id="comment-10027">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://2.gravatar.com/avatar/e6ce612702a34f9bcebee2f34139c3f1?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://mortoray.wordpress.com' rel='external nofollow' class='url'>mortoray</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10027"><time pubdate datetime="2014-05-29T13:21:25+00:00">2014-05-29 at 13:21</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>I suspect anybody with a need for efficient message passing between threads, and has cores to spare, will end up at a similar solution.</p>
+<p>I wonder how they did it in Java, or if they&#8217;re missing a few tweaks. Some of the stuff I did required operations I wouldn&#8217;t even know how to do in Java.  One of our big gains was a friendly high-level call, which also used featured that Java doesn&#8217;t have (okay, in fairness, it has the, but not in a fashion that is efficient enough for what I want.)</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+
+			<li class="comment even depth-2 highlander-comment" id="comment-10032">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://0.gravatar.com/avatar/f073542d0cb2993da3fb78bb82986f16?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://gravatar.com/fmstephe' rel='external nofollow' class='url'>Francis Stephens</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10032"><time pubdate datetime="2014-05-29T14:37:43+00:00">2014-05-29 at 14:37</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>It would be good to have a real point of comparison for the Java vs C++ debate.</p>
+<p>You can find a very high quality implementation of a single producer single consumer queue written in java here, written by one of the guys behind the disruptor.</p>
+<p><a href="https://github.com/mjpt777/examples/tree/master/src/java/uk/co/real_logic/queues" rel="nofollow">https://github.com/mjpt777/examples/tree/master/src/java/uk/co/real_logic/queues</a></p>
+<p>I have benched the most optimised version at ~92 million messages per second. I would be really curious to know how that compares to the C++ implementation.</p>
+<p>What was the friendly high-level-call you mentioned above?</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+
+			<li class="comment byuser comment-author-mortoray bypostauthor odd alt depth-2 highlander-comment" id="comment-10034">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://2.gravatar.com/avatar/e6ce612702a34f9bcebee2f34139c3f1?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://mortoray.wordpress.com' rel='external nofollow' class='url'>mortoray</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10034"><time pubdate datetime="2014-05-29T14:49:21+00:00">2014-05-29 at 14:49</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>You have to be attentive to what exactly you are passing between threads. Message passing can be faster if you are passing pointers (and Java references)  to the messages and letting the other thread clean it up. What you likely aren&#8217;t measuring then is the overhead of creating that initial message.</p>
+<p>The friendly high-level call looked just like printf with a log-level:</p>
+<p>log( info, &#8220;hello|%d&#8221;, 13 );<br />
+log( error, &#8220;it-failed|%f;%d&#8221;, floatVar, intVar );</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+
+			<li class="comment byuser comment-author-fmstephe even depth-2 highlander-comment" id="comment-10035">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://0.gravatar.com/avatar/f073542d0cb2993da3fb78bb82986f16?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span>fmstephe</span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10035"><time pubdate datetime="2014-05-29T15:28:41+00:00">2014-05-29 at 15:28</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>It is definitely the case that the benchmark cited above does not measure any kind of message creation nor cleanup, so it&#8217;s not an apples to apples comparison for sure.</p>
+<p>I&#8217;ve not looked into fast string formatting in Java. Given that variadic functions in Java are just sugar for creating a new array I can imagine it would be very difficult to match the performance of c++ for this instance.</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+			<li class="comment odd alt thread-even depth-1 parent highlander-comment" id="comment-10031">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://0.gravatar.com/avatar/090fbb618c1980819d8ad614dc2da3b7?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span>pessimist</span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10031"><time pubdate datetime="2014-05-29T14:22:52+00:00">2014-05-29 at 14:22</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>At 1GhZ, 70ns is 70 cycles.  Or roughly 70 instructions.  Assuming you have a 4Ghz processor, that means your logging is complete in 280 instructions, including copying the data.  What am I missing?</p>
+										<p class="reply-link"><a class='comment-reply-link' href='/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?replytocom=10031#respond' onclick='return addComment.moveForm("comment-10031", "10031", "respond", "2421")'>Reply</a></p>
+					<p class="edit-comment"></p>
+				</div>
+		<ul class="children">
+
+			<li class="comment byuser comment-author-mortoray bypostauthor even depth-2 highlander-comment" id="comment-10033">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://2.gravatar.com/avatar/e6ce612702a34f9bcebee2f34139c3f1?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://mortoray.wordpress.com' rel='external nofollow' class='url'>mortoray</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10033"><time pubdate datetime="2014-05-29T14:44:03+00:00">2014-05-29 at 14:44</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>The machines were around 4Ghz, yes.  And you&#8217;re correct, the logging was around that number of instructions. This is why reducing the amount of data to copy and reducing the copies is very helpful.</p>
+<p>Note that CPU instructions vary in duration. You can move multiple bytes in one cycle, some branches are predicted, some things reordered.</p>
+<p>There was still some variance in the speed. I think it went up 10-20ns if you used all of the parameters.</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+			<li class="comment odd alt thread-odd thread-alt depth-1 parent highlander-comment" id="comment-10046">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://i2.wp.com/pbs.twimg.com/profile_images/2223956574/ooxHx_normal.jpg?resize=32%2C32' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://twitter.com/Lazin' rel='external nofollow' class='url'>Евгений Лазин (@Lazin)</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10046"><time pubdate datetime="2014-05-29T18:17:46+00:00">2014-05-29 at 18:17</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>Is there any back pressure on producer thread or situation when consumer doesn&#8217;t catch up with producer for long time is impossible?</p>
+										<p class="reply-link"><a class='comment-reply-link' href='/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?replytocom=10046#respond' onclick='return addComment.moveForm("comment-10046", "10046", "respond", "2421")'>Reply</a></p>
+					<p class="edit-comment"></p>
+				</div>
+		<ul class="children">
+
+			<li class="comment byuser comment-author-mortoray bypostauthor even depth-2 highlander-comment" id="comment-10047">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://2.gravatar.com/avatar/e6ce612702a34f9bcebee2f34139c3f1?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://mortoray.wordpress.com' rel='external nofollow' class='url'>mortoray</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10047"><time pubdate datetime="2014-05-29T18:48:51+00:00">2014-05-29 at 18:48</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>I made sure the priority of the consumer was to flush the ring buffers to avoid them ever getting full. This was kind of messy. The consume could never do much at once, always having to return to checking the queues. When it did find something it&#8217;d copy it to a termporary space. Once all the queues were empty it&#8217;d sort the entries. Then it&#8217;d start writing out log entries. After several entries, like 10, it&#8217;d check again. If more was found it&#8217;d have to resort (just the new entries).</p>
+<p>If the buffer ever got full the producer used a genuine lock to wait on the consumer. It rarely happened due to the consumer flushing quickly and setting the ring buffer size high enough. You can&#8217;t just set a huge buffer size though since then you lose memory locality and incur yet another penalty.</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+			<li class="comment odd alt thread-even depth-1 parent highlander-comment" id="comment-10062">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://0.gravatar.com/avatar/ff4b07b9b8177e84d6581182c3079681?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span>Roger</span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10062"><time pubdate datetime="2014-05-30T03:18:06+00:00">2014-05-30 at 03:18</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>You mention how you don&#8217;t want to measure just average latencies.  What kind of stdDev are you seeing on the log time?  How far away does it drift from 70ns?</p>
+<p>Do you deal with cache-line alignment / false sharing explicitly?</p>
+										<p class="reply-link"><a class='comment-reply-link' href='/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?replytocom=10062#respond' onclick='return addComment.moveForm("comment-10062", "10062", "respond", "2421")'>Reply</a></p>
+					<p class="edit-comment"></p>
+				</div>
+		<ul class="children">
+
+			<li class="comment byuser comment-author-mortoray bypostauthor even depth-2 highlander-comment" id="comment-10067">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://2.gravatar.com/avatar/e6ce612702a34f9bcebee2f34139c3f1?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://mortoray.wordpress.com' rel='external nofollow' class='url'>mortoray</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10067"><time pubdate datetime="2014-05-30T05:13:21+00:00">2014-05-30 at 05:13</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>It was very stable, only several nanoseconds variance if I recall. There was a slight variation on the number of parameters used for the log statement. Likely CPU caching was behind the remaining small variance. But low enough to be considered none: you could probably say that no statement ever took more than 90-100ns.</p>
+<p>Structures in the ring-buffer were cache-line aligned. The consumer though only ever modified enough data to cover one cache-line, thus false sharing was never really an issue.</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+
+			<li class="comment odd alt depth-2 highlander-comment" id="comment-10068">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://1.gravatar.com/avatar/751249855a5e7906ac81f401eb5a1998?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span>Roger</span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10068"><time pubdate datetime="2014-05-30T05:29:36+00:00">2014-05-30 at 05:29</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>Is this 70ns entirely encapsulated in one thread, or does it include the time to write to the queue?  What is the work actually being done?  Is it just a matter of filling in the formatter and writing to yet another buffer?</p>
+<p>I remember reading somewhere that theoretical boundary of crossing the cpu boundary (non-hyperthreaded) is ~65ns.  Have you measured this element?</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+
+			<li class="comment byuser comment-author-mortoray bypostauthor even depth-2 highlander-comment" id="comment-10069">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://2.gravatar.com/avatar/e6ce612702a34f9bcebee2f34139c3f1?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://mortoray.wordpress.com' rel='external nofollow' class='url'>mortoray</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10069"><time pubdate datetime="2014-05-30T05:40:30+00:00">2014-05-30 at 05:40</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>The 70ns measures the entire time for a high-level log call to place data on the queue and return to the caller.  For example:</p>
+<p>log( warning, &#8220;danger|p1=%d;p2=%f&#8221;, intVar, floatVar );</p>
+<p>The time is for this call to complete. That includes creating the `log_statement` structure, copying the string literal pointer, copying the parameters, adding standard fields, like time and thread id. This is then placed on the ring buffer (well, actually the data is directly copied to the ring buffer, and at the end the tail pointer is updated).</p>
+<p>How fast the buffer could be cleared is of course longer. I didn&#8217;t measure exactly how long this time was, but did know at what rate items could be cleared (in terms of entries per second). I don&#8217;t recall that number.</p>
+<p>I attempted to measure the low-level time to cross-cpu boundaries using a ping-pong scheme. I recall it being lower than 65ns, but I don&#8217;t know the actual result anymore. I had created many such tests to better explore the CPU and understand where improvements could be made.</p>
+<p>To recap, 70ns was the time experienced by the calling thread to get a log statement into the queue.</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+			<li class="comment odd alt thread-odd thread-alt depth-1 parent highlander-comment" id="comment-10242">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://2.gravatar.com/avatar/86fec5cd497c881c6540c5e43c183d2f?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span>boomslang</span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10242"><time pubdate datetime="2014-06-02T14:55:07+00:00">2014-06-02 at 14:55</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>&gt; This approach, without any kind locks, is known as a “wait-free” algorithm. It provides a guarantee that the producer will always make progress. It never waits.</p>
+<p>As a clarification, the use of spinlocks necessarily means that the solution uses locks.  Also, it&#8217;s not wait-free because it&#8217;s possible that a userspace thread will be preempted while holding a lock (userspace does not relinquish the CPU to the kernel.  The kernel decides when userspace gets to use the CPU).  This would result in the other threads spinning while trying to acquire the lock, i.e., making no progress.  This scenario won&#8217;t happen when using spinlocks in the kernel, with the exception of interrupt handlers, which can anyway be disabled when acquiring the lock.</p>
+<p>The main benefit I think you are seeing with spinlocks is that the scheduler won&#8217;t automatically sleep the consumer thread if there&#8217;s contention.  But who knows, I could be way off.</p>
+										<p class="reply-link"><a class='comment-reply-link' href='/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/?replytocom=10242#respond' onclick='return addComment.moveForm("comment-10242", "10242", "respond", "2421")'>Reply</a></p>
+					<p class="edit-comment"></p>
+				</div>
+		<ul class="children">
+
+			<li class="comment byuser comment-author-mortoray bypostauthor even depth-2 highlander-comment" id="comment-10244">
+
+				<div class="comment-heading clear-fix">
+					<p class="comment-author">
+						<img alt='' src='http://2.gravatar.com/avatar/e6ce612702a34f9bcebee2f34139c3f1?s=32&#038;d=identicon&#038;r=PG' class='avatar avatar-32' height='32' width='32' />						<span><a href='http://mortoray.wordpress.com' rel='external nofollow' class='url'>mortoray</a></span> <em>said:</em>					</p>
+					<p class="comment-date">
+						<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#comment-10244"><time pubdate datetime="2014-06-02T17:35:10+00:00">2014-06-02 at 17:35</time></a>					</p>
+				</div>
+				<div class="comment-text">
+					<p>There are two main reasons why spinlocks are still sometimes useful, and can be a lot faster than normal mutexes. The first is they avoid the overhead of going to the kernel. Pretty much any kernel call, regardless of what it doesn, has a significant overhead. I measured some of this once, and something like freeing a mutex, can take over 100ns, if not closer to 200ns (I don&#8217;t remember exactly now). The whole lock/unlock cycle then has several hundred nanoseconds of potential overhead.</p>
+<p>The second reason is losing the CPU. If you don&#8217;t call the kernel it doesn&#8217;t have a chance to pause your thread and give the CPU to another one. At the time scales we were looking at preemption wasn&#8217;t an issue. The workload tends to be finsihed within a time slice for most threads. This allows the cache memory to be retained for the whole workload, whereas losing the CPU causes the caches to be overwritten.</p>
+<p>But just to be clear, the final solution does not involve spin locks. It truly is a wait-free algorithm. Assuming the buffer isn&#8217;t full, there is nothing that can cause the producer to block, or even pause. It just writes to memory, issues one or two atomic operations, and continues.</p>
+										<p class="reply-link"></p>
+					<p class="edit-comment"></p>
+				</div>
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		</ol>
+
+		
+	
+									<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/#respond" style="display:none;">Cancel reply</a></small></h3>
+									<form action="http://mortoray.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+																										
+
+
+												<input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="8afbefef68" /><input type="hidden" name="_wp_http_referer" value="/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" title="Guest">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" title="WordPress.com">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" title="Twitter">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" title="Facebook">
+					<span></span>
+				</a>
+			</li>
+			<li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="text" value="" /></div>
+				</div>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://s2.wp.com/wp-content/mu-plugins/highlander-comments/images/wplogo.png?m=1391188133g" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+				<p class="comment-form-posting-as pa-wordpress"><strong></strong> You are commenting using your WordPress.com account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+				<p class="comment-form-posting-as pa-twitter"><strong></strong> You are commenting using your Twitter account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+				<p class="comment-form-posting-as pa-facebook"><strong></strong> You are commenting using your Facebook account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-googleplus" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Google+ photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="googleplus_avatar" id="googleplus-avatar" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_user_id" id="googleplus-user_id" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_access_token" id="googleplus-access_token" class="comment-meta-googleplus" value="" />
+				<p class="comment-form-posting-as pa-googleplus"><strong></strong> You are commenting using your Google+ account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'googleplus' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+	
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function(){
+	var input = document.createElement( 'input' ),
+	    comment = jQuery( '#comment' );
+
+	if ( 'placeholder' in input ) {
+		comment.attr( 'placeholder', jQuery( '.comment-textarea label' ).remove().text() );
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	jQuery( '#comment-form-identity' ).hide();
+	jQuery( '#comment-form-subscribe' ).hide();
+	jQuery( '#commentform .form-submit' ).hide();
+
+	comment.css( { 'height':'10px' } ).one( 'focus', function() {
+		var timer = setInterval( HighlanderComments.resizeCallback, 10 )
+		jQuery( this ).animate( { 'height': HighlanderComments.initialHeight } ).delay( 100 ).queue( function(n) { clearInterval( timer ); HighlanderComments.resizeCallback(); n(); } );
+		jQuery( '#comment-form-identity' ).slideDown();
+		jQuery( '#comment-form-subscribe' ).slideDown();
+		jQuery( '#commentform .form-submit' ).slideDown();
+	});
+}
+jQuery(document).ready( highlander_expando_javascript );
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;" tabindex="6"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of follow-up comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;" tabindex="7"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+												<p class="form-submit">
+							<input name="submit" type="submit" id="comment-submit" value="Post Comment" />
+							<input type='hidden' name='comment_post_ID' value='2421' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+						</p>
+						<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="f0975fe08c" /></p>
+<input type="hidden" name="genseq" value="1404219139" />
+<p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="184"/></p>					</form>
+							</div><!-- #respond -->
+			<div style="clear: both"></div>
+</div><!-- #comments -->
+		
+		</div><!-- end #content -->
+	</div><!-- end #primary -->
+
+	
+	<div id="secondary" class="widget-area" role="complementary">
+		
+		<aside id="nav_menu-3" class="sidebar-widget widget_nav_menu"><div class="menu-main-menu-container"><ul id="menu-main-menu" class="menu"><li id="menu-item-1649" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1649"><a href="http://mortoray.com/leaf/">Leaf</a></li>
+<li id="menu-item-1650" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1650"><a href="http://mortoray.com/defective-cpp/">Defective C++</a></li>
+<li id="menu-item-1651" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1651"><a href="http://mortoray.com/ideal-language/">Ideal Language</a></li>
+<li id="menu-item-1652" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1652"><a href="http://mortoray.com/about/">About Edaqa</a></li>
+</ul></div></aside><aside id="twitter-3" class="sidebar-widget widget_twitter"><h1 class="widget-title"><a href='http://twitter.com/edaqa'>Latest Tweets</a></h1><ul class='tweets'>
+			<li>
+				Should exports be automatically transitive? : leaflang <a href="http://bit.ly/1kXRCbb"> bit.ly/1kXRCbb</a> 				<a href="http://twitter.com/edaqa/statuses/480304024731004928" class="timesince">1&nbsp;week&nbsp;ago</a>
+			</li>
+
+			
+			<li>
+				Global/static functions — Leaf <a href="http://bit.ly/1xybgV7"> bit.ly/1xybgV7</a> 				<a href="http://twitter.com/edaqa/statuses/476033403431968769" class="timesince">3&nbsp;weeks&nbsp;ago</a>
+			</li>
+
+			
+			<li>
+				I&#039;m looking for gameplay testers for a new mobile game, please contact me if interested  <a href="http://bit.ly/1lZ0dhH"> bit.ly/1lZ0dhH</a> 				<a href="http://twitter.com/edaqa/statuses/469113870205067264" class="timesince">1&nbsp;month&nbsp;ago</a>
+			</li>
+
+			</ul><a href="http://twitter.com/edaqa"  class='twitter-follow-button' data-show-count='false' data-link-color='#990000' data-text-color='#333333'>Follow @edaqa</a></aside><aside id="blog_subscription-2" class="sidebar-widget widget_blog_subscription"><h1 class="widget-title"><label for="subscribe-field">Follow Blog via Email</label></h1>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+											<p>Enter your email address to follow this blog and receive notifications of new posts by email.</p>
+						<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="11292855"/>
+						<input type="hidden" name="source" value="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-2" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="62284f14d6" />						<input type="submit" value="Follow" />
+					</p>
+				</form>
+			
+</aside>		<aside id="recent-posts-2" class="sidebar-widget widget_recent_entries">		<h1 class="widget-title">Recent Posts</h1>		<ul>
+					<li>
+				<a href="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/">Wait-free queueing and ultra-low latency&nbsp;logging</a>
+						</li>
+					<li>
+				<a href="http://mortoray.com/2014/04/16/the-uninitialized-variable-anathema-non-deterministic-c/">The uninitialized variable anathema: non-deterministic C++</a>
+						</li>
+					<li>
+				<a href="http://mortoray.com/2014/04/09/allowing-unlimited-access-with-cors/">Allowing unlimited access with&nbsp;CORS</a>
+						</li>
+					<li>
+				<a href="http://mortoray.com/2014/03/31/stop-signing-crappy-contracts/">Stop signing crappy&nbsp;contracts</a>
+						</li>
+					<li>
+				<a href="http://mortoray.com/2014/03/25/the-infernal-loop-iterator/">The Infernal Loop&nbsp;Iterator</a>
+						</li>
+					<li>
+				<a href="http://mortoray.com/2014/03/17/strings-and-text-are-not-the-same/">Strings and Text are not the&nbsp;same</a>
+						</li>
+					<li>
+				<a href="http://mortoray.com/2014/03/07/too-big-too-care-how-twitter-inadvertently-revoked-my-developer-access/">Too big too care: How Twitter inadvertently revoked my developer&nbsp;access</a>
+						</li>
+					<li>
+				<a href="http://mortoray.com/2014/03/04/http-streaming-of-command-output-in-python-flask/">HTTP streaming of command output in Python&nbsp;Flask</a>
+						</li>
+					<li>
+				<a href="http://mortoray.com/2014/02/21/the-dangers-of-oauthsocial-login/">The dangers of OAuth/Social&nbsp;Login</a>
+						</li>
+					<li>
+				<a href="http://mortoray.com/2014/02/10/simulating-the-way-to-victory-bloons-td-battles/">Simulating the way to victory: Bloons TD&nbsp;Battles</a>
+						</li>
+					<li>
+				<a href="http://mortoray.com/2014/01/31/improving-css-positioning-with-position-anchor/">Improving CSS Positioning with&nbsp;position-anchor</a>
+						</li>
+					<li>
+				<a href="http://mortoray.com/2014/01/21/painlessly-add-a-virtual-to-a-large-class-structure/">Painlessly add a virtual to a large class&nbsp;structure</a>
+						</li>
+				</ul>
+		</aside><aside id="archives-3" class="sidebar-widget widget_archive"><h1 class="widget-title">Archives</h1>		<select name="archive-dropdown" onchange='document.location.href=this.options[this.selectedIndex].value;'>
+			<option value="">Select Month</option>
+
+				<option value='http://mortoray.com/2014/05/'> May 2014 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2014/04/'> April 2014 &nbsp;(2)</option>
+	<option value='http://mortoray.com/2014/03/'> March 2014 &nbsp;(5)</option>
+	<option value='http://mortoray.com/2014/02/'> February 2014 &nbsp;(2)</option>
+	<option value='http://mortoray.com/2014/01/'> January 2014 &nbsp;(3)</option>
+	<option value='http://mortoray.com/2013/12/'> December 2013 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2013/11/'> November 2013 &nbsp;(2)</option>
+	<option value='http://mortoray.com/2013/10/'> October 2013 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2013/09/'> September 2013 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2013/08/'> August 2013 &nbsp;(2)</option>
+	<option value='http://mortoray.com/2013/07/'> July 2013 &nbsp;(4)</option>
+	<option value='http://mortoray.com/2013/06/'> June 2013 &nbsp;(4)</option>
+	<option value='http://mortoray.com/2013/05/'> May 2013 &nbsp;(2)</option>
+	<option value='http://mortoray.com/2013/04/'> April 2013 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2013/03/'> March 2013 &nbsp;(3)</option>
+	<option value='http://mortoray.com/2013/02/'> February 2013 &nbsp;(3)</option>
+	<option value='http://mortoray.com/2013/01/'> January 2013 &nbsp;(2)</option>
+	<option value='http://mortoray.com/2012/12/'> December 2012 &nbsp;(2)</option>
+	<option value='http://mortoray.com/2012/10/'> October 2012 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2012/09/'> September 2012 &nbsp;(2)</option>
+	<option value='http://mortoray.com/2012/08/'> August 2012 &nbsp;(3)</option>
+	<option value='http://mortoray.com/2012/07/'> July 2012 &nbsp;(5)</option>
+	<option value='http://mortoray.com/2012/06/'> June 2012 &nbsp;(3)</option>
+	<option value='http://mortoray.com/2012/05/'> May 2012 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2012/04/'> April 2012 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2012/03/'> March 2012 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2012/02/'> February 2012 &nbsp;(2)</option>
+	<option value='http://mortoray.com/2012/01/'> January 2012 &nbsp;(3)</option>
+	<option value='http://mortoray.com/2011/12/'> December 2011 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2011/11/'> November 2011 &nbsp;(2)</option>
+	<option value='http://mortoray.com/2011/10/'> October 2011 &nbsp;(3)</option>
+	<option value='http://mortoray.com/2011/08/'> August 2011 &nbsp;(3)</option>
+	<option value='http://mortoray.com/2011/07/'> July 2011 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2011/03/'> March 2011 &nbsp;(4)</option>
+	<option value='http://mortoray.com/2010/11/'> November 2010 &nbsp;(2)</option>
+	<option value='http://mortoray.com/2010/10/'> October 2010 &nbsp;(3)</option>
+	<option value='http://mortoray.com/2010/07/'> July 2010 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2010/06/'> June 2010 &nbsp;(2)</option>
+	<option value='http://mortoray.com/2010/04/'> April 2010 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2010/02/'> February 2010 &nbsp;(1)</option>
+	<option value='http://mortoray.com/2010/01/'> January 2010 &nbsp;(2)</option>
+		</select>
+</aside><aside id="rss_links-3" class="sidebar-widget widget_rss_links"><p class="size-small"><a class="feed-image-link" href="http://mortoray.com/feed/" title="Subscribe to Posts"><img src="http://mortoray.com/i/rss/orange-small.png" alt="RSS Feed" /></a>&nbsp;<a href="http://mortoray.com/feed/" title="Subscribe to Posts">RSS - Posts</a></p>
+</aside>
+	</div><!-- #secondary .widget-area -->
+
+
+		</div><!-- end #main -->
+	</div><!-- end #page-inner -->
+
+	<footer id="colophon" role="contentinfo">
+		<div id="footer">
+			<div id="footer-inner">
+				<div id="footer-inner-inner">
+					
+				</div><!-- end #footer-inner-inner -->
+			</div><!-- end #footer-inner -->
+		</div>
+		<div id="copyright">
+			<div id="copyright-inner">
+					<div id="copyright-inner-inner">
+					<p>
+						<a href="http://wordpress.com/?ref=footer_website">Create a free website or blog at WordPress.com</a>.
+		<a href="http://theme.wordpress.com/credits/mortoray.com/" title="Learn about customizing this theme with the Custom Design upgrade">Customized Chateau Theme</a>.					</p>
+				</div><!-- end #copyright-inner-inner -->
+			</div><!-- end #copyright-inner -->
+		</div><!-- end #copyright -->
+	</footer><!-- end #footer -->
+
+	<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201427x'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s2.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781g'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-326a04ead96579342e809534ab231e63">
+	</div>
+	<div class="grofile-hash-map-e6ce612702a34f9bcebee2f34139c3f1">
+	</div>
+	<div class="grofile-hash-map-d037ff7ec258ab06b4d05c4997b18309">
+	</div>
+	<div class="grofile-hash-map-f9ae0d5994a443dac05782fee99fc376">
+	</div>
+	<div class="grofile-hash-map-90fbd0548419bc7006ca6161f02014f0">
+	</div>
+	<div class="grofile-hash-map-f073542d0cb2993da3fb78bb82986f16">
+	</div>
+	<div class="grofile-hash-map-f073542d0cb2993da3fb78bb82986f16">
+	</div>
+	<div class="grofile-hash-map-090fbb618c1980819d8ad614dc2da3b7">
+	</div>
+	<div class="grofile-hash-map-675b94f7b03794a4e75b5df036534de5">
+	</div>
+	<div class="grofile-hash-map-ff4b07b9b8177e84d6581182c3079681">
+	</div>
+	<div class="grofile-hash-map-751249855a5e7906ac81f401eb5a1998">
+	</div>
+	<div class="grofile-hash-map-86fec5cd497c881c6540c5e43c183d2f">
+	</div>
+	</div>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"http:\/\/mortoray.wordpress.com\/public.api\/connect\/?action=request","logoutURL":"https:\/\/mortoray.wordpress.com\/wp-login.php?action=logout&_wpnonce=549b3c572c","homeURL":"http:\/\/mortoray.com\/","postID":"2421","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"0"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s1.wp.com/_static/??/wp-content/js/jquery/jquery.autoresize.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1403644162j'></script>
+
+	<div id="bit" class="loggedout-follow-normal">
+		<a class="bsub" href="javascript:void(0)"><span id='bsub-text'>Follow</span></a>
+		<div id="bitsubscribe">
+
+					<h3><label for="loggedout-follow-field">Follow &ldquo;Musing Mortoray&rdquo;</label></h3>
+
+			<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="loggedout-follow">
+			<p>Get every new post delivered to your Inbox.</p>
+
+			<p id="loggedout-follow-error" style="display: none;"></p>
+
+						<p class="bit-follow-count">Join 243 other followers</p>
+			<p><input type="email" name="email" value="Enter your email address" onfocus='this.value=(this.value=="Enter your email address") ? "" : this.value;' onblur='this.value=(this.value=="") ? "Enter email address" : this.value;'  id="loggedout-follow-field"/></p>
+
+			<input type="hidden" name="action" value="subscribe"/>
+			<input type="hidden" name="blog_id" value="11292855"/>
+			<input type="hidden" name="source" value="http://mortoray.com/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/"/>
+			<input type="hidden" name="sub-type" value="loggedout-follow"/>
+
+			<input type="hidden" id="_wpnonce" name="_wpnonce" value="62284f14d6" /><input type="hidden" name="_wp_http_referer" value="/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/" />
+			<p id='bsub-subscribe-button'><input type="submit" value="Sign me up" /></p>
+			</form>
+					<div id='bsub-credit'><a href="http://wordpress.com/signup/?ref=lof">Powered by WordPress.com</a></div>
+		</div><!-- #bitsubscribe -->
+	</div><!-- #bit -->
+		<script type="text/javascript">
+		(function() {
+			var a, s = document.getElementsByTagName("script")[0];
+			a = document.createElement("script");
+			a.type = "text/javascript";
+			a.async = true;
+			a.src = "http://www.luminate.com/widget/syndicated/137fe395802/";
+			s.parentNode.insertBefore(a, s);
+		})();
+		</script>
+	<script type="text/javascript">
+		WPCOM_sharing_counts = {"http:\/\/mortoray.com\/2014\/05\/29\/wait-free-queueing-and-ultra-low-latency-logging\/":2421}	</script>
+		<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-twitter' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomtwitter', 'menubar=1,resizable=1,width=600,height=350' );
+				return false;
+			});
+		});
+		</script>
+			<div id="sharing_email" style="display: none;">
+		<form action="/2014/05/29/wait-free-queueing-and-ultra-low-latency-logging/" method="post">
+			<label for="target_email">Send to Email Address</label>
+			<input type="email" name="target_email" id="target_email" value="" />
+
+			
+				<label for="source_name">Your Name</label>
+				<input type="text" name="source_name" id="source_name" value="" />
+
+				<label for="source_email">Your Email Address</label>
+				<input type="email" name="source_email" id="source_email" value="" />
+
+			
+			<div class="recaptcha" id="sharing_recaptcha"></div><input type="hidden" name="recaptcha_public_key" id="recaptcha_public_key" value="6LcYW8MSAAAAADBAuEH9yaPcF7lWh11Iq62ZKtoo" />
+			<img style="float: right; display: none" class="loading" src="http://s2.wp.com/wp-content/mu-plugins/post-flair/sharing/images/loading.gif?m=1315610318g" alt="loading" width="16" height="16" />
+			<input type="submit" value="Send Email" class="sharing_send" />
+			<a href="#cancel" class="sharing_cancel">Cancel</a>
+
+			<div class="errors errors-1" style="display: none;">
+				Post was not sent - check your email addresses!			</div>
+
+			<div class="errors errors-2" style="display: none;">
+				Email check failed, please try again			</div>
+
+			<div class="errors errors-3" style="display: none;">
+				Sorry, your blog cannot share posts by email.			</div>
+		</form>
+	</div>
+		<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-facebook' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomfacebook', 'menubar=1,resizable=1,width=600,height=400' );
+				return false;
+			});
+		});
+		</script>
+				<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-pocket' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcompocket', 'menubar=1,resizable=1,width=450,height=450' );
+				return false;
+			});
+		});
+		</script>
+				<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-linkedin' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomlinkedin', 'menubar=1,resizable=1,width=580,height=450' );
+				return false;
+			});
+		});
+		</script>
+				<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-tumblr' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomtumblr', 'menubar=1,resizable=1,width=450,height=450' );
+				return false;
+			});
+		});
+		</script>
+				<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-google-plus-1' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomgoogle-plus-1', 'menubar=1,resizable=1,width=480,height=550' );
+				return false;
+			});
+		});
+		</script>
+				<iframe src='http://widgets.wp.com/likes/master.html?ver=20140528#ver=20140528&amp;mp6=1' scrolling='no' id='likes-master' name='likes-master' style='display:none;'></iframe>
+		<div id='likes-other-gravatars'><div class="likes-text"><span>%d</span> bloggers like this:</div><ul class="wpl-avatars sd-like-gravatars"></ul></div>
+		<script type="text/javascript">
+		//<![CDATA[
+			var jetpackLikesWidgetQueue = [];
+			var jetpackLikesWidgetBatch = [];
+			var jetpackLikesMasterReady = false;
+
+			function JetpackLikespostMessage( message, target ) {
+				if ( "string" === typeof message ){
+					try{
+						message = JSON.parse( message );
+					}
+					catch(e) {
+						return;
+					}
+				}
+
+				pm( {
+					target: target,
+					type: 'likesMessage',
+					data: message,
+					origin: '*'
+				} );
+			}
+
+			function JetpackLikesBatchHandler() {
+				var requests = [];
+				jQuery( 'div.jetpack-likes-widget-unloaded' ).each( function( i ) {
+					if ( jetpackLikesWidgetBatch.indexOf( this.id ) > -1 )
+						return;
+					jetpackLikesWidgetBatch.push( this.id );
+					var regex = /like-(post|comment)-wrapper-(\d+)-(\d+)-(\w+)/;
+					var match = regex.exec( this.id );
+					if ( ! match || match.length != 5 )
+						return;
+
+					var info = {
+						blog_id: match[2],
+						width:   this.width
+					};
+
+					if ( 'post' == match[1] ) {
+						info.post_id = match[3];
+					} else if ( 'comment' == match[1] ) {
+						info.comment_id = match[3];
+					}
+
+					info.obj_id = match[4];
+
+					requests.push( info );
+				});
+
+				if ( requests.length > 0 ) {
+					JetpackLikespostMessage( { event: 'initialBatch', requests: requests }, window.frames['likes-master'] );
+				}
+			}
+
+			function JetpackLikesMessageListener( event ) {
+				if ( "undefined" == typeof event.event )
+					return;
+
+				if ( 'masterReady' == event.event ) {
+					jQuery( document ).ready( function() {
+						jetpackLikesMasterReady = true;
+
+						var stylesData = {
+								event: 'injectStyles'
+						};
+
+						if ( jQuery( 'iframe.admin-bar-likes-widget' ).length > 0 ) {
+							JetpackLikespostMessage( { event: 'adminBarEnabled' }, window.frames[ 'likes-master' ] );
+
+							stylesData.adminBarStyles = {
+								background: jQuery( '#wpadminbar .quicklinks li#wp-admin-bar-wpl-like > a' ).css( 'background' ),
+								isRtl: ( 'rtl' == jQuery( '#wpadminbar' ).css( 'direction' ) )
+							};
+						}
+
+						if ( !window.addEventListener )
+							jQuery( '#wp-admin-bar-admin-bar-likes-widget' ).hide();
+
+						stylesData.textStyles = {
+							color: jQuery( '.sd-text-color').css( 'color' ),
+							fontFamily: jQuery( '.sd-text-color' ).css( 'font-family' ),
+							fontSize: jQuery( '.sd-text-color' ).css( 'font-size' ),
+							direction: jQuery( '.sd-text-color' ).css( 'direction' ),
+							fontWeight: jQuery( '.sd-text-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-text-color' ).css( 'font-style' ),
+							textDecoration: jQuery( '.sd-text-color' ).css('text-decoration')
+						};
+
+						stylesData.linkStyles = {
+							color: jQuery( '.sd-link-color' ).css('color'),
+							fontFamily: jQuery( '.sd-link-color' ).css('font-family'),
+							fontSize: jQuery( '.sd-link-color' ).css('font-size'),
+							textDecoration: jQuery( '.sd-link-color' ).css('text-decoration'),
+							fontWeight: jQuery( '.sd-link-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-link-color' ).css( 'font-style' )
+						};
+
+						JetpackLikespostMessage( stylesData, window.frames[ 'likes-master' ] );
+
+						JetpackLikesBatchHandler();
+
+						jQuery( document ).on( 'inview', 'div.jetpack-likes-widget-unloaded', function() {
+							jetpackLikesWidgetQueue.push( this.id );
+						});
+					});
+				}
+
+				if ( 'showLikeWidget' == event.event ) {
+					jQuery( '#' + event.id + ' .post-likes-widget-placeholder'  ).fadeOut( 'fast', function() {
+						jQuery( '#' + event.id + ' .post-likes-widget' ).fadeIn( 'fast', function() {
+							JetpackLikespostMessage( { event: 'likeWidgetDisplayed', blog_id: event.blog_id, post_id: event.post_id, obj_id: event.obj_id }, window.frames['likes-master'] );
+						});
+					});
+				}
+
+				if ( 'clickReblogFlair' == event.event ) {
+					wpcom_reblog.toggle_reblog_box_flair( event.obj_id );
+				}
+
+				if ( 'showOtherGravatars' == event.event ) {
+					var $container = jQuery( '#likes-other-gravatars' );
+					var $list = $container.find( 'ul' );
+
+					$container.hide();
+					$list.html( '' );
+
+					$container.find( '.likes-text span' ).text( event.total );
+
+					jQuery.each( event.likers, function( i, liker ) {
+						$list.append( '<li class="' + liker.css_class + '"><a href="' + liker.profile_URL + '" class="wpl-liker" rel="nofollow" target="_parent"><img src="' + liker.avatar_URL + '" alt="' + liker.name + '" width="30" height="30" style="padding-right: 3px;" /></a></li>');
+					} );
+
+					var offset = jQuery( "[name='" + event.parent + "']" ).offset();
+
+					$container.css( 'left', offset.left + event.position.left - 10 + 'px' );
+					$container.css( 'top', offset.top + event.position.top - 33 + 'px' );
+
+					var rowLength = Math.floor( event.width / 37 );
+					var height = ( Math.ceil( event.likers.length / rowLength ) * 37 ) + 13;
+					if ( height > 204 ) {
+						height = 204;
+					}
+
+					$container.css( 'height', height + 'px' );
+					$container.css( 'width', rowLength * 37 - 7 + 'px' );
+
+					$list.css( 'width', rowLength * 37 + 'px' );
+
+					$container.fadeIn( 'slow' );
+
+					var scrollbarWidth = $list[0].offsetWidth - $list[0].clientWidth;
+					if ( scrollbarWidth > 0 ) {
+						$container.width( $container.width() + scrollbarWidth );
+						$list.width( $list.width() + scrollbarWidth );
+					}
+				}
+			}
+
+			pm.bind( 'likesMessage', function(e) { JetpackLikesMessageListener(e); } );
+
+			jQuery( document ).click( function( e ) {
+				var $container = jQuery( '#likes-other-gravatars' );
+
+				if ( $container.has( e.target ).length === 0 ) {
+					$container.fadeOut( 'slow' );
+				}
+			});
+
+			function JetpackLikesWidgetQueueHandler() {
+				var wrapperID;
+				if ( ! jetpackLikesMasterReady ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				if ( jetpackLikesWidgetQueue.length > 0 ) {
+					// We may have a widget that needs creating now
+					var found = false;
+					while( jetpackLikesWidgetQueue.length > 0 ) {
+						// Grab the first member of the queue that isn't already loading.
+						wrapperID = jetpackLikesWidgetQueue.splice( 0, 1 )[0];
+						if ( jQuery( '#' + wrapperID ).hasClass( 'jetpack-likes-widget-unloaded' ) ) {
+							found = true;
+							break;
+						}
+					}
+					if ( ! found ) {
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				} else if ( jQuery( 'div.jetpack-likes-widget-unloaded' ).length > 0 ) {
+					// Grab any unloaded widgets for a batch request
+					JetpackLikesBatchHandler();
+
+					// Get the next unloaded widget
+					wrapperID = jQuery( 'div.jetpack-likes-widget-unloaded' ).first()[0].id;
+					if ( ! wrapperID ) {
+						// Everything is currently loaded
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				}
+
+				if ( 'undefined' === typeof wrapperID ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				var $wrapper = jQuery( '#' + wrapperID );
+				$wrapper.find( 'iframe' ).remove();
+
+				if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='22px' width='68px' frameBorder='0' scrolling='no' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				} else {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='55px' width='100%' frameBorder='0' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				}
+
+				$wrapper.removeClass( 'jetpack-likes-widget-unloaded' ).addClass( 'jetpack-likes-widget-loading' );
+
+				$wrapper.find( 'iframe' ).load( function( e ) {
+					var $iframe = jQuery( e.target );
+					$wrapper.removeClass( 'jetpack-likes-widget-loading' ).addClass( 'jetpack-likes-widget-loaded' );
+
+					JetpackLikespostMessage( { event: 'loadLikeWidget', name: $iframe.attr( 'name' ), width: $iframe.width() }, window.frames[ 'likes-master' ] );
+
+					if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+						$wrapper.find( 'iframe' ).Jetpack( 'resizeable' );
+					}
+				});
+				setTimeout( JetpackLikesWidgetQueueHandler, 250 );
+			}
+			JetpackLikesWidgetQueueHandler();
+		//]]>
+		</script>
+<script type='text/javascript' src='http://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var recaptcha_options = {"lang":"en"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s0.wp.com/_static/??-eJx9jEEOwiAQRS8kTJsmRhbGoxhCaR1kBsJA1duLC7au/uK99+GVlUtcPVcIAqs/0Pn81kFO0BGyi2318mMuEXVNFZ/jRxPykEZPTeXYdmQB+0QhX9WiJ7j3E9hSoT9+TlLVFi0WkIctyPvYHt3oOi/GmNlM50v4AgRVQGc='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script>	<script type="text/javascript">
+	var skimlinks_pub_id = "725X584219"
+	var skimlinks_sitename = "mortoray.wordpress.com";
+	</script>
+	<script type="text/javascript" src="http://s.skimresources.com/js/725X1342.skimlinks.js"></script><script src="http://s.stats.wordpress.com/w.js?21" type="text/javascript"></script>
+<script type="text/javascript">
+st_go({'blog':'11292855','v':'wpcom','tz':'2','user_id':'0','post':'2421','subd':'mortoray'});
+ex_go({'crypt':'UE5tW3cvZGQ9MH5ucz1rL21iUFg5b2JueV0/TS4tRlQ4X2hiNFRMRTMrQV1iWGEwTXdyJmFCUnMwMFYuaXRBRFRJWFI3VDQtUW1TJURHcWJ2N1VUemdTYzVtMWVEU0VzVT8zJjR5QT9MM3lkLUJsei1CcEhWZ11CdlcmbnlbW3ovZSZzYjN+RHhramtPZk9LWERbZE5NMHwvWEx3L2x3aFp8JW5PZGVJSWFtQU5LTkVXdnpMQV14Z350Y0VXPzJKVXdpWk95W3l8RDhKdEE4RkQxQVhIcG1kXTA1VXhUakVEVDA4VEJOJVIuW21hTXVyPzN6R0p5a2pkNUdOYlRbMEJaQjFjTnVOP0RvRENNLA=='});
+addLoadEvent(function(){linktracker_init('11292855',2421);});
+	</script>
+<noscript><img src="http://stats.wordpress.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//stats.wordpress.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></div><!-- end #page -->
+</body>
+</html>

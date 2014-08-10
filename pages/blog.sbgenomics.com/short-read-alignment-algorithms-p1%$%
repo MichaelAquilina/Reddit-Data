@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<!--[if IE 7]>                  <html class="ie7 no-js"  lang="en-US" prefix="og: http://ogp.me/ns#"     <![endif]-->
+<!--[if lte IE 8]>              <html class="ie8 no-js"  lang="en-US" prefix="og: http://ogp.me/ns#"     <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--> <html class="not-ie no-js" lang="en-US" prefix="og: http://ogp.me/ns#">  <!--<![endif]-->
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	
+	<title>Short read alignment: an introduction | Seven Bridges Genomics</title>
+			<link rel="icon" type="image/png" href="http://blog.sbgenomics.com/wp-content/uploads/2012/08/favicon.png">
+		<link rel="profile" href="http://gmpg.org/xfn/11" />
+	<link rel="pingback" href="http://blog.sbgenomics.com/xmlrpc.php" />
+	
+<!-- This site is optimized with the Yoast WordPress SEO plugin v1.4.25 - http://yoast.com/wordpress/seo/ -->
+<meta name="description" content="Short read alignment is a nuanced and rapidly developing subject. This post describes the problem and describes some techniques for solving it."/>
+<link rel="canonical" href="http://blog.sbgenomics.com/short-read-alignment-algorithms/" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Short read alignment: an introduction - Seven Bridges Genomics" />
+<meta property="og:description" content="Short read alignment is a nuanced and rapidly developing subject. This post describes the problem and describes some techniques for solving it." />
+<meta property="og:url" content="http://blog.sbgenomics.com/short-read-alignment-algorithms/" />
+<meta property="og:site_name" content="Seven Bridges Genomics" />
+<meta property="article:section" content="Science" />
+<meta property="article:published_time" content="2013-04-29T13:39:08+00:00" />
+<meta property="article:modified_time" content="2013-07-01T15:01:34+00:00" />
+<meta property="og:image" content="http://blog.sbgenomics.com/wp-content/uploads/2013/04/alignment_2.png" />
+<!-- / Yoast WordPress SEO plugin. -->
+
+<link rel="alternate" type="application/rss+xml" title="Seven Bridges Genomics &raquo; Feed" href="http://blog.sbgenomics.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Seven Bridges Genomics &raquo; Comments Feed" href="http://blog.sbgenomics.com/comments/feed/" />
+
+            <script type="text/javascript">//<![CDATA[
+            // Google Analytics for WordPress by Yoast v4.3.5 | http://yoast.com/wordpress/google-analytics/
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-25508146-2']);
+				            _gaq.push(['_trackPageview']);
+            (function () {
+                var ga = document.createElement('script');
+                ga.type = 'text/javascript';
+                ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ga, s);
+            })();
+            //]]></script>
+			<link rel="alternate" type="application/rss+xml" title="Seven Bridges Genomics &raquo; Short read alignment: an introduction Comments Feed" href="http://blog.sbgenomics.com/short-read-alignment-algorithms/feed/" />
+<link rel='stylesheet' id='ss-theme-styles-css'  href='http://blog.sbgenomics.com/wp-content/themes/sbg/style.css' type='text/css' media='all' />
+<link rel='stylesheet' id='fancybox-css'  href='http://blog.sbgenomics.com/wp-content/themes/sbg/css/jquery.fancybox.min.css' type='text/css' media='all' />
+<link rel='stylesheet' id='video-js-css'  href='http://blog.sbgenomics.com/wp-content/themes/sbg/css/video-js.min.css' type='text/css' media='all' />
+<link rel='stylesheet' id='audioplayerv1-css'  href='http://blog.sbgenomics.com/wp-content/themes/sbg/css/audioplayerv1.min.css' type='text/css' media='all' />
+<script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-content/themes/sbg/js/modernizr.custom.js'></script>
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-content/themes/sbg/js/video-js.min.js'></script>
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-includes/js/comment-reply.min.js'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://blog.sbgenomics.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://blog.sbgenomics.com/wp-includes/wlwmanifest.xml" /> 
+
+<link rel='shortlink' href='http://blog.sbgenomics.com/?p=960' />
+
+<!-- Highlight Search Terms 1.3 ( RavanH - http://status301.net/wordpress-plugins/highlight-search-terms/ ) -->
+<script type="text/javascript">
+var hlst_query = new Array();
+var hlst_areas = new Array("article","#groups-dir-list","#members-dir-list","li.bbp-body",".hentry",".post","#content","#main",".content","#middle","#container",".container",".page","#wrapper");
+</script>
+
+<!-- Simple Social Buttons style sheet -->
+<style type="text/css">
+   div.simplesocialbuttons { height: 20px; margin: 10px auto 10px 0; text-align: left; clear: left; }
+   div.simplesocialbutton { float: left; }
+   div.ssb-button-googleplus { width: 100px; }
+   div.ssb-button-fblike { width: 140px; line-height: 1; }
+   div.ssb-button-twitter { width: 130px; }
+   div.ssb-button-pinterest { width: 100px; }
+   .fb-like iframe { max-width: none !important; }
+</style>
+<!-- End of Simple Social Buttons -->
+
+
+<style>
+/* Main styles */
+body {
+	font: normal 13px/1.7 Arial, "Helvetica Neue", Helvetica, sans-serif;
+}
+/* Main heading font*/
+h1, h2, h3, h4, h5, h6,
+.button, input[type="submit"], button,
+.dropcap,
+label, input, textarea, select,
+#main-nav a,
+.ss-slider .slide-button h5,
+.projects-carousel, #portfolio-items,
+.entry-meta { font-family:  Arial, "Helvetica Neue", Helvetica, sans-serif; }
+</style>
+
+		
+<script>
+_V_.options.flash.swf = 'http://blog.sbgenomics.com/wp-content/themes/sbg/js/video-js.swf';
+</script>
+
+		</head>
+
+<body class="single single-post postid-960 single-format-standard post-template post-template-test-php">
+
+<header id="header" class="container clearfix">
+
+	<a href="https://igor.sbgenomics.com/" target="_blank" id="logo" title="Seven Bridges Genomics">
+    <img src="http://blog.sbgenomics.com/wp-content/themes/sbg/images/sbg_logo.png" alt="Seven Bridges Genomics">
+	</a>
+
+	    <ul class="social-links"><li class="facebook"><a href="http://www.facebook.com/SevenBridgesGenomics" target="_blank" title="Follow us on Facebook">Facebook</a></li><li class="google"><a href="https://plus.google.com/101465555170294810129" target="_blank" title="Follow us on Google">Google</a></li><li class="rss"><a href="http://blog.sbgenomics.com/feed/" target="_blank" title="Follow us on Rss">Rss</a></li><li class="twitter"><a href="http://twitter.com/SBGenomics" target="_blank" title="Follow us on Twitter">Twitter</a></li></ul>	
+</header><!-- end #header -->
+
+
+<section id="content" class="clearfix ">
+
+	<div class="container">
+
+		<header class="page-header clearfix">
+
+			<h1 class="page-title">SBG write stuff</h1>
+                        
+            
+
+			
+			
+		</header><!-- end .page-header -->
+		
+		
+			<div id="breadcrumbs" class="clearfix"><ul><li><a href="http://blog.sbgenomics.com">Home</a></li><li><a href="http://blog.sbgenomics.com/science/" title="View all posts in Science" rel="category tag">Science</a></li><li>Short read alignment: an introduction</li></ul></div>
+			<section id="main">
+
+				
+	
+		
+			
+				<article id="post-960" class="post-960 post type-post status-publish format-standard hentry category-science clearfix">
+
+					
+
+
+<div class="entry-body-title">
+    <h1 class="title">Short read alignment: an introduction</h1>
+</div>
+<div class="entry-meta">
+	<ul><li><span class="title">Posted:</span> <time datetime="2013-04-29T13:39:08+00:00" pubdate>Apr 29 2013</time></li><li><span class="title">Category:</span> <a href="http://blog.sbgenomics.com/science/" title="View all posts in Science" rel="category tag">Science</a></li><li><span class="title">Comments:</span> <a title="Comment on Short read alignment: an introduction" href="http://blog.sbgenomics.com/short-read-alignment-algorithms/#comments">0</a></li><li><span class="title">Author:</span> nate</li></ul></div>
+
+
+		
+	<div class="entry-image"><img src="http://blog.sbgenomics.com/wp-content/uploads/2013/04/alignment_2-680x336.png" alt="alignment_2" title="" class="attachment-post-thumbnail wp-post-image"></div>
+
+
+<div class="entry-body">
+    <p dir="ltr">Biologists today often find themselves with lots of&#8211;say, 10^6&#8211;short sequences of DNA from a sample, and their ability to do scientifically useful things with those sequences depends on their ability to align those sequences to a reference sequence. Many of the hard and important projects in genomics either are alignment or depend on alignment.</p>
+<p dir="ltr">Short read alignment is a nuanced and rapidly developing subject. This post describes the problem and describes some techniques for solving it.</p>
+<h3>What alignment is and why it is hard</h3>
+<p dir="ltr">Short read alignment is the process of figuring out where in the genome a sequence is from. This is tricky for several reasons:</p>
+<ol>
+<li>The reference genome is really big. Searching big things is harder than searching small things.</li>
+<li>You aren’t always looking for <em>exact</em> matches in the reference genome&#8211;or, at least, probably not.</li>
+</ol>
+<p dir="ltr">After all, the whole project of collecting the data being usually involves an interest in where that data is different from reference data! But looking for both matches and near-misses makes the search way, way harder. Say your reference sequence is 10^8 bp long and your target sequence is 10^2 bp long. If what we were looking for were an exact match, we’d have to look at approximately 10^8 possibilities. (For each possible match, there is a location where it begins, and it could begin at any of the 10^8 locations except for the last 99.)</p>
+<p dir="ltr">Notice, though, that if we’re looking for an exact match or a match that differs in one location base pair, that number goes up to roughly 3 x 10^14. (There are 10^8 starting locations, 10^6 possible locations for the different base pair, and 3 ways in which the base pair could be different.) That exceeds the number of exact matches by a factor of three million, and allowing for the possibility of insertions and deletions would drive that number even higher. That is far too many candidate matches for either existing computers or computers we could reasonably foresee ourselves having any time soon to search for by brute force.</p>
+<h3>Why alignment is hard but (mostly, qualifiedly) tractable</h3>
+<p dir="ltr">The trick is to figure out a way to search these enormous sequences for matches and near-matches with a method that doesn’t require exhaustively going through every near-match. This is a difficult task, but we are lucky: these bioinformatic questions intersect with areas that have been intensively studied.</p>
+<ol>
+<li><strong>Searching</strong>. Alignment requires searching. Efficient searching is a well-studied problem! We have not only knowledge of how to search efficiently but a whole conceptual framework for thinking about efficient searching.</li>
+<li><strong>Compression</strong>. Working with big sequences requires compression. (Making big files smaller is very helpful.) Compression is a well-studied problem! (The “BW” in “BWA” is for a reversible compression algorithm [Burrows-Wheeler] used far beyond genomics.) This makes it more practically feasible to implement whatever we want to do.</li>
+<li><strong>Dynamic programming</strong>. <span style="font-size: 12px; line-height: 1.7;">Alignment happens to be the sort of problem that a technique called dynamic programming, studied in modern computer science, effectively handles. Dynamic programming is described in the next section:</span></li>
+</ol>
+<h3>From slow to medium speed: dynamic programming</h3>
+<p dir="ltr">The problem of aligning two sequences&#8211;e.g., a target sequence and a reference sequence&#8211;has optimal substructure. Sometimes we can guarantee that the solution to a large problem entails something about the parts of the solution to the larger problem. The classic example is that of shortest paths: if you know that the shortest path from Orlando to Boston goes through New York, then you know that the shortest path from Orlando to New York is part of the path to Orlando to Boston. You can ignore the larger question (getting from Orlando to Boston) and focus on the smaller one (getting from Orlando to New York), knowing that you’ll be able to construct the solution to the larger question out of a solution to the smaller one.</p>
+<p dir="ltr">Notice that in this situation, if you don&#8217;t already know which of Boston&#8217;s neighbors the shortest path passes through, it becomes very useful to have a list of the shortest paths from Orlando to all of Boston’s neighbors: you can easily do an exhaustive search to figure out the shortest path from Orlando to Boston. How? Although it is artificial to pretend we know from the beginning that the shortest path goes through New York, it is much less contrived to pretend we know that the path goes through some city near Boston. That is why the imaginary list of shortest paths to all the cities near Boston is so useful: you could test them one by one, adding those shortest paths with the distance to Boston, to see which gives the shortest total distance.</p>
+<p dir="ltr">Aligning a sequence with a target sequence has a similar structure: the answers to slightly smaller questions allow us to construct answers to bigger questions. Let’s say we’re aligning sequence A with a reference genome, that A is 1,000 bp long, and that B (the reference genome) is 1,000,000 bp long. The key fact is that the optimal alignment has to be yielded by one of three computations, each of which depends only on some trivial arithmetic and the best alignments of smaller parts of the sequences. Suppose we already know the best alignments of all the subsequences of A with all the subsequences of B. We can then look at:</p>
+<ol>
+<li>The best alignment of all but the last base pair of A with all but the last base pair of B, and see how adding the last base pairs to each changes the quality of the alignment;</li>
+<li>The best alignment of all but the last base pair of A with all of B, and see how adding the last base pair to A changes the quality of the alignment;</li>
+<li>The best alignment of all of A with all but the last base pair of B, and see how adding the last base pair to B changes the quality of the alignment.</li>
+</ol>
+<p dir="ltr">The precise mechanism by which we see how the addition of the last base pair(s) changes the quality of the alignment depends on several things: which specific algorithm we are using, how we have set certain parameters, and so on. Quite generally, though, we can reason from the “optimal substructure” of the alignment problem&#8211;that is, the fact that the something is the best alignment of two whole sequences entails that certain parts of that alignment are also the best alignments of certain of those sequences’ parts&#8211;to a process for building up optimal alignments of larger sequences from optimal alignments of shorter sequences.</p>
+<p dir="ltr">To summarize: dynamic programming:</p>
+<ul>
+<li>is much faster than any naive algorithm but not fast enough to use exclusively for alignment</li>
+<li>is guaranteed to find the best alignment relative to the background assumptions enacted by your scoring scheme</li>
+<li>works by exploiting the optimal substructure of the alignment problem to generate longer alignments from shorter ones</li>
+</ul>
+<h3>Even faster: beyond dynamic programming</h3>
+<p dir="ltr">Dynamic programming is much faster than naive searching algorithms, but if we are willing to make small sacrifices in accuracy we can use algorithms that are even much faster than dynamic-programming algorithms. Under most conditions the accuracy sacrifices are small, so it is standard to use these faster “seed-and-extend” techniques.</p>
+<ol>
+<li>First, choose short “words”&#8211;subsequences of the target sequences&#8211; as seeds. (These are chosen in a complicated and very clever way&#8211;e.g., you want unique words so that when they match the reference sequence it’s more likely to mean something. BLAST and FASTA differ, among other ways, in how they choose these words.)</li>
+<li>Then, look for those words in the reference sequence. (This is a fast operation.)</li>
+<li>When you find a match, try to extend the match from each end to see if you can get an even better match. (This can be done in many ways, hence all the command-line options in alignment software packages like BLAST.)</li>
+</ol>
+<p dir="ltr">The best alignment is likely to be yielded by (1)-(3). Notice that:</p>
+<ol>
+<li>This requires some luck&#8211;there’s usually no guarantee that you have chosen the best words to search with, or that you’ve chosen to stop trying to extend the matches from each end at the right time, etc&#8230;</li>
+<li>&#8230;but it doesn’t require much luck. The nature of the data and the ability to choose various parameters intelligently take most of the luck out of the process. [sets of filters, etc]</li>
+<li>Most of the steps in this process can be done very quickly. (1) and (2) are very fast. Step (3) is slower, and involves the dynamic-programming approach outlined in the previous section, but narrowing the search with the seeding process speeds up the whole process drastically.</li>
+<li>It is, perhaps, more intuitive than the dynamic programming method. Suppose someone gave you an untitled stack of 50 pages with no formatting or punctuation or spacing, just a bunch of letters one after the other. And say your life depended on finding one of Hamlet’s soliloquies in the pages. (And maybe there were some transcription errors.) You would probably just start skimming through the text for distinctive bits of text (“peasant slave,” “slings and arrows,” whatever). If you managed to match one of these phrases, you’d look to either side of it to see if you could extend it, and so on. This is very close to what modern alignment algorithms do.</li>
+</ol>
+<h3>Fast enough: combining seeding with dynamic programming</h3>
+<p dir="ltr">Modern alignment algorithms, for all their diversity, largely share a conceptual core: they use seeding to find potential matches, but they then extend those seeded matches using techniques based on dynamic programming. After a seeding match has been found, we test adjacent bases to see if we can improve the match by extending it forward and backward in the target. A dynamic-programming algorithm is used to assign scores to each possible extension of the alignment. Matches “earn” the alignment points; mismatches, insertions, and deletions lose points for the alignment.</p>
+<p>This is a middle way between the infallible but slower method of using dynamic programming from the beginning and the very fast but incomplete method of simply scanning the target for seeds. The round of seeding constrains the search enough to let the search go quickly enough to be practical; the round of extension gives us the precision required to find the best alignment.</p>
+<p>[There is now a follow-up to this post that takes a closer look at seeding! <a title="Short read alignment: seeding" href="http://blog.sbgenomics.com/short-read-alignment-seeding/" >Click here to read "Short read alignment: seeding"</a>]</p>
+<h4>References</h4>
+<p>Langmead B, Trapnell C, Pop M, Salzberg SL. Ultrafast and memory-efficient alignment of short DNA sequences to the human genome. Genome Biol 10:R25.</p>
+<p>Li H. and Durbin R. (2009) Fast and accurate short read alignment with Burrows-Wheeler Transform. Bioinformatics, 25:1754-60.</p>
+<p>Li H. and Homer N. (2010) A survey of sequence alignment algorithms for next-generation sequencing. Briefings in Bioinformatics 11:473-83.
+<div class="simplesocialbuttons">
+<div class="simplesocialbutton ssb-button-googleplus"><!-- Google Plus One-->
+<div class="g-plusone" data-size="medium" data-href="http://blog.sbgenomics.com/short-read-alignment-algorithms/"></div>
+</div>
+<div class="simplesocialbutton ssb-button-fblike"><!-- Facebook like-->
+<div id="fb-root"></div>
+<div class="fb-like" data-href="http://blog.sbgenomics.com/short-read-alignment-algorithms/" data-send="false" data-layout="button_count" data-show-faces="false"></div>
+</div>
+<div class="simplesocialbutton ssb-button-twitter"><!-- Twitter--><a href="https://twitter.com/share" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://twitter.com']);" class="twitter-share-button" data-text="Short read alignment: an introduction" data-url="http://blog.sbgenomics.com/short-read-alignment-algorithms/" rel="nofollow"></a></div>
+</div>
+</div>
+
+
+<div class="entry-author">
+    <h4>About the Author</h4>
+    <div class="about_author_wrap">
+        <div class="about_author clearfix">
+            <div class="avatar_left"><img alt='' src='http://0.gravatar.com/avatar/ce34e07f8413d201f03f4f23b3decc67?s=50&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D50&amp;r=G' class='avatar avatar-50 photo' height='50' width='50' /></div>
+            <div class="description_right">
+            <h5>nate</h5>
+            <p>Nate is a mathematician and budding coder who holds two Master's degrees in philosophy.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section id="comments">
+
+	
+	
+	
+									<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Comment <small><a rel="nofollow" id="cancel-comment-reply-link" href="/short-read-alignment-algorithms/#respond" style="display:none;"> - Cancel reply</a></small></h3>
+									<form action="http://blog.sbgenomics.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+																										<p class="comment-form-author input-block"><label for="author"><strong>Name</strong> (required)</label><input id="author" name="author" type="text" value="" size="30" aria-required='true' required /></p>
+<p class="comment-form-email input-block"><label for="email"><strong>Email</strong> (required)</label><input id="email" name="email" type="email" value="" size="30" aria-required='true' required /></p>
+<p class="comment-form-url input-block"><label for="url"><strong>Website</strong></label><input id="url" name="url" type="url" value="" size="30" /></p>
+												<p class="comment-form-comment"><label for="comment"><strong>Your Comment</strong></label><textarea id="comment" name="comment" cols="45" rows="8" aria-required="true" required></textarea></p>						<p class="form-allowed-tags">You may use these <abbr title="HyperText Markup Language">HTML</abbr> tags and attributes:  <code>&lt;a href=&quot;&quot; title=&quot;&quot;&gt; &lt;abbr title=&quot;&quot;&gt; &lt;acronym title=&quot;&quot;&gt; &lt;b&gt; &lt;blockquote cite=&quot;&quot;&gt; &lt;cite&gt; &lt;code&gt; &lt;del datetime=&quot;&quot;&gt; &lt;em&gt; &lt;i&gt; &lt;q cite=&quot;&quot;&gt; &lt;strike&gt; &lt;strong&gt; </code></p>						<p class="form-submit">
+							<input name="submit" type="submit" id="submit" value="Post Comment" />
+							<input type='hidden' name='comment_post_ID' value='960' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+						</p>
+											</form>
+							</div><!-- #respond -->
+			        <script type="text/javascript">
+            jQuery(document).ready(function () {
+                jQuery('#commentform').submit(function () {
+                    _gaq.push(
+                            ['_setAccount', 'UA-25508146-2'],
+                            ['_trackEvent', 'comment', 'submit']
+                    );
+                });
+            });
+        </script>
+		
+</section><!-- #comments -->
+				</article><!-- end .hentry -->
+
+			
+			
+				
+		
+		
+			</section><!-- end #main -->
+
+			<aside id="sidebar">
+
+	
+		<div id="categories-2" class="widget widget_categories"><h6 class="widget-title">Categories</h6>		<ul>
+	<li class="cat-item cat-item-14"><a href="http://blog.sbgenomics.com/conferences-2/" title="View all posts filed under Conferences">Conferences</a>
+</li>
+	<li class="cat-item cat-item-3"><a href="http://blog.sbgenomics.com/featured/" title="View all posts filed under Featured">Featured</a>
+</li>
+	<li class="cat-item cat-item-4"><a href="http://blog.sbgenomics.com/product-news/" title="View all posts filed under Product News">Product News</a>
+</li>
+	<li class="cat-item cat-item-13"><a href="http://blog.sbgenomics.com/science/" title="View all posts filed under Science">Science</a>
+</li>
+	<li class="cat-item cat-item-6"><a href="http://blog.sbgenomics.com/the-future-of-work/" title="View all posts filed under The Future of Work">The Future of Work</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="http://blog.sbgenomics.com/uncategorized/" title="View all posts filed under Uncategorized">Uncategorized</a>
+</li>
+		</ul>
+</div><div id="search-2" class="widget widget_search"><h6 class="widget-title">Blog Search</h6><form method="get" id="searchform" action="http://blog.sbgenomics.com/">
+	<input type="text" class="field" name="s" id="s" placeholder="Search the blog..." />
+	    <button type="submit" class="submit" name="submit" id="searchsubmit"></button>
+	 <span class="widget-title">Categories</span><select name='cat' id='cat' class='postform' >
+	<option value='-1'>Select Category</option>
+	<option class="level-0" value="14">Conferences</option>
+	<option class="level-0" value="3">Featured</option>
+	<option class="level-0" value="4">Product News</option>
+	<option class="level-0" value="13">Science</option>
+	<option class="level-0" value="6">The Future of Work</option>
+	<option class="level-0" value="1">Uncategorized</option>
+</select>
+
+<script type='text/javascript'>
+/* <![CDATA[ */
+	var dropdown = document.getElementById("cat");
+	function onCatChange() {
+		if ( dropdown.options[dropdown.selectedIndex].value > 0 ) {
+			location.href = "http://blog.sbgenomics.com/?cat="+dropdown.options[dropdown.selectedIndex].value;
+		}
+	}
+	dropdown.onchange = onCatChange;
+/* ]]> */
+</script>
+
+</form></div><div id="reallysimpletwitterwidget-4" class="widget widget_reallysimpletwitterwidget"><h6 class="widget-title">Last Tweets</h6>
+			<ul class="really_simple_twitter_widget"><li>AlignGraph: algorithm for secondary de novo genome assembly guided by closely related references <a href="http://t.co/cT6rPomQSY" class="twitter-link" >http://t.co/cT6rPomQSY</a> via @assemblathon<span class="rstw_comma">,</span> <span class="twitter-timestamp" title="2014/07/01 18:05">17 hours ago</span></li><li>Insights into RNA structure and function from genome-wide studies <a href="http://t.co/RQZ6VxkoLO" class="twitter-link" >http://t.co/RQZ6VxkoLO</a> via @timknut<span class="rstw_comma">,</span> <span class="twitter-timestamp" title="2014/07/01 14:06">21 hours ago</span></li><li>Moving day at SBG! Excited to join the Kendall Square community @cicnow<span class="rstw_comma">,</span> <span class="twitter-timestamp" title="2014/06/30 18:05">Jun 30</span></li></ul></div>
+	
+	
+			
+</aside><!-- end #sidebar -->
+				
+	</div><!-- end .container -->
+	
+</section><!-- end #content -->
+
+
+
+	<footer id="footer-bottom" class="clearfix">
+
+		<div class="container">
+
+			<p>Copyright © 2014 Seven Bridges Genomics. All rights reserved.</p>
+		</div><!-- end .container -->
+
+	</footer><!-- end #footer-bottom -->
+
+
+
+<!-- Simple Social Buttons plugin -->
+<script type="text/javascript">
+//<![CDATA[
+// google plus
+window.___gcfg = {lang: 'en'};
+(function() {
+   var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+   po.src = 'https://apis.google.com/js/plusone.js';
+   var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+})();
+// facebook 
+(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+// twitter 
+!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+// ]]>
+</script>
+<!-- /End of Simple Social Buttons -->
+
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-content/plugins/highlight-search-terms/hlst-extend.js'></script>
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-includes/js/jquery/ui/jquery.ui.widget.min.js'></script>
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-content/themes/sbg/js/respond.min.js'></script>
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-content/themes/sbg/js/jquery.easing-1.3.min.js'></script>
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-content/themes/sbg/js/jquery.fancybox.pack.js'></script>
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-content/themes/sbg/js/jquery.cycle.all.min.js'></script>
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-content/themes/sbg/js/jquery.isotope.min.js'></script>
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-content/themes/sbg/js/audioplayerv1.min.js'></script>
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-content/themes/sbg/js/jquery.touchSwipe-1.2.5.min.js'></script>
+<script type='text/javascript' src='http://blog.sbgenomics.com/wp-content/themes/sbg/js/custom.js'></script>
+
+
+</body>
+</html>

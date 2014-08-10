@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<!--
+	generated 157 seconds ago
+	generated in 0.769 seconds
+	served from batcache in 0.003 seconds
+	expires in 143 seconds
+-->
+<head>
+<meta charset="UTF-8" />
+<title>A powerful unused feature of Python: function annotations. | Manuel Cerón</title>
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="pingback" href="http://ceronman.com/xmlrpc.php" />
+		<script src='//r-login.wordpress.com/remote-login.php?action=js&amp;host=ceronman.com&amp;id=27831673&amp;t=1404131916&amp;back=http%3A%2F%2Fceronman.com%2F2013%2F03%2F12%2Fa-powerful-unused-feature-of-python-function-annotations%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel="alternate" type="application/rss+xml" title="Manuel Cerón &raquo; Feed" href="http://ceronman.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Manuel Cerón &raquo; RSS de los comentarios" href="http://ceronman.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Manuel Cerón &raquo; A powerful unused feature of Python: function&nbsp;annotations. RSS de los comentarios" href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/feed/" />
+<script type="text/javascript">
+/* <![CDATA[ */
+function addLoadEvent(func){var oldonload=window.onload;if(typeof window.onload!='function'){window.onload=func;}else{window.onload=function(){oldonload();func();}}}
+/* ]]> */
+</script>
+<link rel='stylesheet' id='all-css-0' href='http://s0.wp.com/_static/??-eJx9j9EOgjAMRX/IWSVKwoPxW8aoY9CtC+tC+HuHiTGK4a23Oac3hTkqw0EwCPisImXrQoLkHeESJx7QyHc6mpQO8F8jN2KCASVqM6pX2uAtsf0IbC12nEU9mIhnmF1ncbdjQtKCnYqc5CftaYYnLHsftayEx85pJPQF29N8rN/WOvblr22N9OVOgphbMIQ6qJ49QpKFcGXv/na+nKqmqer6OjwBoR6KuQ==' type='text/css' media='all' />
+<!--[if IE]>
+<link rel='stylesheet' id='cleanhome-ie-css'  href='http://s0.wp.com/wp-content/themes/pub/clean-home/ie.css?m=1291819101g&#038;ver=4.0-alpha' type='text/css' media='all' />
+<![endif]-->
+<link rel='stylesheet' id='all-css-2' href='http://s2.wp.com/_static/??-eJx9kNEOwiAMRX9I7KZ78MX4LYxVwAAltMvi34vbojMme+pt2nNzW5iyMpQEk4A4jMiQxx5MQJ2Uo4jgkwGWZ0A1ZUPxaJgP4CGR+AryRyyDjV0cVQ6j9XXHIqlARoun9NOoe9C+7KEF+0C2Sgt1a9PuQZlYFmtgp8sbXut+yoRlOeor/4D1S64DG6jXYc9x8oNF4Tm5JRoK6mF2vMVr2zVd254uzfnxAuHnkT0=' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-2' href='http://s0.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1387483371g' type='text/css' media='print' />
+<script type='text/javascript'>
+/* <![CDATA[ */
+var LoggedOutFollow = {"invalid_email":"No se ha completado su suscripcion, por favor intentelo de nuevo con una direcci\u00f3n de correo valida."};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s1.wp.com/_static/??-eJyFj90OwiAMhV9IZFs08cb4LNvoSBEoUpDo08sSNTpNdtW/7/S0sgQxkk/gkzQsHQ1oQWSG2OvaE+gn2hreyMqhH21WwDNoLhni7RlWAeFQxz7B1qF/wR+ugTg5YK6Wf6bfVuivCGUVM5BCP55FBMb7z9bBkhbBZo2eZc01KMpJTGQtFVlQaUhLjctvRQRbn1FivntRVdXJHdtd0+wPbdd05gFmiIRF'></script>
+<link rel='stylesheet' id='all-css-0' href='http://s2.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1377793621g' type='text/css' media='all' />
+<!--[if lt IE 8]>
+<link rel='stylesheet' id='highlander-comments-ie7-css'  href='http://s2.wp.com/wp-content/mu-plugins/highlander-comments/style-ie7.css?m=1351637563g&#038;ver=20110606' type='text/css' media='all' />
+<![endif]-->
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://ceronman.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://ceronman.wordpress.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Aaron Swartz' href='http://ceronman.com/2013/02/25/aaron-swartz/' />
+<meta name="generator" content="WordPress.com" />
+<link rel='canonical' href='http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/' />
+<link rel='shortlink' href='http://wp.me/p1SMhX-5S' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=json&amp;url=http%3A%2F%2Fceronman.com%2F2013%2F03%2F12%2Fa-powerful-unused-feature-of-python-function-annotations%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=xml&amp;url=http%3A%2F%2Fceronman.com%2F2013%2F03%2F12%2Fa-powerful-unused-feature-of-python-function-annotations%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="A powerful unused feature of Python: function annotations." />
+<meta property="og:url" content="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/" />
+<meta property="og:description" content="Something I&#039;ve always missed when using Python (and dynamically typed languages in general) is nice tooling support. C# and Java have powerful IDEs that can improve your productivity significantly...." />
+<meta property="article:published_time" content="2013-03-12T16:13:15+00:00" />
+<meta property="article:modified_time" content="2013-03-12T16:13:15+00:00" />
+<meta property="article:author" content="http://ceronman.com/author/ceronman/" />
+<meta property="og:site_name" content="Manuel Cerón" />
+<meta property="og:image" content="http://ceronman.files.wordpress.com/2013/03/typescript-small.gif" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:image" content="http://ceronman.files.wordpress.com/2013/03/typescript3.png?w=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<link rel="shortcut icon" type="image/x-icon" href="http://0.gravatar.com/blavatar/a35fb2b47ce063cbdad8317ad1aaf322?s=16" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="http://0.gravatar.com/blavatar/a35fb2b47ce063cbdad8317ad1aaf322?s=16" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="http://0.gravatar.com/blavatar/c0bc8b059e4259fed623da3965005a81?s=114" />
+<link rel='openid.server' href='http://ceronman.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='http://ceronman.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="http://ceronman.com/osd.xml" title="Manuel Cerón" />
+<link rel="search" type="application/opensearchdescription+xml" href="http://wordpress.com/opensearch.xml" title="WordPress.com" />
+<meta name="application-name" content="Manuel Cerón" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Tecnología, programación, videojuegos y otras cosas." /><meta name="msapplication-task" content="name=Suscribir;action-uri=http://ceronman.com/feed/;icon-uri=http://0.gravatar.com/blavatar/a35fb2b47ce063cbdad8317ad1aaf322?s=16" /><meta name="msapplication-task" content="name=Registrar un blog gratuito;action-uri=http://wordpress.com/signup/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=Soporte de WordPress.com;action-uri=http://support.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=Foros de WordPress.com;action-uri=http://forums.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="title" content="A powerful unused feature of Python: function&nbsp;annotations. | Manuel Cerón en WordPress.com" />
+<meta name="description" content="Something I&#039;ve always missed when using Python (and dynamically typed languages in general) is nice tooling support. C# and Java have powerful IDEs that can improve your productivity significantly. Some people say that IDEs are a language smell. I disagree, IDEs are a truly valuable tool and the &quot;nice language or IDE&quot; statement is a false dilemma.&hellip;" />
+
+<script type='text/javascript' src='//partner.googleadservices.com/gampad/google_service.js'>
+</script>
+<script type='text/javascript'>
+if ( typeof GS_googleAddAdSenseService == 'function' ) { GS_googleAddAdSenseService("ca-pub-3443918307802676"); }
+if ( typeof GS_googleEnableAllServices == 'function' ) { GS_googleEnableAllServices() };
+</script><script type='text/javascript'>
+if ( typeof GA_googleAddSlot == 'function' ) { GA_googleAddSlot("ca-pub-3443918307802676", "wpcom_below_post"); }
+</script>
+<script type='text/javascript'>
+if ( typeof GA_googleFetchAds == 'function' ) { GA_googleFetchAds(); }
+</script>
+
+<script type="text/javascript">
+var wpcom_ads = { bid: 27831673, pt: 'permalink', wa: 0, as: 0, domain: 'ceronman.com', url: 'http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/', gid: '', };
+</script>
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+<script type="text/javascript">
+	window.google_analytics_uacct = "UA-52447-2";
+</script>
+
+<script type="text/javascript">
+	var _gaq = _gaq || [];
+	_gaq.push(['_setAccount', 'UA-52447-2']);
+	_gaq.push(['_setDomainName', 'none']);
+	_gaq.push(['_setAllowLinker', true]);
+	_gaq.push(['_initData']);
+	_gaq.push(['_trackPageview']);
+
+	(function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ga);
+	})();
+</script>
+</head>
+
+<body class="single single-post postid-364 single-format-standard mp6 color-light highlander-enabled highlander-light">
+
+<div id="wrapper">
+
+	<div class="header">
+		<div id="logo">
+		<h1><a href="http://ceronman.com">Manuel Cerón</a></h1>
+		<h2>Tecnología, programación, videojuegos y otras cosas.</h2>
+		</div>
+
+		<div id="nav">
+			<ul>
+	<li class="page_item page-item-2"><a href="http://ceronman.com/about/">About</a></li>
+</ul>
+		</div>
+
+			</div>
+
+	
+	<div class="content">
+	
+		
+		<div class="navigation nav-above">
+			<div class="alignleft"></div>
+			<div class="alignright"><a href="http://ceronman.com/2013/02/25/aaron-swartz/" rel="prev">Aaron Swartz</a> &rarr;</div>
+		</div>
+
+		<div class="post-364 post type-post status-publish format-standard hentry category-uncategorized" id="post-364">
+			<h1>A powerful unused feature of Python: function&nbsp;annotations.</h1>
+			<small class="post-meta"><span class="post-date"><b>Publicado:</b> marzo 12, 2013</span> <span class="author-link">| <b>Author:</b> <a href="http://ceronman.com/author/ceronman/" title="Entradas de ceronman" rel="author">ceronman</a></span> <span class="meta-sep">|</span> <span class="cat-links"><b>Filed under:</b> <a href="http://ceronman.com/category/uncategorized/" rel="category tag">Uncategorized</a></span> <span class="tag-links"></span> <span class="edit-link"></span> <span class="meta-sep">|</span><span class="comments-link"><a href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/#comments" title="Comentarios en A powerful unused feature of Python: function&nbsp;annotations.">10 comentarios</a></span></small>
+			<p>Something I&#8217;ve always missed when using Python (and dynamically typed languages in general) is nice tooling support. C# and Java have powerful IDEs that can improve your productivity significantly. Some people say that <a href="http://www.recursivity.com/blog/2012/10/28/ides-are-a-language-smell/">IDEs are a language smell</a>. I disagree, IDEs are a truly valuable tool and the &#8220;nice language or IDE&#8221; statement is a <a href="http://en.wikipedia.org/wiki/False_dilemma">false dilemma</a>.</p>
+<p>The problem with dynamically typed languages is that it&#8217;s impossible for the IDE to infer things about some parts of  your code. For example, if you start typing this:</p>
+<pre class="brush: python; title: ; notranslate" title="">
+def myfunction(a, b):
+...
+</pre>
+<p>It&#8217;s impossible for the editor to give you any hint about <code style="color:#770000;">a</code> or <code style="color:#770000;">b</code>.</p>
+<p>I&#8217;ve been playing with <a href="http://www.dartlang.org/">Dart</a> and <a href="http://www.typescriptlang.org/">TypeScript</a> recently. These are languages that compile to Javascript and both try to improve tooling support. They&#8217;re interesting because, despite being dynamically typed languages, both implement optional type annotations. These have no different purpose than aiding editors and IDEs. Let me show you a simple example of how this can be seriously useful, consider the following Javascript code:</p>
+<pre class="brush: jscript; title: ; notranslate" title="">
+function findTitle(title) {
+	var titleElement = document.getElementById('title-' + title);
+	return title;
+}
+
+var t = findTitle('mytitle');
+t.innerHTML = 'New title';
+</pre>
+<p>The code has a small error that is not very easy to notice. Now let&#8217;s see the <a href="http://www.typescriptlang.org/Playground">TypeScript Web Editor</a> with the same code adding a single type annotation to <code style="color:#770000;">findTitle</code>:</p>
+<p><a href="http://ceronman.files.wordpress.com/2013/03/typescript3.png"><img class="alignnone size-full wp-image-391" alt="typescript" src="http://ceronman.files.wordpress.com/2013/03/typescript3.png?w=590&#038;h=172" width="590" height="172" /></a></p>
+<p>TypeScript found an error. By knowing that <code style="color:#770000;">title</code> is a <code style="color:#770000;">string</code>, it knows that <code style="color:#770000;">findTitle</code> is returning a <code style="color:#770000;">string</code> too, and therefore <code style="color:#770000;">t</code> is a <code style="color:#770000;">string</code> and strings don&#8217;t have an <code style="color:#770000;">innerHTML</code> method.</p>
+<p>Early error detection is one advantage of good tooling support. Another interesting thing is accurate code completion. With good code completion you don&#8217;t have to browse huge API docs looking for what you need. You can discover the API while you type and use automatic re-factor tools without worrying about breaking code.</p>
+<p><a href="http://ceronman.files.wordpress.com/2013/03/typescript-small.gif"><img class="alignnone size-full wp-image-389" alt="typescript-small" src="http://ceronman.files.wordpress.com/2013/03/typescript-small.gif?w=590&#038;h=221" width="590" height="221" /></a></p>
+<p>Anders Hejlsberg&#8217;s <a href="http://channel9.msdn.com/posts/Anders-Hejlsberg-Introducing-TypeScript">introduction video</a> to TypeScript contains more interesting details about how annotations are really useful.</p>
+<p>While playing with TypeScript I couldn&#8217;t stop thinking how cool would be to have something like that in Python. Then I realized that Python had syntax for annotations years before TypeScript or Dart were even planned. <a href="http://www.python.org/dev/peps/pep-3107/">PEP 3107</a> introduced function annotations in Python. Here is a small example:</p>
+<pre class="brush: python; title: ; notranslate" title="">
+def greet(name: str, age: int) -&gt; str:
+    print('Hello {0}, you are {1} years old'.format(name, age))
+</pre>
+<p>Here I annotated the <code style="color:#770000;">greet</code> function with the types of each argument and return value. Python annotations are completely optional and if you don&#8217;t do anything with them, they&#8217;re just ignored. However, with some little magic, it&#8217;s possible to tell python to check types at run-time:</p>
+<pre class="brush: python; title: ; notranslate" title="">
+&gt;&gt;&gt; @typechecked
+... def greet(name: str, age: int) -&gt; str:
+...     print('Hello {0}, you are {1} years old'.format(name, age))
+...
+&gt;&gt;&gt; greet(1, 28)
+Traceback (most recent call last):
+    ...
+TypeError: Incorrect type for &quot;name&quot;
+</pre>
+<p>Run-time type checking is not very useful though. However, a static analyzer could use that information to report errors as soon as you type. Also, IDEs and code completion libraries such as <a href="https://github.com/davidhalter/jedi">Jedi</a> could use that information to provide nice completion tips just like TypeScript does.</p>
+<p>Some people might say that this makes the language too verbose. People using dynamic languages often want concise code. But in practice, if you take a look at any medium to large Python project or library, chances are that you&#8217;ll find something like this:</p>
+<pre class="brush: python; title: ; notranslate" title="">
+def attach_volume(self, volume_id, instance_id, device):
+    &quot;&quot;&quot;
+    Attach an EBS volume to an EC2 instance.
+
+    :type volume_id: str
+    :param volume_id: The ID of the EBS volume to be attached.
+
+    :type instance_id: str
+    :param instance_id: The ID of the EC2 instance to which it will
+                        be attached.
+
+    :type device: str
+    :param device: The device on the instance through which the
+                   volume will be exposted (e.g. /dev/sdh)
+
+    :rtype: bool
+    :return: True if successful
+    &quot;&quot;&quot;
+    params = {'InstanceId': instance_id,
+              'VolumeId': volume_id,
+              'Device': device}
+    return self.get_status('AttachVolume', params, verb='POST')
+</pre>
+<p>I took this code from the <a href="https://github.com/boto/boto">boto library</a>, they annotate functions using docstrings and <a href="http://sphinx-doc.org/">sphinx</a>. It&#8217;s a very common way of annotating public APIs. However, this method has some drawbacks: first, it&#8217;s really verbose and you repeat your self a lot writing code like this; second, it&#8217;s harder to parse because there are different docstring formats (sphinx, epydoc, pydoctor), so editors don&#8217;t bring code completion or early error checking; third, it&#8217;s very easy to make mistakes that unsync the docstrings and the code. In this particular example, if you ever run this function, you&#8217;ll notice that it returns a string, not a bool as the annotation suggests.</p>
+<p><a href="https://developers.google.com/closure/">Google Closure</a> uses a similar docstring approach for type annotations in Javascript.</p>
+<p>So, if people are already writing verbose docstrings to annotate functions, why not just use real function annotations? They&#8217;re completely optional and you don&#8217;t have to use them for non-public APIs or small scripts. They&#8217;re more concise, easier to process and easier to verify. Function annotations are only available on Python 3, you might say, but there are <a href="https://pypi.python.org/pypi/annotate/0.2.4">some</a> <a href="https://pypi.python.org/pypi/anodi/0.0.2">approaches</a> to emulate them in Python 2.x using decorators and it&#8217;s still way better than docstrings.</p>
+<p>An interesting thing about Python annotations is that they don&#8217;t have to be types. In fact, you can use any Python expression as a function annotation. This opens the possibilities for a lot of interesting applications: typechecking, auto documentation, language bridges, object mappers, adaptation, design by contract, etc.</p>
+<p>The <a href="https://github.com/kennknowles/python-typelanguage">typelanguage</a> library defines a whole language for communicating types. This language can be used with just string annotations. For example:</p>
+<pre class="brush: python; title: ; notranslate" title="">
+def get_keys(a_dict: '{str: int}') -&gt; '[str]':
+    ...
+</pre>
+<p>The downside of this flexibility is that it causes some confusion in the community about how annotations should be used. A recent <a href="http://mail.python.org/pipermail/python-ideas/2012-December/018088.html">discussion</a> in the Python-ideas mailing list unveiled this problem.</p>
+<p>Personally, I would love to see this feature more used in the Python community. It has a lot of potential. I started a <a href="https://github.com/ceronman/typeannotations">small library to work with type annotations</a>. It implements the <code style="color:#770000;">typechecked</code> decorator described before, and some other useful things like structural interfaces, unions and logic predicates that can be used as function annotations. It&#8217;s still very immature, but I would like to improve it in the future by adding function overloading and other features. A detailed description of the library probably deserves a whole post for it. I would love to hack Jedi to add some basic support for auto-completion based on annotations.</p>
+
+<div class="wpa" style="position: relative; width:300px; text-align: center; padding: 0; margin: 10px auto; overflow: hidden; clear: both;">
+<a style="position: absolute; text-align: left; display: block; font: 9px/1 sans-serif; text-decoration: underline;" href="http://en.wordpress.com/about-these-ads/" rel="nofollow">About these ads</a>
+<script type="text/javascript">
+		var wpcom_adclk_hovering = false;
+		var wpcom_adclk_recorded = false;
+		var wpcom_adclk_theme = "Clean Home";
+		var wpcom_adclk_slot = "wpcom_below_post";
+		var wpcom_adclk_network = ( typeof wpcom_adclk_network === "undefined" ) ? "" : wpcom_adclk_network ;
+
+		jQuery(document).ready( function() {
+			function wpcom_adclk_hover_yes() { wpcom_adclk_hovering = true; }
+			function wpcom_adclk_hover_no() { wpcom_adclk_hovering = false; }
+			jQuery(".wpa").click(wpcom_adclk_click);
+			jQuery(".wpa iframe").hover( wpcom_adclk_hover_yes, wpcom_adclk_hover_no );
+			jQuery(".wpa object").hover( wpcom_adclk_hover_yes, wpcom_adclk_hover_no );
+
+			jQuery(window).blur( function() {
+				if ( wpcom_adclk_hovering ) { wpcom_adclk_click(); }
+			});
+		});
+
+		function wpcom_adclk_impression() {
+			var stat_gif = document.location.protocol + "//stats.wordpress.com/g.gif?v=wpcom-no-pv";
+			stat_gif += "&x_ads_imp_theme=" + wpcom_adclk_theme;
+			stat_gif += "&x_ads_imp_placement="+wpcom_adclk_slot;
+			stat_gif += "&x_ads_imp_network=" + wpcom_adclk_network;
+			stat_gif += "&x_ads_imp_theme_network="+wpcom_adclk_theme+"_"+wpcom_adclk_network;
+			new Image().src = stat_gif + "&baba=" + Math.random();
+			return true;
+		}
+
+		function wpcom_adclk_click() {
+			if (wpcom_adclk_recorded) { return true; } // no double counting
+			var stat_gif = document.location.protocol + "//stats.wordpress.com/g.gif?v=wpcom-no-pv";
+			stat_gif += "&x_ads_click_theme=" + wpcom_adclk_theme;
+			stat_gif += "&x_ads_click_placement="+wpcom_adclk_slot;
+			stat_gif += "&x_ads_click_network=" + wpcom_adclk_network;
+			stat_gif += "&x_ads_click_theme_network="+wpcom_adclk_theme+"_"+wpcom_adclk_network;
+
+			new Image().src = stat_gif + "&baba=" + Math.random();
+			wpcom_adclk_recorded = true;
+			var now=new Date(); var end=now.getTime()+250;
+			while(true){now=new Date();if(now.getTime()>end){break;}}
+			return true;
+		}
+	
+if ( typeof GA_googleAddAttr == 'function' ) {
+GA_googleAddAttr("AdOpt", "1");
+GA_googleAddAttr("Origin", "other");
+GA_googleAddAttr("LangId", "19");
+GA_googleAddAttr("Domain", "ceronman.com");
+GA_googleAddAttr("BlogId", "27831673");
+GA_googleAddAttr("PageURL", "http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/");
+GA_googleAddAttr("theme_bg", "fafafa");
+GA_googleAddAttr("theme_border", "cccccc");
+GA_googleAddAttr("theme_text", "000000");
+GA_googleAddAttr("theme_link", "ca1e00");
+GA_googleAddAttr("theme_url", "e94325");
+GA_googleAddAdSensePageAttr("google_page_url", "http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/");
+GA_googleFillSlot("wpcom_below_post");
+}
+</script>
+</div>
+<style type="text/css">
+div.wpa>div { margin-top: 1em; } #google_ads_div_wpcom_below_post_adsafe_ad_container { display: block !important; }
+</style>
+<script type="text/javascript">
+jQuery( window ).load( function() {
+    if ( jQuery(".wpa script[src*='virool.com']").length > 0 || jQuery(".wpa script[src*='shareth.ru']").length > 0 || jQuery(".wpa iframe[src*='boomvideo.tv']").length > 0 || jQuery(".wpa iframe[src*='viewablemedia.net']").length > 0 || jQuery(".wpa .sharethrough-placement").length > 0 ) {
+        jQuery( '.wpa' ).css( 'width', '400px' );
+    }
+setTimeout(function(){if(typeof GS_googleAddAdSenseService !== 'function'){new Image().src=document.location.protocol+"//stats.wordpress.com/g.gif?v=wpcom-no-pv&x_noads=adblock&baba="+Math.random()}},100);
+} );
+</script>
+<div id="jp-post-flair" class="sharedaddy sd-like-enabled sd-sharing-enabled"><div class="sharedaddy sd-sharing-enabled"><div class="robots-nocontent sd-block sd-social sd-social-icon-text sd-sharing"><h3 class="sd-title">Share this:</h3><div class="sd-content"><ul><li class="share-twitter"><a rel="nofollow" class="share-twitter sd-button share-icon" href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/?share=twitter" title="Haz clic para compartir en Twitter" id="sharing-twitter-364"><span>Twitter</span></a></li><li class="share-end"></li></ul></div></div></div><div class='sharedaddy sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-unloaded' id='like-post-wrapper-27831673-364-53b15a4c6ce4c' data-src='//widgets.wp.com/likes/#blog_id=27831673&amp;post_id=364&amp;origin=ceronman.wordpress.com&amp;obj_id=27831673-364-53b15a4c6ce4c' data-name='like-post-frame-27831673-364-53b15a4c6ce4c'><h3 class='sd-title'>Me gusta:</h3><div class='likes-widget-placeholder post-likes-widget-placeholder' style='height:55px'><span class='button'><span>Me gusta</span></span> <span class="loading">Cargando...</span></div><span class='sd-text-color'></span><a class='sd-link-color'></a></div>
+<div id='jp-relatedposts' class='jp-relatedposts' >
+	<h3 class="jp-relatedposts-headline"><em>Relacionado</em></h3>
+</div></div>						<hr/>
+		</div>
+
+		
+<div id="comments">
+
+
+	<h3>10 comentarios on &#8220;A powerful unused feature of Python: function&nbsp;annotations.&#8221;</h3>
+
+	<div class="navigation">
+			</div>
+
+	<ol class="commentlist">
+				<li class="comment even thread-even depth-1 parent highlander-comment" id="comment-633">
+				<div id="div-comment-633" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/142518724ad9fc556ec24bbec7189e9d?s=26&#038;d=identicon&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn"><a href='http://www.scratchpost.org/' rel='external nofollow' class='url'>Danny Milosavljevic</a></cite> <span class="says">dice:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/#comment-633">
+			marzo 12, 2013 en 4:54 pm</a>		</div>
+
+		<p>&gt;The problem with dynamically typed languages is that it’s impossible for the IDE to infer things about some parts of  your code. </p>
+<p>I assume you mean to imply &#8220;without running the code while you are typing it&#8221; ?</p>
+<p>Yes, because it&#8217;s mathematically impossible to do so in general (and to find out whether a given case is one of the impossible ones without running the program).</p>
+<p>&gt;It’s impossible for the editor to give you any hint about a or b.</p>
+<p>Also, the language is designed in a way that it shouldn&#8217;t matter much what a and b are.</p>
+<p>&gt;The code has a small error that is not very easy to notice.</p>
+<p>In Python, the unit test would find it in about 2ms. I&#8217;m aware that people don&#8217;t do tests much in Javascript&#8230;</p>
+<p>&gt;You can discover the API while you type </p>
+<p>Since you can (and I do) write the Python program while it is running (for example in ipython, bpython, Idle etc) and save it to file when done, you are also able to discover the API while you type. dir(xxx), help(xxx). </p>
+<p>&gt;and use automatic re-factor tools without worrying about breaking code.</p>
+<p>Tests&#8230;</p>
+<p>&gt;Run-time type checking is not very useful though.</p>
+<p>It is useful to me, at least. Done automatically by Python due to its strong type system.</p>
+<p>&gt;Some people might say that this makes the language too verbose. </p>
+<p>If non-optional, it limits the expressivity of the language, which is much much worse. Otherwise, it&#8217;s just verbose. But as long as they are optional and only used when needed, more power to you. Looks unpythonic to me, though. </p>
+<p>&gt;if you take a look at any medium to large Python project or library, chances are that you’ll find something like this:</p>
+<p>While I agree that it is often like that, they rather should be doctests. Then they cannot get out of sync *and* they document how you should *use* it &#8211; rather than some tiny detail on what kind of thing the first parameter is.</p>
+<p>&gt;So, if people are already writing verbose docstrings to annotate functions, why not just use real function annotations? </p>
+<p>How would writing a test as an annotation look?</p>
+<p>&gt;Personally, I would love to see this feature more used in the Python community. </p>
+<p>Personally, I&#8217;d love to see people use tests for their intended purposes which is 1) making sure the system works as planned and 2) documenting what &#8220;as planned&#8221; is. The kind of pigeonhole micromanagement a type system usually does is so counterproductive&#8230;</p>
+<p>&gt; logic predicates that can be used as function annotations.</p>
+<p>That&#8217;s actually nice.</p>
+<p>&gt; by adding function overloading</p>
+<p>Why would you do that? Just add a new function with another name. Why the ambiguosness?</p>
+<p>Please note that I wrote the above mostly to show another viewpoint. While I don&#8217;t see much point, I do like your work, especially on preconditions (judging from the documentation).</p>
+<p>Also, I did clone the git repo, I get:</p>
+<p>In Python 3.2.3</p>
+<p>python3 typeannotations.py<br />
+Traceback (most recent call last):<br />
+  File &#8220;typeannotations.py&#8221;, line 34, in<br />
+    EMPTY_ANNOTATION = inspect.Signature.empty<br />
+AttributeError: &#8216;module&#8217; object has no attribute &#8216;Signature&#8217;</p>
+<p>In Python 2.7.3</p>
+<p>python2 typeannotations.py<br />
+  File &#8220;typeannotations.py&#8221;, line 1<br />
+SyntaxError: Non-ASCII character &#8216;\xc3&#8242; in file typeannotations.py on line 1, but no encoding declared; see <a href="http://www.python.org/peps/pep-0263.html" rel="nofollow">http://www.python.org/peps/pep-0263.html</a> for details</p>
+<p>After adding<br />
+  # -*- coding: utf-8 -*-<br />
+to typeannotations.py:</p>
+<p>python2 typeannotations.py<br />
+  File &#8220;typeannotations.py&#8221;, line 113<br />
+    class AnyType(metaclass=AnyTypeMeta):<br />
+                           ^<br />
+SyntaxError: invalid syntax</p>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/?replytocom=633#respond' onclick='return addComment.moveForm("div-comment-633", "633", "respond", "364")'>Responder</a>		</div>
+				</div>
+		<ul class="children">
+		<li class="comment byuser comment-author-ceronman bypostauthor odd alt depth-2 highlander-comment" id="comment-634">
+				<div id="div-comment-634" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/98ef5c6117053107bd9ba2aa7754e4df?s=26&#038;d=identicon&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn"><a href='http://ceronman.wordpress.com' rel='external nofollow' class='url'>ceronman</a></cite> <span class="says">dice:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/#comment-634">
+			marzo 12, 2013 en 5:16 pm</a>		</div>
+
+		<p>Thanks for the comments.</p>
+<p>&gt;&gt; It’s impossible for the editor to give you any hint about a or b.<br />
+&gt;Also, the language is designed in a way that it shouldn&#8217;t matter much what a and b are.</p>
+<p>Well the language is also designed to support annotations. In fact the idea of using type annotations in Python has been in Guido&#8217;s head for years, look:</p>
+<p><a href="http://www.artima.com/weblogs/viewpost.jsp?thread=85551" rel="nofollow">http://www.artima.com/weblogs/viewpost.jsp?thread=85551</a><br />
+<a href="http://www.artima.com/weblogs/viewpost.jsp?thread=86641" rel="nofollow">http://www.artima.com/weblogs/viewpost.jsp?thread=86641</a></p>
+<p>Type annotations are optional and are meant to give your tools a little help. No more.</p>
+<p>&gt; In Python, the unit test would find it in about 2ms. I&#8217;m aware that people don&#8217;t do tests much in Javascript&#8230;</p>
+<p>I agree. I love unit tests. I use them all the time. Using annotations is not an excuse for not writing proper tests.  Unit tests are good software practice. But also, a well known fact in the software community is that the earlier you fail the cheaper it is. Annotations let you find errors as soon as you type and it&#8217;s much cheaper to fix it right there than running a test (writing it first if you don&#8217;t use TDD) then debug to find what was the error. I&#8217;ve been there.</p>
+<p>&gt; Since you can write the Python program while it is running (for example in ipython, bpython etc), you are also able to discover the API while you type. dir(xxx), help(xxx).</p>
+<p>Yes I use bpython all the time. Love it. But for some kinds of projects, specially big ones, it&#8217;s just not practical to develop in bpython and running while you type. Also, even interactive REPLs can benefit from some annotations. In fact, the IPython developers were pushing the community to define some conventions for using annotations, because they find they&#8217;re a cool tool. Look:</p>
+<p><a href="http://mail.python.org/pipermail/python-ideas/2012-December/018088.html" rel="nofollow">http://mail.python.org/pipermail/python-ideas/2012-December/018088.html</a></p>
+<p>&gt; While I agree that it is like that, they rather should be doctests. Then they cannot get out of sync and they document how you should use it &#8211; rather than some tiny detail on what kind of thing the first parameter is.</p>
+<p>Love doctests too. I prefer to mix them with regular unit tests. And they&#8217;re not incompatible with annotations.</p>
+<p>&gt;&gt;logic predicates that can be used as function annotations.<br />
+&gt;That&#8217;s actually nice.</p>
+<p>Check some examples here: <a href="https://github.com/ceronman/typeannotations" rel="nofollow">https://github.com/ceronman/typeannotations</a></p>
+<p>&gt;&gt; by adding function overloading<br />
+&gt; Why would you do that? Just call the function another name.</p>
+<p>Sometimes it&#8217;s nice to keep the same name. Take for example, the standard isinstance function. It takes a type or a tuple as second argument. It would be akward to have isinstace_type and isinstance_tuple don&#8217;t you think?</p>
+<p>There is a PEP for overloading already: <a href="http://www.python.org/dev/peps/pep-3124/" rel="nofollow">http://www.python.org/dev/peps/pep-3124/</a></p>
+<p>&gt;Please note that I wrote the above mostly to show another viewpoint. While I don&#8217;t see much point, I do like your work, especially on preconditions.</p>
+<p> I know <span class='wp-smiley emoji emoji-smile' title=':)'>:)</span> I sometimes like the other viewpoint too. Thanks for the comments again.</p>
+<p>Btw, the code is only Python 3.3, I&#8217;ll backport some things later.</p>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/?replytocom=634#respond' onclick='return addComment.moveForm("div-comment-634", "634", "respond", "364")'>Responder</a>		</div>
+				</div>
+		</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="comment-640">
+				<div id="div-comment-640" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c07104de771c3b6f6c30be8f592ef8f7?s=26&#038;d=identicon&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn"><a href='http://gravatar.com/burntsushi' rel='external nofollow' class='url'>burntsushi</a></cite> <span class="says">dice:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/#comment-640">
+			marzo 13, 2013 en 4:43 pm</a>		</div>
+
+		<p>&gt; The kind of pigeonhole micromanagement a type system usually does is so counterproductive</p>
+<p>You could have saved everyone a lot of time reading your comment and said, &#8220;I hate static types. Tests are much better.&#8221;</p>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/?replytocom=640#respond' onclick='return addComment.moveForm("div-comment-640", "640", "respond", "364")'>Responder</a>		</div>
+				</div>
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-635">
+				<div id="div-comment-635" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/211f6ffc1d92d0091415be4891cdb1ba?s=26&#038;d=identicon&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn">Jelle</cite> <span class="says">dice:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/#comment-635">
+			marzo 12, 2013 en 6:16 pm</a>		</div>
+
+		<p>Type annotation certainly are interesting for the purpose of wrapping too. Basically cython is vanilla python sprinkled with types. I&#8217;m sure the Cython devs will take advantage of type annotation in really creative ways&#8230;</p>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/?replytocom=635#respond' onclick='return addComment.moveForm("div-comment-635", "635", "respond", "364")'>Responder</a>		</div>
+				</div>
+		</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-636">
+				<div id="div-comment-636" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/a8b31a1f50291c4b40e24be13a6fd02e?s=26&#038;d=identicon&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn">snowfall</cite> <span class="says">dice:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/#comment-636">
+			marzo 12, 2013 en 7:16 pm</a>		</div>
+
+		<p>I just discovered that feature of python thanks to your post. Admittedly, I am not a regular python user. I used it a few times (notably to play with django a few years ago, which I found more interesting that RoR for that matter, but anyway), and while I found it a nice language to use, I wasn&#8217;t so impressed by it. Nowadays, people are all over functional and strongly  typed languages, and seeing that python had limited support for type checking is a nice surprise.</p>
+<p>Regarding tests: using unit tests to ensure that code is indeed manipulating values of the right type seems a bit&#8230;tedious. Why write code to do that when you can have that for free with the language? This let you concentrate on functional tests, which are the true reason for using tests.</p>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/?replytocom=636#respond' onclick='return addComment.moveForm("div-comment-636", "636", "respond", "364")'>Responder</a>		</div>
+				</div>
+		</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-637">
+				<div id="div-comment-637" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/142518724ad9fc556ec24bbec7189e9d?s=26&#038;d=identicon&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn"><a href='http://www.scratchpost.org/' rel='external nofollow' class='url'>Danny Milosavljevic</a></cite> <span class="says">dice:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/#comment-637">
+			marzo 12, 2013 en 7:20 pm</a>		</div>
+
+		<p>Hi,</p>
+<p>thanks for the links. I&#8217;ve read them and I see now that Guido probably also had something like that in mind. </p>
+<p>&gt;But also, a well known fact in the software community is that the earlier you fail the cheaper it is. Annotations let you find errors as soon as you type </p>
+<p>Some of the easy errors, at least&#8230;</p>
+<p>&gt;and it’s much cheaper to fix it right there than running a test (writing it first if you don’t use TDD) then debug to find what was the error. I’ve been there.</p>
+<p>Me too. I test the function right after I defined it nowadays. Might as well use a random number generator to generate it otherwise since my mistakes are much worse than simple &#8220;type errors&#8221; &#8211; but if you want to check for these kinds of things too, sure.</p>
+<p>&gt;Yes I use bpython all the time. Love it. But for some kinds of projects, specially big ones, it’s just not practical to develop in bpython and running while you type. </p>
+<p>It&#8217;s not? Why not?</p>
+<p>Having used LISP and Ruby REPL and connected editor for editing really big projects, I can tell you that one can write, debug and maintain projects entirely in the REPL (and connected editor) while they are indeed running. Maybe it&#8217;s different in Python, I don&#8217;t know (not being able to serialize out Python objects &#8211; including the function bodies &#8211; to a file sure makes it difficult)&#8230;</p>
+<p>&gt;Also, even interactive REPLs can benefit from some annotations. </p>
+<p>The question is whether anyone would use them there, given they&#8217;d use up vertical screen area and scroll stuff you probably need off-screen. Note that the ipython people also used inline-like &#8220;annotations&#8221; in their examples because of that.</p>
+<p>&gt;Take for example, the standard isinstance function. It takes a type or a tuple as second argument. It would be akward to have isinstace_type and isinstance_tuple don’t you think?</p>
+<p>Hmm&#8230; That&#8217;s one of the strangest standard functions I know. You&#8217;re supposed to either pass a class or a tuple of classes <span class='wp-smiley emoji emoji-mindblown' title='O_o'>O_o</span></p>
+<p>No way I&#8217;d ever put that in the same function, no. Might be my mathematics background, but that&#8217;s just&#8230; wrong in so many ways:<br />
+1) a tuple is not a set, although here a set is meant &#8211; since the order is not fixed (neither is the dimension fixed, for what it&#8217;s worth).<br />
+2) a class is not a tuple and a specific tuple is not a class.<br />
+3) while it might make sense to have a function work both on tuples and numbers (if you are really careful), having it work on both sets and numbers makes no sense without an aggregate function to decide what to do in order to reduce (hardcoding &#8220;any&#8221; is a bad idea since you will want others).<br />
+4) you can just use the isinstance(, ) in order to everything the other form can do, so why have the other form? any(isinstance(1, x) for x in {int, str}) &#8211; also makes it clearer what it does.</p>
+<p>If I absolutely had to have another function, I&#8217;d indeed rather have isinstance and isinstanceany instead of messing up the body of isinstance with a case analysis (or worse, a hidden case analysis) and recursion.</p>
+<p>&gt;There is a PEP for overloading already: <a href="http://www.python.org/dev/peps/pep-3124/" rel="nofollow">http://www.python.org/dev/peps/pep-3124/</a></p>
+<p>Yes, these are good examples and already work with the current setup: just pass the object to the single function and let it handle it. The function flatten in the example which flattens iterables but not strings (although strings *are* iterable) is something I wouldn&#8217;t like to write (I&#8217;d use Symbols instead of strings &#8211; which are not iterable and faster to compare &#8211; while they can still print. Python doesn&#8217;t really have Symbols, so I&#8217;d first write a Symbol class like in almost every single Python project that does any parsing I ever wrote <span class='wp-smiley emoji emoji-mindblown' title='O_o'>O_o</span> &#8211; is the distinction so unusual nowadays?)</p>
+<p>It also brings up LISP-style before and after methods which I think are a mistake even there &#8211; if you have classes, just make the class call a setup and teardown method on its own &#8211; much more transparent.</p>
+<p>So to summarize, while I agree that some of the problems are there, I sometimes disagree about the cause and the fix &#8211; for reasons of simplicity and orthogonality, mostly <span class='wp-smiley emoji emoji-smile' title=':-)'>:-)</span></p>
+<p>&gt;Btw, the code is only Python 3.3, I’ll backport some things later.</p>
+<p>Ah ok. Thanks.</p>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/?replytocom=637#respond' onclick='return addComment.moveForm("div-comment-637", "637", "respond", "364")'>Responder</a>		</div>
+				</div>
+		</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-638">
+				<div id="div-comment-638" class="comment-body">
+				<div class="comment-author vcard">
+						<cite class="fn"><a href='http://jrupac.roopakalu.com/blog/?p=557' rel='external nofollow' class='url'>Python Annotations | etc. and everything else</a></cite> <span class="says">dice:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/#comment-638">
+			marzo 13, 2013 en 12:38 am</a>		</div>
+
+		<p>[...] A powerful unused feature of Python: function annotations. [...]</p>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/?replytocom=638#respond' onclick='return addComment.moveForm("div-comment-638", "638", "respond", "364")'>Responder</a>		</div>
+				</div>
+		</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-639">
+				<div id="div-comment-639" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6c5f35687f3c95916e3fc941faf057c3?s=26&#038;d=identicon&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn"><a href='http://williamedwardscoder.tumblr.com/' rel='external nofollow' class='url'>William Edwards</a></cite> <span class="says">dice:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/#comment-639">
+			marzo 13, 2013 en 1:22 am</a>		</div>
+
+		<p>I have a duck-type-checking library &#8211; Obiwan &#8211; which I mostly use for validating incoming JSON: <a href="http://williamedwardscoder.tumblr.com/post/33185451698/obiwan-typescript-for-python" rel="nofollow">http://williamedwardscoder.tumblr.com/post/33185451698/obiwan-typescript-for-python</a></p>
+<p>If you chose to, you can enforce run-time type-checking using annotations (Obiwan shows one way to do that) which is ideal during development.</p>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/?replytocom=639#respond' onclick='return addComment.moveForm("div-comment-639", "639", "respond", "364")'>Responder</a>		</div>
+				</div>
+		</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-642">
+				<div id="div-comment-642" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/734a91e455b83c7e0658fcf08676a870?s=26&#038;d=identicon&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn"><a href='http://www.surficle.com' rel='external nofollow' class='url'>surficle</a></cite> <span class="says">dice:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/#comment-642">
+			marzo 15, 2013 en 12:19 am</a>		</div>
+
+		<p>Oh! great l like the GIF file concept in the article!<br />
+it&#8217;s Looking well and easy to understand for beginner.</p>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/?replytocom=642#respond' onclick='return addComment.moveForm("div-comment-642", "642", "respond", "364")'>Responder</a>		</div>
+				</div>
+		</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1183">
+				<div id="div-comment-1183" class="comment-body">
+				<div class="comment-author vcard">
+						<cite class="fn"><a href='http://u.memect.com/101/?p=3131' rel='external nofollow' class='url'>A powerful unused feature of Python: function annotations. | baojie&#039;s Clips</a></cite> <span class="says">dice:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/#comment-1183">
+			abril 2, 2014 en 12:19 am</a>		</div>
+
+		<p>[&#8230;] source [&#8230;]</p>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/?replytocom=1183#respond' onclick='return addComment.moveForm("div-comment-1183", "1183", "respond", "364")'>Responder</a>		</div>
+				</div>
+		</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+			</div>
+
+	
+
+
+<hr/>
+
+								<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Commentarios <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/#respond" style="display:none;">Cancelar respuesta</a></small></h3>
+									<form action="http://ceronman.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+																										
+
+
+												<input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="fa7dc6d475" /><input type="hidden" name="_wp_http_referer" value="/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Introduce tu comentario aquí...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Introduce tu comentario aquí..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+
+	<div id="comment-form-nascar">
+		<p>Introduce tus datos o haz clic en un icono para iniciar sesión:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" title="Invitado">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" title="WordPress.com">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" title="Twitter">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" title="Facebook">
+					<span></span>
+				</a>
+			</li>
+			<li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Correo electrónico <span class="required">(requerido)</span> <span class="nopublish">(La dirección no se hará pública)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Nombre <span class="required">(requerido)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Web</label>
+					<div class="comment-form-input"><input id="url" name="url" type="text" value="" /></div>
+				</div>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://s2.wp.com/wp-content/mu-plugins/highlander-comments/images/wplogo.png?m=1391188133g" alt="Logo de WordPress.com" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+				<p class="comment-form-posting-as pa-wordpress"><strong></strong> Estás comentando usando tu cuenta de WordPress.com. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Cerrar&nbsp;sesión</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Cambiar</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Imagen de Twitter" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+				<p class="comment-form-posting-as pa-twitter"><strong></strong> Estás comentando usando tu cuenta de Twitter. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Cerrar&nbsp;sesión</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Cambiar</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Foto de Facebook" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+				<p class="comment-form-posting-as pa-facebook"><strong></strong> Estás comentando usando tu cuenta de Facebook. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Cerrar&nbsp;sesión</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Cambiar</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-googleplus" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Google+ photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="googleplus_avatar" id="googleplus-avatar" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_user_id" id="googleplus-user_id" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_access_token" id="googleplus-access_token" class="comment-meta-googleplus" value="" />
+				<p class="comment-form-posting-as pa-googleplus"><strong></strong> Estás comentando usando tu cuenta de Google+. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'googleplus' );">Cerrar&nbsp;sesión</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Cambiar</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancelar</a></div>
+		<p>Conectando a %s</p>
+	</div>
+
+	
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function(){
+	var input = document.createElement( 'input' ),
+	    comment = jQuery( '#comment' );
+
+	if ( 'placeholder' in input ) {
+		comment.attr( 'placeholder', jQuery( '.comment-textarea label' ).remove().text() );
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	jQuery( '#comment-form-identity' ).hide();
+	jQuery( '#comment-form-subscribe' ).hide();
+	jQuery( '#commentform .form-submit' ).hide();
+
+	comment.css( { 'height':'10px' } ).one( 'focus', function() {
+		var timer = setInterval( HighlanderComments.resizeCallback, 10 )
+		jQuery( this ).animate( { 'height': HighlanderComments.initialHeight } ).delay( 100 ).queue( function(n) { clearInterval( timer ); HighlanderComments.resizeCallback(); n(); } );
+		jQuery( '#comment-form-identity' ).slideDown();
+		jQuery( '#comment-form-subscribe' ).slideDown();
+		jQuery( '#commentform .form-submit' ).slideDown();
+	});
+}
+jQuery(document).ready( highlander_expando_javascript );
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;" tabindex="6"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Recibir siguientes comentarios por correo.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;" tabindex="7"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Recibir nuevas entradas por email.</label></p></div>
+
+												<p class="form-submit">
+							<input name="submit" type="submit" id="comment-submit" value="Publicar comentario" />
+							<input type='hidden' name='comment_post_ID' value='364' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+						</p>
+						<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="3386678cf9" /></p>
+<input type="hidden" name="genseq" value="1404131916" />
+<p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="11"/></p>					</form>
+							</div><!-- #respond -->
+			<div style="clear: both"></div>
+
+</div>
+
+		
+		<div class="navigation">
+			<div class="alignleft"></div>
+			<div class="alignright"><a href="http://ceronman.com/2013/02/25/aaron-swartz/" rel="prev">Aaron Swartz</a> &rarr;</div>
+		</div>
+
+	
+	</div>
+
+	<div id="sidebar">
+		
+							<div class="block">
+				<h3>Entradas recientes</h3>
+				<ul>
+														<li><a href="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/">A powerful unused feature of Python: function&nbsp;annotations.</a></li>
+														<li><a href="http://ceronman.com/2013/02/25/aaron-swartz/">Aaron Swartz</a></li>
+														<li><a href="http://ceronman.com/2012/12/23/ludum-dare-25/">Ludum Dare 25</a></li>
+														<li><a href="http://ceronman.com/2012/10/07/beyond-javascript-part-2-dart-and-typescript/">Beyond Javascript part 2: Dart and&nbsp;Typescript</a></li>
+														<li><a href="http://ceronman.com/2012/09/17/coffeescript-less-typing-bad-readability/">CoffeeScript: less typing, bad&nbsp;readability</a></li>
+												</ul>
+			</div>
+		
+		<div class="block">
+			<h3>Archivos</h3>
+				<ul>
+					<li><a href='http://ceronman.com/2013/03/'>marzo 2013</a></li>
+	<li><a href='http://ceronman.com/2013/02/'>febrero 2013</a></li>
+	<li><a href='http://ceronman.com/2012/12/'>diciembre 2012</a></li>
+	<li><a href='http://ceronman.com/2012/10/'>octubre 2012</a></li>
+	<li><a href='http://ceronman.com/2012/09/'>septiembre 2012</a></li>
+	<li><a href='http://ceronman.com/2012/08/'>agosto 2012</a></li>
+	<li><a href='http://ceronman.com/2012/07/'>julio 2012</a></li>
+	<li><a href='http://ceronman.com/2012/02/'>febrero 2012</a></li>
+	<li><a href='http://ceronman.com/2011/09/'>septiembre 2011</a></li>
+	<li><a href='http://ceronman.com/2010/12/'>diciembre 2010</a></li>
+	<li><a href='http://ceronman.com/2010/10/'>octubre 2010</a></li>
+	<li><a href='http://ceronman.com/2010/08/'>agosto 2010</a></li>
+	<li><a href='http://ceronman.com/2010/06/'>junio 2010</a></li>
+	<li><a href='http://ceronman.com/2010/02/'>febrero 2010</a></li>
+	<li><a href='http://ceronman.com/2009/03/'>marzo 2009</a></li>
+	<li><a href='http://ceronman.com/2008/10/'>octubre 2008</a></li>
+	<li><a href='http://ceronman.com/2008/09/'>septiembre 2008</a></li>
+	<li><a href='http://ceronman.com/2008/08/'>agosto 2008</a></li>
+	<li><a href='http://ceronman.com/2008/06/'>junio 2008</a></li>
+	<li><a href='http://ceronman.com/2008/04/'>abril 2008</a></li>
+	<li><a href='http://ceronman.com/2008/03/'>marzo 2008</a></li>
+	<li><a href='http://ceronman.com/2008/02/'>febrero 2008</a></li>
+	<li><a href='http://ceronman.com/2008/01/'>enero 2008</a></li>
+	<li><a href='http://ceronman.com/2007/10/'>octubre 2007</a></li>
+	<li><a href='http://ceronman.com/2007/09/'>septiembre 2007</a></li>
+	<li><a href='http://ceronman.com/2007/08/'>agosto 2007</a></li>
+	<li><a href='http://ceronman.com/2007/06/'>junio 2007</a></li>
+	<li><a href='http://ceronman.com/2007/05/'>mayo 2007</a></li>
+	<li><a href='http://ceronman.com/2007/01/'>enero 2007</a></li>
+	<li><a href='http://ceronman.com/2006/12/'>diciembre 2006</a></li>
+	<li><a href='http://ceronman.com/2006/11/'>noviembre 2006</a></li>
+	<li><a href='http://ceronman.com/2006/09/'>septiembre 2006</a></li>
+	<li><a href='http://ceronman.com/2006/08/'>agosto 2006</a></li>
+	<li><a href='http://ceronman.com/2006/07/'>julio 2006</a></li>
+	<li><a href='http://ceronman.com/2006/06/'>junio 2006</a></li>
+	<li><a href='http://ceronman.com/2006/05/'>mayo 2006</a></li>
+	<li><a href='http://ceronman.com/2006/04/'>abril 2006</a></li>
+	<li><a href='http://ceronman.com/2006/03/'>marzo 2006</a></li>
+	<li><a href='http://ceronman.com/2006/02/'>febrero 2006</a></li>
+	<li><a href='http://ceronman.com/2005/12/'>diciembre 2005</a></li>
+	<li><a href='http://ceronman.com/2005/11/'>noviembre 2005</a></li>
+	<li><a href='http://ceronman.com/2005/08/'>agosto 2005</a></li>
+	<li><a href='http://ceronman.com/2005/07/'>julio 2005</a></li>
+	<li><a href='http://ceronman.com/2005/05/'>mayo 2005</a></li>
+	<li><a href='http://ceronman.com/2005/04/'>abril 2005</a></li>
+	<li><a href='http://ceronman.com/2005/03/'>marzo 2005</a></li>
+	<li><a href='http://ceronman.com/2005/02/'>febrero 2005</a></li>
+	<li><a href='http://ceronman.com/2005/01/'>enero 2005</a></li>
+	<li><a href='http://ceronman.com/2004/12/'>diciembre 2004</a></li>
+	<li><a href='http://ceronman.com/2004/11/'>noviembre 2004</a></li>
+	<li><a href='http://ceronman.com/2004/10/'>octubre 2004</a></li>
+	<li><a href='http://ceronman.com/2004/09/'>septiembre 2004</a></li>
+	<li><a href='http://ceronman.com/2004/08/'>agosto 2004</a></li>
+				</ul>
+		</div>
+
+		<div class="block">
+			<h3>Categorías</h3>
+				<ul>
+						<li class="cat-item cat-item-3205"><a href="http://ceronman.com/category/english/" >English</a>
+</li>
+	<li class="cat-item cat-item-10753"><a href="http://ceronman.com/category/espanol/" >Español</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="http://ceronman.com/category/uncategorized/" >Uncategorized</a>
+</li>
+				</ul>
+		</div>
+
+		<div class="block">
+					</div>
+
+		</div>
+			<div id="footer">
+				<a href="http://es.wordpress.com/?ref=footer_blog">Blog de WordPress.com</a>.
+				<a href="http://theme.wordpress.com/themes/clean-home/" title="Saber más sobre este tema">El tema Clean Home</a>.			</div><!-- #footer -->
+			<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201427x'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s2.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781g'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-142518724ad9fc556ec24bbec7189e9d">
+	</div>
+	<div class="grofile-hash-map-98ef5c6117053107bd9ba2aa7754e4df">
+	</div>
+	<div class="grofile-hash-map-c07104de771c3b6f6c30be8f592ef8f7">
+	</div>
+	<div class="grofile-hash-map-211f6ffc1d92d0091415be4891cdb1ba">
+	</div>
+	<div class="grofile-hash-map-a8b31a1f50291c4b40e24be13a6fd02e">
+	</div>
+	<div class="grofile-hash-map-6c5f35687f3c95916e3fc941faf057c3">
+	</div>
+	<div class="grofile-hash-map-734a91e455b83c7e0658fcf08676a870">
+	</div>
+	</div>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var HighlanderComments = {"loggingInText":"Iniciando sesi\u00f3n\u2026","submittingText":"Publicando comentario\u2026","postCommentText":"Publicar comentario","connectingToText":"Conectando a %s","commentingAsText":"%1$s: Est\u00e1s comentando usando tu cuenta de %2$s.","logoutText":"Cerrar sesi\u00f3n","loginText":"Acceder","connectURL":"http:\/\/ceronman.wordpress.com\/public.api\/connect\/?action=request","logoutURL":"https:\/\/ceronman.wordpress.com\/wp-login.php?action=logout&_wpnonce=a7abb165c8","homeURL":"http:\/\/ceronman.com\/","postID":"364","gravDefault":"identicon","enterACommentError":"Por favor, introduce un comentario","enterEmailError":"Por favor introduce tu direcci\u00f3n de correo electr\u00f3nico aqu\u00ed","invalidEmailError":"Direcci\u00f3n de correo electr\u00f3nico no v\u00e1lida","enterAuthorError":"Por favor, introduce tu nombre aqu\u00ed","gravatarFromEmail":"Esta imagen se mostrar\u00e1 cuando dejes un comentario. Haz clic para cambiarla.","logInToExternalAccount":"Inicia sesi\u00f3n para usar los datos de una de estas cuentas.","change":"Cambiar","changeAccount":"Cambiar cuenta","comment_registration":"","userIsLoggedIn":"","isJetpack":"0"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s1.wp.com/_static/??/wp-content/js/jquery/jquery.autoresize.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1403644162j'></script>
+
+	<div id="bit" class="loggedout-follow-normal">
+		<a class="bsub" href="javascript:void(0)"><span id='bsub-text'>Seguir</span></a>
+		<div id="bitsubscribe">
+
+					<h3><label for="loggedout-follow-field">Seguir &ldquo;Manuel Cerón&rdquo;</label></h3>
+
+			<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="loggedout-follow">
+			<p>Recibe cada nueva publicación en tu buzón de correo electrónico.</p>
+
+			<p id="loggedout-follow-error" style="display: none;"></p>
+
+			
+			<p><input type="email" name="email" value="Introduce tu dirección de correo electrónico" onfocus='this.value=(this.value=="Introduce tu dirección de correo electrónico") ? "" : this.value;' onblur='this.value=(this.value=="") ? "Enter email address" : this.value;'  id="loggedout-follow-field"/></p>
+
+			<input type="hidden" name="action" value="subscribe"/>
+			<input type="hidden" name="blog_id" value="27831673"/>
+			<input type="hidden" name="source" value="http://ceronman.com/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/"/>
+			<input type="hidden" name="sub-type" value="loggedout-follow"/>
+
+			<input type="hidden" id="_wpnonce" name="_wpnonce" value="407adb895a" /><input type="hidden" name="_wp_http_referer" value="/2013/03/12/a-powerful-unused-feature-of-python-function-annotations/" />
+			<p id='bsub-subscribe-button'><input type="submit" value="Suscríbeme" /></p>
+			</form>
+					<div id='bsub-credit'><a href="http://wordpress.com/signup/?ref=lof">Ofrecido por WordPress.com</a></div>
+		</div><!-- #bitsubscribe -->
+	</div><!-- #bit -->
+
+	<script type="text/javascript">
+		WPCOM_sharing_counts = {"http:\/\/ceronman.com\/2013\/03\/12\/a-powerful-unused-feature-of-python-function-annotations\/":364}	</script>
+		<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-twitter' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomtwitter', 'menubar=1,resizable=1,width=600,height=350' );
+				return false;
+			});
+		});
+		</script>
+				<iframe src='http://widgets.wp.com/likes/master.html?ver=20140528#ver=20140528&amp;lang=es&amp;mp6=1' scrolling='no' id='likes-master' name='likes-master' style='display:none;'></iframe>
+		<div id='likes-other-gravatars'><div class="likes-text"><span>%d</span> personas les gusta esto:</div><ul class="wpl-avatars sd-like-gravatars"></ul></div>
+		<script type="text/javascript">
+		//<![CDATA[
+			var jetpackLikesWidgetQueue = [];
+			var jetpackLikesWidgetBatch = [];
+			var jetpackLikesMasterReady = false;
+
+			function JetpackLikespostMessage( message, target ) {
+				if ( "string" === typeof message ){
+					try{
+						message = JSON.parse( message );
+					}
+					catch(e) {
+						return;
+					}
+				}
+
+				pm( {
+					target: target,
+					type: 'likesMessage',
+					data: message,
+					origin: '*'
+				} );
+			}
+
+			function JetpackLikesBatchHandler() {
+				var requests = [];
+				jQuery( 'div.jetpack-likes-widget-unloaded' ).each( function( i ) {
+					if ( jetpackLikesWidgetBatch.indexOf( this.id ) > -1 )
+						return;
+					jetpackLikesWidgetBatch.push( this.id );
+					var regex = /like-(post|comment)-wrapper-(\d+)-(\d+)-(\w+)/;
+					var match = regex.exec( this.id );
+					if ( ! match || match.length != 5 )
+						return;
+
+					var info = {
+						blog_id: match[2],
+						width:   this.width
+					};
+
+					if ( 'post' == match[1] ) {
+						info.post_id = match[3];
+					} else if ( 'comment' == match[1] ) {
+						info.comment_id = match[3];
+					}
+
+					info.obj_id = match[4];
+
+					requests.push( info );
+				});
+
+				if ( requests.length > 0 ) {
+					JetpackLikespostMessage( { event: 'initialBatch', requests: requests }, window.frames['likes-master'] );
+				}
+			}
+
+			function JetpackLikesMessageListener( event ) {
+				if ( "undefined" == typeof event.event )
+					return;
+
+				if ( 'masterReady' == event.event ) {
+					jQuery( document ).ready( function() {
+						jetpackLikesMasterReady = true;
+
+						var stylesData = {
+								event: 'injectStyles'
+						};
+
+						if ( jQuery( 'iframe.admin-bar-likes-widget' ).length > 0 ) {
+							JetpackLikespostMessage( { event: 'adminBarEnabled' }, window.frames[ 'likes-master' ] );
+
+							stylesData.adminBarStyles = {
+								background: jQuery( '#wpadminbar .quicklinks li#wp-admin-bar-wpl-like > a' ).css( 'background' ),
+								isRtl: ( 'rtl' == jQuery( '#wpadminbar' ).css( 'direction' ) )
+							};
+						}
+
+						if ( !window.addEventListener )
+							jQuery( '#wp-admin-bar-admin-bar-likes-widget' ).hide();
+
+						stylesData.textStyles = {
+							color: jQuery( '.sd-text-color').css( 'color' ),
+							fontFamily: jQuery( '.sd-text-color' ).css( 'font-family' ),
+							fontSize: jQuery( '.sd-text-color' ).css( 'font-size' ),
+							direction: jQuery( '.sd-text-color' ).css( 'direction' ),
+							fontWeight: jQuery( '.sd-text-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-text-color' ).css( 'font-style' ),
+							textDecoration: jQuery( '.sd-text-color' ).css('text-decoration')
+						};
+
+						stylesData.linkStyles = {
+							color: jQuery( '.sd-link-color' ).css('color'),
+							fontFamily: jQuery( '.sd-link-color' ).css('font-family'),
+							fontSize: jQuery( '.sd-link-color' ).css('font-size'),
+							textDecoration: jQuery( '.sd-link-color' ).css('text-decoration'),
+							fontWeight: jQuery( '.sd-link-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-link-color' ).css( 'font-style' )
+						};
+
+						JetpackLikespostMessage( stylesData, window.frames[ 'likes-master' ] );
+
+						JetpackLikesBatchHandler();
+
+						jQuery( document ).on( 'inview', 'div.jetpack-likes-widget-unloaded', function() {
+							jetpackLikesWidgetQueue.push( this.id );
+						});
+					});
+				}
+
+				if ( 'showLikeWidget' == event.event ) {
+					jQuery( '#' + event.id + ' .post-likes-widget-placeholder'  ).fadeOut( 'fast', function() {
+						jQuery( '#' + event.id + ' .post-likes-widget' ).fadeIn( 'fast', function() {
+							JetpackLikespostMessage( { event: 'likeWidgetDisplayed', blog_id: event.blog_id, post_id: event.post_id, obj_id: event.obj_id }, window.frames['likes-master'] );
+						});
+					});
+				}
+
+				if ( 'clickReblogFlair' == event.event ) {
+					wpcom_reblog.toggle_reblog_box_flair( event.obj_id );
+				}
+
+				if ( 'showOtherGravatars' == event.event ) {
+					var $container = jQuery( '#likes-other-gravatars' );
+					var $list = $container.find( 'ul' );
+
+					$container.hide();
+					$list.html( '' );
+
+					$container.find( '.likes-text span' ).text( event.total );
+
+					jQuery.each( event.likers, function( i, liker ) {
+						$list.append( '<li class="' + liker.css_class + '"><a href="' + liker.profile_URL + '" class="wpl-liker" rel="nofollow" target="_parent"><img src="' + liker.avatar_URL + '" alt="' + liker.name + '" width="30" height="30" style="padding-right: 3px;" /></a></li>');
+					} );
+
+					var offset = jQuery( "[name='" + event.parent + "']" ).offset();
+
+					$container.css( 'left', offset.left + event.position.left - 10 + 'px' );
+					$container.css( 'top', offset.top + event.position.top - 33 + 'px' );
+
+					var rowLength = Math.floor( event.width / 37 );
+					var height = ( Math.ceil( event.likers.length / rowLength ) * 37 ) + 13;
+					if ( height > 204 ) {
+						height = 204;
+					}
+
+					$container.css( 'height', height + 'px' );
+					$container.css( 'width', rowLength * 37 - 7 + 'px' );
+
+					$list.css( 'width', rowLength * 37 + 'px' );
+
+					$container.fadeIn( 'slow' );
+
+					var scrollbarWidth = $list[0].offsetWidth - $list[0].clientWidth;
+					if ( scrollbarWidth > 0 ) {
+						$container.width( $container.width() + scrollbarWidth );
+						$list.width( $list.width() + scrollbarWidth );
+					}
+				}
+			}
+
+			pm.bind( 'likesMessage', function(e) { JetpackLikesMessageListener(e); } );
+
+			jQuery( document ).click( function( e ) {
+				var $container = jQuery( '#likes-other-gravatars' );
+
+				if ( $container.has( e.target ).length === 0 ) {
+					$container.fadeOut( 'slow' );
+				}
+			});
+
+			function JetpackLikesWidgetQueueHandler() {
+				var wrapperID;
+				if ( ! jetpackLikesMasterReady ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				if ( jetpackLikesWidgetQueue.length > 0 ) {
+					// We may have a widget that needs creating now
+					var found = false;
+					while( jetpackLikesWidgetQueue.length > 0 ) {
+						// Grab the first member of the queue that isn't already loading.
+						wrapperID = jetpackLikesWidgetQueue.splice( 0, 1 )[0];
+						if ( jQuery( '#' + wrapperID ).hasClass( 'jetpack-likes-widget-unloaded' ) ) {
+							found = true;
+							break;
+						}
+					}
+					if ( ! found ) {
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				} else if ( jQuery( 'div.jetpack-likes-widget-unloaded' ).length > 0 ) {
+					// Grab any unloaded widgets for a batch request
+					JetpackLikesBatchHandler();
+
+					// Get the next unloaded widget
+					wrapperID = jQuery( 'div.jetpack-likes-widget-unloaded' ).first()[0].id;
+					if ( ! wrapperID ) {
+						// Everything is currently loaded
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				}
+
+				if ( 'undefined' === typeof wrapperID ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				var $wrapper = jQuery( '#' + wrapperID );
+				$wrapper.find( 'iframe' ).remove();
+
+				if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='22px' width='68px' frameBorder='0' scrolling='no' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				} else {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='55px' width='100%' frameBorder='0' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				}
+
+				$wrapper.removeClass( 'jetpack-likes-widget-unloaded' ).addClass( 'jetpack-likes-widget-loading' );
+
+				$wrapper.find( 'iframe' ).load( function( e ) {
+					var $iframe = jQuery( e.target );
+					$wrapper.removeClass( 'jetpack-likes-widget-loading' ).addClass( 'jetpack-likes-widget-loaded' );
+
+					JetpackLikespostMessage( { event: 'loadLikeWidget', name: $iframe.attr( 'name' ), width: $iframe.width() }, window.frames[ 'likes-master' ] );
+
+					if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+						$wrapper.find( 'iframe' ).Jetpack( 'resizeable' );
+					}
+				});
+				setTimeout( JetpackLikesWidgetQueueHandler, 250 );
+			}
+			JetpackLikesWidgetQueueHandler();
+		//]]>
+		</script>
+<script type='text/javascript' src='http://s0.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgioLMnIz6OmiV7BYD7QSPtcW0NjS3NzMyNTI8MsAHllYbE='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "http://s0.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?m=1395343499g&amp;ver=3.0.83c";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "http://s0.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414g&amp;ver=3.0.83c";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'No se encuentra el pincel para:';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'El pincel no estaba configurado para la opción html-script:';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var recaptcha_options = {"lang":"es"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s0.wp.com/_static/??-eJx9jEEOwiAQRS8kTJsmRhbGoxhCaR1kBsJA1duLC7au/uK99+GVlUtcPVcIAqs/0Pn81kFO0BGyi2318mMuEXVNFZ/jRxPykEZPTeXYdmQB+0QhX9WiJ7j3E9hSoT9+TlLVFi0WkIctyPvYHt3oOi/GmNlM50v4AgRVQGc='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="http://s.stats.wordpress.com/w.js?21" type="text/javascript"></script>
+<script type="text/javascript">
+st_go({'blog':'27831673','v':'wpcom','tz':'-5','user_id':'0','post':'364','subd':'ceronman'});
+ex_go({'crypt':'UE5XaGUuOTlwaD85flAmcm1mcmZsaDhkV11YdWtpP0NsWnVkPS9sL0ViLndld3BNMGlIP3kvLj1XdC1qYT0mTW9jdHpEVD9tN0ZEMTU1Uj9vSE9XN0I1dm9dMDksYVVJXzJSNFswbEZ6aWIxZ245T2ZNRUtLTkxianM2STFWNTh2cHdwZC09TWElQkJ5X1srRnNQZndqdltiT2cxeCZLYiw2d2hfZmZwYVlkUzZpM1YxQ051d2FmMENaTmNkU0Qybm5oeCUrZEN4T0FRMzJZJkF4VTFMRHJGYnBQR1J3Wl9dM0pWSDhJLUpkQko0clY2NjIyXS5mRWNHVURFVGZVMTVbUWFzRDd0ZW1nU0NuZ2V8RF11Y1l+Ji9jOV09anV8NXkuQjQrdGIxUkxlVzdh'});
+addLoadEvent(function(){linktracker_init('27831673',364);});
+	</script>
+<noscript><img src="http://stats.wordpress.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//stats.wordpress.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>		</div>
+	</body>
+</html>

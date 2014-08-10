@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if (gt IE 7) | (!IE)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<!--
+	generated in 0.326 seconds
+	64590 bytes batcached for 300 seconds
+-->
+<head>
+<meta charset="UTF-8" />
+<title>Variant Discovery, Annotation &amp; Filtering With Samtools &amp; the GATK | Petri Dish Talk</title>
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="pingback" href="http://petridishtalk.com/xmlrpc.php" />
+<meta name="google-site-verification" content="hoRE68vyduYJmNIqBTkAGnDyekfARjIIPbEw77Gr2kI" />
+		<script src='//r-login.wordpress.com/remote-login.php?action=js&amp;host=petridishtalk.com&amp;id=10892799&amp;t=1404299339&amp;back=http%3A%2F%2Fpetridishtalk.com%2F2013%2F02%2F01%2Fvariant-discovery-annotation-filtering-with-samtools-the-gatk%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel="alternate" type="application/rss+xml" title="Petri Dish Talk &raquo; Feed" href="http://petridishtalk.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Petri Dish Talk &raquo; Comments Feed" href="http://petridishtalk.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Petri Dish Talk &raquo; Variant Discovery, Annotation &amp; Filtering With Samtools &amp; the&nbsp;GATK Comments Feed" href="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/feed/" />
+<script type="text/javascript">
+/* <![CDATA[ */
+function addLoadEvent(func){var oldonload=window.onload;if(typeof window.onload!='function'){window.onload=func;}else{window.onload=function(){oldonload();func();}}}
+/* ]]> */
+</script>
+<link rel='stylesheet' id='all-css-0' href='http://s2.wp.com/_static/??-eJx9UdFuwyAM/KExN1s07WXatxBwCanBCBxF/fuRpF3XdeOJO3R3xgcsSRmOglEgzCrR7HwsUIInPKfMExq5Z8+mlCf420b+hAUmlKTNSW3sQT4Qu5uBnUPLs6gjE/ECi7cOmzMykha0KnGRX6xlM5yx3oekZVUEtF4jYaiyli2kt6trhWPd63GMjDWnQJoHSJ5MrnsUORPuQg+RxVdt+QatiQ5ZERstnuMdUUfSPrerWcut0EFV/aAt09rcHg1l1Hk1X872KyPmfakb/K+YsQdHPGhqJe4/X7aXO2abUdst8TN8dP2h77qX98Pr9AWkEgPI' type='text/css' media='all' />
+<script type='text/javascript'>
+/* <![CDATA[ */
+var LoggedOutFollow = {"invalid_email":"Your subscription did not succeed, please try again with a valid email address."};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s1.wp.com/_static/??-eJyFj90OwiAMhV9IZFs08cb4LNvoSBEoUpDo08sSNTpNdtW/7/S0sgQxkk/gkzQsHQ1oQWSG2OvaE+gn2hreyMqhH21WwDNoLhni7RlWAeFQxz7B1qF/wR+ugTg5YK6Wf6bfVuivCGUVM5BCP55FBMb7z9bBkhbBZo2eZc01KMpJTGQtFVlQaUhLjctvRQRbn1FivntRVdXJHdtd0+wPbdd05gFmiIRF'></script>
+<link rel='stylesheet' id='all-css-0' href='http://s2.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1377793621g' type='text/css' media='all' />
+<!--[if lt IE 8]>
+<link rel='stylesheet' id='highlander-comments-ie7-css'  href='http://s2.wp.com/wp-content/mu-plugins/highlander-comments/style-ie7.css?m=1351637563g&#038;ver=20110606' type='text/css' media='all' />
+<![endif]-->
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://mokaspetridish.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://mokaspetridish.wordpress.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Exome Sequence Assembly Utilizing Bowtie &amp;&nbsp;Samtools' href='http://petridishtalk.com/2012/11/18/exome-sequence-assembly-utilizing-bowtie-samtools/' />
+<link rel='next' title='Mapping KEGG Pathway Interactions with&nbsp;Bioconductor' href='http://petridishtalk.com/2013/08/27/mapping-kegg-pathway-interactions-with-bioconductor/' />
+<meta name="generator" content="WordPress.com" />
+<link rel='canonical' href='http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/' />
+<link rel='shortlink' href='http://wp.me/pJHIj-kM' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=json&amp;url=http%3A%2F%2Fpetridishtalk.com%2F2013%2F02%2F01%2Fvariant-discovery-annotation-filtering-with-samtools-the-gatk%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=xml&amp;url=http%3A%2F%2Fpetridishtalk.com%2F2013%2F02%2F01%2Fvariant-discovery-annotation-filtering-with-samtools-the-gatk%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Variant Discovery, Annotation &amp; Filtering With Samtools &amp; the GATK" />
+<meta property="og:url" content="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/" />
+<meta property="og:description" content="While the UnifiedGenotyper included within the Genome Analysis Toolkit (GATK) provides an ample method by which to call SNPs and indels, mpileup within Samtools still remains a reliable, quick and ..." />
+<meta property="article:published_time" content="2013-02-01T23:07:52+00:00" />
+<meta property="article:modified_time" content="2014-04-05T23:49:12+00:00" />
+<meta property="article:author" content="https://www.facebook.com/profile.php?id=23805745" />
+<meta property="og:site_name" content="Petri Dish Talk" />
+<meta property="og:image" content="http://mokaspetridish.files.wordpress.com/2013/02/screen-shot-2013-02-01-at-12-44-50-pm.png" />
+<meta name="twitter:site" content="@GeneDropInc" />
+<meta name="twitter:image:src" content="http://mokaspetridish.files.wordpress.com/2013/02/screen-shot-2013-02-01-at-12-44-50-pm.png?w=640" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:creator" content="@GeneDropInc" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<link rel="shortcut icon" type="image/x-icon" href="http://1.gravatar.com/blavatar/71c9a90ead688c51216dde4d762ba230?s=16" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="http://1.gravatar.com/blavatar/71c9a90ead688c51216dde4d762ba230?s=16" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="http://1.gravatar.com/blavatar/74743b68c95932dc680496e153875c11?s=114" />
+<link rel='openid.server' href='http://mokaspetridish.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='http://mokaspetridish.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="http://petridishtalk.com/osd.xml" title="Petri Dish Talk" />
+<link rel="search" type="application/opensearchdescription+xml" href="http://wordpress.com/opensearch.xml" title="WordPress.com" />
+<style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+
+<meta name='geo.position' content='37.776143;-122.425448' />
+<meta name='ICBM' content='37.776143, -122.425448' />
+<meta name="application-name" content="Petri Dish Talk" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Thoughts on contemporary life science from a young scientist. (CC) Mohammed Rahman" /><meta name="msapplication-task" content="name=Subscribe;action-uri=http://petridishtalk.com/feed/;icon-uri=http://1.gravatar.com/blavatar/71c9a90ead688c51216dde4d762ba230?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="title" content="Variant Discovery, Annotation &amp; Filtering With Samtools &amp; the&nbsp;GATK | Petri Dish Talk on WordPress.com" />
+<meta name="description" content="While the UnifiedGenotyper included within the Genome Analysis Toolkit (GATK) provides an ample method by which to call SNPs and indels, mpileup within Samtools still remains a reliable, quick and straightforward way to get variants. To begin we take our assembled bam files created by the method of your choice, two of which are described&hellip;" />
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+</head>
+
+<body class="single single-post postid-1288 single-format-standard mp6 three-column content-sidebar-sidebar color-light highlander-enabled highlander-light">
+<div id="container" class="hfeed">
+	<div id="page" class="blog">
+		<div id="header">
+						<div id="site-title">
+				<span>
+					<a href="http://petridishtalk.com/" title="Petri Dish Talk" rel="home">Petri Dish Talk</a>
+				</span>
+			</div>
+
+			<div id="nav" role="navigation">
+			  				<div class="skip-link screen-reader-text"><a href="#content" title="Skip to content">Skip to content</a></div>
+								<div class="menu"><ul><li ><a href="http://petridishtalk.com/">Home</a></li><li class="page_item page-item-152"><a href="http://petridishtalk.com/me/">About Me</a></li></ul></div>
+			</div><!-- #nav -->
+
+			<div id="pic">
+				<a href="http://petridishtalk.com/" rel="home">
+										<img src="http://mokaspetridish.files.wordpress.com/2012/05/ranmalee-jayaratne2.jpg" width="990" height="257" alt="" />
+								</a>
+			</div><!-- #pic -->
+		</div><!-- #header -->
+
+		<div id="content-box">
+
+<div id="content-container">
+	<div id="content" role="main">
+
+	
+<div id="nav-above" class="navigation">
+	<div class="nav-previous"><a href="http://petridishtalk.com/2012/11/18/exome-sequence-assembly-utilizing-bowtie-samtools/" rel="prev"><span class="meta-nav">&larr;</span> Exome Sequence Assembly Utilizing Bowtie &amp;&nbsp;Samtools</a></div>
+	<div class="nav-next"><a href="http://petridishtalk.com/2013/08/27/mapping-kegg-pathway-interactions-with-bioconductor/" rel="next">Mapping KEGG Pathway Interactions with&nbsp;Bioconductor <span class="meta-nav">&rarr;</span></a></div>
+</div><!-- #nav-above -->
+
+<div id="post-1288" class="post-1288 post type-post status-publish format-standard has-post-thumbnail hentry category-genomics tag-bioinformatics tag-gatk tag-genomics tag-ngs">
+	<div class="entry-meta">
+
+		February 1, 2013 &middot; 3:07 pm	</div><!-- .entry-meta -->
+
+		<div class="jump"><a href="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/#comments"><span class="meta-nav">&darr; </span>Jump to Comments</a></div>
+	<h1 class="entry-title"><a href="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/" rel="bookmark">Variant Discovery, Annotation &amp; Filtering With Samtools &amp; the&nbsp;GATK</a></h1>
+	<div class="entry entry-content">
+		<p>While the UnifiedGenotyper included within the Genome Analysis Toolkit (<a href="http://www.broadinstitute.org/gatk/about/#using-the-gatk">GATK</a>) provides an ample method by which to call SNPs and indels, mpileup within Samtools still remains a reliable, quick and straightforward way to get variants.</p>
+<div id="attachment_1306" style="width: 510px" class="wp-caption alignleft"><a href="http://mokaspetridish.files.wordpress.com/2013/02/screen-shot-2013-02-01-at-12-44-50-pm.png"><img class="size-full wp-image-1306" src="http://mokaspetridish.files.wordpress.com/2013/02/screen-shot-2013-02-01-at-12-44-50-pm.png?w=500&#038;h=367" alt="Raw VCF file from Samtools" width="500" height="367" /></a><p class="wp-caption-text">Raw VCF file from Samtools, notice lack of annotations &amp; filters in the 3rd and 7th columns</p></div>
+<p>To begin we take our assembled bam files created by the method of your choice, two of which are described in the previous posts[<a href="http://medium.com/in-silico-genomics/12485eb6deb7">1</a>][<a href="http://petridishtalk.com/2012/11/18/exome-sequence-assembly-utilizing-bowtie-samtools/">2</a>].  With newer versions of Samtools the pileup function is replaced by mpileup, they perform the exact same actions; however, in traditional pileup we pass a single individual genome as a bam file for variant discovery, while in mipleup we can pass multiple individuals together and each of their variants are discovered within a single file as the output.</p>
+<p><code>$samtools mpileup -uf [reference.fa] [.bam 1] [.bam 2] [.bam...] | bcftools view -bvcg -&gt; [raw.variant.bcf]<br />
+$bcftools view [raw.variant.bcf] &gt; [raw.variant.vcf]</code></p>
+<p>Even though we&#8217;re saying the variant discovery is by samtools, all the actual work is being done by bcftools. To learn more about what bcftools can do check out the <a href="http://samtools.sourceforge.net/samtools.shtml#4">documentation</a>, all the modules are included as a subdirectory within the samtools package.</p>
+<div id="attachment_1303" style="width: 510px" class="wp-caption alignleft"><a href="http://mokaspetridish.files.wordpress.com/2013/02/screen-shot-2013-02-01-at-12-53-20-pm.png"><img class="size-full wp-image-1303" src="http://mokaspetridish.files.wordpress.com/2013/02/screen-shot-2013-02-01-at-12-53-20-pm.png?w=500&#038;h=176" alt="Understanding the Variant Call Format" width="500" height="176" /></a><p class="wp-caption-text"><a href="http://vcftools.sourceforge.net/specs.html">Understanding the Variant Call Format</a></p></div>
+<p>Now that we have a VCF file containing all the positions where our samples differ from the reference, and each other, we can begin to utilize the appropriate GATK modules. Starting with annotation:</p>
+<p><code>$java -Xmx[allocate memory] -jar GenomeAnalysisTK.jar -T VariantAnnotator -R [reference.fa] --variant [raw.vcf] --dbsnp [db.vcf] -L [raw.vcf] --alwaysAppendDbsnpId -o [annotated.vcf]</code></p>
+<p>As you can see these one liners can get quite long, but rest assured, the results are worthwhile. If you look carefully at the above command you can see that we&#8217;re annotating based on a second VCF file, which in this case is being attained from the <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_summary.cgi?build_id=133">NCBI&#8217;s dbSNP</a>. Feel free to use whatever database you see fit to generate your annotations.</p>
+<div id="attachment_1312" style="width: 210px" class="wp-caption alignleft"><a href="http://mokaspetridish.files.wordpress.com/2013/02/screen-shot-2013-02-01-at-1-03-18-pm.png"><img class="size-full wp-image-1312" src="http://mokaspetridish.files.wordpress.com/2013/02/screen-shot-2013-02-01-at-1-03-18-pm.png?w=500" alt="Annotated VCF, notice rsIDs in 3rd column"   /></a><p class="wp-caption-text">Annotated VCF, notice rsIDs in 3rd column</p></div>
+<p>Annotating our raw VCF with a dbSNP file results in flagging any polymorphisms between our sets to be marked with an rsID. These unique identifiers are used to track individual disease phenotypes, which are at various points of experimental validation. However, if we take our mapped genome and search for variations we&#8217;ll soon find that there are simply too many variations that show up to make any sense of our data. We have to decrease the size of our haystack before we start looking for our needle. This is where Filtration comes in. A high-level overview of the process can be seen in <a href="http://petridishtalk.com/2012/09/03/anomaly-detection-in-the-human-genome/">this previous post</a> which utilizes a key figure from <em>Genomics &amp; Computation</em> (<a href="http://itunes.apple.com/us/book/genomics-computation/id579440759">available on iTunes</a>). Below we execute a part of these concepts using GATK:</p>
+<p><code>$java -Xmx[allocate memory] -jar GenomeAnalysisTK.jar -T VariantFiltration -R [reference.fa] --input [input.vcf] -o [output.vcf] --filterExpression "[insert expression]" --filterName "[expression name]"</code></p>
+<p>It is important to understand the one-to-one mapping of filtering expression to the filter name to adequately use this module. A filterExpression should take any number of fields available within the INFO field for any given variation, such as:</p>
+<p><code>AC1=1;AF1=0.5005;DP=130;DP4=3,0,4,3;FQ=3.02;MQ=44;PV4=0.47,0.038,1,0.19;VDB=0.0253</code></p>
+<p>For example the expression could take into account the depth of read as well as the mapping quality, stating <img src='http://s0.wp.com/latex.php?latex=25%3EDP%3E10&amp;bg=ffffff&amp;fg=333333&amp;s=0' alt='25&gt;DP&gt;10' title='25&gt;DP&gt;10' class='latex' /> &amp; <img src='http://s0.wp.com/latex.php?latex=45%3EMQ%3E50&amp;bg=ffffff&amp;fg=333333&amp;s=0' alt='45&gt;MQ&gt;50' title='45&gt;MQ&gt;50' class='latex' />. However these expressions have to be written in Java Expression Language (<a href="http://commons.apache.org/jexl/">JEXL</a>) and are then mapped directly to the following filterName, multiple expression/name combinations can be linked in a single pipe.</p>
+<div id="attachment_1330" style="width: 510px" class="wp-caption alignleft"><a href="http://mokaspetridish.files.wordpress.com/2013/02/screen-shot-2013-01-05-at-12-46-12-am.png"><img class="size-full wp-image-1330" src="http://mokaspetridish.files.wordpress.com/2013/02/screen-shot-2013-01-05-at-12-46-12-am.png?w=500&#038;h=312" alt="Trio Variant Visualization w/ HivePlot" width="500" height="312" /></a><p class="wp-caption-text">Trio Variant Visualization w/ <a href="http://www.hiveplot.net">HivePlot</a></p></div>
+<p>There are many more steps towards refinement, i.e. recalibration and variant selection, but this blog post is getting quite long. And I think if you follow the roadsigns laid out here the full abilities of both Samtools &amp; the GATK will become evident. The final payoff being reliable, meaningful, and thus useful, NGS data. Hit me up if you get stuck or think my ways are lame.</p>
+		<div id="geo-post-1288" class="geo geo-post" style="display: none">
+			<span class="latitude">37.776143</span>
+			<span class="longitude">-122.425448</span>
+		</div><div id="jp-post-flair" class="sharedaddy sd-like-enabled sd-sharing-enabled"><div class="sharedaddy sd-sharing-enabled"><div class="robots-nocontent sd-block sd-social sd-social-icon-text sd-sharing"><h3 class="sd-title">Share this:</h3><div class="sd-content"><ul><li class="share-reddit"><a rel="nofollow" class="share-reddit sd-button share-icon" href="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/?share=reddit" title="Click to share on Reddit"><span>Reddit</span></a></li><li class="share-twitter"><a rel="nofollow" class="share-twitter sd-button share-icon" href="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/?share=twitter" title="Click to share on Twitter" id="sharing-twitter-1288"><span>Twitter</span></a></li><li class="share-stumbleupon"><a rel="nofollow" class="share-stumbleupon sd-button share-icon" href="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/?share=stumbleupon" title="Click to share on StumbleUpon"><span>StumbleUpon</span></a></li><li class="share-end"></li></ul></div></div></div><div class='sharedaddy sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-unloaded' id='like-post-wrapper-10892799-1288-53b3e84bb24cd' data-src='//widgets.wp.com/likes/#blog_id=10892799&amp;post_id=1288&amp;origin=mokaspetridish.wordpress.com&amp;obj_id=10892799-1288-53b3e84bb24cd' data-name='like-post-frame-10892799-1288-53b3e84bb24cd'><h3 class='sd-title'>Like this:</h3><div class='likes-widget-placeholder post-likes-widget-placeholder' style='height:55px'><span class='button'><span>Like</span></span> <span class="loading">Loading...</span></div><span class='sd-text-color'></span><a class='sd-link-color'></a></div>
+<div id='jp-relatedposts' class='jp-relatedposts' >
+	<h3 class="jp-relatedposts-headline"><em>Related</em></h3>
+</div></div>	</div><!-- .entry-content -->
+
+	<div class="entry-links">
+		<p class="comment-number"><a href="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/#comments" title="Comment on Variant Discovery, Annotation &amp; Filtering With Samtools &amp; the&nbsp;GATK">5 Comments</a></p>
+
+					<p class="entry-categories tagged">Filed under <a href="http://petridishtalk.com/category/genomics/" rel="category tag">Genomics</a></p>
+			<p class="entry-tags tagged">Tagged as <a href="http://petridishtalk.com/tag/bioinformatics/" rel="tag">Bioinformatics</a>, <a href="http://petridishtalk.com/tag/gatk/" rel="tag">GATK</a>, <a href="http://petridishtalk.com/tag/genomics/" rel="tag">Genomics</a>, <a href="http://petridishtalk.com/tag/ngs/" rel="tag">NGS</a><br /></p>
+			</div><!-- .entry-links -->
+
+</div><!-- #post-## -->
+
+<div id="nav-below" class="navigation">
+	<div class="nav-previous"><a href="http://petridishtalk.com/2012/11/18/exome-sequence-assembly-utilizing-bowtie-samtools/" rel="prev"><span class="meta-nav">&larr;</span> Exome Sequence Assembly Utilizing Bowtie &amp;&nbsp;Samtools</a></div>
+	<div class="nav-next"><a href="http://petridishtalk.com/2013/08/27/mapping-kegg-pathway-interactions-with-bioconductor/" rel="next">Mapping KEGG Pathway Interactions with&nbsp;Bioconductor <span class="meta-nav">&rarr;</span></a></div>
+</div><!-- #nav-below -->
+
+
+<div id="comments">
+
+			<h3 id="comments-title" class="comment-head">
+			5 responses to &ldquo;<em>Variant Discovery, Annotation &amp; Filtering With Samtools &amp; the&nbsp;GATK</em>&rdquo;		</h3>
+
+		
+		<ol class="comment-list">
+			
+		<li class="comment byuser comment-author-erikgarrison even thread-even depth-1 highlander-comment" id="li-comment-238">
+			<div id="comment-238" class="comment-container">
+				<div class="comment-author vcard">
+					<img alt='' src='http://0.gravatar.com/avatar/0bf7a0beabd7f92c40986cae1a88324b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' />					<cite class="fn">erikgarrison</cite>				</div><!-- .comment-author .vcard -->
+
+				
+				<div class="comment-meta commentmetadata"><a href="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/#comment-238">
+					October 6, 2013 at 11:26 am</a>				</div><!-- .comment-meta .commentmetadata -->
+
+				<div class="comment-body"><p>Have you had a chance to try freebayes?  I&#8217;m curious what you think of it in comparison to the other two methods.</p>
+</div>
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/?replytocom=238#respond' onclick='return addComment.moveForm("comment-238", "238", "respond", "1288")'>Reply</a>				</div><!-- .reply -->
+			</div><!-- #comment-##  -->
+
+	<ul class="children">
+
+		<li class="comment byuser comment-author-mokaspetridish bypostauthor odd alt depth-2 highlander-comment" id="li-comment-239">
+			<div id="comment-239" class="comment-container">
+				<div class="comment-author vcard">
+					<img alt='' src='http://2.gravatar.com/avatar/2522435e65150a4e481b4e7bb21fd980?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' />					<cite class="fn"><a href='http://www.google.com/profiles/mokasquarl' rel='external nofollow' class='url'>Mo</a></cite>				</div><!-- .comment-author .vcard -->
+
+				
+				<div class="comment-meta commentmetadata"><a href="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/#comment-239">
+					October 6, 2013 at 12:36 pm</a>				</div><!-- .comment-meta .commentmetadata -->
+
+				<div class="comment-body"><p>My understanding is both mpileup and GATK also use a bayesian model. Maybe this comparison can be your next paper <span class='wp-smiley emoji emoji-smile' title=':)'>:)</span></p>
+</div>
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/?replytocom=239#respond' onclick='return addComment.moveForm("comment-239", "239", "respond", "1288")'>Reply</a>				</div><!-- .reply -->
+			</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+		<li class="post pingback">
+			<p>Pingback: <a href='http://www.bioplustech.com/2013/04/understanding-translational-effects-of-variants-with-snpeff/' rel='external nofollow' class='url'>Understanding Translational Effects of Variants With SnpEff | bio+tech</a></p>
+
+	</li><!-- #comment-## -->
+
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-171">
+			<div id="comment-171" class="comment-container">
+				<div class="comment-author vcard">
+					<img alt='' src='http://0.gravatar.com/avatar/fd9095212f899748179247a3666a1062?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' />					<cite class="fn">ramma</cite>				</div><!-- .comment-author .vcard -->
+
+				
+				<div class="comment-meta commentmetadata"><a href="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/#comment-171">
+					February 2, 2013 at 4:10 pm</a>				</div><!-- .comment-meta .commentmetadata -->
+
+				<div class="comment-body"><p>Would this process specifically identify SNP&#8217;s &amp; indels present in the DBsnp reference VCF used? Or is this for de novo mutation list generation?</p>
+<p>I&#8217;ve been playing with a similar pipeline to this and annotating the final VCF with annovar, but I only care about de novo mutations.</p>
+</div>
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/?replytocom=171#respond' onclick='return addComment.moveForm("comment-171", "171", "respond", "1288")'>Reply</a>				</div><!-- .reply -->
+			</div><!-- #comment-##  -->
+
+	<ul class="children">
+
+		<li class="comment byuser comment-author-mokaspetridish bypostauthor odd alt depth-2 highlander-comment" id="li-comment-172">
+			<div id="comment-172" class="comment-container">
+				<div class="comment-author vcard">
+					<img alt='' src='http://2.gravatar.com/avatar/2522435e65150a4e481b4e7bb21fd980?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' />					<cite class="fn"><a href='http://www.google.com/profiles/mokasquarl' rel='external nofollow' class='url'>Mo</a></cite>				</div><!-- .comment-author .vcard -->
+
+				
+				<div class="comment-meta commentmetadata"><a href="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/#comment-172">
+					February 2, 2013 at 5:24 pm</a>				</div><!-- .comment-meta .commentmetadata -->
+
+				<div class="comment-body"><p>The process outlined here would discover all polymorphisms between the reference genome and between the samples themselves. Annotation, in the above example uses a dbSNP file, but you can use whatever. </p>
+<p>A truly new mutation shouldn&#8217;t have any rsID associated with it.</p>
+</div>
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/?replytocom=172#respond' onclick='return addComment.moveForm("comment-172", "172", "respond", "1288")'>Reply</a>				</div><!-- .reply -->
+			</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		</ol>
+
+		
+	
+									<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/#respond" style="display:none;">Cancel reply</a></small></h3>
+									<form action="http://petridishtalk.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+																										
+
+
+												<input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="f5fd5ed351" /><input type="hidden" name="_wp_http_referer" value="/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" title="Guest">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" title="WordPress.com">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" title="Twitter">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" title="Facebook">
+					<span></span>
+				</a>
+			</li>
+			<li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="text" value="" /></div>
+				</div>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://s2.wp.com/wp-content/mu-plugins/highlander-comments/images/wplogo.png?m=1391188133g" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+				<p class="comment-form-posting-as pa-wordpress"><strong></strong> You are commenting using your WordPress.com account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+				<p class="comment-form-posting-as pa-twitter"><strong></strong> You are commenting using your Twitter account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+				<p class="comment-form-posting-as pa-facebook"><strong></strong> You are commenting using your Facebook account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-googleplus" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Google+ photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="googleplus_avatar" id="googleplus-avatar" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_user_id" id="googleplus-user_id" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_access_token" id="googleplus-access_token" class="comment-meta-googleplus" value="" />
+				<p class="comment-form-posting-as pa-googleplus"><strong></strong> You are commenting using your Google+ account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'googleplus' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+	
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function(){
+	var input = document.createElement( 'input' ),
+	    comment = jQuery( '#comment' );
+
+	if ( 'placeholder' in input ) {
+		comment.attr( 'placeholder', jQuery( '.comment-textarea label' ).remove().text() );
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	jQuery( '#comment-form-identity' ).hide();
+	jQuery( '#comment-form-subscribe' ).hide();
+	jQuery( '#commentform .form-submit' ).hide();
+
+	comment.css( { 'height':'10px' } ).one( 'focus', function() {
+		var timer = setInterval( HighlanderComments.resizeCallback, 10 )
+		jQuery( this ).animate( { 'height': HighlanderComments.initialHeight } ).delay( 100 ).queue( function(n) { clearInterval( timer ); HighlanderComments.resizeCallback(); n(); } );
+		jQuery( '#comment-form-identity' ).slideDown();
+		jQuery( '#comment-form-subscribe' ).slideDown();
+		jQuery( '#commentform .form-submit' ).slideDown();
+	});
+}
+jQuery(document).ready( highlander_expando_javascript );
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;" tabindex="6"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of follow-up comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;" tabindex="7"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+												<p class="form-submit">
+							<input name="submit" type="submit" id="comment-submit" value="Post Comment" />
+							<input type='hidden' name='comment_post_ID' value='1288' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+						</p>
+						<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="00ba771530" /></p>
+<input type="hidden" name="genseq" value="1404299339" />
+<p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="195"/></p>					</form>
+							</div><!-- #respond -->
+			<div style="clear: both"></div>
+</div><!-- #comments -->
+
+	</div><!-- #content -->
+</div><!-- #container -->
+
+
+<div id="main-sidebars">
+
+		<div id="feature" class="widget-area" role="complementary">
+		<ul class="xoxo sidebar-list">
+			<li id="rss-2" class="widget widget_rss"><h3 class="widget-title"><a class="rsswidget" href="http://petridishtalk.com/2011/07/10/feed/" title="Syndicate this content"><img style="background: orange; color: white; border: none;" width="14" height="14" src="http://s.wordpress.com/wp-includes/images/rss.png?m=1354137473g" alt="RSS" /></a> <a class="rsswidget" href="http://petridishtalk.com" title="Thoughts on contemporary life science from a young scientist. (CC) Mohammed Rahman">Featured Post</a></h3><ul><li><a class='rsswidget' href='http://petridishtalk.com/2011/07/10/shdh_google_blast/' title=''>SHDH45@Google: simple BLAST+ setup</a><div class='rssSummary'>Super Happy Dev House pays off once again, with a day that blurred the line between play and work. Reminiscent of the days in middle and high school where my parents would provide tables, power cords and snacks for those all night … Continue reading →</div></li></ul></li>		</ul>
+	</div><!-- #feature.widget-area -->
+	
+
+	<div id="sidebar" class="widget-area" role="complementary">
+				<ul class="xoxo sidebar-list">
+
+					<li id="recent-posts-2" class="widget widget_recent_entries">		<h3 class="widget-title">Recent Posts</h3>		<ul>
+					<li>
+				<a href="http://petridishtalk.com/2014/05/22/hybrid-assemblies-from-short-and-long-reads-for-indel-resolution-finding-the-missing-puzzle-piece/">Hybrid Assemblies From Short and Long-Reads for INDEL Resolution, Finding The Missing Puzzle&nbsp;Piece</a>
+						</li>
+					<li>
+				<a href="http://petridishtalk.com/2014/01/14/notabigdeal-grch38/">Not a Big Deal, GRCh38: A Semi-Casual Comparison of the New Human Reference&nbsp;Genome</a>
+						</li>
+					<li>
+				<a href="http://petridishtalk.com/2013/08/27/mapping-kegg-pathway-interactions-with-bioconductor/">Mapping KEGG Pathway Interactions with&nbsp;Bioconductor</a>
+						</li>
+					<li>
+				<a href="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/">Variant Discovery, Annotation &amp; Filtering With Samtools &amp; the&nbsp;GATK</a>
+						</li>
+					<li>
+				<a href="http://petridishtalk.com/2012/11/18/exome-sequence-assembly-utilizing-bowtie-samtools/">Exome Sequence Assembly Utilizing Bowtie &amp;&nbsp;Samtools</a>
+						</li>
+					<li>
+				<a href="http://petridishtalk.com/2012/10/08/virtualization-of-raw-experimental-data/">Virtualization of Raw Experimental&nbsp;Data</a>
+						</li>
+					<li>
+				<a href="http://petridishtalk.com/2012/09/03/anomaly-detection-in-the-human-genome/">Anomaly Detection In The Human&nbsp;Genome</a>
+						</li>
+					<li>
+				<a href="http://petridishtalk.com/2012/06/30/gene-visualization/">Common Visualization Methods in&nbsp;Genomics</a>
+						</li>
+					<li>
+				<a href="http://petridishtalk.com/2012/05/26/what-are-you-waiting-for-a-certain-shade-of-green-core-science-tech-development/">What Are You Waiting For- A Certain Shade of Green? Core Science &amp; Tech&nbsp;Development</a>
+						</li>
+					<li>
+				<a href="http://petridishtalk.com/2012/05/24/k-mistry-typeface-by-ranmalee-jayaratne/">K-Mistry Typeface By Ranmalee&nbsp;Jayaratne</a>
+						</li>
+				</ul>
+		</li><li id="archives-2" class="widget widget_archive"><h3 class="widget-title">Archives</h3>		<ul>
+	<li><a href='http://petridishtalk.com/2014/05/'>May 2014</a></li>
+	<li><a href='http://petridishtalk.com/2014/01/'>January 2014</a></li>
+	<li><a href='http://petridishtalk.com/2013/08/'>August 2013</a></li>
+	<li><a href='http://petridishtalk.com/2013/02/'>February 2013</a></li>
+	<li><a href='http://petridishtalk.com/2012/11/'>November 2012</a></li>
+	<li><a href='http://petridishtalk.com/2012/10/'>October 2012</a></li>
+	<li><a href='http://petridishtalk.com/2012/09/'>September 2012</a></li>
+	<li><a href='http://petridishtalk.com/2012/06/'>June 2012</a></li>
+	<li><a href='http://petridishtalk.com/2012/05/'>May 2012</a></li>
+	<li><a href='http://petridishtalk.com/2012/04/'>April 2012</a></li>
+	<li><a href='http://petridishtalk.com/2012/02/'>February 2012</a></li>
+	<li><a href='http://petridishtalk.com/2011/12/'>December 2011</a></li>
+	<li><a href='http://petridishtalk.com/2011/10/'>October 2011</a></li>
+	<li><a href='http://petridishtalk.com/2011/08/'>August 2011</a></li>
+	<li><a href='http://petridishtalk.com/2011/07/'>July 2011</a></li>
+	<li><a href='http://petridishtalk.com/2011/05/'>May 2011</a></li>
+	<li><a href='http://petridishtalk.com/2011/04/'>April 2011</a></li>
+	<li><a href='http://petridishtalk.com/2011/03/'>March 2011</a></li>
+	<li><a href='http://petridishtalk.com/2011/01/'>January 2011</a></li>
+	<li><a href='http://petridishtalk.com/2010/12/'>December 2010</a></li>
+	<li><a href='http://petridishtalk.com/2010/03/'>March 2010</a></li>
+	<li><a href='http://petridishtalk.com/2010/01/'>January 2010</a></li>
+	<li><a href='http://petridishtalk.com/2009/12/'>December 2009</a></li>
+		</ul>
+</li><li id="twitter-2" class="widget widget_twitter"><h3 class="widget-title"><a href='http://twitter.com/8iterations'>Tweets</a></h3><ul class='tweets'>
+			<li>
+				testing, moving pictures <a href="http://twitter.com/8iterations/status/479330098467061761/photo/1"> pic.twitter.com/bFAsBIWH7a</a> 				<a href="http://twitter.com/8iterations/statuses/479330098467061761" class="timesince">1&nbsp;week&nbsp;ago</a>
+			</li>
+
+			
+			<li>
+				&quot;scientific progress...results from the free play of free intellects, working on subjects of their own choice&quot;-<a href="http://www.nsf.gov/about/history/vbush1945.htm#ch1.4"> nsf.gov/about/history/…</a> 				<a href="http://twitter.com/8iterations/statuses/459071167509184513" class="timesince">2&nbsp;months&nbsp;ago</a>
+			</li>
+
+			
+			<li>
+				@<a href='http://twitter.com/kurtiss'>kurtiss</a> <a href='http://twitter.com/search?q=%23hashtag'>#hashtag</a> <a href="https://www.youtube.com/watch?v=DVtVZWzhG_s"> youtube.com/watch?v=DVtVZW…</a> 				<a href="http://twitter.com/8iterations/statuses/453954876565757953" class="timesince">2&nbsp;months&nbsp;ago</a>
+			</li>
+
+			
+			<li>
+				Putting this together will increase my future productivity, and in no way was a waste of time... <a href='http://twitter.com/search?q=%23xmpp'>#xmpp</a> <a href="http://t.co/JzSaM1Yol6" rel="nofollow">http://t.co/JzSaM1Yol6</a> 				<a href="http://twitter.com/8iterations/statuses/448646867253870592" class="timesince">3&nbsp;months&nbsp;ago</a>
+			</li>
+
+			
+			<li>
+				@<a href='http://twitter.com/adamfeuerstein'>adamfeuerstein</a> a wild &amp; relevant comic strip appears. <a href="http://t.co/w66EkXxt0d" rel="nofollow">http://t.co/w66EkXxt0d</a> 				<a href="http://twitter.com/8iterations/statuses/447507806157934592" class="timesince">3&nbsp;months&nbsp;ago</a>
+			</li>
+
+			</ul><a href="http://twitter.com/8iterations"  class='twitter-follow-button' data-show-count='false' data-link-color='#1c9bdc' data-text-color='#333333'>Follow @8iterations</a></li>		</ul>
+	</div><!-- #sidebar .widget-area -->
+
+		<div id="secondary-sidebar" class="widget-area" role="complementary">
+		<ul class="xoxo sidebar-list">
+		<li id="nav_menu-2" class="widget widget_nav_menu"><h3 class="widget-title">Author:</h3><div class="menu-author-container"><ul id="menu-author" class="menu"><li id="menu-item-282" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-282"><a href="http://www.linkedin.com/in/8iterations/">Mo Rahman</a></li>
+</ul></div></li><li id="text-4" class="widget widget_text"><h3 class="widget-title">Location</h3>			<div class="textwidget">San Francisco</div>
+		</li><li id="linkcat-677" class="widget widget_links"><h3 class="widget-title">Friends</h3>
+	<ul class='xoxo blogroll'>
+<li><a href="http://flowergirlhanako.com/" title="A Nation Of The World">okanahatukak</a></li>
+<li><a href="http://valeriums.tumblr.com" title="Valerie’s Gallery">Valerium Prints</a></li>
+<li><a href="http://toniab.com/" rel="friend met neighbor date sweetheart">toniab</a></li>
+
+	</ul>
+</li>
+<li id="linkcat-60057385" class="widget widget_links"><h3 class="widget-title">Gene Blogs</h3>
+	<ul class='xoxo blogroll'>
+<li><a href="http://www.massgenomics.org/" title="Medical genomics in the post-genome era">MassGenomics</a></li>
+<li><a href="http://www.thinkgene.com/" title="a bio blog about genetics, genomics, and biotechnology">Think Gene</a></li>
+<li><a href="http://phylogenomics.blogspot.com/" title="Blog of Jonathan A. Eisen, evolutionary biologist, microbiologist and genomics researcher, Open Access and Open Science advocate, recovering Harvard/Stanford alum, cyclist, Academic Editor in Chief of PLoS Biology and Professor at UC Davis.">The Tree of Life</a></li>
+<li><a href="http://spittoon.23andme.com/" title="a blog written by the people of 23andMe">The Spittoon</a></li>
+<li><a href="http://omicsomics.blogspot.com/" title="A computation biologist&#8217;s personal views on new technologies &amp; publications on genomics">Omics! Omics!</a></li>
+
+	</ul>
+</li>
+<li id="linkcat-1022793" class="widget widget_links"><h3 class="widget-title">Neuro Blogs</h3>
+	<ul class='xoxo blogroll'>
+<li><a href="http://neuroskeptic.blogspot.com/" target="_blank">Neuroskeptic</a></li>
+<li><a href="http://www.theness.com/neurologicablog/" target="_blank">NeuroLogica</a></li>
+<li><a href="http://neurowhoa.blogspot.com/" target="_blank">NeuroWhoa!</a></li>
+<li><a href="http://www.lucasbrouwers.nl/blog/" target="_blank">Thoughtomics</a></li>
+<li><a href="http://www.sharpbrains.com/" target="_blank">Sharp Brains</a></li>
+
+	</ul>
+</li>
+		</ul>
+	</div><!-- #secondary-sidebar .widget-area -->
+	</div><!-- #main-sidebars -->
+		</div><!-- #content-box -->
+
+		<div id="footer" role="contentinfo">
+			<div id="colophon">
+
+				
+<div id="footer-widget-area" role="complementary">
+
+		<div id="first" class="widget-area">
+		<ul class="xoxo sidebar-list">
+			<li id="rss_links-4" class="widget widget_rss_links"><ul><li><a href="http://petridishtalk.com/feed/" title="Subscribe to Posts">RSS - Posts</a></li><li><a href="http://petridishtalk.com/comments/feed/" title="Subscribe to Comments">RSS - Comments</a></li></ul>
+</li>		</ul>
+	</div><!-- #first .widget-area -->
+	
+	
+</div><!-- #footer-widget-area -->
+
+				<div id="site-info">
+					<a href="http://petridishtalk.com/" title="Petri Dish Talk" rel="home">Petri Dish Talk</a> &middot; Thoughts on contemporary life science from a young scientist. (CC) Mohammed Rahman				</div><!-- #site-info -->
+
+				<div id="site-generator">
+					<a href="http://wordpress.com/?ref=footer_blog">Blog at WordPress.com</a>.
+					&middot;
+					<a href="http://theme.wordpress.com/themes/pilcrow/" title="Learn more about this theme">The Pilcrow Theme</a>.				</div><!-- #site-generator -->
+
+			</div><!-- #colophon -->
+		</div><!-- #footer -->
+	</div><!-- #page .blog -->
+</div><!-- #container -->
+
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201427x'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s2.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781g'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-0bf7a0beabd7f92c40986cae1a88324b">
+	</div>
+	<div class="grofile-hash-map-2522435e65150a4e481b4e7bb21fd980">
+	</div>
+	<div class="grofile-hash-map-fd9095212f899748179247a3666a1062">
+	</div>
+	</div>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"http:\/\/mokaspetridish.wordpress.com\/public.api\/connect\/?action=request","logoutURL":"https:\/\/mokaspetridish.wordpress.com\/wp-login.php?action=logout&_wpnonce=24b55f5e81","homeURL":"http:\/\/petridishtalk.com\/","postID":"1288","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"0"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s1.wp.com/_static/??/wp-content/js/jquery/jquery.autoresize.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1403644162j'></script>
+
+	<div id="bit" class="loggedout-follow-normal">
+		<a class="bsub" href="javascript:void(0)"><span id='bsub-text'>Follow</span></a>
+		<div id="bitsubscribe">
+
+					<h3><label for="loggedout-follow-field">Follow &ldquo;Petri Dish Talk&rdquo;</label></h3>
+
+			<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="loggedout-follow">
+			<p>Get every new post delivered to your Inbox.</p>
+
+			<p id="loggedout-follow-error" style="display: none;"></p>
+
+						<p class="bit-follow-count">Join 117 other followers</p>
+			<p><input type="email" name="email" value="Enter your email address" onfocus='this.value=(this.value=="Enter your email address") ? "" : this.value;' onblur='this.value=(this.value=="") ? "Enter email address" : this.value;'  id="loggedout-follow-field"/></p>
+
+			<input type="hidden" name="action" value="subscribe"/>
+			<input type="hidden" name="blog_id" value="10892799"/>
+			<input type="hidden" name="source" value="http://petridishtalk.com/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/"/>
+			<input type="hidden" name="sub-type" value="loggedout-follow"/>
+
+			<input type="hidden" id="_wpnonce" name="_wpnonce" value="3c980088f0" /><input type="hidden" name="_wp_http_referer" value="/2013/02/01/variant-discovery-annotation-filtering-with-samtools-the-gatk/" />
+			<p id='bsub-subscribe-button'><input type="submit" value="Sign me up" /></p>
+			</form>
+					<div id='bsub-credit'><a href="http://wordpress.com/signup/?ref=lof">Powered by WordPress.com</a></div>
+		</div><!-- #bitsubscribe -->
+	</div><!-- #bit -->
+
+	<script type="text/javascript">
+		WPCOM_sharing_counts = {"http:\/\/petridishtalk.com\/2013\/02\/01\/variant-discovery-annotation-filtering-with-samtools-the-gatk\/":1288}	</script>
+		<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-twitter' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomtwitter', 'menubar=1,resizable=1,width=600,height=350' );
+				return false;
+			});
+		});
+		</script>
+				<iframe src='http://widgets.wp.com/likes/master.html?ver=20140528#ver=20140528&amp;mp6=1' scrolling='no' id='likes-master' name='likes-master' style='display:none;'></iframe>
+		<div id='likes-other-gravatars'><div class="likes-text"><span>%d</span> bloggers like this:</div><ul class="wpl-avatars sd-like-gravatars"></ul></div>
+		<script type="text/javascript">
+		//<![CDATA[
+			var jetpackLikesWidgetQueue = [];
+			var jetpackLikesWidgetBatch = [];
+			var jetpackLikesMasterReady = false;
+
+			function JetpackLikespostMessage( message, target ) {
+				if ( "string" === typeof message ){
+					try{
+						message = JSON.parse( message );
+					}
+					catch(e) {
+						return;
+					}
+				}
+
+				pm( {
+					target: target,
+					type: 'likesMessage',
+					data: message,
+					origin: '*'
+				} );
+			}
+
+			function JetpackLikesBatchHandler() {
+				var requests = [];
+				jQuery( 'div.jetpack-likes-widget-unloaded' ).each( function( i ) {
+					if ( jetpackLikesWidgetBatch.indexOf( this.id ) > -1 )
+						return;
+					jetpackLikesWidgetBatch.push( this.id );
+					var regex = /like-(post|comment)-wrapper-(\d+)-(\d+)-(\w+)/;
+					var match = regex.exec( this.id );
+					if ( ! match || match.length != 5 )
+						return;
+
+					var info = {
+						blog_id: match[2],
+						width:   this.width
+					};
+
+					if ( 'post' == match[1] ) {
+						info.post_id = match[3];
+					} else if ( 'comment' == match[1] ) {
+						info.comment_id = match[3];
+					}
+
+					info.obj_id = match[4];
+
+					requests.push( info );
+				});
+
+				if ( requests.length > 0 ) {
+					JetpackLikespostMessage( { event: 'initialBatch', requests: requests }, window.frames['likes-master'] );
+				}
+			}
+
+			function JetpackLikesMessageListener( event ) {
+				if ( "undefined" == typeof event.event )
+					return;
+
+				if ( 'masterReady' == event.event ) {
+					jQuery( document ).ready( function() {
+						jetpackLikesMasterReady = true;
+
+						var stylesData = {
+								event: 'injectStyles'
+						};
+
+						if ( jQuery( 'iframe.admin-bar-likes-widget' ).length > 0 ) {
+							JetpackLikespostMessage( { event: 'adminBarEnabled' }, window.frames[ 'likes-master' ] );
+
+							stylesData.adminBarStyles = {
+								background: jQuery( '#wpadminbar .quicklinks li#wp-admin-bar-wpl-like > a' ).css( 'background' ),
+								isRtl: ( 'rtl' == jQuery( '#wpadminbar' ).css( 'direction' ) )
+							};
+						}
+
+						if ( !window.addEventListener )
+							jQuery( '#wp-admin-bar-admin-bar-likes-widget' ).hide();
+
+						stylesData.textStyles = {
+							color: jQuery( '.sd-text-color').css( 'color' ),
+							fontFamily: jQuery( '.sd-text-color' ).css( 'font-family' ),
+							fontSize: jQuery( '.sd-text-color' ).css( 'font-size' ),
+							direction: jQuery( '.sd-text-color' ).css( 'direction' ),
+							fontWeight: jQuery( '.sd-text-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-text-color' ).css( 'font-style' ),
+							textDecoration: jQuery( '.sd-text-color' ).css('text-decoration')
+						};
+
+						stylesData.linkStyles = {
+							color: jQuery( '.sd-link-color' ).css('color'),
+							fontFamily: jQuery( '.sd-link-color' ).css('font-family'),
+							fontSize: jQuery( '.sd-link-color' ).css('font-size'),
+							textDecoration: jQuery( '.sd-link-color' ).css('text-decoration'),
+							fontWeight: jQuery( '.sd-link-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-link-color' ).css( 'font-style' )
+						};
+
+						JetpackLikespostMessage( stylesData, window.frames[ 'likes-master' ] );
+
+						JetpackLikesBatchHandler();
+
+						jQuery( document ).on( 'inview', 'div.jetpack-likes-widget-unloaded', function() {
+							jetpackLikesWidgetQueue.push( this.id );
+						});
+					});
+				}
+
+				if ( 'showLikeWidget' == event.event ) {
+					jQuery( '#' + event.id + ' .post-likes-widget-placeholder'  ).fadeOut( 'fast', function() {
+						jQuery( '#' + event.id + ' .post-likes-widget' ).fadeIn( 'fast', function() {
+							JetpackLikespostMessage( { event: 'likeWidgetDisplayed', blog_id: event.blog_id, post_id: event.post_id, obj_id: event.obj_id }, window.frames['likes-master'] );
+						});
+					});
+				}
+
+				if ( 'clickReblogFlair' == event.event ) {
+					wpcom_reblog.toggle_reblog_box_flair( event.obj_id );
+				}
+
+				if ( 'showOtherGravatars' == event.event ) {
+					var $container = jQuery( '#likes-other-gravatars' );
+					var $list = $container.find( 'ul' );
+
+					$container.hide();
+					$list.html( '' );
+
+					$container.find( '.likes-text span' ).text( event.total );
+
+					jQuery.each( event.likers, function( i, liker ) {
+						$list.append( '<li class="' + liker.css_class + '"><a href="' + liker.profile_URL + '" class="wpl-liker" rel="nofollow" target="_parent"><img src="' + liker.avatar_URL + '" alt="' + liker.name + '" width="30" height="30" style="padding-right: 3px;" /></a></li>');
+					} );
+
+					var offset = jQuery( "[name='" + event.parent + "']" ).offset();
+
+					$container.css( 'left', offset.left + event.position.left - 10 + 'px' );
+					$container.css( 'top', offset.top + event.position.top - 33 + 'px' );
+
+					var rowLength = Math.floor( event.width / 37 );
+					var height = ( Math.ceil( event.likers.length / rowLength ) * 37 ) + 13;
+					if ( height > 204 ) {
+						height = 204;
+					}
+
+					$container.css( 'height', height + 'px' );
+					$container.css( 'width', rowLength * 37 - 7 + 'px' );
+
+					$list.css( 'width', rowLength * 37 + 'px' );
+
+					$container.fadeIn( 'slow' );
+
+					var scrollbarWidth = $list[0].offsetWidth - $list[0].clientWidth;
+					if ( scrollbarWidth > 0 ) {
+						$container.width( $container.width() + scrollbarWidth );
+						$list.width( $list.width() + scrollbarWidth );
+					}
+				}
+			}
+
+			pm.bind( 'likesMessage', function(e) { JetpackLikesMessageListener(e); } );
+
+			jQuery( document ).click( function( e ) {
+				var $container = jQuery( '#likes-other-gravatars' );
+
+				if ( $container.has( e.target ).length === 0 ) {
+					$container.fadeOut( 'slow' );
+				}
+			});
+
+			function JetpackLikesWidgetQueueHandler() {
+				var wrapperID;
+				if ( ! jetpackLikesMasterReady ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				if ( jetpackLikesWidgetQueue.length > 0 ) {
+					// We may have a widget that needs creating now
+					var found = false;
+					while( jetpackLikesWidgetQueue.length > 0 ) {
+						// Grab the first member of the queue that isn't already loading.
+						wrapperID = jetpackLikesWidgetQueue.splice( 0, 1 )[0];
+						if ( jQuery( '#' + wrapperID ).hasClass( 'jetpack-likes-widget-unloaded' ) ) {
+							found = true;
+							break;
+						}
+					}
+					if ( ! found ) {
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				} else if ( jQuery( 'div.jetpack-likes-widget-unloaded' ).length > 0 ) {
+					// Grab any unloaded widgets for a batch request
+					JetpackLikesBatchHandler();
+
+					// Get the next unloaded widget
+					wrapperID = jQuery( 'div.jetpack-likes-widget-unloaded' ).first()[0].id;
+					if ( ! wrapperID ) {
+						// Everything is currently loaded
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				}
+
+				if ( 'undefined' === typeof wrapperID ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				var $wrapper = jQuery( '#' + wrapperID );
+				$wrapper.find( 'iframe' ).remove();
+
+				if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='22px' width='68px' frameBorder='0' scrolling='no' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				} else {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='55px' width='100%' frameBorder='0' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				}
+
+				$wrapper.removeClass( 'jetpack-likes-widget-unloaded' ).addClass( 'jetpack-likes-widget-loading' );
+
+				$wrapper.find( 'iframe' ).load( function( e ) {
+					var $iframe = jQuery( e.target );
+					$wrapper.removeClass( 'jetpack-likes-widget-loading' ).addClass( 'jetpack-likes-widget-loaded' );
+
+					JetpackLikespostMessage( { event: 'loadLikeWidget', name: $iframe.attr( 'name' ), width: $iframe.width() }, window.frames[ 'likes-master' ] );
+
+					if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+						$wrapper.find( 'iframe' ).Jetpack( 'resizeable' );
+					}
+				});
+				setTimeout( JetpackLikesWidgetQueueHandler, 250 );
+			}
+			JetpackLikesWidgetQueueHandler();
+		//]]>
+		</script>
+<script type='text/javascript' src='http://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var recaptcha_options = {"lang":"en"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s0.wp.com/_static/??-eJx9jEEOwiAQRS8kTJsmRhbGoxhCaR1kBsJA1duLC7au/uK99+GVlUtcPVcIAqs/0Pn81kFO0BGyi2318mMuEXVNFZ/jRxPykEZPTeXYdmQB+0QhX9WiJ7j3E9hSoT9+TlLVFi0WkIctyPvYHt3oOi/GmNlM50v4AgRVQGc='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="http://s.stats.wordpress.com/w.js?21" type="text/javascript"></script>
+<script type="text/javascript">
+st_go({'blog':'10892799','v':'wpcom','tz':'-7','user_id':'0','post':'1288','subd':'mokaspetridish'});
+ex_go({'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1dROFlTMjhddEMrVVIzeGtRW1RlOFVnQjE9UkF4Si18RXhGejUsNzZWZDVlOGk4d3Y3Yj1YRmVSR2YwZlRXeDFBZmU2RE9oRG9ifjJ1djZrLnA1V0ZqWTBPNzlwcW42NSVnYldiTXJKWz9mK0VNMzQlL0FUY185amd3W0lQQkF3eDVVZXNGODl6NF1EQllMSVQ5NDBkP2lYemx8TWJsTnErS1BjeHhQTUpaaiYrSmdlU2x5elV5V2RkQlliVHNPak55LnZFZiZQMC5wJVsxYTQmYktzUkJ4aGo/NzZKWHh4dDM2UjZjV0tFUlI='});
+addLoadEvent(function(){linktracker_init('10892799',1288);});
+	</script>
+<noscript><img src="http://stats.wordpress.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//stats.wordpress.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

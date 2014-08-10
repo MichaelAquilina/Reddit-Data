@@ -1,0 +1,375 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset=utf-8>
+  
+    <title>Python and the Principle of Least Astonishment | Armin Ronacher's Thoughts and Writings</title>
+    <link rel="stylesheet" href="/static/style.css" type="text/css">
+    <link href="/feed.atom" rel="alternate" title="Recent Blog Posts" type="application/atom+xml">
+    <link rel="stylesheet" href="/static/_pygments.css" type="text/css">
+  
+  </head>
+  <body>
+    <div class=container>
+      <div class=header>
+        <a href="/about/">Armin Ronacher</a>'s Thoughts and Writings
+      </div>
+      <div class=navigation>
+        <ul>
+          <li><a href="/">blog</a>
+          <li><a href="/archive/">archive</a>
+          <li><a href="/tags/">tags</a>
+          <li><a href="/projects/">projects</a>
+          <li><a href="/talks/">talks</a>
+          <li><a href="/about/">about</a>
+        </ul>
+      </div>
+      <div class=body>
+        
+  <h1 class="title">Python and the Principle of Least Astonishment</h1>
+
+  
+  <p class=date>written on Saturday, July 9, 2011
+  
+
+  <p>When you use something for a long time you will develop some kind of
+sensing of what goes together and what does not appear to fit the common
+pattern.  The Python community seems to have given this effect a name: if
+something matches the common patterns it's âpythonicâ if it's not, it's
+deemed âunpythonicâ.  Most aspects of the language itself are designed to
+not surprise you if you use them in case there would be more than one
+possible behavior.  This is what many people refer to the <a class="reference external" href="http://en.wikipedia.org/wiki/Principle_of_least_astonishment">Principle of
+Least Astonishment</a>).  In my
+mind there are only a handful exceptions to that rule in the language
+design which I will cover here as well.</p>
+<p>However if you ask beginners in Python where the language does not behave
+as expected you will get tons of results.  There is a good reason for
+that: most beginners to Python are not beginners to programming.  They
+have already a knowledge in some other language and are trying to use that
+experience to understand Python.</p>
+<p>I guess it would make a lot more sense to teach Python to experienced
+programmers by showing them how the idioms in the language work, more than
+what control structures there are in Python.  I was quite fond of Raymond
+Hettinger's talk about what makes Python unique because he showed a bunch
+of small examples that almost exclusively used the good parts of the
+standard library and hardly any user written logic.  One example used
+<cite>itertools</cite> and the <cite>gzip</cite> module to load a logfile, parse and analyze it.
+I found that a very interesting example because it showed that if you do
+not think of âI will use a while loop here, here and here, and a condition
+there and then I have the first partâ but as âthis is what I want to do,
+this is what I need and am doneâ.</p>
+<p>I think Python does an amazing job by making people look at the broader
+picture instead of boring implementation details.</p>
+<div class="section" id="why-are-you-astonished">
+<h2>Why are you Astonished?</h2>
+<p>But let's assume for a moment that we are talking to a hypothetical new
+Python developer that has extensive knowledge in Ruby and Java.  What, if
+we ask such a developer, what will their answer be?</p>
+<p>Something that comes up incredible often is why Python has a <tt class="docutils literal">len()</tt>
+function instead of a <tt class="docutils literal">.length</tt> or <tt class="docutils literal">.size</tt> property or method on the
+object.  And by giving that question we already pretty much got the
+answer.  Assuming we would not have a function like <tt class="docutils literal">len()</tt>, what would
+the method be called?  Would it be called <tt class="docutils literal">x.getLenght()</tt>?  Or just
+<tt class="docutils literal">.length()</tt>?  Or would it be <tt class="docutils literal">.size()</tt>?  Why have it has a method, why
+not have a property instead called <tt class="docutils literal">.length</tt>.  Or <tt class="docutils literal">.size</tt>.  Or maybe
+<tt class="docutils literal">.Count</tt> like in C#.</p>
+<p>Of course you could standardize that, but nobody would really enforce
+that.  If you look at Java in comparison what will we find?  A builtin
+array has a field called <tt class="docutils literal">.length</tt>.  A builtin string however is an
+actual object and has a method called <tt class="docutils literal">.length()</tt>.  A map or list in
+Java responds to <tt class="docutils literal">.size()</tt>.  All the XML APIs in Java will use
+<tt class="docutils literal">.getLenght()</tt> instead, so will the reflection API for arrays and the
+list goes on.</p>
+<p>How is it in Ruby?  In Ruby collection objects respond to <tt class="docutils literal">.size</tt>.  But
+because it looks better almost all of them will also respond <tt class="docutils literal">.length</tt>.
+However not for every time one is an alias for the other, if you replace
+the implementation for one you will also have to update the implementation
+for the other or at least redirect the call.  Also just because something
+responds to <tt class="docutils literal">.size</tt> does not mean it's a collection with a size.  For
+instance integers have a <tt class="docutils literal">.size</tt> attribute but no <tt class="docutils literal">.length</tt>.  And the
+size is the number of bytes used to store that number.</p>
+<p>How is it in Python?  <tt class="docutils literal">len()</tt> returns the length of <tt class="docutils literal">x</tt>.  How does it
+do that?  It calls the special internal method <tt class="docutils literal">.__len__</tt> on <tt class="docutils literal">x</tt>.  So
+you can still customize it.  Think of <tt class="docutils literal">len()</tt> as an operator more than
+a function.  So why, if it calls a method on <tt class="docutils literal">x</tt>, why can't it just be a
+method and let that method be called <tt class="docutils literal">.len()</tt>?  In the early days that
+might not have been the reason for this decision, but nowadays we are
+very glad that this decision was made.  By keeping the special internal
+methods named <tt class="docutils literal">__something__</tt> instead of just <tt class="docutils literal">something</tt> we can adapt
+to pretty much any API in Python.  Because none of the regular method
+names has any meaning it means we can use those method names for other
+things.  Also that way you don't need code completion if you're not
+exactly sure what methods you have available.  Does it represent a
+collection object?  <tt class="docutils literal">len()</tt> in Python will work them, promised.</p>
+<p>For instance consider you have a class like this:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">MyAPI</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">get_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;the current time as string&#39;</span>
+</pre></div>
+<p>Imagine we would want to expose all the methods of this class over HTTP
+as JSON API or something.  We just iterate over all attributes of that
+class that are callable and if they are not starting with an underscore
+we expose that.  In Ruby, no chance, why?  Because if a method has a
+special meaning cannot be known from the naming.  For instance if you look
+at the basic <tt class="docutils literal">Object</tt> type in ruby you will find a whole bunch of
+methods with special semantics on there: <tt class="docutils literal">Object.new</tt> allocates a new
+object and initializes it.  <tt class="docutils literal">Object.display</tt> prints the object to
+standard error etc.  All of these methods we cannot give new meanings
+without breaking other people's expectations of how objects in Ruby should
+behave.</p>
+<p>For instance every object in Ruby used to have an <tt class="docutils literal">Object.id</tt> method.
+Because it was so generic and frequently changed in semantics it was
+renamed to <tt class="docutils literal">Object.object_id</tt>.  However also the reverse is true.  In
+one of the newer Ruby versions the basic object type got builtin YAML
+support.  The <tt class="docutils literal">.to_yaml</tt> method name now has a specific meaning attached
+and if you were using that previously on your own with different semantics
+your code might break now.</p>
+<p>This is not a real problem in Ruby because everybody is aware of that and
+in general the language was designed to encourage that behavior, but in
+Python the whole language design evolves around protocols and special
+methods.</p>
+<p>In Java you don't have that particular issue because you are explicitly
+telling the user of your class that it has a certain behavior by
+implementing a specific interface you designed upfront.  That way you can
+have one class where <tt class="docutils literal">toYAML()</tt> means something entirely different than
+<tt class="docutils literal">toYAML()</tt> in another class.  For as long as a class does not want to
+implement both at the same time there are no real issues.  But the Python
+language for a long time did not want to dive into the realms of
+interfaces.  With Python 2.6 that changed somewhat with the introduction
+of abstract base classes, but those are more duck typing on steroids than
+actual interfaces or real base classes (though they can be).</p>
+</div>
+<div class="section" id="protocols">
+<h2>Protocols</h2>
+<p>Most collections in Python can be implemented without attaching a single
+non-special method!  While it's true that dicts and lists have a bunch of
+extra methods to modify them and iterate over them in special ways, these
+methods are by no means required.  For example one basic protocol in
+Python is that when something has an <tt class="docutils literal">.__iter__</tt> method that object is
+iterable so you can use the for-loop to iterate over it.  You should not
+call <tt class="docutils literal">.__iter__</tt> yourself, instead use <tt class="docutils literal">iter(x)</tt> if you really need
+the iterator.  Why is that?  Why can't I just use <tt class="docutils literal">x.__iter__()</tt> and be
+happy?  Because having that one function doing that call gives us extra
+powers.</p>
+<p>For instance in Python if you have something that has a method named
+<tt class="docutils literal">.__getitem__</tt> (subscript operator <tt class="docutils literal">x[y]</tt> == <tt class="docutils literal">x.__getitem__(y)</tt>) and
+the subscripted object is an integer and the special method will not raise
+a lookup error if <tt class="docutils literal">0</tt> is passed it means that obviously there is a first
+item in the object.  Python will then assume it's iterable and continue to
+subscript it incrementing integers (first iteration step is <tt class="docutils literal">x[0]</tt>,
+second is <tt class="docutils literal">x[1]</tt> etc.).  You can easily test this yourself:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="gp">... </span> <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="gp">... </span>  <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">()</span>
+<span class="gp">... </span>  <span class="k">return</span> <span class="nb">chr</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span>
+<span class="go">[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;, &#39;f&#39;, &#39;g&#39;, &#39;h&#39;, &#39;i&#39;, &#39;j&#39;]</span>
+</pre></div>
+<p>Why does Python behave this way?  Because it's useful.  Many collections
+will be indexed by integers and for as long as nobody wants to have a
+different iteration behavior (by implementing <tt class="docutils literal">.__iter__</tt>) why not go
+with that default.  Here is where <tt class="docutils literal">iter()</tt> comes in handy as it knows
+about how this <tt class="docutils literal">.__getitem__</tt> based fallback works and can provide you
+with a regular iterator:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
+<span class="go">&lt;iterator object at 0x100481950&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+<span class="go">&#39;a&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+<span class="go">&#39;b&#39;</span>
+</pre></div>
+<p>Now if you are asking, why is it <tt class="docutils literal">x.next()</tt> and not <tt class="docutils literal">next(x)</tt>: an
+oversight that was corrected with Python 3.  There it is indeed
+<tt class="docutils literal">next(x)</tt> which will then call <tt class="docutils literal">x.__next__()</tt>.  Why add a function
+named <tt class="docutils literal">next()</tt> again if all it does is calling another method?  Because
+there again it makes sense to add more behavior.  For instance if you
+cannot continue iterating in Python it will raise an exception.  If you
+are iterating over an iterator by hand it's often very annoying to have to
+catch that exception down, this is where <tt class="docutils literal">next()</tt> is helpful:</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">([]))</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+  <span class="n">File</span> <span class="s">&quot;&lt;stdin&gt;&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">1</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="ne">StopIteration</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">([]),</span> <span class="mi">42</span><span class="p">)</span>
+<span class="mi">42</span>
+</pre></div>
+</div>
+<div class="section" id="seemingly-inverse-logic">
+<h2>Seemingly Inverse Logic</h2>
+<p>Another thing that comes up very often where people seem to be surprised
+is that it's <tt class="docutils literal">&quot;, &quot;.join(list)</tt> instead of <tt class="docutils literal"><span class="pre">list.join(&quot;,</span> &quot;)</tt>.  No other
+programming language than Python has the joining operating on the string
+object, why Python?  It's just a logical conclusion of Python's deep love
+with protocols.  Above I said that you can have collections without any
+public methods.  In Python 2.x the Tuple type for instance does not expose
+any non-special methods and yet you can use it to make a string out of it:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span>
+<span class="go">&#39;foo, bar&#39;</span>
+</pre></div>
+<p>Even better, you can efficiently use this to make a string from a
+generator:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">])</span>
+<span class="go">&#39;FOO, BAR&#39;</span>
+</pre></div>
+<p>Imagine Python would not work that way.  You would have to convert the
+iterable into an actual list first to convert it into a string.  Ruby
+people will now argue that Ruby solves this problem with mixing in
+modules, and they are certainly correct that this is an option.  But this
+is a concious design decision in the language which has many implications.
+Python encourages loose coupling by having these protocols where the
+actual implementations can be elsewhere.  One object is iterable, another
+part in the system knows how to make it into a string.</p>
+<p>An earlier implementation for joining of iterators into a string in Python
+was the string module which had a <tt class="docutils literal">join</tt> function.  This also solved the
+same problem, but you needed an extra import and it did not look any nicer
+I think:</p>
+<div class="highlight"><pre><span class="k">assert</span> <span class="n">string</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="p">,</span> <span class="n">iterable</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="pass-by-what-exactly">
+<h2>Pass by â¦ What Exactly?</h2>
+<p>Is Python pass by value or pass by reference?  If you ask this question
+you're coming probably from a C++ or PHP background and depending on where
+you came from the Python experience can be frustrating in one way or
+another.  C++ programmer will be annoyed that Python does not support
+calling by reference and PHP programmers will be annoyed that Python
+always calls by reference.  What?  Yeah, this is exactly what's the
+problem.  C++ makes a copy of all objects unless you pass by reference,
+PHP has different behavior for arrays or objects.  When either one is your
+background you will probably not understand what's happening and be
+frustrated.  But that's not something that is Python's fault, that's
+because your experience hinted that stuff works different.</p>
+<p>A PHP programmer will not expect this:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">a</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span>
+<span class="go">[1, 2, 3, 4]</span>
+</pre></div>
+<p>In PHP if you assign an array to a new variable it will be copied.  What's
+even funnier is that there is not even a proper equivalent of what PHP is
+doing in Python.  The language was not designed to work that way and you
+have to adapt.  What's cheap in PHP is not even possible in Python unless
+you do a deep copy of that thing which can be slow.  PHP as a language was
+designed to work that way, Python was not.</p>
+<p>Likewise in C++ you can actually pass by reference which allows you do
+swap things:</p>
+<div class="highlight"><pre><span class="kt">void</span> <span class="n">swap_ints</span><span class="p">(</span><span class="kt">int</span> <span class="o">&amp;</span><span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">tmp</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">b</span><span class="p">;</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="n">swap_ints</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
+<span class="cm">/* a == 2 now, b == 1 */</span>
+</pre></div>
+<p>Python was never intended to support that.  But if it's just for the
+swapping we have something cooler:</p>
+<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">,</span> <span class="n">b</span>
+<span class="go">(2, 1)</span>
+</pre></div>
+</div>
+<div class="section" id="the-actual-surprises">
+<h2>The Actual Surprises</h2>
+<p>I would argue that within the boundaries of the Python design all these
+design decisions make a lot of sense.  If I would have to come up with a
+new version of Python, I would not change any of the things mentioned
+before.  Also if you are aware of the design ideas behind Python, they
+make sense and are easy to remember.  Also because it's a common pattern
+all over the language it's hardly something that makes you feel icky after
+a month of using the language.</p>
+<p>There are however some issues I think could have been better designed:</p>
+<ol class="arabic simple">
+<li>Default parameters to functions are bound at function create time, not
+at function evaluation time.  The positive side effects are that it's
+faster, and also that it's quite easy to understand how it works with
+the scoping rules once you're aware of that behavior.  The downside is
+that if you have a mutable object as the default value in that
+function and you attempt to modify it, you will notice that this
+modification survives the call.</li>
+<li>The complex literals and the floating point value exponents clash with
+the integer literal syntax.  As a side effect of that you can do
+<tt class="docutils literal">1.0.imag</tt> and <tt class="docutils literal">1j.imag</tt> but not <tt class="docutils literal">1.imag</tt>.  The latter will only
+work if written as <tt class="docutils literal"><span class="pre">(1).imag</span></tt> or <tt class="docutils literal">1 .imag</tt>.  That's a little bit
+sad.</li>
+<li>Decorators are somewhat of a pain because there is a difference
+between <tt class="docutils literal">&#64;foo</tt> and <tt class="docutils literal">&#64;foo()</tt>.  If they were declared in a way that
+the former means the latter we would all be much happier now.  Every
+time I want to introduce a parameter to a previously parameterless
+decorator makes me want to hit myself and the author of the decorator
+PEP with a stick.</li>
+</ol>
+</div>
+<div class="section" id="learning-from-mistakes">
+<h2>Learning from Mistakes</h2>
+<p>But then again, afterwards we all know better and without mistakes we
+could not have better languages (or even language revisions) in the
+future.  And looking back at the lifespan of Python 2.x one can see that a
+lot went right in the design and that the language is easy to pick up and
+a lot of fun to work with.  And in my mind programs written in Python are
+some of the easiest to adapt and maintain.  And that is largely the
+product of an amazing language design and decision-making.</p>
+<p>And with Python 3 a lot of stuff that was learned was improved.  And I
+can only assume it was also learned that making backwards incompatible
+releases can be managed at least slightly better. ;-)</p>
+</div>
+
+
+  
+  <p class=tags>This entry was tagged
+    
+      <a href="/tags/python/">python</a> and 
+      <a href="/tags/thoughts/">thoughts</a>
+  
+
+  
+
+
+        <div class=adspace>
+          <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+          <ins class="adsbygoogle"
+               style="display:inline-block;width:728px;height:90px"
+               data-ad-client="ca-pub-6757320953560275"
+               data-ad-slot="8324866143"></ins>
+          <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+      </div>
+      <div class=footer>
+        <p>&copy; Copyright 2014 by Armin Ronacher.
+        <p>
+          Content licensed under the Creative Commons
+          attribution-noncommercial-sharealike License.
+        <p>
+          Contact me via <a href="mailto:armin.ronacher@active-4.com">mail</a>,
+          <a href="http://twitter.com/mitsuhiko">twitter</a>,
+          <a href="http://github.com/mitsuhiko">github</a> or
+          <a href="http://bitbucket.org/mitsuhiko">bitbucket</a>.
+          Tip me via <a href="https://www.gittip.com/mitsuhiko/">gittip</a>.
+          More info: <a href="/about#imprint">imprint</a>.
+          (<a href="/feed.atom" rel="alternate" title="Recent Blog Posts">feed</a>)
+      </div>
+    </div>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-20909083-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

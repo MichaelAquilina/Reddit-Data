@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="description" content="Current blast implementation don&#39;t use threads during all the processing, this result in underutilised cpu cores. Here I show a small comparative of blast speed in computers with 1,2,4 and 8 cores.">
+    <meta name="keywords" content="blast,bioinformatics,blast+,ncbi,threads,">
+    <title>How to correctly speed up blast using num_threads</title>
+    <link href='http://fonts.googleapis.com/css?family=Merienda' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Snowburst+One' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/static/css/prettify.css" type="text/css">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/bootstrap-theme.min.css">
+    <script src="https://apis.google.com/js/plusone.js"></script>
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css" type="text/css">
+
+    
+     <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-26745182-3']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+</script> 
+</head>
+
+<div class="leftPanel">
+    <a href="/"> <h1 id="title">voorloopnul</h1></a>
+    <h3> About Me </h3>
+    <p>My name is  <a href="https://plus.google.com/+RicardoPascal?rel=author">Ricardo Pascal</a>, I'm a developer and sysadmin who lives in
+    Florianopolis/Brazil. I enjoy work with projects related to Linux, Python,
+    Science, Web, Django and Network.</p>
+    <p class="text-center">
+        <a href="/blog/feed"><img height='64' src="/static/feed.png"/></a>
+    </p>
+
+    <g:person href="https://plus.google.com/107392845141307984355" data-rel="author"></g:person>
+</div>
+
+
+
+
+    <div id="chatbar">
+        
+            <b>g+</b>
+             <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/h7nZQp63WtN"> I wrote a small article showing how to display a form, and create objects from them using views in five...</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/Q6Wwih6zHF2"> </a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/3xEyNPQRG85"> A Pixeon está com várias vagas abertas. (Inclusive programador Python).</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/5dViDYLaSn6"> &quot;When deciding which server architecture to use for your environment, there are many factors to consider...</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/9uCtWj8WZvS"> </a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/7YWQEu4mWQJ"> Segue uma proposta de lei feita pelo DEPUTADO Missionário José Olimpio. É uma lei que visa nos proteger...</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/XUULBFRpjxg"> By +Ruben Bolling    http://gocomics.typepad.com/tomthedancingbugblog/ THU MAY 29, 2014 AT 06:50 AM ...</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/bf86pC3yxfj"> Let&#39;s send also some cancer, radioactive material, ebola, Justin Bieber and Brazilian Funk  ¬¬</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/YTzYfrD7Bs6"> &quot;The most extreme case is David Whitlock, the M.I.T.-trained chemical engineer who invented AO+. He ...</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/adUxySYHPn9"> If I had 8k euros to spare, I would definitely buy one :)</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/Spk5EX61nyV"> </a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/MW64PjxXWhz"> Esse link eu salvei nos favoritos. Vale a pena!</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/1LLmwEEont9"> Estamos procurando Jedi Back-end Engineer  We are looking for a engaged and dedicated software engineer...</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/d6FECx4X7Tj"> django-auth-imap is a package that let you use a IMAP server as backend for authentication in your django...</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/QPBjUnipgeL"> Would be half-cannibalism if a man made of pig organs eat some bacon? Jokes apart, that&#39;s a big news...</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/Mfh7ayTpdov"> &quot;The fact that so many homeless men suffered a TBI before losing their home suggests such injuries could...</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/1pSHcQ3mDXa"> I finally found a place with plenty of space to fly my f330, now I just have to lose the fear of flying...</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/DBW1Zse79n4"> Vaga de emprego para programador python na lett.com.br  O serviço que eles oferecem parece interessante...</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/EpqQiYpx7Z1"> &quot;The Horribly Slow Murderer with the Extremely Inefficient Weapon&quot;, it&#39;s number one in my top 10 worst...</a> | <a class="gplus_link" href="https://plus.google.com/107392845141307984355/posts/E7WC5xQNmuu"> Challenge accepted! One per night til the end of year ( minus weekends ) </a> |
+        
+    </div>
+    
+
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-9">
+                
+                <div id="content">
+    <!-- Place this tag where you want the share button to render. -->
+    <div class="g-plus" data-action="share" data-annotation="bubble" data-height="24"></div>
+    <a href="https://twitter.com/share" class="twitter-share-button" data-size="large" data-dnt="true">Tweet</a>
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+    <h3>Disclaimer</h3>
+<p><em>The tests applied here are far away from being 100% accurate, it's only purpose is give you an idea of how your blast+ will behave; but different hardware setup, length of sequences or blast+ parameters could dramatically change the outcomes.</em></p>
+<h1>How to correctly speed up blast using num_threads</h1>
+<p>Have you ever wondered how much time you could save by using a 24 cores server to do a blast that is taking forever hours on your personal computer? Well I had; and others probably had too.</p>
+<p>One thing that everyone who thought about this, probably have noticed, is that the current blast+ from ncbi <a href="http://seqanswers.com/forums/showthread.php?t=5752">doesn't use threads during all the process</a>, indeed, if you run a blast -num_threds {put here your max cores}, you will see that most of the time, the processing bar of only one core will be full filled and the others will stay idle, waiting for something to do.</p>
+<p>So as a experiment, I tested the same blast using different values for <strong>num_threads.</strong></p>
+<h3>Some considerations</h3>
+<ul>
+<li>My machine setup was 4 VPS from <a href="https://www.digitalocean.com/?refcode=14945834b51b">digitalocean.com</a> , the specs are 8 cores with 16GB and a SSD disk;</li>
+<li>I blasted with 1,2,4 and 8 threads;</li>
+<li>My query dataset was 6.7k sequences of <a href="ftp://ftp.ncbi.nih.gov/refseq/M_musculus/mRNA_Prot/mouse.protein.faa.gz">mouse protein from ncbi refseq</a>;</li>
+<li>The target database was built from full <a href="ftp://ftp.ncbi.nih.gov/refseq/D_rerio/mRNA_Prot/zebrafish.protein.faa.gz">zebrafish ncbi refseq protein</a> records. (around 43k sequences);</li>
+<li>After the first test I repeated all of them and got similar results;</li>
+<li>The length of most sequences in both mouse and zebrafish fasta are between 300 and 900 amino acids;</li>
+</ul>
+<p>The test command used in all four tests was:</p>
+<pre>
+time blastp -query 6.7k_mouse.protein.faa -db zebrafish.protein.faa -num_threads X > output.log
+</pre>
+
+<h3>Result</h3>
+<p>The raw and weird(what's up with those 3's?) result:
+<pre>
+1 thread  -&gt; 193m10.105s
+2 threads -&gt; 143m54.688s -26%
+4 threads -&gt; 113m19.242s -41%
+8 threads -&gt; 103m25.137s -47%
+</pre></p>
+<p><center><img alt="Alt text" src="/files/2014/test.png" /></center></p>
+<p>From these values we can see that up to 4 threads we still get a good speed boost on blast+, but beyond 4 threads we would benefit little to almost nothing in terms of time reduction.</p>
+<h3>Conclusion</h3>
+<p>Sounds pretty reasonable to me that doing multiple blasts at time is a better approach than let all cores to just one process. e.g. If you have a 8 core machine and 4 blasts to do, it should be a lot faster do all the four in parallel(assigning two threads to each) than do one at time using all 8 cores for each process.</p>
+<p>The time in the parallel scenario would be around 143 minutes plus some extra time due the fact of four process write to disk at the same time, but unless you are reading this article from <a href="http://www.tomshardware.com/reviews/15-years-of-hard-drive-history,1368-7.html">the end of the 90's</a>, it's still way faster than 412 minutes of four blasts done in series. </p>
+    </br>
+
+    
+
+    
+
+    <center>by Ricardo Pascal on Feb 10, 2014</center>
+    </br>
+</div>
+
+                
+                <div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'voorloopnul'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+            </div>
+            <div class="col-md-3 sidebar">
+                <div id="chatbox">-</div>
+                <div class="text-right">
+                    <h3>Recent posts</h3>
+                    
+                        
+                            <p><a href='/blog/forms-in-django-which-view-should-i-use'>Forms in django, which view should I use?</a></br> <small><i>June 19, 2014</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/using-a-imap-server-as-authentication-backend-for-your-django-app'>Using a imap server as authentication backend for your Django app.</a></br> <small><i>May 4, 2014</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/how-to-correctly-speed-up-blast-using-num_threads'>How to correctly speed up blast using num_threads</a></br> <small><i>Feb. 10, 2014</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/doing-bulk-update-and-bulk-create-with-django-orm'>Doing bulk update and bulk create with Django ORM</a></br> <small><i>Nov. 3, 2013</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/setup-a-mail-server-with-ubuntu-and-postfix'>Setup a mail server with Ubuntu and Postfix</a></br> <small><i>March 2, 2013</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/setting-up-django-with-apache-and-uwsgi-ubuntu-12-10'>Setting up Django with Apache and uwsgi on Ubuntu 12.10</a></br> <small><i>Feb. 21, 2013</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/controlling-a-motor-using-wifi-connection-and-a-gamepad'>Controlling a motor using a wifi connection and a gamepad</a></br> <small><i>Dec. 16, 2012</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/real-time-plotting-of-android-accelerometer-data'>Real-time plotting of android accelerometer data</a></br> <small><i>Oct. 25, 2012</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/how-not-to-create-a-network-game'>How (not) to create a network game</a></br> <small><i>Sept. 10, 2012</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/a-python-proxy-in-less-than-100-lines-of-code'>A python proxy in less than 100 lines of code</a></br> <small><i>Aug. 29, 2012</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/setting-up-django-with-nginx-and-uwsgi-ubuntu-12-04'>Setting up Django with Nginx and uwsgi on Ubuntu 12.04</a></br> <small><i>June 9, 2012</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/spamassassin-how-to-increase-spam-detection-rate-up-to-40-and-avoid-false-positive'>Spamassassin; how to increase spam detection rate up to 40% and avoid false-positive</a></br> <small><i>Sept. 25, 2011</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/a-python-netstat-in-less-than-100-lines-of-code'>A python netstat in less than 100 lines of code</a></br> <small><i>June 27, 2011</i></small></p>
+                        
+                    
+                        
+                            <p><a href='/blog/generating-nmap-reports-in-html'>Generating nmap reports in html</a></br> <small><i>June 18, 2011</i></small></p>
+                        
+                    
+
+                    <!-- vertical160x600 -->
+                    <ins class="adsbygoogle"
+                         style="display:inline-block;width:160px;height:600px"
+                         data-ad-client="ca-pub-9701449079660166"
+                         data-ad-slot="1374262334"></ins>
+                    <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+<script src="/static/js/bootstrap.min.js"></script>
+<script src="/static/js/prettify.js" type="text/javascript"></script>
+
+</body>
+</html>

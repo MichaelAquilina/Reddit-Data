@@ -1,0 +1,636 @@
+<!DOCTYPE html><!-- HTML 5 -->
+<html lang="en-US">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel="pingback" href="http://blog.xcelerit.com/xmlrpc.php" />
+	<meta property="fb:admins" content="1021742426" />
+	
+	<title>Benchmarks: Intel Xeon Phi vs. NVIDIA Tesla GPU</title>
+
+<link rel="alternate" type="application/rss+xml" title="Xcelerit&#039;s Blog &raquo; Feed" href="http://blog.xcelerit.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Xcelerit&#039;s Blog &raquo; Comments Feed" href="http://blog.xcelerit.com/comments/feed/" />
+
+            <script type="text/javascript">//<![CDATA[
+            // Google Analytics for WordPress by Yoast v4.3.5 | http://yoast.com/wordpress/google-analytics/
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-19168043-5']);
+				            _gaq.push(['_trackPageview']);
+            (function () {
+                var ga = document.createElement('script');
+                ga.type = 'text/javascript';
+                ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ga, s);
+            })();
+            //]]></script>
+			<link rel="alternate" type="application/rss+xml" title="Xcelerit&#039;s Blog &raquo; Benchmarks: Intel Xeon Phi vs. NVIDIA Tesla GPU Comments Feed" href="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/feed/" />
+<link rel='stylesheet' id='email-subscription_css-css'  href='http://blog.xcelerit.com/wp-content/plugins/email-subscription/assets/email-subscription.css?ver=0.50' type='text/css' media='all' />
+<link rel='stylesheet' id='ts_fab_css-css'  href='http://blog.xcelerit.com/wp-content/plugins/fancier-author-box/css/ts-fab.css?ver=1.0' type='text/css' media='all' />
+<link rel='stylesheet' id='wp-syntax-css-css'  href='http://blog.xcelerit.com/wp-content/plugins/wp-syntax/css/wp-syntax.css?ver=1.0' type='text/css' media='all' />
+<link rel='stylesheet' id='zee_stylesheet-css'  href='http://blog.xcelerit.com/wp-content/themes/zeesynergie/style.css?ver=3.9.1' type='text/css' media='all' />
+<link rel='stylesheet' id='zee_color_scheme-css'  href='http://blog.xcelerit.com/wp-content/themes/zeesynergie/includes/css/colorschemes/standard.css?ver=3.9.1' type='text/css' media='all' />
+<link rel='stylesheet' id='themezee_default_font-css'  href='http://fonts.googleapis.com/css?family=Paytone+One&#038;ver=3.9.1' type='text/css' media='all' />
+<link rel='stylesheet' id='really_simple_share_style-css'  href='http://blog.xcelerit.com/wp-content/plugins/really-simple-facebook-twitter-share-buttons/style.css?ver=3.9.1' type='text/css' media='all' />
+<script type='text/javascript' src='https://platform.linkedin.com/in.js?ver=3.9.1'></script>
+<script type='text/javascript' src='http://blog.xcelerit.com/wp-includes/js/jquery/jquery.js?ver=1.11.0'></script>
+<script type='text/javascript' src='http://blog.xcelerit.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=1.2.1'></script>
+<script type='text/javascript' src='http://blog.xcelerit.com/wp-content/plugins/fancier-author-box/js/ts-fab.js?ver=1.0'></script>
+<script type='text/javascript' src='http://blog.xcelerit.com/wp-content/themes/zeesynergie/includes/js/jquery.cycle.all.min.js?ver=3.9.1'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://blog.xcelerit.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://blog.xcelerit.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Breakfast Briefing: The Era of GPU Computing' href='http://blog.xcelerit.com/the-era-of-gpu-computing-has-arrived/' />
+<link rel='next' title='Do you think Xcelerit has the X-factor?' href='http://blog.xcelerit.com/do-you-think-xcelerit-has-the-x-factor/' />
+<meta name="generator" content="WordPress 3.9.1" />
+<link rel='shortlink' href='http://blog.xcelerit.com/?p=920' />
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-0000000-0']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+<link type="text/css" rel="stylesheet" href="http://blog.xcelerit.com/wp-content/plugins/latest-twitter-sidebar-widget/latest_twitter_widget.css" />
+<script type="text/javascript">
+        //<![CDATA[
+        
+      !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+      
+      window.___gcfg = {lang: "en"};
+		  (function() {
+		    var po = document.createElement("script"); po.type = "text/javascript"; po.async = true;
+		    po.src = "https://apis.google.com/js/plusone.js";
+		    var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(po, s);
+		  })();
+      
+        //]]>
+  		</script><script type="text/javascript">
+				//<![CDATA[
+					jQuery(document).ready(function($) {
+						$('#nav ul').css({display: 'none'}); // Opera Fix
+						$('#nav li').hover(function(){
+							$(this).find('ul:first').css({visibility: 'visible',display: 'none'}).show().css({opacity:0}).animate({opacity:1},400);
+						},function(){
+							$(this).find('ul:first').css({visibility: 'hidden'});
+						});
+					});
+				//]]>
+				</script><style type="text/css">#logo {
+  margin: 0 5px 0 15px;
+}
+
+#socialmedia_icons {
+  margin: 15px 30px 25px 0;
+}
+
+#header {
+  background: none;
+}
+#footer {
+  background: none;
+  padding-bottom: 0;
+}
+#foot {
+  color: #555555;
+  margin: 0px auto;
+  background: #eee;
+  border-top-left-radius: 10px;
+border-top-right-radius: 10px;
+padding-bottom: 20px;
+width: 950px;
+}
+/*
+#wrap {
+ border-bottom: 1px solid #ccc;
+}
+*/
+#head {
+margin: 0px auto;
+background: #eee;
+border-bottom-left-radius: 10px;
+border-bottom-right-radius: 10px;
+padding-top: 8px;
+width: 950px;
+}
+#navi_container {
+  width: 950px;
+}
+#navi {
+    float: left;
+    width: 950px;
+    margin: 0px;
+    padding: 0px;
+    background: #333;
+    list-style-type: none;
+   border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+#nav a {
+  padding: 8px 20px;
+}</style><!-- All in one Favicon 4.3 --><link rel="shortcut icon" href="http://www.xcelerit.com/wp-content/uploads/2013/01/favicon.ico" />
+<link rel="apple-touch-icon" href="http://www.xcelerit.com/wp-content/uploads/2013/01/favicon.png" />
+
+<!-- All in One SEO Pack 2.1.5 by Michael Torbert of Semper Fi Web Design[261,344] -->
+<link rel="canonical" href="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/" />
+<!-- /all in one seo pack -->
+<style type="text/css">.broken_link, a.broken_link {
+	text-decoration: line-through;
+}</style></head>
+
+<body class="single single-post postid-920 single-format-standard">
+<div id="wrapper">
+
+	<div id="header">
+
+		<div id="head">
+			<div id="logo">
+									<a href="http://blog.xcelerit.com"><img src="http://blog.xcelerit.com/wp-content/uploads/2014/06/logo_21.png" alt="Logo" /></a>
+							</div>
+			<div id="socialmedia_icons">
+				<a href="https://twitter.com/xcelerit"><img src="http://blog.xcelerit.com/wp-content/themes/zeesynergie/images/icons/twitter.png" alt="twitter" /></a><a href="http://ie.linkedin.com/company/xcelerit"><img src="http://blog.xcelerit.com/wp-content/themes/zeesynergie/images/icons/linkedin.png" alt="linkedin" /></a><a href="http://www.youtube.com/user/Xcelerit"><img src="http://blog.xcelerit.com/wp-content/themes/zeesynergie/images/icons/youtube.png" alt="youtube" /></a><a href="http://www.blog.xcelerit.com/feed"><img src="http://blog.xcelerit.com/wp-content/themes/zeesynergie/images/icons/rss.png" alt="rss" /></a>				<div class="clear"></div>
+			</div>
+			<div class="clear"></div>
+		</div>
+		
+		<div id="navi_container">
+			<div id="navi">
+							</div>
+		</div>
+		<div class="clear"></div>
+	</div>
+	
+	<div id="container">
+	
+	
+	<div id="wrap">
+		<div id="content">
+
+		
+			<div id="post-920" class="post-920 post type-post status-publish format-standard hentry category-benchmarks">
+			
+				<div class="postmeta">	<div class="postmeta_links">
+		<a href="http://blog.xcelerit.com/author/lotzej/" title="Posts by Jörg Lotze" class="url fn" rel="author">Jörg Lotze</a> |
+		<a href="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/">September 4, 2013</a>
+			</div>
+	<div class="postcomments">
+		<a href="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/#comments" title="Comment on Benchmarks: Intel Xeon Phi vs. NVIDIA Tesla GPU">2 comments</a>	</div>
+	<div class="clear"></div>
+</div>
+				
+				<h2 class="post-title">Benchmarks: Intel Xeon Phi vs. NVIDIA Tesla GPU</h2>
+				
+				<div class="entry">
+										<div style="min-height:33px;" class="really_simple_share really_simple_share_button robots-nocontent snap_nopreview"><div class="really_simple_share_linkedin" style="width:75px;"><script type="IN/Share"  data-url="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/"></script></div><div class="really_simple_share_twitter" style="width:75px;"><a href="https://twitter.com/share" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://twitter.com']);" class="twitter-share-button" data-count="none"  data-text="Benchmarks: Intel Xeon Phi vs. NVIDIA Tesla GPU via @xcelerit " data-url="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/"  data-via=""   ></a></div><div class="really_simple_share_facebook_share_new" style="width:75px;"><div class="fb-share-button" data-href="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/" data-type="button" data-width="75"></div></div><div class="really_simple_share_google1" style="width:40px;"><div class="g-plusone" data-size="medium" data-href="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/" data-annotation="none"></div></div><div class="really_simple_share_email" style="width:40px;"><a href="mailto:?subject=Benchmarks%3A%20Intel%20Xeon%20Phi%20vs.%20NVIDIA%20Tesla%20GPU&amp;body=Benchmarks%3A%20Intel%20Xeon%20Phi%20vs.%20NVIDIA%20Tesla%20GPU%20-%20http%3A%2F%2Fblog.xcelerit.com%2Fintel-xeon-phi-vs-nvidia-tesla-gpu%2F"><img src="http://blog.xcelerit.com/wp-content/plugins/really-simple-facebook-twitter-share-buttons/images/email.png"  alt="Email" title="Email" /> </a></div></div>
+		<div class="really_simple_share_clearfix"></div><h3><em>Accelerators battle for compute-intensive analytics in Finance</em></h3>
+<p>At Xcelerit, people often ask us: &#8220;Which is better, Intel Xeon Phi or NVIDIA Kepler?&#8221; The general answer has to be &#8220;it depends,&#8221; as this is heavily application-dependent. But what if we zoom-in on real-world problems in computational finance? The kinds of problems that quants in investment banks and the financial industry are dealing with every day. Let&#8217;s analyse two different financial applications and see how they perform on each platform. To cover different types of algorithms often found in finance, we chose an embarrassingly parallel Monte-Carlo algorithm (with full independent paths) for the first test application, and a Monte-Carlo algorithm with cross-path dependencies with iterative time-stepping for the second. </p>
+<p>[<strong>Update 1-Oct-2013:</strong> (American Monte-Carlo application only)]</p>
+<ul>
+<li>Algorithm update and avoiding temporary storage: affects GPU and Xeon Phi heavily, updated the performance numbers</li>
+<li>Updated performance figures for Ivy-Bridge CPU (<a href="http://ark.intel.com/products/75283/Intel-Xeon-Processor-E5-2697-v2-30M-Cache-2_70-GHz" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://ark.intel.com']);" title="Intel Xeon E5-2697-v2 processor specs" target="_blank">Xeon E5-2697 v2</a>) and Xeon Phi Processor (<a href="http://ark.intel.com/products/75799/Intel-Xeon-Phi-Coprocessor-7120P-16GB-1_238-GHz-61-core" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://ark.intel.com']);" title="Intel Xeon Phi 7120P specs" target="_blank">Xeon Phi 7120P</a>)</li>
+<li>Replaced absolute times with speed-ups vs. sequential for better readability</li>
+</ul>
+<table border="0" cellspacing="0" cellpadding="0" style="margin:0px;border:0px">
+<tr>
+<td width="50%" style="border:0px;vertical-align:middle">
+<div id="attachment_613" style="width: 260px" class="wp-caption alignnone"><a href="http://ark.intel.com/products/71992/Intel-Xeon-Phi-Coprocessor-5110P-8GB-1_053-GHz-60-core" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://ark.intel.com']);" title="Intel Xeon Phi 5110P Specifications" target="_blank"><img src="http://blog.xcelerit.com/wp-content/uploads/2013/03/Intel_Xeon_Phi_PCIe_Card_cropped-300x193.jpg" alt="Intel Xeon Phi 5110P PCIe Card" width="250"  class="wp-image-613" style="border:0px;padding-top:20px;padding-bottom:20px" /></a><p class="wp-caption-text">Intel Xeon Phi 5110P</p></div>
+</td>
+<td width="50%" style="border:0px;vertical-align:middle">
+<div id="attachment_480" style="width: 260px" class="wp-caption alignnone"><a href="http://www.nvidia.com/object/tesla-servers.html" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.nvidia.com']);" title="NVIDIA Tesla Server Processors" target="_blank"><img src="http://blog.xcelerit.com/wp-content/uploads/2012/11/nvidia-tesla-k20-gpu-accelerator2-300x240.jpg" alt="NVIDIA Tesla K20 GPU Accelerator" width="250"  class="wp-image-480" /></a><p class="wp-caption-text">NVIDIA Tesla K20X GPU</p></div>
+</td>
+</tr>
+</table>
+<p><span id="more-920"></span></p>
+<p><em>Note: </em>We chose to compare just one instrument pricing for each algorithm, as these are at the core of many performance-critical applications used in banks. For example, large batches of many thousands of instruments are priced at once, instruments are valued under many different risk scenarios, or prices are updated in real-time. As each pricing is independent, the performance typically scales linearly. In any case, reducing the execution time of a single pricing as much as possible is paramount. <em>All source code can be requested <a href="http://www.xcelerit.com/source-code-xeon-phi-vs-nvidia-tesla-gpu/"  title="Source code download request" target="_blank">here</a>.</em></p>
+<h3>Hardware Specifications</h3>
+<p>We&#8217;ll compare Intel&#8217;s <a href="http://ark.intel.com/products/71992/Intel-Xeon-Phi-Coprocessor-5110P-8GB-1_053-GHz-60-core" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://ark.intel.com']);" title="Intel Xeon Phi 5110P Specifications" target="_blank">Xeon Phi 5110P</a> (Xeon Phi) and NVIDIA&#8217;s <a href="http://www.nvidia.com/object/tesla-servers.html" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.nvidia.com']);" title="NVIDIA Tesla Server Processors" target="_blank">Tesla K20X</a> (Tesla GPU) processors for our test applications. For reference, we also run on Intel&#8217;s Sandy-Bridge <a href="http://ark.intel.com/products/64595/" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://ark.intel.com']);" title="Intel Xeon E5-2670 Specifications" target="_blank">Xeon E5-2670</a> server processor (Sandy-Bridge). Their hardware specifications are:</p>
+<table style="text-align:center;">
+<thead style="font-weight:bold;">
+<tr>
+<td/>
+<td>Xeon E5-2670</td>
+<td>Xeon Phi 5110P</td>
+<td>Tesla K20X</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">Cores</td>
+<td>8</td>
+<td>60</td>
+<td>14 <a href="http://www.nvidia.com/object/nvidia-kepler.html" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.nvidia.com']);" title="Kepler Architecture: SMX" target="_blank">SMX</a></td>
+</tr>
+<tr>
+<td align="left">Logical Cores</td>
+<td>16 (<a href="http://en.wikipedia.org/wiki/Hyper-threading" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://en.wikipedia.org']);" title="Hyper-threading (Wikipedia)" target="_blank">HT</a>)</td>
+<td>240 (<a href="http://en.wikipedia.org/wiki/Hyper-threading" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://en.wikipedia.org']);" title="Hyper-threading (Wikipedia)" target="_blank">HT</a>)</td>
+<td>2,688 CUDA cores</td>
+</tr>
+<tr>
+<td align="left">Frequency</td>
+<td>2.60GHz</td>
+<td>1.053GHz</td>
+<td>735MHz</td>
+</tr>
+<tr>
+<td align="left">GFLOPs (double)</td>
+<td>333</td>
+<td>1,010</td>
+<td>1,317</td>
+</tr>
+<tr>
+<td align="left">SIMD width</td>
+<td>256 Bits</td>
+<td>512 Bits</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td align="left">Memory</td>
+<td>~16-128GB</td>
+<td>8GB</td>
+<td>6GB</td>
+</tr>
+<tr>
+<td align="left">Memory B/W</td>
+<td>51.2GB/s</td>
+<td>320GB/s</td>
+<td>250GB/s</td>
+</tr>
+<tr>
+<td align="left">Threading</td>
+<td>software</td>
+<td>software</td>
+<td>hardware</td>
+</tr>
+</tbody>
+</table>
+<p>As can be seen, the features and architecture of the processors are very different, and from the theoretical GFLOPs and memory bandwidth, both the Xeon Phi and Tesla GPU should be similar in performance. However, as we&#8217;ll see later, theory and practice often diverge and for a given application the performance depends on many other factors. </p>
+<p>For example, to fully utilize both memory and processor, and in the absence of cache, the Sandy-Bridge CPU would need to perform 52 floating point operations for each 8-byte memory operation. Anything less would make the processor wait for data from memory, i.e., the application would be <em>memory-bound</em>. On the Xeon Phi, 25.3 operations per memory operation need to be performed, and the Tesla GPU needs 42.2 operations per memory access. If there are more operations than that, the application becomes <em>compute-bound</em>. However, with the presence of on-chip caches, this picture changes completely as data kept in cache can be accessed much faster than external memory. Performance also becomes less predictable, and it cannot be determined theoretically which processor is best for a given application and whether it is compute- or memory-bound.</p>
+<p>Further, applications are typically composed of sequential parts and parallel parts, and the overall application performance is heavily influenced by the fraction of the sequential part. If only half the application can be parallelised, the maximum achievable speedup by parallelisation is 2x, though it will be less than that in practice (<a href="http://en.wikipedia.org/wiki/Amdahl%27s_law" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://en.wikipedia.org']);" title="Amdahl's Law (Wikipedia)" target="_blank">Amdahl&#8217;s Law</a>).</p>
+<p>So let&#8217;s put these processors to the test for real-world applications.</p>
+<h3>Test Setup</h3>
+<p>To allow for a fair comparison of the processors, we&#8217;ve used the low-level programming tools and techniques to tune the application performance to the maximum for each platform, such as OpenMP threading, vectorization pragmas and attributes, hand-tuned CUDA kernels, native libraries (CUBLAS, MKL, etc.), and went through multiple iterations of profiler-assisted performance tuning. Thus there are three different code bases for each application, all hand-tuned. For the Xeon Phi, the applications have been executed natively on the co-processor (not using offload-mode). </p>
+<p>The test systems were configured as follows:</p>
+<table border="0" style="border:0px;text-align:left;">
+<tr style="border:0px;">
+<td style="border:0px;vertical-align:middle">
+<ul>
+<li style="list-style-position: inside;text-indent:-1em;"><a href="http://en.wikipedia.org/wiki/Hyper-threading" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://en.wikipedia.org']);" title="Hyper-threading (Wikipedia)" target="_blank">hyper-threading</a> on</li>
+<li style="list-style-position: inside;text-indent:-1em;"><a href="http://en.wikipedia.org/wiki/Intel_Turbo_Boost" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://en.wikipedia.org']);" title="Intel Turbo Boost" target="_blank">Turbo</a> and <a href="http://en.wikipedia.org/wiki/EIST" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://en.wikipedia.org']);" title="EIST (Intel SpeedStep)" target="_blank">EIST</a> off</li>
+<li style="list-style-position: inside;text-indent:-1em;"><a href="http://en.wikipedia.org/wiki/ECC_memory" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://en.wikipedia.org']);" title="ECC Memory" target="_blank">ECC</a> off</li>
+<li style="list-style-position: inside;text-indent:-1em;">Redhat Enterprise Linux 6 (64bit)</li>
+<li style="list-style-position: inside;text-indent:-1em;">Intel Compilers 14.0 (CPU + Phi)</li>
+<li style="list-style-position: inside;text-indent:-1em;">CUDA 5.5 compilers (GPU code)</li>
+<li style="list-style-position: inside;text-indent:-1em;"><a href="http://h10010.www1.hp.com/wwpc/us/en/sm/WF05a/15351-15351-3896136-3896139-4236125-5177941.html?dnr=1" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://h10010.www1.hp.com']);" title="HP ProLiant SL250s Gen8" target="_blank">HP ProLiant SL250s Gen8</a> Server, <br/><strong>Note:</strong> <em>Dual</em> Xeon E5-2670 CPUs</li>
+</ul>
+</td>
+<td style="border:0px;vertical-align:middle;text-align:left;" width="210px">
+<div id="attachment_1613" style="width: 220px" class="wp-caption alignnone"><a href="http://h10010.www1.hp.com/wwpc/us/en/sm/WF05a/15351-15351-3896136-3896139-4236125-5177941.html?dnr=1" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://h10010.www1.hp.com']);"><img src="http://blog.xcelerit.com/wp-content/uploads/2013/09/HPServer_180.png" alt="HP ProLiant SL250s Gen8 Server" width="115" height="180" class="size-full wp-image-949" style="text-align:left;padding-left:15px;padding-right:15px;"/></a><p class="wp-caption-text">HP ProLiant SL250s Gen8 Server</p></div>
+</td>
+</table>
+<h3>Application 1: Monte-Carlo LIBOR Swaption Portfolio Pricer</h3>
+<h4>Algorithm</h4>
+<p>Details of this algorithm have been <a href="http://blog.xcelerit.com/benchmarks-xcelerit-sdk-vs-cuda/"  title="Benchmarks: Xcelerit SDK vs. CUDA" target="_blank">previously</a> described. For convenience, we briefly summarise it here:</p>
+<p>A Monte-Carlo simulation is used to price a portfolio of LIBOR swaptions. Thousands of possible future development paths for the LIBOR interest rate are simulated using normally-distributed random numbers. For each of these Monte-Carlo paths, the value of the swaption portfolio is computed by applying a portfolio payoff function. The equations for computing the LIBOR rates and payoff are given <a href="http://people.maths.ox.ac.uk/gilesm/codes/libor/libor_notes.pdf" onclick="javascript:_gaq.push(['_trackEvent','download','http://people.maths.ox.ac.uk/gilesm/codes/libor/libor_notes.pdf']);" title="M. Giles: LIBOR notes" target="_blank">in Prof. Mike Giles&#8217; notes</a>. Furthermore, the sensitivity of the portfolio value with respect to changes in the underlying interest rate is computed using an adjoint method. This sensitivity is a <a href="http://en.wikipedia.org/wiki/Greeks_%28finance%29" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://en.wikipedia.org']);" title="Wikipedia: Greeks" target="_blank">Greek</a>, called λ, and its computation is detailed in the paper <a href="http://eprints.maths.ox.ac.uk/1090/1/NA-07-12.pdf" onclick="javascript:_gaq.push(['_trackEvent','download','http://eprints.maths.ox.ac.uk/1090/1/NA-07-12.pdf']);">Monte Carlo evaluation of sensitivities in computational finance</a>. Both the final portfolio value and the λ value are obtained by computing the mean over all per-path values. The algorithm is illustrated in the following graph:</p>
+<p><img src="http://blog.xcelerit.com/wp-content/uploads/2012/09/libor_graph3.png" alt="Monte-Carlo LIBOR Swaption Portfolio Pricing Algorithm" width="450" class="aligncenter size-full wp-image-222" /></p>
+<h4>Performance</h4>
+<p>The algorithm has been executed on all three platforms, in double precision, for varying numbers of paths. The portfolio consisted of 15 swaptions, simulated for 40 time steps. For reference, we&#8217;ve also included a straightforward sequential C++ implementation, running on a single core of the Sandy-Bridge CPU. The results are listed in the table below:</p>
+<table style="text-align:center;margin-bottom:0px;">
+<thead style="font-weight:bold;">
+<tr>
+<td>Paths</td>
+<td>Sequential</td>
+<td>Sandy-Bridge CPU<sup style="font-weight:normal;font-size:11px;">1,2</sup></td>
+<td>Xeon Phi<sup style="font-weight:normal;font-size:11px;">1,2</sup></td>
+<td>Tesla GPU<sup style="font-weight:normal;font-size:11px;">2</sup></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>128K</td>
+<td>13,062ms</td>
+<td>  694ms</td>
+<td>  603ms</td>
+<td>146ms</td>
+</tr>
+<tr>
+<td>256K</td>
+<td>26,106ms</td>
+<td>1,399ms</td>
+<td>  795ms</td>
+<td>280ms</td>
+</tr>
+<tr>
+<td>512K</td>
+<td>52,223ms</td>
+<td>2,771ms</td>
+<td>1,200ms</td>
+<td>543ms</td>
+</tr>
+</tbody>
+</table>
+<table cellpadding="0" cellspacing="0" style="font-size:11px;border:0px;text-align=left;line-height:120%;margin-top:0px">
+<tr >
+<td style="border:0px" height="100%"><sup>1</sup>&nbsp;The Sandy-Bridge and Phi implementations make use of SIMD vector intrinsics.</td>
+</tr>
+<tr >
+<td style="border:0px" height="100%"><sup>2</sup>&nbsp;The MRG32K3a random generator from the cuRAND library (GPU) and MKL library (Sandy-Bridge/Phi) were used.</td>
+</tr>
+</table>
+<p>For this application it can be clearly seen that NVIDIA&#8217;s Tesla GPU outperforms both other platforms significantly, being 5.1x faster than the multi-core dual Sandy-Bridge CPU and 2.2x faster than the Xeon Phi (512K paths). The Xeon Phi is 2.3x faster than the Sandy-Bridge. Moreover, compared to the sequential implementation, the optimized Sandy-Bridge is 19x as fast, the Phi is 43.5x as fast, and the Kepler GPU is 96x as fast.</p>
+<p>This algorithm is embarrassingly parallel with completely independent Monte-Carlo paths, which suits parallel accelerator processors very well. The full application is parallelisable with no sequential parts and very little synchronization is required. In addition, the algorithm is clearly compute-bound, with a substantial amount of math and relatively little memory access. This is ideal for GPUs and a similar performance can be expected for other Monte-Carlo simulations with similar characteristics.</p>
+<h3>Application 2: Monte-Carlo Pricing of American Options</h3>
+<h4>Algorithm</h4>
+<p>This application prices a vanilla American put option using a Monte-Carlo simulation. In contrast to European options, which can only be exercised at maturity, American options can be exercised at any time. This poses an additional complexity for Monte-Carlo pricers, as the option&#8217;s value for early exercise at each time step needs to be evaluated and compared to the expected value when not exercising it at this step. This is typically solved with a <a href="http://www.math.ethz.ch/~hjfurrer/teaching/LongstaffSchwartzAmericanOptionsLeastSquareMonteCarlo.pdf" onclick="javascript:_gaq.push(['_trackEvent','download','http://www.math.ethz.ch/~hjfurrer/teaching/LongstaffSchwartzAmericanOptionsLeastSquareMonteCarlo.pdf']);" title="Longstaff-Schwartz, Valuing American Options by Simulation: A Simple Least-Squares Approach" target="_blank">Longstaff-Schwartz</a> algorithm, which involves computing regression coefficients across all paths to go from one time step to the previous one. Thus, the algorithm walks iteratively backwards in time, starting from the final time step, and involves a regression across paths. The Monte-Carlo paths are not independent and all time steps need to be solved iteratively, with parallelisation opportunities only within each step and for the initial asset price generation. The final price is the average of all paths at time step zero. The algorithm is illustrated in the following graph:</p>
+<p><img src="http://blog.xcelerit.com/wp-content/uploads/2013/09/amc_graph.png" alt="Monte-Carlo for American Options Algorithm" width="497" height="74" class="aligncenter size-full wp-image-954" style="padding-top:30px;padding-bottom:30px" /></p>
+<h4>Performance</h4>
+<p>The performance has been measured on all platforms for different numbers of Monte-Carlo paths, using 256 time steps each and 3 regression coefficients. We&#8217;re giving speed-ups vs. a sequential reference implementation running on a single core of the Ivy-Bridge processor. The results are:</p>
+<table style="text-align:center;margin-bottom:0px">
+<thead style="font-weight:bold;">
+<tr>
+<td>Paths</td>
+<td>Ivy-Bridge CPU<sup style="font-weight:normal;font-size:11px;">1,2</sup></td>
+<td>Xeon Phi<sup style="font-weight:normal;font-size:11px;">1,2</sup></td>
+<td>Tesla GPU<sup style="font-weight:normal;font-size:11px;">2,3</sup></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>128K</td>
+<td>41.8x</td>
+<td>20.9x</td>
+<td>52.9x</td>
+</tr>
+<tr>
+<td>256K</td>
+<td>48.5x</td>
+<td>31.0x</td>
+<td>71.8x</td>
+</tr>
+<tr>
+<td>512K</td>
+<td>45.2x</td>
+<td>39.7x</td>
+<td>86.6x</td>
+</tr>
+</tbody>
+</table>
+</table>
+<table cellpadding="0" cellspacing="0" style="font-size:11px;border:0px;text-align=left;line-height:120%;margin-top:0px">
+<tr >
+<td style="border:0px" height="100%"><sup>1</sup>&nbsp;The Ivy-Bridge and Phi implementations make use of OpenMP and vectorization pragmas/attributes as much as possible.</td>
+</tr>
+<tr >
+<td style="border:0px" height="100%"><sup>2</sup>&nbsp;&nbsp;The MRG32K3a random generator from the cuRAND library (GPU) and MKL library (Ivy-Bridge/Phi) were used.</td>
+</tr>
+<tr >
+<td style="border:0px" height="100%"><sup>3</sup>&nbsp;Many small CUDA kernels need to be executed on the GPU, as parallelisation can only be done within each time step</td>
+</tr>
+</table>
+<p>The Tesla GPU is about twice faster than the Xeon Phi, and between 1.2x and 1.9x faster than the CPU. The difference between CPU and GPU performance is significantly less as for the LIBOR swaption pricer above, and for 128K paths the results are comparable.</p>
+<p>This outcome can be explained by the iterative nature of the algorithm and by the heavy memory operations involved. The CPU is optimised for general-purpose workloads, has larger caches, and can solve iterative problems very well. </p>
+<p><em>Note:</em> There is an approximate version of a Monte-Carlo pricer for American options that is more suited for parallel architectures which is expected to give better performance on both Xeon Phi and Tesla GPU (Glasserman, 2003: &#8220;Monte Carlo Methods in Financial Engineering&#8221;). It computes the regression coefficients in an initial step, using a much smaller number of paths, and applies these in a full simulation over all paths later. This full simulation does not require the regression step, i.e., each Monte-Carlo path is fully independent, and can therefore be fully parallelised across all paths. However, this method is controversial among quantitative analysts and gives slightly different results. Thus, we did not include it in these benchmarks.</p>
+<h3>Conclusions</h3>
+<blockquote><p>We&#8217;ve seen that there is one processor that needs to be added to the picture &#8212; the commodity multi-core CPU. This is already a part of many server configurations, and for some applications, e.g., Monte-Carlo pricing of American options, it can give better or comparable performance than an accelerator processor when optimized correctly. Between NVIDIA&#8217;s Kepler GPUs and Xeon Phi, the GPU wins for both of our test applications.</p></blockquote>
+<p>However, the results are close and we can expect this picture to change for other applications. Further, the Xeon Phi is brand-new (released 2013), while NVIDIA Tesla range is around since 2007 &#8212; the GPU is thus a more mature accelerator platform.</p>
+<p>Hand-tuning the code for all three platforms for the highest performance requires significant expertise, time, and a deep knowledge of the target hardware. One way to side-step this effort is to use the <a href="http://www.xcelerit.com/xcelerit-sdk/"  title="The Xcelerit SDK" target="_blank">Xcelerit SDK</a>. With just minor modifications to existing code, performance <a href="http://blog.xcelerit.com/benchmarks-xcelerit-sdk-vs-cuda/"  title="Benchmarks: Xcelerit SDK vs. CUDA" target="_blank">close to manually optimized code</a> can be achieved without any hand-tuning. What&#8217;s more, a single code base can then run on multi-core, GPU, or any supported hybrid configuration. </p>
+<p><strong>Register to receive updates:</strong></p>
+<div class="salesforce_w2l_lead"><form id="salesforce_w2l_lead_2" class="w2llead top-aligned" method="post" action="#salesforce_w2l_lead_2"><div class="sf_field sf_field_first_name sf_type_text">	<label class="w2llabel required  text" for="sf_first_name">First name: <sup><span class="required">*</span></sup></label>	<input placeholder="" value="" id="sf_first_name" class="w2linput text" name="first_name" type="text"/></div><div class="sf_field sf_field_last_name sf_type_text">	<label class="w2llabel required  text" for="sf_last_name">Last name: <sup><span class="required">*</span></sup></label>	<input placeholder="" value="" id="sf_last_name" class="w2linput text" name="last_name" type="text"/></div><div class="sf_field sf_field_email sf_type_text">	<label class="w2llabel required  text" for="sf_email">Email : <sup><span class="required">*</span></sup></label>	<input placeholder="" value="" id="sf_email" class="w2linput text" name="email" type="text"/></div>		<input type="hidden" id="sf_Campaign_ID" class="w2linput hidden" name="Campaign_ID" value="70120000000nRMO"><div class="sf_field sf_field_captcha sf_type_captcha"><label class="w2llabel">Type the text shown: *</label>				<img class="w2limg" src="http://blog.xcelerit.com/wp-admin/admin-ajax.php?action=sfw2l_get_captcha&_CAPTCHA=true&amp;t=0.13605400+1404219137&hash=247eb50ae1e6c41e02af5690f4990a95e9d1dcd2" alt="CAPTCHA image" /><input type="text" class="w2linput text captcha" name="captcha_text" value=""><input type="hidden" class="w2linput hidden" name="captcha_hash" value="247eb50ae1e6c41e02af5690f4990a95e9d1dcd2"></div>	<input type="text" name="message" class="w2linput" value="" style="display: none;"/>	<input type="hidden" name="form_id" class="w2linput" value="2" />	<div class="w2lsubmit"><input type="submit" name="w2lsubmit" class="w2linput submit" value="Submit"/></div></form><p class="sf_required_fields_msg" id="requiredfieldsmsg"><sup><span class="required">*</span></sup> These fields are required.</p></div>
+<div style="min-height:33px;" class="really_simple_share really_simple_share_button robots-nocontent snap_nopreview"><div class="really_simple_share_linkedin" style="width:75px;"><script type="IN/Share"  data-url="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/"></script></div><div class="really_simple_share_twitter" style="width:75px;"><a href="https://twitter.com/share" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://twitter.com']);" class="twitter-share-button" data-count="none"  data-text="Benchmarks: Intel Xeon Phi vs. NVIDIA Tesla GPU via @xcelerit " data-url="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/"  data-via=""   ></a></div><div class="really_simple_share_facebook_share_new" style="width:75px;"><div class="fb-share-button" data-href="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/" data-type="button" data-width="75"></div></div><div class="really_simple_share_google1" style="width:40px;"><div class="g-plusone" data-size="medium" data-href="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/" data-annotation="none"></div></div><div class="really_simple_share_email" style="width:40px;"><a href="mailto:?subject=Benchmarks%3A%20Intel%20Xeon%20Phi%20vs.%20NVIDIA%20Tesla%20GPU&amp;body=Benchmarks%3A%20Intel%20Xeon%20Phi%20vs.%20NVIDIA%20Tesla%20GPU%20-%20http%3A%2F%2Fblog.xcelerit.com%2Fintel-xeon-phi-vs-nvidia-tesla-gpu%2F"><img src="http://blog.xcelerit.com/wp-content/plugins/really-simple-facebook-twitter-share-buttons/images/email.png"  alt="Email" title="Email" /> </a></div></div>
+		<div class="really_simple_share_clearfix"></div><div id="ts-fab-below" class="ts-fab-wrapper"><span class="screen-reader-text">The following two tabs change content below.</span><ul class="ts-fab-list"><li class="ts-fab-bio-link"><a href="#ts-fab-bio-below">Bio</a></li><li class="ts-fab-latest-posts-link"><a href="#ts-fab-latest-posts-below">Latest Posts</a></li></ul><div class="ts-fab-tabs">
+	<div class="ts-fab-tab" id="ts-fab-bio-below">
+		<div class="ts-fab-avatar"><img alt='' src='http://1.gravatar.com/avatar/d0e4b45a5ee17b487c1b83da37665643?s=80&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="ts-fab-social-links"><a href="http://www.linkedin.com/in/../pub/j%C3%B6rg-lotze/25/424/80b/" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.linkedin.com']);" title="LinkedIn" rel="nofollow"><img src="http://blog.xcelerit.com/wp-content/plugins/fancier-author-box/images/linkedin.png" width="24" height="24" alt="My LinkedIn profile" /></a></div>
+		</div>
+		
+		<div class="ts-fab-text">
+			<div class="ts-fab-header"><h4>Jörg Lotze</h4><div class="ts-fab-description"><span>Technical Lead and Co-Founder</span> at <a href="http://www.xcelerit.com"  rel="nofollow"><span>Xcelerit</span></a></div></div><!-- /.ts-fab-header -->
+			<div class="ts-fab-content"></div>
+		</div>
+	</div>
+	<div class="ts-fab-tab" id="ts-fab-latest-posts-below">
+		<div class="ts-fab-avatar"><img alt='' src='http://1.gravatar.com/avatar/d0e4b45a5ee17b487c1b83da37665643?s=80&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="ts-fab-social-links"><a href="http://www.linkedin.com/in/../pub/j%C3%B6rg-lotze/25/424/80b/" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.linkedin.com']);" title="LinkedIn" rel="nofollow"><img src="http://blog.xcelerit.com/wp-content/plugins/fancier-author-box/images/linkedin.png" width="24" height="24" alt="My LinkedIn profile" /></a></div>
+		</div>
+		<div class="ts-fab-text">
+			<div class="ts-fab-header">
+				<h4>Latest posts by Jörg Lotze <span class="latest-see-all">(<a href="http://blog.xcelerit.com/author/lotzej/"  rel="nofollow">see all</a>)</span></h4>
+			</div>
+			<ul class="ts-fab-latest">
+				<li>
+					<a href="http://blog.xcelerit.com/white-paper-xva-coping-with-the-tsunami-of-compute-load/" >White Paper: xVA &#8211; Coping with the Tsunami of Compute Load</a><span> - March 4, 2014</span> 
+				</li>
+				<li>
+					<a href="http://blog.xcelerit.com/benchmarks-nvidia-tesla-k40-vs-k20x-gpu/" >Benchmarks: NVIDIA Tesla K40 vs. K20X GPU</a><span> - November 20, 2013</span> 
+				</li>
+				<li>
+					<a href="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/" >Benchmarks: Intel Xeon Phi vs. NVIDIA Tesla GPU</a><span> - September 4, 2013</span> 
+				</li>
+		</ul></div>
+	</div>
+		</div>
+	</div>					<div class="clear"></div>
+										<!-- <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+			xmlns:dc="http://purl.org/dc/elements/1.1/"
+			xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+		<rdf:Description rdf:about="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/"
+    dc:identifier="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/"
+    dc:title="Benchmarks: Intel Xeon Phi vs. NVIDIA Tesla GPU"
+    trackback:ping="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/trackback/" />
+</rdf:RDF> -->			
+				</div>
+				
+				<div class="postinfo">Category: <a href="http://blog.xcelerit.com/category/benchmarks/" title="View all posts in Benchmarks" rel="category tag">Benchmarks</a> | 
+</div>
+
+			</div>
+					
+		
+<!-- You can start editing here. -->
+
+
+<div id="comments">
+	<h3>2 comments</h3>
+
+		
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 parent" id="comment-305">
+				<div id="div-comment-305" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/0ac9d0c3d23e1137daecdc795fd88d17?s=48&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />			<cite class="fn">Alex Gaysinsky</cite> <span class="says">says:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/#comment-305">
+			November 7, 2013 at 2:51 am</a>		</div>
+
+		<p>Excellent analysis! However, to make it fair &#8211; you might want to compare $/perf too.<br />
+Xeon E5-2670 is $2.6K while Xeon Phi 5110P is $4.1k.</p>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/intel-xeon-phi-vs-nvidia-tesla-gpu/?replytocom=305#respond' onclick='return addComment.moveForm("div-comment-305", "305", "respond", "920")'>Reply</a>		</div>
+				</div>
+		<ul class="children">
+		<li class="comment byuser comment-author-lotzej bypostauthor odd alt depth-2" id="comment-307">
+				<div id="div-comment-307" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d0e4b45a5ee17b487c1b83da37665643?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />			<cite class="fn">Jörg Lotze</cite> <span class="says">says:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="http://blog.xcelerit.com/intel-xeon-phi-vs-nvidia-tesla-gpu/#comment-307">
+			November 7, 2013 at 12:18 pm</a>		</div>
+
+		<p>Good suggestion Alex, that might be the topic for another post! <img src="http://blog.xcelerit.com/wp-includes/images/smilies/icon_smile.gif" alt=":-)" class="wp-smiley" /> </p>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/intel-xeon-phi-vs-nvidia-tesla-gpu/?replytocom=307#respond' onclick='return addComment.moveForm("div-comment-307", "307", "respond", "920")'>Reply</a>		</div>
+				</div>
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	</ol>
+
+	</div>
+ 
+									<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/intel-xeon-phi-vs-nvidia-tesla-gpu/#respond" style="display:none;">Cancel reply</a></small></h3>
+									<form action="http://blog.xcelerit.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+																			<p class="comment-notes">Your email address will not be published. Required fields are marked <span class="required">*</span></p>							<p class="comment-form-author"><label for="author">Name <span class="required">*</span></label> <input id="author" name="author" type="text" value="" size="30" aria-required='true' /></p>
+<p class="comment-form-email"><label for="email">Email <span class="required">*</span></label> <input id="email" name="email" type="text" value="" size="30" aria-required='true' /></p>
+<p class="comment-form-url"><label for="url">Website</label> <input id="url" name="url" type="text" value="" size="30" /></p>
+<p class="cptch_block"><label>Just so we can make sure you’re a human being please answer the question below<span class="required"> *</span></label><br />		<input type="hidden" name="cptch_result" value="KxA=" />
+		<input type="hidden" name="cptch_time" value="1404219136" />
+		<input type="hidden" value="Version: 2.4" />
+		&#116;&#104;&#114;ee &minus; 1 =  <input id="cptch_input" type="text" autocomplete="off" name="cptch_number" value="" maxlength="2" size="2" aria-required="true" required="required" style="margin-bottom:0;display:inline;font-size: 12px;width: 40px;" />	</p>												<p class="comment-form-comment"><label for="comment">Comment</label> <textarea id="comment" name="comment" cols="45" rows="8" aria-required="true"></textarea></p>												<p class="form-submit">
+							<input name="submit" type="submit" id="submit" value="Post Comment" />
+							<input type='hidden' name='comment_post_ID' value='920' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+						</p>
+						<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="4eaad753e6" /></p><script type='text/javascript' src='http://blog.xcelerit.com/wp-content/plugins/akismet/_inc/form.js?ver=3.0.0'></script>
+<p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="132"/></p>					</form>
+							</div><!-- #respond -->
+			        <script type="text/javascript">
+            jQuery(document).ready(function () {
+                jQuery('#commentform').submit(function () {
+                    _gaq.push(
+                            ['_setAccount', 'UA-19168043-5'],
+                            ['_trackEvent', 'comment', 'submit']
+                    );
+                });
+            });
+        </script>
+			<div class="clear"></div>
+		
+		</div>
+		
+		
+<div id="sidebar">
+	<ul>
+
+<li id="search-2" class="widget widget_search"><form role="search" method="get" id="searchform" class="searchform" action="http://blog.xcelerit.com/">
+				<div>
+					<label class="screen-reader-text" for="s">Search for:</label>
+					<input type="text" value="" name="s" id="s" />
+					<input type="submit" id="searchsubmit" value="Search" />
+				</div>
+			</form></li>
+<li id="text-2" class="widget widget_text"><h2 class="widgettitle">About</h2>
+			<div class="textwidget"><b><a href="http://www.xcelerit.com"   target="_blank">Xcelerit</a></b> is the leader in cross-platform software acceleration tools for Financial Services and engineering. More information at: <b><a href="http://www.xcelerit.com"   target="_blank">www.xcelerit.com</a></b>
+</div>
+		</li>
+<li id="emailsubscriptionwidget-2" class="widget EmailSubscriptionWidget"><h2 class="widgettitle">Subscribe to our Blog</h2>
+        <ul id='emailSub-widget'>
+            <div id="emailSub-output" style="display:none;"></div>
+            <form id="emailSub-form" action="http://blog.xcelerit.com/wp-admin/admin-ajax.php">
+                <input type="hidden" name="success_msg" id="emailSub-success" value="Thank you for subscribing" />
+                <input type="hidden" name="fail_msg" id="emailSub-fail" value="Some unexpeded error occurred" />
+                                <input type="text" name="email" id="emailSub-email" placeholder="Email:" />
+                <br />
+                <input type="submit" class="submit" value="Subscribe" />
+                            </form>
+
+
+
+        </ul>
+        </li>
+<li id="text-3" class="widget widget_text"><h2 class="widgettitle">Latest Tweets</h2>
+			<div class="textwidget"><a class="twitter-timeline"  href="https://twitter.com/xcelerit" onclick="javascript:_gaq.push(['_trackEvent','outbound-widget','http://twitter.com']);"  data-widget-id="360428489515606016">Tweets by @xcelerit</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+</div>
+		</li>
+		<li id="recent-posts-2" class="widget widget_recent_entries">		<h2 class="widgettitle">Recent Posts</h2>
+		<ul>
+					<li>
+				<a href="http://blog.xcelerit.com/xcelerit-keeps-delegates-alert-at-global-derivatives-amsterdam/">Xcelerit Keeps Delegates Alert at Global Derivatives, Amsterdam</a>
+						</li>
+					<li>
+				<a href="http://blog.xcelerit.com/london-gets-ready-for-the-new-normal-risk-aware-otc-pricing-seminar-hits-the-spot/">London gets ready for the New Normal : Risk Aware OTC-Pricing Seminar Hits the Spot</a>
+						</li>
+					<li>
+				<a href="http://blog.xcelerit.com/white-paper-xva-coping-with-the-tsunami-of-compute-load/">White Paper: xVA &#8211; Coping with the Tsunami of Compute Load</a>
+						</li>
+					<li>
+				<a href="http://blog.xcelerit.com/xcelerit-sdk-version-2-5-released/">Xcelerit SDK version 2.5 Released</a>
+						</li>
+					<li>
+				<a href="http://blog.xcelerit.com/xcelerit-goes-to-college/">Xcelerit goes to College</a>
+						</li>
+				</ul>
+		</li>
+<li id="categories-2" class="widget widget_categories"><h2 class="widgettitle">Categories</h2>
+		<ul>
+	<li class="cat-item cat-item-33"><a href="http://blog.xcelerit.com/category/awards/" title="View all posts filed under Awards">Awards</a>
+</li>
+	<li class="cat-item cat-item-9"><a href="http://blog.xcelerit.com/category/benchmarks/" title="View all posts filed under Benchmarks">Benchmarks</a>
+</li>
+	<li class="cat-item cat-item-23"><a href="http://blog.xcelerit.com/category/events/" title="View all posts filed under Events">Events</a>
+</li>
+	<li class="cat-item cat-item-26"><a href="http://blog.xcelerit.com/category/latest-news/" title="View all posts filed under Latest News">Latest News</a>
+</li>
+	<li class="cat-item cat-item-31"><a href="http://blog.xcelerit.com/category/success-stories/" title="View all posts filed under Success Stories">Success Stories</a>
+</li>
+	<li class="cat-item cat-item-32"><a href="http://blog.xcelerit.com/category/trends/" title="View all posts filed under Trends">Trends</a>
+</li>
+	<li class="cat-item cat-item-10"><a href="http://blog.xcelerit.com/category/tutorials/" title="View all posts filed under Tutorials">Tutorials</a>
+</li>
+	<li class="cat-item cat-item-34"><a href="http://blog.xcelerit.com/category/white-papers/" title="View all posts filed under White Papers">White Papers</a>
+</li>
+		</ul>
+</li>
+<li id="theme_socialmedia-2" class="widget theme_socialmedia"><h2 class="widgettitle">Stay in Touch!</h2>
+			<div class="widget-social-icons">
+				
+			<a href="https://twitter.com/xcelerit"><img src="http://blog.xcelerit.com/wp-content/themes/zeesynergie/images/icons/twitter.png" alt="twitter" /></a><a href="http://ie.linkedin.com/company/xcelerit"><img src="http://blog.xcelerit.com/wp-content/themes/zeesynergie/images/icons/linkedin.png" alt="linkedin" /></a><a href="http://www.youtube.com/user/Xcelerit"><img src="http://blog.xcelerit.com/wp-content/themes/zeesynergie/images/icons/youtube.png" alt="youtube" /></a><a href="http://www.blog.xcelerit.com/feed"><img src="http://blog.xcelerit.com/wp-content/themes/zeesynergie/images/icons/rss.png" alt="rss" /></a>			</div>
+		</li>
+	
+	</ul>
+</div>	</div>
+	
+	</div>
+	<div id="footer">
+		<div id="foot">
+			<div style="float:left;font-weight:normal">COPYRIGHT © 2010-2014 XCELERIT COMPUTING LIMITED</div>
+<div style="float:right;font-weight:normal"><a href="/legal-terms/" style="color:#555555">Legal Terms</a> | <a href="/privacy-policy/" style="color:#555555">Privacy Policy</a></div>			<div class="clear"></div>
+		</div>
+	</div>
+</div>
+	
+		<div id="fb-root"></div>
+		<script>(function(d, s, id) {
+		  var js, fjs = d.getElementsByTagName(s)[0];
+		  if (d.getElementById(id)) return;
+		  js = d.createElement(s); js.id = id;
+		  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+		  fjs.parentNode.insertBefore(js, fjs);
+		}(document, "script", "facebook-jssdk"));</script><link rel='stylesheet' id='sfwp2lcss-css'  href='http://blog.xcelerit.com/wp-content/plugins/salesforce-wordpress-to-lead/assets/css/sfwp2l.css?ver=3.9.1' type='text/css' media='all' />
+<script type='text/javascript' src='http://blog.xcelerit.com/wp-includes/js/comment-reply.min.js?ver=3.9.1'></script>
+<script type='text/javascript' src='http://blog.xcelerit.com/wp-content/plugins/email-subscription/assets/email-subscription.js?ver=1.0'></script>
+</body>
+</html>
+<!-- Performance optimized by W3 Total Cache. Learn more: http://www.w3-edge.com/wordpress-plugins/
+
+Page Caching using memcached
+Object Caching 943/971 objects using memcached
+
+ Served from: blog.xcelerit.com @ 2014-07-01 12:52:17 by W3 Total Cache -->

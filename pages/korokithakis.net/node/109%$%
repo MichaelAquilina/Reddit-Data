@@ -1,0 +1,483 @@
+
+
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <title>Optimizing python with Cython - Stavros&#39; Stuff</title>
+
+        <meta http-equiv="X-XRDS-Location" content="//www.stavros.io/files/xrds" />
+        <meta http-equiv="X-Yadis-Location" content="//www.stavros.io/files/xrds" />
+        
+        <link rel="canonical" href="//www.stavros.io/posts/optimizing-python-with-cython/"/>
+        
+
+        <link rel="shortcut icon" type="image/x-icon" href="/media/images/favicon-0d350534022056c0dbf839720d461d8751cc5fae.png">
+
+        <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0" />
+
+        <!--[if IE]>
+        <link rel="stylesheet" type="text/css" href="/media/ie9-be333572057c83aa058d5ecb874a763a288cd8c3.css" />
+        <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        <!--[if lt IE 9]>
+        <link rel="stylesheet" type="text/css" href="/media/ie-5b4684adae0e7d6208c60e1c9103ed59f30ceee0.css" />
+        <![endif]-->
+
+        
+        
+
+        <script type="text/javascript">
+            document.documentElement.className = 'js';
+        </script>
+
+        <link rel="alternate" type="application/rss+xml" title="Stavros&#39; Stuff full posts feed" href="http://feeds.feedburner.com/stavrosstuff" />
+
+        <link href='//fonts.googleapis.com/css?family=Lato:300,400,700|Raleway:400,200,300,600,800' rel='stylesheet' type='text/css'>
+        <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+
+        <link rel="stylesheet" type="text/css" href="/media/main-44be28796b4c3e0f474b5b4ca993992f7a180b5b.css" />
+
+        <style type="text/css">
+            a, #cancel-comment-reply i, #content .meta a, .post-navigation a:hover, .post-navigation li:hover i, .logo-text:hover i, #sidebar .widget li:before {
+            color: #48ADD8
+            ;
+            }
+            .logo-text, .next-prev a, #commentform #submit, .wpcf7-submit, .header .search-form .submit, .search-form .submit, .hero h3, .search-form .submit, .pull-quote, .flex-direction-nav a:hover, .tagcloud a {
+            background: #48ADD8
+            ;
+            }
+            .pull-quote:after {
+            border-top: 20px solid #48ADD8
+            ;
+            }
+        </style>
+        <script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-51110-6']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+</head>
+
+    </head>
+    <body class="single">
+        <div class="header-wrap clearfix">
+            <div class="header-search-hidden">
+                <a class="header-search-hidden-close" href="#"><i class="icon-remove"></i></a>
+                <form class="search-form clearfix">
+                    <fieldset>
+                        <input type="text" class="search-form-input text" name="q" onfocus="if (this.value == 'Search the site &hellip;') {this.value = '';}" onblur="if (this.value == '') {this.value = 'Search the site &hellip;';}" value="Search the site &hellip;"/>
+                        <input type="submit" value="Search" class="submit search-button" />
+                    </fieldset>
+                </form>
+            </div>
+            <div class="container">
+                <header class="header">
+                    <!-- grab the logo and site title -->
+                    <hgroup>
+                    <h1 class="logo-text"><a href="/" title="Stavros&#39; Stuff">Stavros&#39; Stuff</a></h1>
+                        <h2 class="logo-subtitle">Angry rants of programming and other things.</h2>
+                    </hgroup>
+                    <nav role="navigation" class="header-nav">
+                        <!-- nav menu -->
+                        <div class="menu-header-container">
+                            <ul id="menu-header" class="nav">
+                                <li class="menu-item menu-item-type-custom menu-item-object-custom">
+                                    <a href="#">Tutorials</a>
+                                    <ul class="sub-menu">
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/tutorials/python/">Learn Python in Ten Minutes</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/tutorials/online-security/">How to keep yourself secure online</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/tutorials/icecast/">How to create an internet radio station</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/tutorials/bittorrent/">How to use BitTorrent to send files</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/tutorials/bittorrent/download/">How to download files with uTorrent</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/tutorials/email/">How to delete emails on a POP3 server</a></li>
+                                    </ul>
+                                </li>
+                                <li class="menu-item menu-item-type-custom menu-item-object-custom">
+                                    <a href="#">Downloads</a>
+                                    <ul class="sub-menu">
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/downloads/">Downloads</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/scripting/">Various scripts</a></li>
+                                    </ul>
+                                </li>
+                                <li class="menu-item menu-item-type-custom menu-item-object-custom">
+                                    <a href="#">Various</a>
+                                    <ul class="sub-menu">
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/projects/">My projects</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/photography/">Photography</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/freelance-python-developer/">Freelance Python developer</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="https://github.com/skorokithakis/">My GitHub</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="http://resume.stavros.io/">My résumé</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/about/">About me</a></li>
+                                    </ul>
+                                </li>
+                                <li class="menu-item menu-item-type-custom menu-item-object-custom">
+                                    <a href="#">Archives</a>
+                                    <ul class="sub-menu">
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/archives/full/">Full</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page"><a href="/archives/">By year</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </nav>
+                    <a class="search-toggle" href="#"><i class="icon-search"></i></a>
+                </header>
+            </div>
+            <!-- container -->
+        </div>
+        
+        <!-- header wrap -->
+        <div id="wrapper" class="clearfix">
+            <div class="inside-wrap clearfix">
+                
+<header class="page-titles">
+<div class="container clearfix">
+    <h1 class="entry-title"><a href="/posts/optimizing-python-with-cython/" title='Permalink to "Optimizing python with Cython"' rel="bookmark">Optimizing python with Cython</a></h1>
+    <h3 class="entry-subtitle">Conceived on 31 Jan 2010
+
+</h3>
+    <div class="featured-image-bg" style="background-image: url('/media/images/bkg/books21-77356dd04e775dc4bb90acfad5b2158e68c96306.jpg')"></div>
+</div>
+</header>
+
+                <div class="page container clearfix">
+                    
+<div id="content">
+    <div class="posts">
+        <article class="post">
+        <div class="box-wrap">
+            <div class="box">
+                <div class="post-content">
+                    	<p>Today I had to write an assignment for my Evolutionary Algorithms course, which was to implement a genetic algorithm to solve the Traveling Salesman Problem. I wrote the Python code, it worked well but it took a while to find a good solution with 100 cities, and I realised it would be a few days before I could get a solution for the dataset with 3000 cities. I definitely needed to speed up my program somehow.</p>
+
+	<p>I decided to give <a href="http://cython.org/">Cython</a> a try. Cython is a Python optimizer, you basically annotate your code with types so that Cython can get rid of your Python calls and convert them to pure C, with all the speed that entails. After spending a few hours adding types to my program (it would be a lot less if I didn&#8217;t need to pass a huge array to two classes), I finally had working code.</p>
+
+	<p>My code didn&#8217;t require many changes, I only really optimised two functions. One went from this:</p>
+
+	<p>
+<div class="highlight"><pre><span class="n">def</span> <span class="n">fitness</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">GENOME_LENGTH</span><span class="p">)</span><span class="o">:</span>
+        <span class="n">cost</span> <span class="o">+=</span> <span class="n">GRAPH</span><span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">self</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span>
+    <span class="n">cost</span> <span class="o">+=</span> <span class="n">GRAPH</span><span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">GENOME_LENGTH</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">self</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="n">cost</span>
+</pre></div>
+</code>
+</p>
+
+	<p>to this:</p>
+
+	<p>
+<div class="highlight"><pre><span class="n">def</span> <span class="n">fitness</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
+    <span class="n">cdef</span> <span class="n">numpy</span><span class="p">.</span><span class="kt">float64_t</span> <span class="n">cost</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">cdef</span> <span class="kt">int</span> <span class="n">index</span>
+    <span class="n">cdef</span> <span class="n">numpy</span><span class="p">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">numpy</span><span class="p">.</span><span class="kt">float64_t</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">2</span><span class="p">]</span> <span class="n">graph</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">graph</span>
+    <span class="n">cdef</span> <span class="n">numpy</span><span class="p">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">numpy</span><span class="p">.</span><span class="kt">int64_t</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">]</span> <span class="n">genome</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">get_genome</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">GENOME_LENGTH</span><span class="p">)</span><span class="o">:</span>
+        <span class="n">cost</span> <span class="o">+=</span> <span class="n">graph</span><span class="p">[</span><span class="n">genome</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">genome</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span>
+    <span class="n">cost</span> <span class="o">+=</span> <span class="n">graph</span><span class="p">[</span><span class="n">genome</span><span class="p">[</span><span class="n">GENOME_LENGTH</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">genome</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="n">cost</span>
+</pre></div>
+</code>
+</p>
+
+	<p>The other went from this:</p>
+
+	<p>
+<div class="highlight"><pre><span class="n">positions</span> <span class="o">=</span> <span class="p">(</span><span class="n">randrange</span><span class="p">(</span><span class="n">GENOME_LENGTH</span><span class="p">),</span> <span class="n">randrange</span><span class="p">(</span><span class="n">GENOME_LENGTH</span><span class="p">))</span>
+<span class="n">start</span> <span class="o">=</span> <span class="n">min</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+<span class="n">stop</span> <span class="o">=</span> <span class="n">max</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+<span class="n">son</span> <span class="o">=</span> <span class="n">father</span><span class="p">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">daughter</span> <span class="o">=</span> <span class="n">mother</span><span class="p">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">start</span> <span class="o">==</span> <span class="n">stop</span><span class="o">:</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">son</span><span class="p">,</span> <span class="n">daughter</span><span class="p">)</span>
+<span class="cp"># Crossover for mother-son.</span>
+<span class="k">for</span> <span class="n">gene</span> <span class="n">in</span> <span class="n">mother</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">start</span><span class="o">:</span><span class="n">stop</span><span class="p">]</span><span class="o">:</span>
+    <span class="k">for</span> <span class="n">counter</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="n">GENOME_LENGTH</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">if</span> <span class="n">son</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span> <span class="o">==</span> <span class="n">gene</span><span class="o">:</span>
+            <span class="n">son</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="k">for</span> <span class="n">counter</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span><span class="o">:</span>
+    <span class="k">if</span> <span class="n">son</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="o">:</span>
+        <span class="k">for</span> <span class="n">counter2</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="n">start</span><span class="p">)</span><span class="o">:</span>
+            <span class="k">if</span> <span class="n">son</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">counter2</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="o">:</span>
+                <span class="n">son</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">counter2</span><span class="p">]</span> <span class="o">=</span> <span class="n">son</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span>
+                <span class="n">son</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">counter2</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="n">stop</span><span class="p">,</span> <span class="n">GENOME_LENGTH</span><span class="p">)</span><span class="o">:</span>
+            <span class="k">if</span> <span class="n">son</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">counter2</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="o">:</span>
+                <span class="n">son</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">counter2</span><span class="p">]</span> <span class="o">=</span> <span class="n">son</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span>
+                <span class="n">son</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">son</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">start</span><span class="o">:</span><span class="n">stop</span><span class="p">]</span> <span class="o">=</span> <span class="n">mother</span><span class="p">.</span><span class="n">genome</span><span class="p">[</span><span class="n">start</span><span class="o">:</span><span class="n">stop</span><span class="p">]</span>
+</pre></div>
+</code>
+</p>
+
+	<p>to this:</p>
+
+	<p>
+<div class="highlight"><pre><span class="n">positions</span> <span class="o">=</span> <span class="p">(</span><span class="n">randrange</span><span class="p">(</span><span class="n">GENOME_LENGTH</span><span class="p">),</span> <span class="n">randrange</span><span class="p">(</span><span class="n">GENOME_LENGTH</span><span class="p">))</span>
+<span class="n">cdef</span> <span class="kt">int</span> <span class="n">start</span> <span class="o">=</span> <span class="n">min</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+<span class="n">cdef</span> <span class="kt">int</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">max</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+<span class="n">cdef</span> <span class="kt">int</span> <span class="n">counter</span>
+<span class="n">cdef</span> <span class="kt">int</span> <span class="n">counter2</span>
+<span class="n">cdef</span> <span class="n">numpy</span><span class="p">.</span><span class="kt">int64_t</span> <span class="n">gene</span>
+<span class="n">cdef</span> <span class="n">numpy</span><span class="p">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">numpy</span><span class="p">.</span><span class="kt">int64_t</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">]</span> <span class="n">mother_genome</span> <span class="o">=</span> <span class="n">mother</span><span class="p">.</span><span class="n">get_genome</span><span class="p">()</span>
+<span class="n">cdef</span> <span class="n">numpy</span><span class="p">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">numpy</span><span class="p">.</span><span class="kt">int64_t</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">]</span> <span class="n">father_genome</span> <span class="o">=</span> <span class="n">father</span><span class="p">.</span><span class="n">get_genome</span><span class="p">()</span>
+<span class="n">son</span> <span class="o">=</span> <span class="n">father</span><span class="p">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">daughter</span> <span class="o">=</span> <span class="n">mother</span><span class="p">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">cdef</span> <span class="n">numpy</span><span class="p">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">numpy</span><span class="p">.</span><span class="kt">int64_t</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">]</span> <span class="n">son_genome</span> <span class="o">=</span> <span class="n">son</span><span class="p">.</span><span class="n">get_genome</span><span class="p">()</span>
+<span class="n">cdef</span> <span class="n">numpy</span><span class="p">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">numpy</span><span class="p">.</span><span class="kt">int64_t</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">]</span> <span class="n">daughter_genome</span> <span class="o">=</span> <span class="n">son</span><span class="p">.</span><span class="n">get_genome</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">start</span> <span class="o">==</span> <span class="n">stop</span><span class="o">:</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">son</span><span class="p">,</span> <span class="n">daughter</span><span class="p">)</span>
+<span class="cp"># Crossover for mother-son.</span>
+<span class="k">for</span> <span class="n">gene</span> <span class="n">in</span> <span class="n">mother_genome</span><span class="p">[</span><span class="n">start</span><span class="o">:</span><span class="n">stop</span><span class="p">]</span><span class="o">:</span>
+    <span class="k">for</span> <span class="n">counter</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="n">GENOME_LENGTH</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">if</span> <span class="n">son_genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span> <span class="o">==</span> <span class="n">gene</span><span class="o">:</span>
+            <span class="n">son_genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="k">for</span> <span class="n">counter</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span><span class="o">:</span>
+    <span class="k">if</span> <span class="n">son_genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="o">:</span>
+        <span class="k">for</span> <span class="n">counter2</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="n">start</span><span class="p">)</span><span class="o">:</span>
+            <span class="k">if</span> <span class="n">son_genome</span><span class="p">[</span><span class="n">counter2</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="o">:</span>
+                <span class="n">son_genome</span><span class="p">[</span><span class="n">counter2</span><span class="p">]</span> <span class="o">=</span> <span class="n">son_genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span>
+                <span class="n">son_genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">counter2</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="n">stop</span><span class="p">,</span> <span class="n">GENOME_LENGTH</span><span class="p">)</span><span class="o">:</span>
+            <span class="k">if</span> <span class="n">son_genome</span><span class="p">[</span><span class="n">counter2</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="o">:</span>
+                <span class="n">son_genome</span><span class="p">[</span><span class="n">counter2</span><span class="p">]</span> <span class="o">=</span> <span class="n">son_genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span>
+                <span class="n">son_genome</span><span class="p">[</span><span class="n">counter</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">son_genome</span><span class="p">[</span><span class="n">start</span><span class="o">:</span><span class="n">stop</span><span class="p">]</span> <span class="o">=</span> <span class="n">mother_genome</span><span class="p">[</span><span class="n">start</span><span class="o">:</span><span class="n">stop</span><span class="p">]</span>
+</pre></div>
+</code>
+</p>
+
+	<p>Compiling it with -O3 in <span class="caps">GCC</span> gave me the following results:</p>
+
+	<table>
+		<tr>
+			<th>cities </th>
+			<th>python </th>
+			<th>cython </th>
+		</tr>
+		<tr>
+			<td> 17 </td>
+			<td> 20 sec </td>
+			<td> 3.45 sec </td>
+		</tr>
+		<tr>
+			<td> 48 </td>
+			<td> 69 sec </td>
+			<td> 3.92 sec </td>
+		</tr>
+		<tr>
+			<td> 100 </td>
+			<td> 217 sec </td>
+			<td> 4.88 sec </td>
+		</tr>
+		<tr>
+			<td> 2500 </td>
+			<td> many hours </td>
+			<td> 868 sec</td>
+		</tr>
+	</table>
+
+	<p>You read that right, there&#8217;s a 43x speedup with the 100 cities dataset. I suspect that reading it is what takes the most time. I have not tried this with the largest dataset yet, but pure Python hadn&#8217;t finished 100 epochs in about 20 minutes while the Cython code did them in about 30 seconds.</p>
+
+	<p>These speedups are nothins short of amazing, especially considering that I only spent an hour or two, and most of that was spent looking at the manual or trying to figure out how to pass my array in the code.</p>
+
+	<p>If you have a piece of Python that you need to run fast, then I would recommend you used Cython immediately. This means that I can exploit the beauty of Python and the speed of C together, and that&#8217;s a match made in heaven.</p>
+                </div>
+            </div>
+        </div>
+        </article>
+    </div>
+
+    <hr>
+
+    <div id="mc_embed_signup" class="styled-form">
+    <form action="http://korokithakis.us7.list-manage.com/subscribe/post?u=e852d258bd7a59b880efabdc5&amp;id=d1c29513c2" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="mailing-form validate" target="_blank" novalidate>
+        <h4>Subscribe to my mailing list</h4>
+        <p>Did you like what you just read and want to be notified when I post more? Subscribe
+        to my mailing list to get updates on my posts and other random goodies.</p>
+        <div class="mc-field-group">
+            <input placeholder="Email" type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+            <input placeholder="First name" type="text" value="" name="FNAME" class="" id="mce-FNAME">
+            <div class="response" id="mce-error-response" style="display:none"></div>
+            <div class="response" id="mce-success-response" style="display:none"></div>
+            <input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="submit-button">
+        </div>
+    </form>
+</div>
+<hr>
+
+
+    <iframe src="http://www.facebook.com/plugins/like.php?href=http://www.stavros.io/posts/optimizing-python-with-cython/&amp;layout=button_count&amp;show_faces=false&amp;width=110&amp;action=like&amp;colorscheme=light&amp;height=20" scrolling="no" frameborder="0" width="110" style="border:none; overflow:hidden; 110px; height:20px;" allowTransparency="true"></iframe>
+    <g:plusone></g:plusone>
+    <iframe allowtransparency="true" frameborder="0" scrolling="no" src="http://platform.twitter.com/widgets/tweet_button.html?url=http://www.stavros.io/posts/optimizing-python-with-cython/&amp;via=stavros&amp;text=Optimizing%20python%20with%20Cython&amp;count=horizontal" width="110" height="20"></iframe>
+
+    <hr>
+
+    
+    <div id="comment-jump" class="comments">
+        <div id="comments">
+            <div class="comments-wrap clearfix">
+                <h3 id="comments-title">
+                    <span>Join the conversation!</span>&nbsp;
+                </h3>
+                <div id="disqus_thread"></div>
+                <script type="text/javascript">
+                    var disqus_shortname = 'stavros';
+                    var disqus_identifier = 'pYMFPVor3a94inccHUESnZ';
+                    var disqus_title = 'Optimizing python with Cython';
+                    var disqus_url = 'http://www.stavros.io/posts/optimizing-python-with-cython/';
+
+                    (function() {
+                     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                     dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+                     (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                     })();
+                 </script>
+                 <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+             </div>
+         </div>
+     </div>
+     
+</div>
+
+
+                    
+                    <div id="sidebar">
+                        <div class="widget">
+                            <div style="text-align: center">
+                                <img style="border-radius: 100px; max-height: 200px; max-width:200px;" src="//gravatar.com/avatar/e42b84ae166cd4eceefdb4360a5d9357?s=128" />
+                                <h3>Stavros Korokithakis</h3>
+                                <h5 id="nametitle">Guy who likes computers</h5>
+                            </div>
+                            <p>
+                            Greek. Amateur F1 driver. Technology enthusiast. Single parent. Liar.
+                            </p>
+                            <p>
+                            Founder of <a href="http://www.stochastic.io">Stochastic Technologies</a>, a
+                            software development agency, and creator of various products which you can
+                            find in the <a href="http://resume.stavros.io">résumé</a>.
+                            </p>
+                        </div>
+
+                        <div id="search-3" class="widget widget_search">
+                            <form class="search-form clearfix">
+                                <fieldset>
+                                    <input type="text" class="search-form-input text" name="q" onfocus="if (this.value == 'Search the site &hellip;') {this.value = '';}" onblur="if (this.value == '') {this.value = 'Search the site &hellip;';}" value="Search the site &hellip;"/>
+                                    <input type="submit" value="Search" class="submit search-button" />
+                                </fieldset>
+                            </form>
+                        </div>
+
+                        <div class="widget">
+                            <h2 class="widgettitle">Connect with me</h2>
+                            <div class="icons-widget clearfix">
+                                <div id="icons" class="large-icons">
+                                    <a href="mailto:hi@stavros.io" class="google-icon" title="Email me"><i class="icon-envelope-alt"></i></a>
+                                    <a href="http://feeds.feedburner.com/stavrosstuff" class="google-icon" title="RSS feed"><i class="icon-rss"></i></a>
+                                    <a href="https://twitter.com/Stavros" class="twitter-icon" title="Twitter"><i class="icon-twitter"></i></a>
+                                    <a href="https://plus.google.com/112248633257102064185?rel=author" class="google-icon" title="Google+"><i class="icon-google-plus"></i></a>
+                                    <a href="https://github.com/skorokithakis/" class="github-icon" title="Github"><i class="icon-github"></i></a>
+                                    <a href="https://www.linkedin.com/in/skorokithakis" class="linkedin-icon" title="LinkedIn"><i class="icon-linkedin"></i></a>
+                                    <a href="https://www.flickr.com/photos/poromenos/" class="flickr-icon" title="Flickr"><i class="icon-flickr"></i></a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="widget">
+                            <h2 class="widgettitle">Recent Posts</h2>
+                            <ul>
+                                
+                                <li>
+                                <a href="/posts/store-bitcoins-safely/" title="How to safely store your bitcoins">How to safely store your bitcoins</a>
+                                </li>
+                                
+                                <li>
+                                <a href="/posts/holy-grail-backups/" title="I found the Holy Grail of backups">I found the Holy Grail of backups</a>
+                                </li>
+                                
+                                <li>
+                                <a href="/posts/arduino-powered-irrigation-system/" title="Arduino-powered irrigation system">Arduino-powered irrigation system</a>
+                                </li>
+                                
+                                <li>
+                                <a href="/posts/persona-accounts-disposable-email-addresses/" title="Mozilla Persona accounts with disposable email addresses">Mozilla Persona accounts with disposable email addresses</a>
+                                </li>
+                                
+                                <li>
+                                <a href="/posts/control-rf-devices-with-arduino/" title="Remotely controlling IR/RF devices with an Arduino">Remotely controlling IR/RF devices with an Arduino</a>
+                                </li>
+                                
+                            </ul>
+                        </div>
+
+                        <div id="text-2" class="widget widget_text">
+                            <div class="textwidget">
+                                <a class="twitter-timeline" data-dnt="true" href="https://twitter.com/Stavros" data-widget-id="351341211300294656">Tweets by @Stavros</a>
+                                <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.async=true;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                <!-- container -->
+                <!-- footer -->
+            </div>
+            <!-- inside wrap -->
+        </div>
+        
+        <!-- wrapper -->
+        <div class="footer-bottom">
+            <div class="container clearfix">
+                <div class="footer-widgets">
+                    <div class="theme-name-icon">
+                        <h3>Made in Greece</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <script async type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
+        <script>
+            $( document ).ready(function() {
+                var sowitty = [
+                "Guy who likes computers",
+                "Man",
+                "International person of mystery",
+                "Full-heap developer",
+                "Person with too much free time",
+                "Unfunny",
+                "Site-owner",
+                "Random person",
+                "Social climber",
+                "Six-time solitaire champion",
+                "(Fake/ironic title here)",
+                "Likes solving pointless problems",
+                "A simple man",
+                ]
+                var item = sowitty[Math.floor(Math.random()*sowitty.length)];
+                $("#nametitle").text(item)
+                $('body')
+                .delay(500)
+                .queue(
+                function(next){
+                    $(this).css('padding-right', '1px');
+                }
+                );
+            });
+        </script>
+
+        <script type="text/javascript" src="/media/main-9567c8c9fb3c50cb70baabed856c0b2b4274e090.js"></script>
+
+        
+    </body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+  <head>
+    <title>Gmane -- Re: FYA: http:  heartbleed.com </title>
+    <link href="http://gmane.org/img/gmane.css" rel="stylesheet" type="text/css">
+    <link rel="SHORTCUT ICON" href="http://gmane.org/favicon.ico">
+</head>
+<body bgcolor=white text=black class=main>
+  <table cellpadding=5 cellspacing=10 class="main">
+  <tr valign=top>
+  <td class="maintd">
+  <div class="tdiv">
+  <div>
+  <a href="http://gmane.org/">Home</a><br>
+  <a href="http://dir.gmane.org/">Reading</a><br>
+  <a href="http://search.gmane.org">Searching</a><br>
+  <a href="http://gmane.org/subscribe.php">Subscribe</a><br>
+  <a href="http://gmane.org/sponsors.php">Sponsors</a><br>
+  <a href="http://gmane.org/stats.php">Statistics</a><br>
+  <a href="http://gmane.org/post.php">Posting</a><br>
+  <a href="http://gmane.org/contact.php">Contact</a><br>
+  <a href="http://gmane.org/spam-control.php">Spam</a><br>
+  <a href="http://gmane.org/find.php">Lists</a><br>
+  <a href="http://gmane.org/links.php">Links</a><br>
+<a href="http://gmane.org/about.php">About</a><br>
+<a href="http://gmane.org/host.php">Hosting</a><br>
+<a href="http://gmane.org/filter.php">Filtering</a><br>
+<a href="http://gmane.org/features.php">Features</a>
+<a href="http://gmane.org/dist.php">Download</a><br>
+<a href="http://gmane.org/logo.php">Marketing</a><br>
+<a href="http://gmane.org/import.php">Archives</a><br>
+<a href="http://weaver.gmane.org/">Weaver</a><br>
+  <a href="http://gmane.org/faq.php">FAQ</a><br>
+  &nbsp;<br>
+  </div>
+  <div class="ltd">
+  <!-- <img src="http://gmane.org/img/gmane-25.png" width=25 height=25 alt="Gmane"> -->
+  </div>
+  </div>
+  </td>
+  <td align=center class="maintd">
+  <a href="http://gmane.org/"><img src="http://gmane.org/img/gmane-rot.png" alt="Gmane" border=0></a>
+  </td>
+  <td class="bodytd">  
+<div class="headers">
+<div class="face">
+<a target="_top" href="http://ftp.cs.indiana.edu/pub/faces/picons/"><img border=0 alt="Picon" src="http://cache.gmane.org//gmane/os/openbsd/misc/211963-picon-001.gif"></a>
+</div>
+From: Theo de Raadt &lt;deraadt &lt;at&gt; cvs.openbsd.org&gt;<br>
+Subject: <a target="_top" rel="nofollow" href="http://news.gmane.org/find-root.php?message_id=201404081940.s38Jeupc026361%40cvs.openbsd.org">Re: FYA: <a rel="nofollow" href="http://heartbleed.com/" target="_top">http://heartbleed.com/</a></a><br>
+Newsgroups: <a href="http://news.gmane.org/gmane.os.openbsd.misc" target="_top">gmane.os.openbsd.misc</a><br>
+Date: 2014-04-08 19:40:56 GMT
+ (12 weeks, 1 hour and 18 minutes ago)<br></div>
+<pre>
+&gt; On Tue, Apr 08, 2014 at 15:09, Mike Small wrote:
+&gt; &gt; nobody &lt;openbsd.as.a.desktop &lt;at&gt; gmail.com&gt; writes:
+&gt; &gt; 
+&gt; &gt;&gt; "read overrun, so ASLR won't save you"
+&gt; &gt; 
+&gt; &gt; What if malloc's "G" option were turned on? You know, assuming the
+&gt; &gt; subset of the worlds' programs you use is good enough to run with that.
+&gt; 
+&gt; No. OpenSSL has exploit mitigation countermeasures to make sure it's
+&gt; exploitable.
+
+What Ted is saying may sound like a joke...
+
+So years ago we added exploit mitigations counter measures to libc
+malloc and mmap, so that a variety of bugs can be exposed.  Such
+memory accesses will cause an immediate crash, or even a core dump,
+then the bug can be analyed, and fixed forever.
+
+Some other debugging toolkits get them too.  To a large extent these
+come with almost no performance cost.
+
+But around that time OpenSSL adds a wrapper around malloc &amp; free so
+that the library will cache memory on it's own, and not free it to the
+protective malloc.
+
+You can find the comment in their sources ...
+
+#ifndef OPENSSL_NO_BUF_FREELISTS
+ /* On some platforms, malloc() performance is bad enough that you can't just
+
+OH, because SOME platforms have slow performance, it means even if you
+build protective technology into malloc() and free(), it will be
+ineffective.  On ALL PLATFORMS, because that option is the default,
+and Ted's tests show you can't turn it off because they haven't tested
+without it in ages.
+
+So then a bug shows up which leaks the content of memory mishandled by
+that layer.  If the memoory had been properly returned via free, it
+would likely have been handed to munmap, and triggered a daemon crash
+instead of leaking your keys.
+
+OpenSSL is not developed by a responsible team.
+
+</pre>
+<script type="text/javascript">
+document.domain = 'gmane.org';
+document.title = 'Re: FYA: http:  heartbleed.com ';
+</script>
+<td rowspan=2 class="listid">
+<a href="http://dir.gmane.org/gmane.os.openbsd.misc">
+<img border=0 rel=nofollow src="http://gmane.org/paint-list-id.php?group=gmane.os.openbsd.misc">
+</a>
+</td> 
+  </td>
+  </tr>
+  </table>
+  </body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML>
+<HEAD>
+<LINK rel="stylesheet" href="../meta/site.css">
+
+<meta content="keywords" content="heatmap heat map software program python gpl free open source geo gis gps gpx coordinates">
+<style type="text/css">
+ div.example {
+  clear: right;
+  float: right;
+  width: 30%;
+  border: thin silver solid;
+  margin: 1em;
+  margin-top: 0;
+  padding: 0.5em;
+ }
+ div.example p {
+  text-align: center;
+  font-size: smaller;
+  text-indent: 0;
+ }
+ img.scaled {
+  width: 100%;
+ }
+ div.example h3 {
+  text-align: center;
+  margin: 0.25em;
+ }
+ code {
+  font-style: italic;
+ }
+ object { float: right; margin: 1em}
+ h1,h2,h3 { clear: none }
+</style>
+<TITLE>sethoscope: heatmap tool</TITLE>
+<LINK rel="icon" href="../meta/siteicon.png">
+</HEAD>
+
+<BODY text="#000000" bgcolor="#EEEEEE" link="#FF0000" vlink="#CC0000">
+<DIV class=nav><TABLE width="100%"><TR>
+<TD align=center><A href="../"><IMG width=32 height=32 border=0 src="../meta/top" alt="[Top]"></A></TD>
+<TD align=center><A href="../"><IMG width=32 height=32 border=0 src="../meta/up" alt="[Up]"></A></TD>
+<TD align=center><A href="../meta/toc.html"><IMG width=32 height=32 border=0 src="../meta/tree" alt="[Table of Contents]"></A></TD>
+<TD align=center><A href="mailto:tmp+16251&#64;sethoscope.net"><IMG width=32 height=32 border=0 src="../meta/mail" alt="[Send Mail]"></A></TD></TR></TABLE></DIV>
+<a href="https://github.com/sethoscope/heatmap"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+
+<H1>heatmap.py</H1>
+
+<object width="425" height="344"><param name="movie" value="http://www.youtube.com/v/SVNJcapE32Y&hl=en&fs=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/SVNJcapE32Y&hl=en&fs=1" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="425" height="344"></embed></object>
+
+<div class="example">
+<h3>My Photos</h3>
+<a href="photos.png"><img class="scaled" src="photos.png"></a>
+<p><samp>heatmap.py -p <a href="photo-points">photo-points</a> -o photos.png --width 1000 --osm -B 0.8 --osm_base <A href="http://maps.stamen.com">http://b.tile.stamen.com/toner</A></samp></p>
+<p>(I've been geocoding <A href="../photos/s/">my photos</A> since 2004.)</p>
+<p><small>Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.</small></p></div>
+
+<div class="example">
+<h3>Graffiti</h3>
+<a href="graffiti.png"><img class="scaled" src="graffiti.png"></a>
+<p>Graffiti complaints in San Francisco over 90 days.</p>
+
+<p>There's a trade-off between seeing the precise location of each
+data point, and seeing the aggregate regional blobs that make trends
+easier to see.  Here I did both and composited one on top of the
+other.</p>
+
+<samp>
+heatmap.py -b black -p <a href="graffiti.coords">graffiti.coords</a> -r 30 -W 1200 -o <a href="g1.png">g1.png</a> -P equirectangular ;<br><br>
+heatmap.py -p <a href="graffiti.coords">graffiti.coords</a> -r 5 -W 1200 -o <a href="g2.png">g2.png</a> -P equirectangular --decay 0.3 --margin 25 ;<br><br>
+composite <a href="g2.png">g2.png</a> -dissolve 50 <a href="g1.png">g1.png</a> graffiti.png
+</samp>
+
+<p>Data from <a href="http://datasf.org">datasf.org</a>.  I don't know
+what system the coordinates are in, so I just pretended they're square
+and mapped them as-is.</p>
+</div>
+
+<div class="example">
+<h3>My Summer Vacation</h3>
+<a href="orkney.png"><img class="scaled" src="orkney.png"></a>
+<p><samp>heatmap.py -g orkney.gpx -o orkney.png --height 800 --osm</samp>
+<p><small>Background &copy; <A href="http://wiki.openstreetmap.org/">OpenStreetMap</A> &amp; contributors; this image is available under <A href="http://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</A></small></p></div>
+
+<div class="example">
+<h3>Burning&nbsp;Man 2006</h3>
+<a href="bman.png"><img class="scaled" src="bman.png"></a>
+<p><samp>heatmap.py --decay 0.8 -g bman.gpx -o bman.png --height 800 --margin 10 -b black --gradient <a href="gradient-1.2.png">gradient-1.2.png</a></samp></p>
+<p>(I carried a GPS around all week.)</p>
+</div>
+
+
+
+
+
+
+<p>There are a few kinds of heat maps.  This program is for when you
+have data points, each with a lat-lon coordinate, and you want to plot
+them on a map such that they blob together and get bright where they
+pile up, showing off the data density.</p>
+
+<p>If you've divided your map into regions and want each region
+colored a certain way (a choropleth map), or you have a formula that
+gives you a value for every pixel on the map, this is probably not the
+right tool.</p>
+
+<h2>Features include:</h2>
+
+<ul>
+  <li>useful as a command line script or a Python module</li>
+  <li>Input can be a list of points or a GPX tracklog.</li>
+  <li>Renders GPX tracks as line segments, rather than disconnected points.</li>
+  <li>Can generate animations using ffmpeg, showing the accumulation of your data.</li>
+  <li>Can composite your data onto OpenStreetMap tiles.</li>
+  <li>Too many options, not enough documentation.</li>
+  <li>Released under the <A href="http://www.gnu.org/licenses/agpl-3.0.html">AGPL</A>, so you're free to
+        improve it and to share your version.</li>
+</ul>
+
+<h2>Features it probably should have, but doesn't yet:</h2>
+
+<ul>
+  <li>Generate a set of overlay tiles for tile map services like Open Street Map and Google Maps.</li>
+  <li>Weight GPX track segments by dwell time / speed.</li>
+  <li>Smoother track rendering.  I have some ideas about this, but they depend on time weighting.</li>
+  <li>Use time data to pace animation.  (Currently paces evenly by data points.)</li>
+  <li>Support multiple input sources.</li>
+</ul>
+
+<h2>Quick start guide</h2>
+
+<p>It's just one file: <a href="heatmap.py">heatmap.py</a>.
+I've <A href="https://github.com/sethoscope/heatmap">put it on github</A> in case anyone wants
+to contribute.  If you want the --osm option to work, you'll also need
+<A href="http://cbick.github.com/osmviz/">osmviz</A> and should read the bit about
+<a href="#osm-licensing">OSM licensing issues</a>.
+</p>
+
+<p>Now get yourself some data (or grab my <a href="photo-points">list
+of photo coordinates</a>) and just try it out.  See the examples on
+this page, read the command line help for a very brief rundown on the
+options, and maybe eventually read the rest of this page.  In general,
+the program will tell you if needs more information.
+</p>
+
+<h2>Why?</h2>
+
+<p>I wanted to make some data maps and I couldn't find any free tools
+that did a good job.  I found proprietary tools (ick) that produced
+gorgeous output, and free tools that I felt took the wrong approach.
+Had I discovered <A href="http://code.google.com/p/gheat/">gheat</A> sooner, I probably would
+have started with that, but this is a bit different, better for some
+things, worse for others.  There are some obvious next steps, but it's
+time to set it free.</p>
+
+<p>It's a Python script, which makes it most suitable for server-side
+image generation or preparing images in the comfort of your own home.
+That's great for my needs, but doing the work in a browser would be a
+better choice for many applications these days.</p>
+
+<h2>Things you wish you didn't have to know</h2>
+
+<h3>Speed</h3>
+
+<p>How long it takes is roughly proportional to
+<code>num_points&nbsp;*&nbsp;radius<sup>2</sup></code>,
+so if you want to try things out quickly, start with a small radius,
+and/or less data.</p>
+
+<h3>Memory</h3>
+
+<p>The memory footprint depends on the settings.  With --decay set
+between 0 and 1, the memory use will be dominated by
+<code>num_points&nbsp;*&nbsp;radius<sup>2</sup></code>.  With decay
+set to 0 or 1, the rendering only needs to hold data proportional to
+the size of the output image, which is usually negligible.  At that
+point, the major factor will be whether it needs to read in all the
+data at once.
+
+Currently it needs to know the geographic extent of the data at the
+outset, so if you don't specify one using --extent, all the data will
+be read first, and then held in memory for the rest of the processing.
+So memory use will be proportional to the size of your data set.
+
+If you use --decay of 0 or 1 and use --extent and give either the height
+or width (or --osm and --zoom), then the memory footprint won't depend
+on the input significantly and you should be able to push any amount of
+data through.  (I tried 10 million points, worked great.)
+</p>
+
+<h3>What's that --decay option for?</h3>
+
+<p>It's to make it prettier and to make it convey your information
+better.  If you leave it at 1, it works like most people's heatmaps
+do, just adding points on top of each other linearly.  Depending on
+your data distribution, this may mean areas with relatively low
+density are hard to see.  The biggest trends are clear, but much of
+the data can be lost.</p>
+
+<p>
+If you set it to 0, every data point will be visible, turning the plot
+into "how far is it to the nearest point" and conveying nothing at all
+about distibution density.  It will look more like a scatter plot (or a
+line drawing, with GPS tracks).</p>
+
+<p>
+All the other heatmap software I've looked at works at one of these
+extremes (usually the former), but I find it looks better and conveys
+more information somewhere in between.  I was unable to find a magic
+value that works well for everything, so you may want to fiddle with
+this.  There's no right answer.  You just have to decide what makes
+sense for your application and your data.
+</p>
+
+<p>The catch is that 1 and 0 are special cases of the algorthim and
+can be computed using much less memory.  if you set it to anything in
+between, the memory footprint will go up considerably.</p>
+
+<h3>Changing the colors</h3>
+
+<p>You can specify the color gradient on the command line by providing
+hue, saturation, value, and alpha for the two extremes.  The program
+will use linear interpolation to render the in-between values.  Note
+that hue is specified with three digits in case you want to go around
+the other way on the color wheel.  For example,
+<samp>000ffff00</samp> and <samp>100ffff00</samp> specify the same
+color, but pass through different hues on the way to
+<samp>02affffff</samp>.</p>
+
+<p>The other option is to supply an image.  The pixels down the left
+edge are used to specify the gradient.
+(<a href="gradient-1.2.png">For example</a>.)</p>
+
+<h3><a name="osm-licensing">Licensing OSM background tiles</a></h3>
+
+<p>If you use the --osm option to overlay your data onto OpenStreetMap
+tiles, you are bound by <A href="http://wiki.openstreetmap.org/wiki/Tile_usage_policy">their terms of
+service</A>.
+</p>
+
+<h3>The options</h3>
+
+<p>Here's what you get when you use --help.</p>
+
+<pre>
+Usage: heatmap.py [options]
+
+Options:
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  -g FILE, --gpx=FILE   
+  -p FILE, --points=FILE
+                        File containing one space-separated coordinate pair
+                        per line, with optional point value as third term.
+  --csv=FILE            File containing one comma-separated coordinate pair
+                        per line, the rest of the line is ignored.
+  --ignore_csv_header   Ignore first line of CSV input file.
+  -s FLOAT, --scale=FLOAT
+                        meters per pixel, approximate
+  -W INT, --width=INT   width of output image
+  -H INT, --height=INT  height of output image
+  -P NAME, --projection=NAME
+                        choices: mercator, equirectangular; default: mercator
+  -e RANGE, --extent=RANGE
+                        Clip results to RANGE, which is specified as
+                        lat1,lon1,lat2,lon2; (for square mercator:
+                        -85.0511,-180,85.0511,180)
+  -R INT, --margin=INT  Try to keep data at least this many pixels away from
+                        image border.
+  -r INT, --radius=INT  pixel radius of point blobs; default: 5
+  -d FLOAT, --decay=FLOAT
+                        float in [0,1]; Larger values give more weight to data
+                        magnitude.  Smaller values are more democratic.
+                        default:0.95
+  -S FILE, --save=FILE  save processed data to FILE
+  -L FILE, --load=FILE  load processed data from FILE
+  -o FILE, --output=FILE
+                        name of output file (image or video)
+  -a, --animate         Make an animation instead of a static image
+  --frequency=FREQUENCY
+                        input points per animation frame; default: 1
+  --straggler_threshold=STRAGGLER_THRESHOLD
+                        add one more animation frame if >= this many inputs
+                        remain
+  -F STR, --ffmpegopts=STR
+                        extra options to pass to ffmpeg when making an
+                        animation
+  -K, --keepframes      keep intermediate images after creating an animation
+  -b COLOR, --background=COLOR
+                        composite onto this background (color name or #rrggbb)
+  -I FILE, --background_image=FILE
+                        composite onto this image
+  -B NUM, --background_brightness=NUM
+                        Multiply each pixel in background image by this.
+  -m HEX, --hsva_min=HEX
+                        hhhssvvaa hex for minimum data values; default:
+                        000ffff00
+  -M HEX, --hsva_max=HEX
+                        hhhssvvaa hex for maximum data values; default:
+                        02affffff
+  -G FILE, --gradient=FILE
+                        Take color gradient from this the first column of
+                        pixels in this image.  Overrides -m and -M.
+  -k KERNEL, --kernel=KERNEL
+                        Kernel to use for the falling-off function; choices:
+                        linear, gaussian; default: linear
+  --osm                 Composite onto OpenStreetMap tiles
+  --osm_base=URL        Base URL for map tiles; default
+                        http://tile.openstreetmap.org
+  -z ZOOM, --zoom=ZOOM  Zoom level for OSM; 0 (the default) means autozoom
+  -v, --verbose         
+  --debug               
+</pre>
+
+<HR>
+<DIV class=nav><TABLE width="100%"><TR>
+<TD align=center><A href="../"><IMG width=32 height=32 border=0 src="../meta/top" alt="[Top]"></A></TD>
+<TD align=center><A href="../"><IMG width=32 height=32 border=0 src="../meta/up" alt="[Up]"></A></TD>
+<TD align=center><ADDRESS><A href="mailto:tmp+16251&#64;sethoscope.net">tmp+16251&#64;sethoscope.net</A></ADDRESS></TD>
+<TD align=center><A href="../meta/toc.html"><IMG width=32 height=32 border=0 src="../meta/tree" alt="[Table of Contents]"></A></TD>
+<TD align=center><A href="mailto:tmp+16251&#64;sethoscope.net"><IMG width=32 height=32 border=0 src="../meta/mail" alt="[Send Mail]"></A></TD></TR></TABLE></DIV>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-6664851-1");
+pageTracker._trackPageview();
+  } catch(err) {}</script>
+</BODY></HTML>

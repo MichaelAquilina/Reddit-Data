@@ -1,0 +1,3183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <title>c++ - Can a local variable&#39;s memory be accessed outside its scope? - Stack Overflow</title>
+    <link rel="shortcut icon" href="//cdn.sstatic.net/stackoverflow/img/favicon.ico?v=038622610830">
+    <link rel="apple-touch-icon image_src" href="//cdn.sstatic.net/stackoverflow/img/apple-touch-icon.png?v=fd7230a85918">
+    <link rel="search" type="application/opensearchdescription+xml" title="Stack Overflow" href="/opensearch.xml">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:domain" content="stackoverflow.com"/>
+    <meta name="og:type" content="website" />
+    <meta name="og:image" content="http://cdn.sstatic.net/stackoverflow/img/apple-touch-icon@2.png?v=fde65a5a78c6"/>
+    <meta name="og:title" content="Can a local variable&#39;s memory be accessed outside its scope?" />
+    <meta name="og:description" content="I have the following code.
+
+int * foo()
+{
+    int a = 5;
+    return &amp;amp;a;
+}
+
+int main()
+{
+    int* p = foo();
+    cout &amp;lt;&amp;lt; *p;
+    *p = 8;
+    cout &amp;lt;&amp;lt; *p;
+}
+
+
+And the code is just runn..." />
+    <meta name="og:url" content="http://stackoverflow.com/questions/6441218/can-a-local-variables-memory-be-accessed-outside-its-scope"/>
+    <link rel="canonical" href="http://stackoverflow.com/questions/6441218/can-a-local-variables-memory-be-accessed-outside-its-scope" />
+
+    
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="//cdn.sstatic.net/Js/stub.en.js?v=d142d951ee55"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.sstatic.net/stackoverflow/all.css?v=dc5a5d7ef830">
+    
+    <script>
+        
+        StackExchange.ready(function () {
+            StackExchange.using("postValidation", function () {
+                StackExchange.postValidation.initOnBlurAndSubmit($('#post-form'), 2, 'answer');
+            });
+
+            
+            StackExchange.question.init({showAnswerHelp:true,totalCommentCount:24,shownCommentCount:5,highlightColor:'#F4A83D',backgroundColor:'#FFF',questionId:6441218});
+
+            styleCode();
+
+                StackExchange.realtime.subscribeToQuestion('1', '6441218');
+            
+                    });
+    </script>
+
+
+    <script>
+        StackExchange.init({"locale":"en","stackAuthUrl":"https://stackauth.com","serverTime":1404248417,"networkMetaHostname":"meta.stackexchange.com","styleCode":true,"enableUserHovercards":true,"site":{"name":"Stack Overflow","description":"Q&A for professional and enthusiast programmers","isNoticesTabEnabled":true,"recaptchaPublicKey":"6LdchgIAAAAAAJwGpIzRQSOFaO0pU6s44Xt8aTwc","recaptchaAudioLang":"en","enableNewTagCreationWarning":true,"nonAsciiTags":true,"enableSocialMediaInSharePopup":true},"timingsGuid":"5726b337-b89b-4f4b-bb19-156f92e4ea9c","timingsInfo":"LMZVTHx0uJPY32477leicnY6mnInCPHpNlfJtNj4N9voInzvdbFKn+hKrX2CWG+0carA82UBkOVWNaglsoKgBzQfxfeFKpm5croh3ptVGlt2IS2Q0vA2+cFhvO9gBM9/QCIz/g/dpGoTJj9FJmiBtPZySRs7lb151a+pPTXNDTUsXazpgWolIbZSSNJjQr86O9trdw7RlvVBpbL1CPZHHi/VzlY3TUWl/Qyk7f0jRbdKlqgMnz8W8YfsuRFqOyaZGufEphXxiKCv3RGwRCdtGiA1EGmDXUcwZzBaR3nbJbc=","user":{"fkey":"8c6b727b7d57e168eb0f1d8a05eba522","isAnonymous":true}});
+        StackExchange.using.setCacheBreakers({"js/prettify-full.en.js":"12ef2711e474","js/moderator.en.js":"e2c6bab58c56","js/full-anon.en.js":"a66b4586d8f3","js/full.en.js":"d43401f72f80","js/wmd.en.js":"d25c057c3f48","js/third-party/jquery.autocomplete.min.js":"e5f01e97f7c3","js/third-party/jquery.autocomplete.min.en.js":"","js/mobile.en.js":"5f0b5c72eaa8","js/help.en.js":"43b6b771d4d9","js/tageditor.en.js":"afabf8d8de91","js/tageditornew.en.js":"140e973e4037","js/inline-tag-editing.en.js":"21223186b436","js/revisions.en.js":"989c474e85a9","js/review.en.js":"c261687765b3","js/tagsuggestions.en.js":"bb4721d888d2","js/post-validation.en.js":"62fe2d3d1730","js/explore-qlist.en.js":"8b8b631bd679","js/events.en.js":"7263182fd2c2"});
+        StackExchange.using("gps", function() {
+             StackExchange.gps.init(true);
+        });
+    </script>
+    
+        <script>
+            StackExchange.ready(function () {
+                $('#nav-tour').click(function () {
+                    StackExchange.using("gps", function() {
+                        StackExchange.gps.track("aboutpage.click", { aboutclick_location: "headermain" }, true);
+                    });
+                });
+            });
+        </script>
+</head>
+<body class="question-page new-topbar">
+    <noscript><div id="noscript-padding"></div></noscript>
+    <div id="notify-container"></div>
+    <div id="overlay-header"></div>
+    <div id="custom-header"></div>
+<div class="topbar">
+    <div class="topbar-wrapper">
+        
+        <div class="js-topbar-dialog-corral">
+
+<div class="topbar-dialog siteSwitcher-dialog dno">
+    <div class="header">
+        <h3><a href="//stackoverflow.com">current community</a></h3>
+    </div>
+    <div class="modal-content current-site-container">
+        <ul class="current-site">
+                <li>
+                        <div class="related-links">
+            <a href="http://chat.stackoverflow.com"     data-gps-track="site_switcher.click({ item_type:6 })"
+>chat</a>
+                    <a href="http://blog.stackoverflow.com"     data-gps-track="site_switcher.click({ item_type:7 })"
+>blog</a>
+            </div>
+
+
+
+
+    <a href="//stackoverflow.com"
+       class="current-site-link site-link js-gps-track"
+       data-id="1"
+       data-gps-track="
+        site_switcher.click({ item_type:3 })">
+        <div class="site-icon favicon favicon-stackoverflow" title="Stack Overflow"></div>
+        Stack Overflow
+    </a>
+
+                </li>
+                <li class="related-site">
+                        <div class="L-shaped-icon-container">
+        <span class="L-shaped-icon"></span>
+    </div>
+
+                    
+
+
+
+    <a href="http://meta.stackoverflow.com"
+       class="site-link js-gps-track"
+       data-id="552"
+       data-gps-track="
+            site.switch({ target_site:552, item_type:3 }),
+        site_switcher.click({ item_type:4 })">
+        <div class="site-icon favicon favicon-stackoverflowmeta" title="Meta Stack Overflow"></div>
+        Meta Stack Overflow
+    </a>
+
+                </li>
+                            <li class="related-site">
+                        <div class="L-shaped-icon-container">
+        <span class="L-shaped-icon"></span>
+    </div>
+
+                    <a class="site-link"
+                       href="//careers.stackoverflow.com"
+                            data-gps-track="site_switcher.click({ item_type:9 })"
+>
+                        <div class="site-icon favicon favicon-careers" title="Stack Overflow Careers"></div>
+                        Careers 2.0
+                    </a>
+                </li>
+        </ul>
+    </div>
+    
+    <div class="header" id="your-communities-header">
+        <h3>
+your communities        </h3>
+            
+    </div>
+    <div class="modal-content" id="your-communities-section">
+            
+            <div class="call-to-login">
+                        <a href="https://stackoverflow.com/users/signup?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f6441218%2fcan-a-local-variables-memory-be-accessed-outside-its-scope%2f6445794" class="js-gps-track"     data-gps-track="site_switcher.click({ item_type:10 })"
+>Sign up</a>
+                    or
+                    <a href="https://stackoverflow.com/users/login?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f6441218%2fcan-a-local-variables-memory-be-accessed-outside-its-scope%2f6445794" class="js-gps-track"     data-gps-track="site_switcher.click({ item_type:11 })"
+>log in</a>
+
+                    to customize your list.
+            </div>
+    </div>
+    
+    <div class="header">
+        <h3><a href="//stackexchange.com/sites">more stack exchange communities</a></h3>
+    </div>
+    <div class="modal-content">
+            <div class="child-content"></div>
+    </div>
+</div>
+        </div>
+
+        <div class="network-items">
+            
+            <a href="//stackexchange.com" 
+               class="topbar-icon icon-site-switcher yes-hover js-site-switcher-button js-gps-track"
+               data-gps-track="site_switcher.show"
+               title="A list of all 128 Stack Exchange sites">
+                <span class="hidden-text">Stack Exchange</span>
+            </a>
+            
+        </div>
+
+        <div class="topbar-links">
+            
+                <div class="links-container">
+                    <span class="topbar-menu-links">
+                            <a href="https://stackoverflow.com/users/signup?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f6441218%2fcan-a-local-variables-memory-be-accessed-outside-its-scope%2f6445794" class="login-link">sign up</a>
+                            <a href="https://stackoverflow.com/users/login?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f6441218%2fcan-a-local-variables-memory-be-accessed-outside-its-scope%2f6445794" class="login-link">log in</a>
+                            <a href="/tour">tour</a>
+
+                            <a href="#" class="icon-help js-help-button" title="Help Center and other resources">
+        help
+        <span class="triangle"></span>
+    </a>
+    <div class="topbar-dialog help-dialog js-help-dialog dno">
+        <div class="modal-content">
+            <ul>
+                                    <li>
+                        <a href="/tour"     class="js-gps-track" data-gps-track="help_popup.click({ item_type:1 })"
+>
+                            Tour
+                            <span class="item-summary">
+                                Start here for a quick overview of the site
+                            </span>
+                        </a>
+                    </li>
+                <li>
+                    <a href="/help"     class="js-gps-track" data-gps-track="help_popup.click({ item_type:4 })"
+>
+                        Help Center
+                        <span class="item-summary">
+                            Detailed answers to any questions you might have
+                        </span>
+                    </a>
+                </li>
+                    <li>
+                        <a href="//meta.stackoverflow.com"     class="js-gps-track" data-gps-track="help_popup.click({ item_type:2 })"
+>
+                            Meta
+                            <span class="item-summary">
+                                Discuss the workings and policies of this site
+                            </span>
+                        </a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+
+                            <a href="//careers.stackoverflow.com">careers 2.0</a>
+                    </span>
+                </div>
+
+			<div class="search-container">
+                <form id="search" action="/search" method="get" autocomplete="off">
+                    <input name="q" type="text" placeholder="search" value="" tabindex="1" autocomplete="off" maxlength="240" />
+                </form>
+			</div>
+            	
+        </div>      
+    </div> 
+</div>
+<script>
+    StackExchange.ready(function () { StackExchange.topbar.init(); });
+</script>
+    <div class="container">
+        <div id="header" class=headeranon>
+            <br class="cbt">
+            <div id="hlogo">
+                <a href="/">
+                    Stack Overflow
+                </a>
+            </div>
+            <div id="hmenus">
+                <div class="nav mainnavs mainnavsanon">
+                    <ul>
+                        <li class="youarehere"><a id="nav-questions" href="/questions">Questions</a></li>
+                        <li><a id="nav-tags" href="/tags">Tags</a></li>
+                        <li><a id="nav-users" href="/users">Users</a></li>
+                        <li><a id="nav-badges" href="/help/badges">Badges</a></li>
+                        <li><a id="nav-unanswered" href="/unanswered">Unanswered</a></li>
+                    </ul>
+                </div>
+                <div class="nav askquestion">
+                    <ul>
+                        <li>
+                            <a id="nav-askquestion"  href="/questions/ask">Ask Question</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+
+
+
+        <div id="content">
+            
+
+<div itemscope itemtype="http://schema.org/Article">
+	<link itemprop="image" href="//cdn.sstatic.net/stackoverflow/img/apple-touch-icon.png">
+			<!--googleoff: all-->
+
+<div id="herobox-mini">
+    <div id="hero-content">
+        <span id="controls">
+            <a href="/tour" id="tell-me-more" class="button">Take the 2-minute tour</a>
+            <span id="close"><a title="click to dismiss">&times;</a></span>
+        </span>
+        <div id="blurb">
+            Stack Overflow is a question and answer site for professional and enthusiast programmers. It&#39;s 100% free, no registration required.
+        </div>        
+    </div>
+    <script>
+        $('#tell-me-more').click(function () {
+            var clickSource = $("body").attr("class") + '-mini';
+            if ($("body").hasClass("questions-page")) {
+                clickSource = 'questionpagemini';
+            } else if ($("body").hasClass("question-page")) {
+                clickSource = 'questionpagemini';
+            } else if ($("body").hasClass("home-page")) {
+                clickSource = 'homepagemini';
+            }
+
+            StackExchange.using("gps", function () {
+                StackExchange.gps.track("aboutpage.click", { aboutclick_location: clickSource } , true);
+            });
+        });
+        $('#herobox-mini #close').click(function () {
+            StackExchange.using("gps", function () {
+                StackExchange.gps.track("hero.action", { hero_action_type: "close" }, true);
+            });
+            $.cookie("hero", "none", { path: "/" });
+            var $hero = $("#herobox-mini");
+            $hero.slideUp('fast', function () { $hero.remove(); });
+            return false;
+        });
+    </script>
+</div>
+			<!--googleon: all-->
+			<div id="question-header">
+			<h1 itemprop="name"><a href="/questions/6441218/can-a-local-variables-memory-be-accessed-outside-its-scope" class="question-hyperlink">Can a local variable&#39;s memory be accessed outside its scope?</a></h1>
+		</div>
+			<div id="mainbar">
+
+			
+
+<div class="question" data-questionid="6441218"  id="question">
+
+        <input type="hidden" id="6441218-only-allow-inform-moderator-flagging" value="true" />
+    <script>
+                var ados = ados || {};ados.run = ados.run || [];
+                ados.run.push(function() { ados_add_placement(22,8277,"adzerk509422385",4).setZone(43) ; });                    
+            </script>
+            <div class="everyonelovesstackoverflow" id="adzerk509422385">
+            </div>    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6441218">
+    <a class="vote-up-off" title="This question shows research effort; it is useful and clear">up vote</a>
+    <span class="vote-count-post ">240</span>
+    <a class="vote-down-off" title="This question does not show any research effort; it is unclear or not useful">down vote</a>
+    
+    <a class="star-off" href="#" title="This is a favorite question (click again to undo)">favorite</a>
+    <div class="favoritecount"><b>643</b></div>   
+
+</div>
+
+            </td>
+            
+<td class="postcell">
+<div>
+    <div class="post-text" itemprop="description">
+
+        <p>I have the following code.</p>
+
+<pre><code>int * foo()
+{
+    int a = 5;
+    return &amp;a;
+}
+
+int main()
+{
+    int* p = foo();
+    cout &lt;&lt; *p;
+    *p = 8;
+    cout &lt;&lt; *p;
+}
+</code></pre>
+
+<p>And the code is just running with no runtime exceptions!</p>
+
+<p>The output was <code>5 8</code></p>
+
+<p>How can it be? Isn't the memory of a local variable inaccessible outside its function?</p>
+
+    </div>
+    <div class="post-taglist">
+        <a href="/questions/tagged/c%2b%2b" class="post-tag" title="show questions tagged &#39;c++&#39;" rel="tag">c++</a> <a href="/questions/tagged/memory-management" class="post-tag" title="show questions tagged &#39;memory-management&#39;" rel="tag">memory-management</a> <a href="/questions/tagged/local-variables" class="post-tag" title="show questions tagged &#39;local-variables&#39;" rel="tag">local-variables</a> <a href="/questions/tagged/dangling" class="post-tag" title="show questions tagged &#39;dangling&#39;" rel="tag">dangling</a> 
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/q/6441218" title="short permalink to this question" class="short-link" id="link-post-6441218">share</a></div>        
+    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/6441218/revisions" title="show all edits to this post">edited <span title="2013-11-08 21:21:13Z" class="relativetime">Nov 8 '13 at 21:21</span></a>
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        <br>
+        
+    </div>
+</div>    </td>
+    <td class="post-signature">
+        <div class="user-info">
+    <div class="user-details">
+        <span class="community-wiki" title="This post is community owned as of Jun 24 &#39;11 at 8:29. Votes do not generate reputation, and it can be edited by users with 100 rep">
+            community wiki
+        </span>
+    </div><br>
+    <div class="user-details">
+        <a id="history-6441218" href="/posts/6441218/revisions" title="show revision history for this post">
+        19 revs, 10 users 35%<br>unknown
+
+        </a>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</div>
+</td>
+        </tr>
+                    <tr>
+            <td class="special-status" colspan="2">
+                <div class="question-status">
+        <h2>                    <b>locked</b> by <a href="/users/102937/robert-harvey">Robert Harvey</a><span class="mod-flair" title="moderator">♦</span> <span title="2011-06-26 05:28:42Z" class="relativetime">Jun 26 '11 at 5:28</span>
+</h2>
+        <p></p>
+    </div>
+            </td>
+        </tr>
+    
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6441218" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="19" 
+			           data-addlink-html="comments disabled on deleted / locked posts" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-7561705" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">5</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">this won&#39;t even compile as is; if you fix the nonforming business, gcc will still warn <code>address of local variable ‘a’ returned</code>; valgrind shows <code>Invalid write of size 4 &#91;...&#93; Address 0xbefd7114 is just below the stack ptr</code></span>
+                &ndash;&nbsp;
+                    <a href="/users/85371/sehe"
+                       title="120788 reputation"
+                       class="comment-user">sehe</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-22 14:34:08Z" class="relativetime-clean">Jun 22 '11 at 14:34</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-7573092" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="hot">15</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@Serge: Back in my youth I once worked on some kinda tricky zero-ring code that ran on the Netware operating system that involved cleverly moving around the stack pointer in a way not exactly sanctioned by the operating system. I&#39;d know when I&#39;d made a mistake because often the stack would end up overlapping the screen memory and I could just watch the bytes get written right onto the display. You can&#39;t get away with that sort of thing these days.</span>
+                &ndash;&nbsp;
+                    <a href="/users/88656/eric-lippert"
+                       title="295176 reputation"
+                       class="comment-user">Eric Lippert</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 04:23:38Z" class="relativetime-clean">Jun 23 '11 at 4:23</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-7574165" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">10</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">lol. I needed to read the question and some answers before I even understood where the problem is. Is that actually a question about variable&#39;s access scope? You don&#39;t even use &#39;a&#39; outside your function. And that is all there is to it. Throwing around some memory references is a totally different topic from variable scope.</span>
+                &ndash;&nbsp;
+                    <a href="/users/131120/erikb85"
+                       title="2540 reputation"
+                       class="comment-user">erikb85</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 06:23:14Z" class="relativetime-clean">Jun 23 '11 at 6:23</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-7577674" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="hot">21</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@sbi: Ya think? It makes me sad that a low-quality duplicate question can have so many upvotes just because it&#39;s got a great answer on it. A weakness of SO: votes are at least partially a function of views.</span>
+                &ndash;&nbsp;
+                    <a href="/users/560648/lightness-races-in-orbit"
+                       title="120193 reputation"
+                       class="comment-user">Lightness Races in Orbit</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 10:40:24Z" class="relativetime-clean">Jun 23 '11 at 10:40</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-7582869" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">9</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@Joel: If the answer here is good, it should be <b><i>merged into older questions</i></b>, of which this is a dupe, not the other way around. And this <b><i>question</i></b> is indeed a dupe of the other questions proposed here and then some (even though some of the proposed are a better fit than others). Note that I think Eric&#39;s answer is good. (In fact, I flagged this question for merging the answers into one of the older questions in order to salvage the older questions.)</span>
+                &ndash;&nbsp;
+                    <a href="/users/140719/sbi"
+                       title="98638 reputation"
+                       class="comment-user">sbi</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 15:20:03Z" class="relativetime-clean">Jun 23 '11 at 15:20</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6441218" data-rep=50 data-anon=true
+			   class="comments-link " 
+			   title="Use comments to ask for more information or suggest improvements. Avoid answering questions in comments." 
+				>show <b>19</b> more comments</a>
+    </td>
+</tr>        </table>
+</div>
+
+
+			<div id="answers">
+
+				<a name="tab-top"></a>
+				<div id="answers-header">
+					<div class="subheader answers-subheader">
+						<h2>
+								17 Answers
+						</h2>
+						<div>
+							<div id="tabs">
+        <a href="/questions/6441218/can-a-local-variables-memory-be-accessed-outside-its-scope?answertab=active#tab-top" title="Answers with the latest activity first">active</a>
+        <a href="/questions/6441218/can-a-local-variables-memory-be-accessed-outside-its-scope?answertab=oldest#tab-top" title="Answers in the order they were provided">oldest</a>
+        <a class="youarehere" href="/questions/6441218/can-a-local-variables-memory-be-accessed-outside-its-scope?answertab=votes#tab-top" title="Answers with the highest score first">votes</a>
+</div>
+						</div>
+					</div>    
+				</div>    
+
+
+
+
+  
+<a name="6445794"></a>
+<div id="answer-6445794" class="answer accepted-answer" data-answerid="6445794" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6445794">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post high-scored-post">3291</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+        <span class="vote-accepted-on load-accepted-answer-date" title="loading when this answer was accepted...">accepted</span>
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <blockquote>
+  <p>How can it be? Isn't the memory of a local variable inaccessible outside its function?</p>
+</blockquote>
+
+<p>You rent a hotel room. You put a book in the top drawer of the bedside table and go to sleep.  You check out the next morning, but "forget" to give back your key. You steal the key!</p>
+
+<p>A week later, you return to the hotel, do not check in, sneak into your old room with your stolen key, and look in the drawer. Your book is still there. Astonishing!</p>
+
+<p><strong>How can that be? Aren't the contents of a hotel room drawer inaccessible if you haven't rented the room?</strong></p>
+
+<p>Well, obviously that scenario can happen in the real world no problem. There is no mysterious force that causes your book to disappear when you are no longer authorized to be in the room. Nor is there a mysterious force that prevents you from entering a room with a stolen key.</p>
+
+<p>The hotel management is not <em>required</em> to remove your book. You didn't make a contract with them that said that if you leave stuff behind, they'll shred it for you. If you illegally re-enter your room with a stolen key to get it back, the hotel security staff is not <em>required</em> to catch you sneaking in. You didn't make a contract with them that said "if I try to sneak back into my room later, you are required to stop me." Rather, you signed a contract with them that said "I promise not to sneak back into my room later", a contract which <em>you broke</em>.</p>
+
+<p>In this situation <strong>anything can happen</strong>. The book can be there -- you got lucky. Someone else's book can be there and yours could be in the hotel's furnace. Someone could be there right when you come in, tearing your book to pieces. The hotel could have removed the table and book entirely and replaced it with a wardrobe. The entire hotel could be just about to be torn down and replaced with a football stadium, and you are going to die in an explosion while you are sneaking around. </p>
+
+<p>You don't know what is going to happen; when you checked out of the hotel and stole a key to illegally use later, you gave up the right to live in a predictable, safe world because <em>you</em> chose to break the rules of the system.</p>
+
+<p><strong>C++ is not a safe language</strong>. It will cheerfully allow you to break the rules of the system. If you try to do something illegal and foolish like going back into a room you're not authorized to be in and rummaging through a desk that might not even be there anymore, C++ is not going to stop you. Safer languages than C++ solve this problem by restricting your power -- by having much stricter control over keys, for example.</p>
+
+<h2>UPDATE</h2>
+
+<p>Holy goodness, this answer is getting a lot of attention. (I'm not sure why -- I considered it to be just a "fun" little analogy, but whatever.)</p>
+
+<p>I thought it might be germane to update this a bit with a few more technical thoughts.</p>
+
+<p>Compilers are in the business of generating code which manages the storage of the data manipulated by that program. There are lots of different ways of generating code to manage memory, but over time two basic techniques have become entrenched. </p>
+
+<p>The first is to have some sort of "long lived" storage area where the "lifetime" of each byte in the storage -- that is, the period of time when it is validly associated with some program variable -- cannot be easily predicted ahead of time. The compiler generates calls into a "heap manager" that knows how to dynamically allocate storage when it is needed and reclaim it when it is no longer needed.</p>
+
+<p>The second is to have some sort of "short lived" storage area where the lifetime of each byte in the storage is well known, and, in particular, lifetimes of storages follow a "nesting" pattern. That is, the allocation of the longest-lived of the short-lived variables strictly overlaps the allocations of shorter-lived variables that come after it. </p>
+
+<p>Local variables follow the latter pattern; when a method is entered, its local variables come alive. When that method calls another method, the new method's local variables come alive. They'll be dead before the first method's local variables are dead.  The relative order of the beginnings and endings of lifetimes of storages associated with local variables can be worked out ahead of time.</p>
+
+<p>For this reason, local variables are usually generated as storage on a "stack" data structure, because a stack has the property that the first thing pushed on it is going to be the last thing popped off. </p>
+
+<p>It's like the hotel decides to only rent out rooms sequentially, and you can't check out until everyone with a room number higher than you has checked out. </p>
+
+<p>So let's think about the stack. In many operating systems you get one stack per thread and the stack is allocated to be a certain fixed size. When you call a method, stuff is pushed onto the stack. If you then pass a pointer to the stack back out of your method, as the original poster does here, that's just a pointer to the middle of some entirely valid million-byte memory block. In our analogy, you check out of the hotel; when you do, you just checked out of the highest-numbered occupied room.  If no one else checks in after you, and you go back to your room illegally, all your stuff is guaranteed to still be there <em>in this particular hotel</em>.</p>
+
+<p>We use stacks for temporary stores because they are really cheap and easy. An implementation of C++ is not required to use a stack for storage of locals; it could use the heap. It doesn't, because that would make the program slower. </p>
+
+<p>An implementation of C++ is not required to leave the garbage you left on the stack untouched so that you can come back for it later illegally; it is perfectly legal for the compiler to generate code that turns back to zero everything in the "room" that you just vacated. It doesn't because again, that would be expensive.</p>
+
+<p>An implementation of C++ is not required to ensure that when the stack logically shrinks, the addresses that used to be valid are still mapped into memory. The implementation is allowed to tell the operating system "we're done using this page of stack now. Until I say otherwise, issue an exception that destroys the process if anyone touches the previously-valid stack page".  Again, implementations do not actually do that because it is slow and unnecessary.</p>
+
+<p>Instead, implementations let you make mistakes and get away with it. Most of the time. Until one day something truly awful goes wrong and the process explodes.</p>
+
+<p>This is problematic. There are a lot of rules and it is very easy to break them accidentally. I certainly have many times. And worse, the problem often only surfaces when memory is detected to be corrupt billions of nanoseconds after the corruption happened, when it is very hard to figure out who messed it up.</p>
+
+<p>More memory-safe languages solve this problem by restricting your power. In "normal" C# there simply is no way to take the address of a local and return it or store it for later. You can take the address of a local, but the language is cleverly designed so that it is impossible to use it after the lifetime of the local ends. In order to take the address of a local and pass it back, you have to put the compiler in a special "unsafe" mode, <em>and</em> put the word "unsafe" in your program, to call attention to the fact that you are probably doing something dangerous that could be breaking the rules. </p>
+
+<p>For further reading:</p>
+
+<ul>
+<li><p>What if C# did allow returning references? Coincidentally that is the subject of today's blog post:</p>
+
+<p><a href="http://blogs.msdn.com/b/ericlippert/archive/2011/06/23/ref-returns-and-ref-locals.aspx">http://blogs.msdn.com/b/ericlippert/archive/2011/06/23/ref-returns-and-ref-locals.aspx</a></p></li>
+<li><p>Why do we use stacks to manage memory? Are value types in C# always stored on the stack? How does virtual memory work? And many more topics in how the C# memory manager works. Many of these articles are also germane to C++ programmers:</p>
+
+<p><a href="http://blogs.msdn.com/b/ericlippert/archive/tags/memory+management/">http://blogs.msdn.com/b/ericlippert/archive/tags/memory+management/</a></p></li>
+</ul>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6445794" title="short permalink to this answer" class="short-link" id="link-post-6445794">share</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/6445794/revisions" title="show all edits to this post">edited <span title="2013-08-26 21:39:11Z" class="relativetime">Aug 26 '13 at 21:39</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1726343/asad"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/55744f355c4714fd473c50e799165a70?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1726343/asad">Asad</a><br>
+        <span class="reputation-score" title="reputation score 22738" dir="ltr">22.7k</span><span title="1 gold badge"><span class="badge1"></span><span class="badgecount">1</span></span><span title="21 silver badges"><span class="badge2"></span><span class="badgecount">21</span></span><span title="46 bronze badges"><span class="badge3"></span><span class="badgecount">46</span></span>
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2011-06-22 20:01:23Z" class="relativetime">Jun 22 '11 at 20:01</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/88656/eric-lippert"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/6fbdff3ffb6f111d172759b4f05bea0e?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/88656/eric-lippert">Eric Lippert</a><br>
+        <span class="reputation-score" title="reputation score 295176" dir="ltr">295k</span><span title="67 gold badges"><span class="badge1"></span><span class="badgecount">67</span></span><span title="655 silver badges"><span class="badge2"></span><span class="badgecount">655</span></span><span title="1487 bronze badges"><span class="badge3"></span><span class="badgecount">1487</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6445794" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="39" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-7571267" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">485</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">That&#39;s the best analogy for pointers I&#39;ve ever seen.</span>
+                &ndash;&nbsp;
+                    <a href="/users/497934/maxpm"
+                       title="5079 reputation"
+                       class="comment-user">Maxpm</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 00:18:15Z" class="relativetime-clean">Jun 23 '11 at 0:18</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-7572579" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">252</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I won&#39;t ever look at a Gideon&#39;s bible the same way...</span>
+                &ndash;&nbsp;
+                    <a href="/users/210916/mpelletier"
+                       title="8278 reputation"
+                       class="comment-user">MPelletier</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 03:04:15Z" class="relativetime-clean">Jun 23 '11 at 3:04</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-7572650" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">340</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I&#39;d have stolen a lot fewer hotel-room keys had I known each would increase my likelihood of dying in an unfinished football stadium.</span>
+                &ndash;&nbsp;
+                    <a href="/users/238688/dan-j"
+                       title="10180 reputation"
+                       class="comment-user">Dan J</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 03:16:09Z" class="relativetime-clean">Jun 23 '11 at 3:16</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-7574565" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">1268</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Somewhere there is a Hotel Manager explaining the problem of disappearing towels to an engineer using a memory leak analogy.</span>
+                &ndash;&nbsp;
+                    <a href="/users/408106/leebriggs"
+                       title="1574 reputation"
+                       class="comment-user">leebriggs</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 06:55:57Z" class="relativetime-clean">Jun 23 '11 at 6:55</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-7575025" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">323</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@cyberguijarro: That C++ is not memory safe is simply a fact. It&#39;s not &quot;bashing&quot; anything. Had I said, for example, &quot;C++ is a horrid mishmash of under-specified, overly-complex features piled on top of a brittle, dangerous memory model and I am thankful every day I no longer work in it for my own sanity&quot;, that would be bashing C++. Pointing out that it&#39;s not memory safe is <i>explaining</i> why the original poster is seeing this issue; it&#39;s answering the question, not editorializing.</span>
+                &ndash;&nbsp;
+                    <a href="/users/88656/eric-lippert"
+                       title="295176 reputation"
+                       class="comment-user">Eric Lippert</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 07:27:15Z" class="relativetime-clean">Jun 23 '11 at 7:27</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6445794" data-rep=50 data-anon=true
+			   class="comments-link " 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>show <b>39</b> more comments</a>
+    </td>
+</tr>    </table>
+</div>
+<script>
+                var ados = ados || {};ados.run = ados.run || [];
+                ados.run.push(function() { ados_add_placement(22,8277,"adzerk594678401",4).setZone(44) ; });                    
+            </script>
+            <div class="everyonelovesstackoverflow" id="adzerk594678401">
+            </div>
+  
+<a name="6449811"></a>
+<div id="answer-6449811" class="answer" data-answerid="6449811" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6449811">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">171</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>What you're doing here is simply reading and writing to memory that <i>used to</i> be the address of <code>a</code>. Now that you're outside of <code>foo</code>, it's just a pointer to some random memory area. It just so happens that in your example, that memory area does exist and nothing else is using it at the moment. You don't break anything by continuing to use it, and nothing else has overwritten it yet. Therefore, the <code>5</code> is still there. In a real program, that memory would be re-used almost immediately and you'd break something by doing this (though the symptoms may not appear until much later!)</p>
+
+<p>When you return from <code>foo</code>, you tell the OS that you're no longer using that memory and it can be reassigned to something else. If you're lucky and it never does get reassigned, and the OS doesn't catch you using it again, then you'll get away with the lie. Chances are though you'll end up writing over whatever else ends up with that address.</p>
+
+<p>Now if you're wondering why the compiler doesn't complain, it's probably because <code>foo</code> got eliminated by optimization. It usually will warn you about this sort of thing. C assumes you know what you're doing though, and technically you haven't violated scope here (there's no reference to <code>a</code> itself outside of <code>foo</code>), only memory access rules, which only triggers a warning rather than an error.</p>
+
+<p>In short: this won't usually work, but sometimes will by chance.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6449811" title="short permalink to this answer" class="short-link" id="link-post-6449811">share</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info user-hover">
+    <div class="user-action-time">
+        <a href="/posts/6449811/revisions" title="show all edits to this post">edited <span title="2013-10-07 19:23:41Z" class="relativetime">Oct 7 '13 at 19:23</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1822514/chue-x"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/e2TMH.jpg?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1822514/chue-x">chue x</a><br>
+        <span class="reputation-score" title="reputation score 10838" dir="ltr">10.8k</span><span title="4 gold badges"><span class="badge1"></span><span class="badgecount">4</span></span><span title="13 silver badges"><span class="badge2"></span><span class="badgecount">13</span></span><span title="30 bronze badges"><span class="badge3"></span><span class="badgecount">30</span></span>
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2011-06-23 05:43:54Z" class="relativetime">Jun 23 '11 at 5:43</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/156203/rena"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/f2830d72f086d2cdc8ac5b4f1333c3cd?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/156203/rena">Rena</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">2,180</span><span title="1 gold badge"><span class="badge1"></span><span class="badgecount">1</span></span><span title="9 silver badges"><span class="badge2"></span><span class="badgecount">9</span></span><span title="16 bronze badges"><span class="badge3"></span><span class="badgecount">16</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6449811" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-7576841" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">36</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Up vote for the only thought-out answer to the question. All the others give analogy completely out of context.</span>
+                &ndash;&nbsp;
+                    <a href="/users/17382/chad"
+                       title="1586 reputation"
+                       class="comment-user">Chad</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 09:33:31Z" class="relativetime-clean">Jun 23 '11 at 9:33</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6449811" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="2862501"></a>
+<div id="answer-2862501" class="answer" data-answerid="2862501" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="2862501">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">53</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>Because the storage space wasn't stomped on just yet. Don't count on that behavior.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/2862501" title="short permalink to this answer" class="short-link" id="link-post-2862501">share</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2010-05-19 02:33:30Z" class="relativetime">May 19 '10 at 2:33</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/282912/msw"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/b512058437c392e361e5378fa39a2f63?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/282912/msw">msw</a><br>
+        <span class="reputation-score" title="reputation score 24920" dir="ltr">24.9k</span><span title="2 gold badges"><span class="badge1"></span><span class="badgecount">2</span></span><span title="28 silver badges"><span class="badge2"></span><span class="badgecount">28</span></span><span title="58 bronze badges"><span class="badge3"></span><span class="badgecount">58</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-2862501" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-14943977" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">3</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I like Eric&#39;s answer a lot, obviously, and I&#39;m not just being egregious for the sake of it, but this answer has the virtue of brevity and correctness.</span>
+                &ndash;&nbsp;
+                    <a href="/users/81317/rob-kent"
+                       title="3073 reputation"
+                       class="comment-user">Rob Kent</a>
+                <span class="comment-date" dir="ltr"><span title="2012-07-05 15:43:22Z" class="relativetime-clean">Jul 5 '12 at 15:43</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-2862501" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6451513"></a>
+<div id="answer-6451513" class="answer" data-answerid="6451513" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6451513">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">48</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>It's like skipping the red light; you may get to the other side, or you may get hit by a truck!</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6451513" title="short permalink to this answer" class="short-link" id="link-post-6451513">share</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2011-06-23 08:49:31Z" class="relativetime">Jun 23 '11 at 8:49</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/202538/grav"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/gIL31.jpg?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/202538/grav">Grav</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">844</span><span title="6 silver badges"><span class="badge2"></span><span class="badgecount">6</span></span><span title="15 bronze badges"><span class="badge3"></span><span class="badgecount">15</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6451513" class="comments  dno" data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+					    <tr><td></td><td></td></tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6451513" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6441367"></a>
+<div id="answer-6441367" class="answer" data-answerid="6441367" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6441367">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">41</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>In C++, you <em>can</em> access any address, but it doesn't mean you <em>should</em>. The address you are accessing is no longer valid. It <em>works</em> because nothing else scrambled the memory after foo returned, but it could crash under many circumstances. Try analyzing your program with <a href="http://en.wikipedia.org/wiki/Valgrind">Valgrind</a>, or even just compiling it optimized, and see...</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6441367" title="short permalink to this answer" class="short-link" id="link-post-6441367">share</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info user-hover">
+    <div class="user-action-time">
+        <a href="/posts/6441367/revisions" title="show all edits to this post">edited <span title="2011-06-24 21:33:42Z" class="relativetime">Jun 24 '11 at 21:33</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/63550/peter-mortensen"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/RIZKi.png?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/63550/peter-mortensen">Peter Mortensen</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">7,406</span><span title="8 gold badges"><span class="badge1"></span><span class="badgecount">8</span></span><span title="51 silver badges"><span class="badge2"></span><span class="badgecount">51</span></span><span title="82 bronze badges"><span class="badge3"></span><span class="badgecount">82</span></span>
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2011-06-22 14:15:01Z" class="relativetime">Jun 22 '11 at 14:15</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/621944/charles-brunet"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/bf7d39f4ed9c289feca7de38a0093250?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/621944/charles-brunet">Charles Brunet</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">5,573</span><span title="2 gold badges"><span class="badge1"></span><span class="badgecount">2</span></span><span title="22 silver badges"><span class="badge2"></span><span class="badgecount">22</span></span><span title="65 bronze badges"><span class="badge3"></span><span class="badgecount">65</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6441367" class="comments  dno" data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+					    <tr><td></td><td></td></tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6441367" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6441371"></a>
+<div id="answer-6441371" class="answer" data-answerid="6441371" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6441371">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">33</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>You never throw a C++ exception by accessing invalid memory. You are just giving an example of the general idea of referencing an arbitrary memory location. I could do the same like this:</p>
+
+<pre><code>unsigned int q = 123456;
+
+*(double*)(q) = 1.2;
+</code></pre>
+
+<p>Here I am simply treating 123456 as the address of a double and write to it. Any number of things could happen: 1) <code>q</code> might in fact genuinely be a valid address of a double, e.g. <code>double p; q = &amp;p;</code>. 2) <code>q</code> might point somewhere inside allocated memory and I just overwrite 8 bytes in there. 3) <code>q</code> points outside allocated memory and the operating system's memory manager sends a segmentation fault signal to my program, causing the runtime to terminate it. 4) You win the lottery.</p>
+
+<p>The way you set it up it is a bit more reasonable that the returned address points into a valid area of memory, as it will probably just be a little further down the stack, but it is still an invalid location that you cannot access in a deterministic fashion.</p>
+
+<p>Nobody will automatically check the semantic validity of memory addresses like that for you during normal program execution. However, a memory debugger such as <code>valgrind</code> will happily do this, so you should run your program through it and witness the errors.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6441371" title="short permalink to this answer" class="short-link" id="link-post-6441371">share</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2011-06-22 14:15:11Z" class="relativetime">Jun 22 '11 at 14:15</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/596781/kerrek-sb"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/a18405dd4b022837867d1f5453a05f41?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/596781/kerrek-sb">Kerrek SB</a><br>
+        <span class="reputation-score" title="reputation score 186573" dir="ltr">187k</span><span title="22 gold badges"><span class="badge1"></span><span class="badgecount">22</span></span><span title="287 silver badges"><span class="badge2"></span><span class="badgecount">287</span></span><span title="497 bronze badges"><span class="badge3"></span><span class="badgecount">497</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6441371" class="comments  dno" data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+					    <tr><td></td><td></td></tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6441371" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6478323"></a>
+<div id="answer-6478323" class="answer" data-answerid="6478323" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6478323">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">26</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>A little addition to all the answers:</p>
+
+<p>if you do something like that:</p>
+
+<pre><code>#include&lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+int * foo(){
+    int a = 5;
+    return &amp;a;
+}
+void boo(){
+    int a = 7;
+
+}
+int main(){
+    int * p = foo();
+    boo();
+    printf("%d\n",*p);
+}
+</code></pre>
+
+<p>the output probably will be: 7</p>
+
+<p>That is because after returning from foo() the stack is freed and then reused by boo().
+If you deassemble the executable you will see it clearly.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6478323" title="short permalink to this answer" class="short-link" id="link-post-6478323">share</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/6478323/revisions" title="show all edits to this post">edited <span title="2011-06-25 14:35:20Z" class="relativetime">Jun 25 '11 at 14:35</span></a>
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        <br>
+        
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info">
+    <div class="user-details">
+        <span class="community-wiki" title="This post is community owned as of Jun 25 &#39;11 at 14:19. Votes do not generate reputation, and it can be edited by users with 100 rep">
+            community wiki
+        </span>
+    </div><br>
+    <div class="user-details">
+        <a id="history-6478323" href="/posts/6478323/revisions" title="show revision history for this post">
+        2 revs<br><a href="/users/709553">Michael</a>
+        </a>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6478323" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-23556354" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Simple, but great example to understand the underlying stack theory.Just one test addition, declaring &quot;int a = 5;&quot; in foo() as  &quot;static int a = 5;&quot; can be used to understand the scope and life time of a static variable.</span>
+                &ndash;&nbsp;
+                    <a href="/users/851806/ppu"
+                       title="176 reputation"
+                       class="comment-user">ppu</a>
+                <span class="comment-date" dir="ltr"><span title="2013-05-07 19:02:43Z" class="relativetime-clean">May 7 '13 at 19:02</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-28548185" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">-1 &quot;for will <b>probably be 7</b>&quot;. The compiler might enregister a in boo. It might remove it because it&#39;s unnecessary. There is a good chance that *p will <b>not be 5</b>, but that doesn&#39;t mean that there is any particularly good reason why it will <b>probably be 7</b>.</span>
+                &ndash;&nbsp;
+                    <a href="/users/2134079/matt"
+                       title="115 reputation"
+                       class="comment-user">Matt</a>
+                <span class="comment-date" dir="ltr"><span title="2013-10-09 19:16:40Z" class="relativetime-clean">Oct 9 '13 at 19:16</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-36948119" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">+1 as it explains the situation in question while stating it&#39;s not guaranteed.</span>
+                &ndash;&nbsp;
+                    <a href="/users/547819/rahmanisback"
+                       title="480 reputation"
+                       class="comment-user">rahmanisback</a>
+                <span class="comment-date" dir="ltr"><span title="2014-06-01 11:47:08Z" class="relativetime-clean">Jun 1 at 11:47</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6478323" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6441340"></a>
+<div id="answer-6441340" class="answer" data-answerid="6441340" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6441340">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">13</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>Did you compile you program with the optimiser enabled ?</p>
+
+<p>The foo() function is quite simple and might have been inlined/replaced in the resulting code.</p>
+
+<p>But I aggree with Mark B that the resulting behavior is undefined.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6441340" title="short permalink to this answer" class="short-link" id="link-post-6441340">share</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2011-06-22 14:12:51Z" class="relativetime">Jun 22 '11 at 14:12</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/456081/gastush"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/b069ff660cca8b1dcb85693f6705b405?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/456081/gastush">gastush</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">692</span><span title="3 silver badges"><span class="badge2"></span><span class="badgecount">3</span></span><span title="13 bronze badges"><span class="badge3"></span><span class="badgecount">13</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6441340" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-7565293" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">That&#39;s my bet.   Optimizer dumped the function call.</span>
+                &ndash;&nbsp;
+                    <a href="/users/627042/erik-aronesty"
+                       title="2203 reputation"
+                       class="comment-user">Erik Aronesty</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-22 17:34:48Z" class="relativetime-clean">Jun 22 '11 at 17:34</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-7577970" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">4</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">That is not necessary. Since no new function is called after foo(), the functions local stack frame is simply not yet overwritten. Add another function invocation after foo(), and the <code>5</code> will be changed...</span>
+                &ndash;&nbsp;
+                    <a href="/users/181894/tomas"
+                       title="2981 reputation"
+                       class="comment-user">Tomas</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 11:02:21Z" class="relativetime-clean">Jun 23 '11 at 11:02</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6441340" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6449426"></a>
+<div id="answer-6449426" class="answer" data-answerid="6449426" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6449426">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">10</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>Your problem has nothing to do with <em>scope</em>. In the code you show, the function <code>main</code> does not see the names in the function <code>foo</code>, so you can't access <code>a</code> in foo directly with <em>this</em> name outside <code>foo</code>.</p>
+
+<p>The problem you are having is why the program doesn't signal an error when referencing illegal memory. This is because C++ standards does not specify a very clear boundary between illegal memory and legal memory. Referencing something in popped out stack sometimes causes error and sometimes not. It depends. Don't count on this behavior. Assume it will always result in error when you program, but assume it will never signal error when you debug.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6449426" title="short permalink to this answer" class="short-link" id="link-post-6449426">share</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2011-06-23 04:45:29Z" class="relativetime">Jun 23 '11 at 4:45</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/752150/chang-peng"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/41d75da650245f60706c18fff5cc733e?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/752150/chang-peng">Chang Peng</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">621</span><span title="3 silver badges"><span class="badge2"></span><span class="badgecount">3</span></span><span title="11 bronze badges"><span class="badge3"></span><span class="badgecount">11</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6449426" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-7575585" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I recall from an old copy of <i>Turbo C Programming for the IBM</i>, which I used to play around with some way back when, how directly manipulating the graphics memory, and the layout of the IBM&#39;s text mode video memory, was described in great detail. Of course then, the system that the code ran on clearly defined what writing to those addresses meant, so as long as you didn&#39;t worry about portability to other systems, everything was fine. IIRC, pointers to void were a common theme in that book.</span>
+                &ndash;&nbsp;
+                    <a href="/users/486504/michael-kj%c3%b6rling"
+                       title="3894 reputation"
+                       class="comment-user">Michael Kj&#246;rling</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 08:05:31Z" class="relativetime-clean">Jun 23 '11 at 8:05</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-7576168" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@Michael Kj&#246;rling: Sure! People like to do some dirty work once in a while ;)</span>
+                &ndash;&nbsp;
+                    <a href="/users/752150/chang-peng"
+                       title="621 reputation"
+                       class="comment-user">Chang Peng</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 08:47:40Z" class="relativetime-clean">Jun 23 '11 at 8:47</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6449426" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6441417"></a>
+<div id="answer-6441417" class="answer" data-answerid="6441417" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6441417">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">5</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>In typical compiler implementations, you can think of the code as "print out the value of the memory block with adress that <em>used to be</em> occupied by a". Also, if you add a new function invocation to a function that constains a local <code>int</code> it's a good chance that the value of <code>a</code> (or the memory address that <code>a</code> used to point to) changes. This happens because the stack will be overwritten with a new frame containing different data.</p>
+
+<p>However, this is <em>undefined</em> behaviour and you should not rely on it to work!</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6441417" title="short permalink to this answer" class="short-link" id="link-post-6441417">share</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/6441417/revisions" title="show all edits to this post">edited <span title="2011-06-23 08:02:35Z" class="relativetime">Jun 23 '11 at 8:02</span></a>
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        <br>
+        
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2011-06-22 14:18:00Z" class="relativetime">Jun 22 '11 at 14:18</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/167251/larsm"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/fGNwt.jpg?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/167251/larsm">larsm</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">5,247</span><span title="1 gold badge"><span class="badge1"></span><span class="badgecount">1</span></span><span title="19 silver badges"><span class="badge2"></span><span class="badgecount">19</span></span><span title="44 bronze badges"><span class="badge3"></span><span class="badgecount">44</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6441417" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-7569308" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">2</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">&quot;print out the value of the memory block with address that <i>used to be</i> occupied by a&quot; isn&#39;t quite right. This makes it sound like his code has some well-defined meaning, which is not the case. You are right that this is probably how most compilers would implement it, though.</span>
+                &ndash;&nbsp;
+                    <a href="/users/242814/brennan-vincent"
+                       title="1809 reputation"
+                       class="comment-user">Brennan Vincent</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-22 21:23:46Z" class="relativetime-clean">Jun 22 '11 at 21:23</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-7575552" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@Brennan Vincent: you&#39;re right, edited the answer to reflect what you&#39;ve said.</span>
+                &ndash;&nbsp;
+                    <a href="/users/167251/larsm"
+                       title="5247 reputation"
+                       class="comment-user">larsm</a>
+                <span class="comment-date" dir="ltr"><span title="2011-06-23 08:03:03Z" class="relativetime-clean">Jun 23 '11 at 8:03</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6441417" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6456670"></a>
+<div id="answer-6456670" class="answer" data-answerid="6456670" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6456670">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">5</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>It works because the stack has not been altered (yet) since a was put there. 
+Call a few other functions (which are also calling other functions) before accessing <code>a</code> again and you will probably not be so lucky anymore... ;-)</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6456670" title="short permalink to this answer" class="short-link" id="link-post-6456670">share</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2011-06-23 15:31:51Z" class="relativetime">Jun 23 '11 at 15:31</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/59301/adrian-grigore"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/da420a08984d779d8f389e751b1b1d7e?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/59301/adrian-grigore">Adrian Grigore</a><br>
+        <span class="reputation-score" title="reputation score 15781" dir="ltr">15.8k</span><span title="15 gold badges"><span class="badge1"></span><span class="badgecount">15</span></span><span title="82 silver badges"><span class="badge2"></span><span class="badgecount">82</span></span><span title="161 bronze badges"><span class="badge3"></span><span class="badgecount">161</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6456670" class="comments  dno" data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+					    <tr><td></td><td></td></tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6456670" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6474196"></a>
+<div id="answer-6474196" class="answer" data-answerid="6474196" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6474196">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">5</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>That's classic <strong>undefined behaviour</strong> that's been discussed here not two days ago -- search around the site for a bit. In a nutshell, you were lucky, but anything could have happened and your code is making invalid access to memory.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6474196" title="short permalink to this answer" class="short-link" id="link-post-6474196">share</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2011-06-24 21:57:55Z" class="relativetime">Jun 24 '11 at 21:57</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/596781/kerrek-sb"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/a18405dd4b022837867d1f5453a05f41?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/596781/kerrek-sb">Kerrek SB</a><br>
+        <span class="reputation-score" title="reputation score 186573" dir="ltr">187k</span><span title="22 gold badges"><span class="badge1"></span><span class="badgecount">22</span></span><span title="287 silver badges"><span class="badge2"></span><span class="badgecount">287</span></span><span title="497 bronze badges"><span class="badge3"></span><span class="badgecount">497</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6474196" class="comments  dno" data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+					    <tr><td></td><td></td></tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6474196" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6474195"></a>
+<div id="answer-6474195" class="answer" data-answerid="6474195" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6474195">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">4</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>It can, because <code>a</code> is a variable allocated temporarily for the lifetime of its scope (<code>foo</code> function). After you return from <code>foo</code> the memory is free and can be overwritten.</p>
+
+<p>What you're doing is described as <em>undefined behavior</em>. The result cannot be predicted.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6474195" title="short permalink to this answer" class="short-link" id="link-post-6474195">share</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2011-06-24 21:57:54Z" class="relativetime">Jun 24 '11 at 21:57</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/618400/littleadv"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/6992b97e4049b3b69de1df59e7e5fef6?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/618400/littleadv">littleadv</a><br>
+        <span class="reputation-score" title="reputation score 15392" dir="ltr">15.4k</span><span title="16 silver badges"><span class="badge2"></span><span class="badgecount">16</span></span><span title="35 bronze badges"><span class="badge3"></span><span class="badgecount">35</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6474195" class="comments  dno" data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+					    <tr><td></td><td></td></tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6474195" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="2862503"></a>
+<div id="answer-2862503" class="answer" data-answerid="2862503" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="2862503">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">3</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>You are just returning a memory address, it's allowed but probably an error.  </p>
+
+<p>Yes if you try to dereference that memory address you will have undefined behavior.</p>
+
+<pre><code>int * ref () {
+
+ int tmp = 100;
+ return &amp;tmp;
+}
+
+int main () {
+
+ int * a = ref();
+ //Up until this point there is defined results
+ //You can even print the address returned
+ // but yes probably a bug
+
+ cout &lt;&lt; *a &lt;&lt; endl;//Undefined results
+}
+</code></pre>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/2862503" title="short permalink to this answer" class="short-link" id="link-post-2862503">share</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/2862503/revisions" title="show all edits to this post">edited <span title="2010-05-19 12:56:09Z" class="relativetime">May 19 '10 at 12:56</span></a>
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        <br>
+        
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2010-05-19 02:33:39Z" class="relativetime">May 19 '10 at 2:33</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/3153/brian-r-bondy"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/47d8644c0ad8d89635fca422dd6d3ab5?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/3153/brian-r-bondy">Brian R. Bondy</a><br>
+        <span class="reputation-score" title="reputation score 140918" dir="ltr">141k</span><span title="55 gold badges"><span class="badge1"></span><span class="badgecount">55</span></span><span title="373 silver badges"><span class="badge2"></span><span class="badgecount">373</span></span><span title="511 bronze badges"><span class="badge3"></span><span class="badgecount">511</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-2862503" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-2908170" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I disagree: There is a problem before the <code>cout</code>. <code>*a</code> points to unallocated (freed) memory. Even if you don&#39;t derefence it, it is still dangerous (and likely bogus).</span>
+                &ndash;&nbsp;
+                    <a href="/users/279259/ereon"
+                       title="18064 reputation"
+                       class="comment-user">ereOn</a>
+                <span class="comment-date" dir="ltr"><span title="2010-05-19 07:15:13Z" class="relativetime-clean">May 19 '10 at 7:15</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-2910285" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@ereOn: I clarified more what I meant by problem, but no it is not dangerous in terms of valid c++ code.  But it is dangerous in terms of likely the user made a mistake and will do something bad.   Maybe for example you are trying to see how the stack grows, and you only care about the address value and will never dereference it.</span>
+                &ndash;&nbsp;
+                    <a href="/users/3153/brian-r-bondy"
+                       title="140918 reputation"
+                       class="comment-user">Brian R. Bondy</a>
+                <span class="comment-date" dir="ltr"><span title="2010-05-19 13:02:37Z" class="relativetime-clean">May 19 '10 at 13:02</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-2862503" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6469747"></a>
+<div id="answer-6469747" class="answer" data-answerid="6469747" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6469747">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">3</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>The things with correct (?) console output can change dramatically if you use ::printf but not cout. 
+You can play around with debugger within below code (tested on x86, 32-bit, MSVisual Studio):</p>
+
+<pre><code>char* foo() 
+{
+  char buf[10];
+  ::strcpy(buf, "TEST”);
+  return buf;
+}
+
+int main() 
+{
+  char* s = foo();    //place breakpoint &amp; check 's' varialbe here
+  ::printf("%s\n", s); 
+}
+</code></pre>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6469747" title="short permalink to this answer" class="short-link" id="link-post-6469747">share</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        answered <a href="/posts/6469747/revisions" title="show all edits to this post"><span title="2011-06-24 15:07:13Z" class="relativetime">Jun 24 '11 at 15:07</span></a>
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        <br>
+        
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info">
+    <div class="user-details">
+        <span class="community-wiki" title="This post is community owned as of Jun 24 &#39;11 at 15:07. Votes do not generate reputation, and it can be edited by users with 100 rep">
+            community wiki
+        </span>
+    </div><br>
+    <div class="user-details">
+        <a id="history-6469747" href="/posts/6469747/revisions" title="show revision history for this post">
+        Mykola
+        </a>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6469747" class="comments  dno" data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+					    <tr><td></td><td></td></tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6469747" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6474189"></a>
+<div id="answer-6474189" class="answer" data-answerid="6474189" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6474189">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">3</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>You actually invoked undefined behaviour.</p>
+
+<p>Returning the address of a temporary works, but as temporaries are destroyed at the end of a function the results of accessing them will be undefined.</p>
+
+<p>So you did not modify <code>a</code> but rather the memory location where <code>a</code> once was. This difference is very similar to the difference between crashing and not crashing. </p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6474189" title="short permalink to this answer" class="short-link" id="link-post-6474189">share</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2011-06-24 21:57:13Z" class="relativetime">Jun 24 '11 at 21:57</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/234053/alexander-gessler"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/5ea786dc75650ed5c7e71a71001062dd?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/234053/alexander-gessler">Alexander Gessler</a><br>
+        <span class="reputation-score" title="reputation score 25995" dir="ltr">26k</span><span title="2 gold badges"><span class="badge1"></span><span class="badgecount">2</span></span><span title="39 silver badges"><span class="badge2"></span><span class="badgecount">39</span></span><span title="77 bronze badges"><span class="badge3"></span><span class="badgecount">77</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6474189" class="comments  dno" data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+					    <tr><td></td><td></td></tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6474189" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="6474236"></a>
+<div id="answer-6474236" class="answer" data-answerid="6474236" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="6474236">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">3</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>This behavior is undefined, as Alex pointed out--in fact, most compilers will warn against doing this, because it's an easy way to get crashes.</p>
+
+<p>For an example of the kind of spooky behavior you are <em>likely</em> to get, try this sample:</p>
+
+<pre><code>int *a()
+{
+   int x = 5;
+   return &amp;x;
+}
+
+void b( int *c )
+{
+   int y = 29;
+   *c = 123;
+   cout &lt;&lt; "y=" &lt;&lt; y &lt;&lt; endl;
+}
+
+int main()
+{
+   b( a() );
+   return 0;
+}
+</code></pre>
+
+<p>This prints out "y=123", but your results may vary (really!). Your pointer is clobbering other, unrelated local variables.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/6474236" title="short permalink to this answer" class="short-link" id="link-post-6474236">share</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2011-06-24 22:04:21Z" class="relativetime">Jun 24 '11 at 22:04</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/78006/ahelps"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/bca7e992d0e657035ae6a843e5b70565?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/78006/ahelps">AHelps</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">1,161</span><span title="6 silver badges"><span class="badge2"></span><span class="badgecount">6</span></span><span title="8 bronze badges"><span class="badge3"></span><span class="badgecount">8</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-6474236" class="comments  dno" data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+					    <tr><td></td><td></td></tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-6474236" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+				<div class="question-status">
+        <h2>                    <b>protected</b> by <a href="/users/4/joel-spolsky">Joel Spolsky</a><span class="mod-flair" title="moderator">♦</span> <span title="2011-06-23 14:36:42Z" class="relativetime">Jun 23 '11 at 14:36</span>
+</h2>
+        <p>
+Thank you for your interest in this question. 
+Because it has attracted low-quality answers, posting an answer now requires 10 <a href="/help/whats-reputation">reputation</a> on this site.
+<br /><br />
+Would you like to answer one of these <a href="/unanswered?fromProtectedNotice=true">unanswered questions</a> instead?
+</p>
+    </div>
+
+
+						<h2 class="bottom-notice" data-loc="1">
+Not the answer you&#39;re looking for?							Browse other questions tagged <a href="/questions/tagged/c%2b%2b" class="post-tag" title="show questions tagged &#39;c++&#39;" rel="tag">c++</a> <a href="/questions/tagged/memory-management" class="post-tag" title="show questions tagged &#39;memory-management&#39;" rel="tag">memory-management</a> <a href="/questions/tagged/local-variables" class="post-tag" title="show questions tagged &#39;local-variables&#39;" rel="tag">local-variables</a> <a href="/questions/tagged/dangling" class="post-tag" title="show questions tagged &#39;dangling&#39;" rel="tag">dangling</a>  or <a href="/questions/ask">ask your own question</a>.						</h2>
+			</div>
+		</div>
+				<div id="sidebar" class="show-votes">
+						    <div class="module question-stats">
+			        <table id="qinfo">
+			            <tr>
+			                <td>
+			                    <p class="label-key">asked</p>
+			                </td>
+			                <td style="padding-left: 10px">
+			                    <p class="label-key" title="2011-06-22 14:05:48Z"><b>3 years ago</b></p>
+			                </td>
+			            </tr>
+			            <tr>
+			                <td>
+			                    <p class="label-key">viewed</p>
+			                </td>
+
+			                <td style="padding-left: 10px">
+			                    <p class="label-key">
+			                        <b>150346 times</b>
+			                    </p>
+			                </td>
+			            </tr>
+			                <tr>
+			                    <td>
+			                        <p class="label-key">active</p>
+			                    </td>
+			                    <td style="padding-left: 10px">
+			                        <p class="label-key"><b><a href="?lastactivity" class="lastactivity-link" title="2013-11-08 21:21:13Z">7 months ago</a></b></p>
+			                    </td>
+			                </tr>
+			        </table>
+			    </div>
+						
+			<script>
+                var ados = ados || {};ados.run = ados.run || [];
+                ados.run.push(function() { ados_add_placement(22,8277,"adzerk1585499744",17).setZone(45) ; });                    
+            </script>
+            <div class="everyonelovesstackoverflow" id="adzerk1585499744">
+            </div>  
+    <div id="hireme">
+        <script>
+window.careers_adurl="//careers.stackoverflow.com/gethired/js",window.careers_cssurl="//cdn-careers.sstatic.net/careers/gethired/sidebar.min.css?v=88f3fd5e2263",window.careers_leaderboardcssurl="{leaderboardcssurl}",window.careers_companycssurl="//cdn-careers.sstatic.net/careers/gethired/company",window.careers_adselector="div#hireme",StackExchange.ready(function(){$.ajax({url:"//cdn-careers.sstatic.net/careers/gethired/loader.min.js?v=93d05efce50b",dataType:"script",cache:!0})});        </script>
+    </div>
+			  
+    
+            <div class="module sidebar-linked">
+	<h4 id="h-linked">Linked</h4>
+	<div class="linked" data-tracker="lq=1">
+<div class="spacer">
+	<a href="/q/2744264" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">35</div>
+	</a>
+	<a href="/questions/2744264/returning-the-address-of-local-or-temporary-variable" class="question-hyperlink">Returning the address of local or temporary variable</a>
+</div><div class="spacer">
+	<a href="/q/11603005" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">2</div>
+	</a>
+	<a href="/questions/11603005/what-does-delete-command-really-do-for-memory-for-pointers-in-c" class="question-hyperlink">What does delete command really do for memory, for pointers in C++?</a>
+</div><div class="spacer">
+	<a href="/q/3252292" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes  default">8</div>
+	</a>
+	<a href="/questions/3252292/c-return-reference-stack-memory" class="question-hyperlink">c++ return reference / stack memory</a>
+</div><div class="spacer">
+	<a href="/q/12901383" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">1</div>
+	</a>
+	<a href="/questions/12901383/local-variable-still-exists-after-function-returns" class="question-hyperlink">Local variable still exists after function returns</a>
+</div><div class="spacer">
+	<a href="/q/13311639" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes  default">3</div>
+	</a>
+	<a href="/questions/13311639/c-function-returning-pointer-why-does-this-work" class="question-hyperlink">C++ function returning pointer, why does this work?</a>
+</div><div class="spacer">
+	<a href="/q/8714822" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">3</div>
+	</a>
+	<a href="/questions/8714822/whats-wrong-dangling-pointer" class="question-hyperlink">what&#39;s wrong? dangling pointer?</a>
+</div><div class="spacer">
+	<a href="/q/7498211" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">1</div>
+	</a>
+	<a href="/questions/7498211/memory-management-question" class="question-hyperlink">memory management question</a>
+</div><div class="spacer">
+	<a href="/q/18189578" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">2</div>
+	</a>
+	<a href="/questions/18189578/c-accessing-a-non-global-variable-declared-inside-other-method" class="question-hyperlink">C++, Accessing a non-global variable declared inside other method</a>
+</div><div class="spacer">
+	<a href="/q/8341781" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">4</div>
+	</a>
+	<a href="/questions/8341781/pointer-of-class-local-variable" class="question-hyperlink">Pointer of class local variable?</a>
+</div><div class="spacer">
+	<a href="/q/12299865" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">1</div>
+	</a>
+	<a href="/questions/12299865/why-are-my-printfs-giving-different-values" class="question-hyperlink">Why are my printfs giving different values?</a>
+</div>					<div class="spacer more">
+				<a href="http://stackoverflow.com/questions/linked/6441218">see more linked questions…</a>
+			</div>
+	</div>
+</div>
+
+				<div class="module sidebar-related">
+					<h4 id="h-related">Related</h4>
+                    <div class="related js-gps-related-questions" data-tracker="rq=1">
+                        <div class="spacer">
+<a href="/q/3141648" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes default">1
+    </div>
+</a><a href="/questions/3141648/how-to-retain-local-variables-value-and-revisit-outside-in-c" class="question-hyperlink">How to retain local variable&#39;s value and revisit outside in C++</a>
+</div>
+<div class="spacer">
+<a href="/q/3163839" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes default">11
+    </div>
+</a><a href="/questions/3163839/c-writing-a-function-to-free-a-pointer-and-the-assigning-it-null" class="question-hyperlink">C++: Writing a function to free a pointer and the assigning it NULL</a>
+</div>
+<div class="spacer">
+<a href="/q/10038470" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes default">0
+    </div>
+</a><a href="/questions/10038470/pointer-to-local-variable-in-c" class="question-hyperlink">Pointer to local variable in C++</a>
+</div>
+<div class="spacer">
+<a href="/q/10708340" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes default">0
+    </div>
+</a><a href="/questions/10708340/deleting-objects-in-callback-function" class="question-hyperlink">Deleting objects in callback function</a>
+</div>
+<div class="spacer">
+<a href="/q/11643817" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes default">0
+    </div>
+</a><a href="/questions/11643817/memory-allocation-for-local-variable-in-c" class="question-hyperlink">memory allocation for local variable in C</a>
+</div>
+<div class="spacer">
+<a href="/q/15231501" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">4
+    </div>
+</a><a href="/questions/15231501/c-local-variable-deletes-memory-of-another-variable-when-going-out-of-scope" class="question-hyperlink">C++ local variable deletes memory of another variable when going out of scope</a>
+</div>
+<div class="spacer">
+<a href="/q/16159940" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes default">0
+    </div>
+</a><a href="/questions/16159940/memory-management-scope-and-local-pointer-variable" class="question-hyperlink">Memory Management : scope and local pointer variable</a>
+</div>
+<div class="spacer">
+<a href="/q/16627859" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">0
+    </div>
+</a><a href="/questions/16627859/locally-declared-objects-internal-memory-intact-outside-scope" class="question-hyperlink">Locally declared object&#39;s internal memory intact outside scope?</a>
+</div>
+<div class="spacer">
+<a href="/q/22661716" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">0
+    </div>
+</a><a href="/questions/22661716/c-memory-management-memory-allocation-on-local-variables" class="question-hyperlink">c++ memory management memory allocation on local variables</a>
+</div>
+<div class="spacer">
+<a href="/q/23250284" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">3
+    </div>
+</a><a href="/questions/23250284/scope-of-heap-memory" class="question-hyperlink">Scope of Heap Memory</a>
+</div>
+
+                    </div>
+				</div>
+            
+<div id="hot-network-questions" class="module">
+    <h4>
+        <a href="//stackexchange.com/questions?tab=hot" 
+           class="js-gps-track" 
+           data-gps-track="posts_hot_network.click({ item_type:1, location:11 })">
+            Hot Network Questions
+        </a>
+    </h4>
+    <ul>
+            <li >
+                <div class="favicon favicon-mathematica" title="Mathematica Stack Exchange"></div><a href="http://mathematica.stackexchange.com/questions/51798/efficient-way-to-build-a-certain-quadratic-matrix" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:387 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Efficient way to build a certain quadratic matrix
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-salesforce" title="Salesforce Stack Exchange"></div><a href="http://salesforce.stackexchange.com/questions/42081/complement-result-from-function-in-rendered-attribute" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:459 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Complement result from function in rendered attribute
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-skeptics" title="Skeptics Stack Exchange"></div><a href="http://skeptics.stackexchange.com/questions/22175/does-tetrasilver-tetroxide-cure-aids" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:212 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Does tetrasilver tetroxide cure AIDS?
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-scifi" title="Science Fiction &amp; Fantasy Stack Exchange"></div><a href="http://scifi.stackexchange.com/questions/60405/who-is-was-the-lord-of-the-rings" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:186 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Who is / was the &quot;Lord of the Rings&quot;?
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-scifi" title="Science Fiction &amp; Fantasy Stack Exchange"></div><a href="http://scifi.stackexchange.com/questions/60488/old-scifi-movie-glowing-lights-in-chests-to-indicate-attraction" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:186 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Old SciFi movie - glowing lights in chests to indicate attraction
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-unix" title="Unix &amp; Linux Stack Exchange"></div><a href="http://unix.stackexchange.com/questions/140021/how-to-close-ports-in-linux" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:106 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How to close ports in Linux?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-craftcms" title="Craft CMS Stack Exchange"></div><a href="http://craftcms.stackexchange.com/questions/651/overwrite-entry-title-in-template" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:563 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Overwrite entry.title in template
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-math" title="Mathematics Stack Exchange"></div><a href="http://math.stackexchange.com/questions/853164/i-need-a-relation-which-is-not-reflexive-not-symmetric-and-not-transitive" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:69 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    I need a relation which is not reflexive, not symmetric, and not transitive
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-serverfault" title="Server Fault"></div><a href="http://serverfault.com/questions/609295/gbit-uplink-vs-regular-switch-port" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:2 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Gbit uplink vs Regular switch port
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-blender" title="Blender Stack Exchange"></div><a href="http://blender.stackexchange.com/questions/13663/how-to-see-bundles-and-back-projecting-points-of-different-colors" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:502 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How to see bundles and back projecting points of different colors?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-money" title="Personal Finance &amp; Money Stack Exchange"></div><a href="http://money.stackexchange.com/questions/33817/whats-the-catch-with-less-than-monthly-mortgage-payments" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:93 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What&#39;s the catch with less-than-monthly mortgage payments?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-diy" title="Home Improvement Stack Exchange"></div><a href="http://diy.stackexchange.com/questions/44634/when-drywalling-a-room-should-i-do-the-ceiling-before-the-walls" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:73 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    When drywalling a room, should I do the ceiling before the walls?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-stackoverflow" title="Stack Overflow"></div><a href="http://stackoverflow.com/questions/24516237/string-format-argument-null-exception" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:1 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    String.Format Argument Null Exception
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-money" title="Personal Finance &amp; Money Stack Exchange"></div><a href="http://money.stackexchange.com/questions/33806/what-should-i-do-with-my-credit-card-debt" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:93 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What should I do with my credit card debt?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-askubuntu" title="Ask Ubuntu"></div><a href="http://askubuntu.com/questions/490385/read-a-part-of-massive-online-csv-file-using-its-url-from-command-line" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:89 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Read a part of massive online CSV file using its URL from command line
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-rpg" title="Role-playing Games Stack Exchange"></div><a href="http://rpg.stackexchange.com/questions/41719/why-is-magic-so-hard" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:122 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why is Magic so hard?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-salesforce" title="Salesforce Stack Exchange"></div><a href="http://salesforce.stackexchange.com/questions/42048/on-deploying-2-triggers-in-same-org-it-fails-with-system-limitexception-too-m" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:459 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    On deploying 2 triggers in same org, it fails with &#39;System.LimitException: Too many SOQL queries: 101 &#39;, but on deploying either of the one it works
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-hinduism" title="Hinduism Stack Exchange"></div><a href="http://hinduism.stackexchange.com/questions/639/why-do-hindus-remove-their-footwear-before-entering-temples" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:567 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why do Hindus remove their footwear before entering temples?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-math" title="Mathematics Stack Exchange"></div><a href="http://math.stackexchange.com/questions/853085/is-n-1-often-a-prime" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:69 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Is n! + 1 often a prime?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-ux" title="User Experience Stack Exchange"></div><a href="http://ux.stackexchange.com/questions/60632/using-genres-and-tags-in-a-writing-website" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:102 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Using Genres and Tags in a writing website
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-askubuntu" title="Ask Ubuntu"></div><a href="http://askubuntu.com/questions/490366/how-to-retain-installed-software-between-ubuntu-installations-tools-for-softwa" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:89 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How to retain installed software between Ubuntu installations / Tools for software inventory?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-craftcms" title="Craft CMS Stack Exchange"></div><a href="http://craftcms.stackexchange.com/questions/658/is-it-possible-to-correctly-output-a-table-within-a-matrix-block" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:563 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Is it possible to correctly output a Table within a Matrix block?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-cs" title="Computer Science Stack Exchange"></div><a href="http://cs.stackexchange.com/questions/28123/returning-a-random-subset-with-length-k-of-n-strings-while-only-storing-at-most" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:419 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Returning a random subset with length k of N strings while only storing at most k of them
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-electronics" title="Electrical Engineering Stack Exchange"></div><a href="http://electronics.stackexchange.com/questions/117217/why-cant-wi-fi-run-at-2-4-gbit-s" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:135 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why can&#39;t Wi-Fi run at 2.4 Gbit/s?
+                </a>
+
+            </li>
+    </ul>
+
+        <a href="#" 
+           class="show-more js-show-more js-gps-track" 
+           data-gps-track="posts_hot_network.click({ item_type:3, location:11 })">
+            more hot questions
+        </a>
+</div>
+		</div>
+		<script>
+StackExchange.ready(function(){$.get('/posts/6441218/ivc/1393');});
+</script>
+<noscript>
+    <div><img src="/posts/6441218/ivc/1393" class="dno" alt="" width="0" height="0"></div>
+</noscript><div style="display:none" id="prettify-lang">lang-cpp</div></div>
+
+
+
+        </div>
+    </div>
+    <div id="footer" class="categories">
+        <div class="footerwrap">
+            <div id="footer-menu">
+                <div class="top-footer-links">
+                        <a href="/tour">tour</a>
+                    <a href="/help">help</a>
+                        <a href="/help/badges">badges</a>
+                    <a href="http://blog.stackoverflow.com?blb=1">blog</a>
+                        <a href="http://chat.stackoverflow.com">chat</a>
+                    <a href="http://data.stackexchange.com">data</a>
+                    <a href="http://stackexchange.com/legal">legal</a>
+                    <a href="http://stackexchange.com/legal/privacy-policy">privacy policy</a>
+                    <a href="http://stackexchange.com/work-here">work here</a>
+                    <a href="http://stackexchange.com/mediakit">advertising info</a>
+
+                    <a onclick='StackExchange.switchMobile("on")'>mobile</a>
+                    <b><a href="/contact">contact us</a></b>
+                        <b><a href="http://meta.stackoverflow.com">feedback</a></b>
+                    
+                </div>
+                <div id="footer-sites">
+                    <table>
+    <tr>
+            <th colspan=3>
+                Technology
+            </th>
+            <th >
+                Life / Arts
+            </th>
+            <th >
+                Culture / Recreation
+            </th>
+            <th >
+                Science
+            </th>
+            <th >
+                Other
+            </th>
+    </tr>
+    <tr>
+            <td>
+                <ol>
+                        <li><a href="http://stackoverflow.com" title="professional and enthusiast programmers">Stack Overflow</a></li>
+                        <li><a href="http://serverfault.com" title="professional system and network administrators">Server Fault</a></li>
+                        <li><a href="http://superuser.com" title="computer enthusiasts and power users">Super User</a></li>
+                        <li><a href="http://webapps.stackexchange.com" title="power users of web applications">Web Applications</a></li>
+                        <li><a href="http://askubuntu.com" title="Ubuntu users and developers">Ask Ubuntu</a></li>
+                        <li><a href="http://webmasters.stackexchange.com" title="pro webmasters">Webmasters</a></li>
+                        <li><a href="http://gamedev.stackexchange.com" title="professional and independent game developers">Game Development</a></li>
+                        <li><a href="http://tex.stackexchange.com" title="users of TeX, LaTeX, ConTeXt, and related typesetting systems">TeX - LaTeX</a></li>
+                            </ol></td><td><ol>
+                        <li><a href="http://programmers.stackexchange.com" title="professional programmers interested in conceptual questions about software development">Programmers</a></li>
+                        <li><a href="http://unix.stackexchange.com" title="users of Linux, FreeBSD and other Un*x-like operating systems.">Unix &amp; Linux</a></li>
+                        <li><a href="http://apple.stackexchange.com" title="power users of Apple hardware and software">Ask Different (Apple)</a></li>
+                        <li><a href="http://wordpress.stackexchange.com" title="WordPress developers and administrators">WordPress Development</a></li>
+                        <li><a href="http://gis.stackexchange.com" title="cartographers, geographers and GIS professionals">Geographic Information Systems</a></li>
+                        <li><a href="http://electronics.stackexchange.com" title="electronics and electrical engineering professionals, students, and enthusiasts">Electrical Engineering</a></li>
+                        <li><a href="http://android.stackexchange.com" title="enthusiasts and power users of the Android operating system">Android Enthusiasts</a></li>
+                        <li><a href="http://security.stackexchange.com" title="Information security professionals">Information Security</a></li>
+                            </ol></td><td><ol>
+                        <li><a href="http://dba.stackexchange.com" title="database professionals who wish to improve their database skills and learn from others in the community">Database Administrators</a></li>
+                        <li><a href="http://drupal.stackexchange.com" title="Drupal developers and administrators">Drupal Answers</a></li>
+                        <li><a href="http://sharepoint.stackexchange.com" title="SharePoint enthusiasts">SharePoint</a></li>
+                        <li><a href="http://ux.stackexchange.com" title="user experience researchers and experts">User Experience</a></li>
+                        <li><a href="http://mathematica.stackexchange.com" title="users of Mathematica">Mathematica</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#technology" class="more">
+                                more (14)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://photo.stackexchange.com" title="professional, enthusiast and amateur photographers">Photography</a></li>
+                        <li><a href="http://scifi.stackexchange.com" title="science fiction and fantasy enthusiasts">Science Fiction &amp; Fantasy</a></li>
+                        <li><a href="http://graphicdesign.stackexchange.com" title="professional graphic designers and non-designers trying to do their own graphic design">Graphic Design</a></li>
+                        <li><a href="http://cooking.stackexchange.com" title="professional and amateur chefs">Seasoned Advice (cooking)</a></li>
+                        <li><a href="http://diy.stackexchange.com" title="contractors and serious DIYers">Home Improvement</a></li>
+                        <li><a href="http://money.stackexchange.com" title="people who want to be financially literate">Personal Finance &amp; Money</a></li>
+                        <li><a href="http://academia.stackexchange.com" title="academics and those enrolled in higher education">Academia</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#lifearts" class="more">
+                                more (10)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://english.stackexchange.com" title="linguists, etymologists, and serious English language enthusiasts">English Language &amp; Usage</a></li>
+                        <li><a href="http://skeptics.stackexchange.com" title="scientific skepticism">Skeptics</a></li>
+                        <li><a href="http://judaism.stackexchange.com" title="those who base their lives on Jewish law and tradition and anyone interested in learning more">Mi Yodeya (Judaism)</a></li>
+                        <li><a href="http://travel.stackexchange.com" title="road warriors and seasoned travelers">Travel</a></li>
+                        <li><a href="http://christianity.stackexchange.com" title="committed Christians, experts in Christianity and those interested in learning more">Christianity</a></li>
+                        <li><a href="http://gaming.stackexchange.com" title="passionate videogamers on all platforms">Arqade (gaming)</a></li>
+                        <li><a href="http://bicycles.stackexchange.com" title="people who build and repair bicycles, people who train cycling, or commute on bicycles">Bicycles</a></li>
+                        <li><a href="http://rpg.stackexchange.com" title="gamemasters and players of tabletop, paper-and-pencil role-playing games">Role-playing Games</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#culturerecreation" class="more">
+                                more (21)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://math.stackexchange.com" title="people studying math at any level and professionals in related fields">Mathematics</a></li>
+                        <li><a href="http://stats.stackexchange.com" title="people interested in statistics, machine learning, data analysis, data mining, and data visualization">Cross Validated (stats)</a></li>
+                        <li><a href="http://cstheory.stackexchange.com" title="theoretical computer scientists and researchers in related fields">Theoretical Computer Science</a></li>
+                        <li><a href="http://physics.stackexchange.com" title="active researchers, academics and students of physics">Physics</a></li>
+                        <li><a href="http://mathoverflow.net" title="professional mathematicians">MathOverflow</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#science" class="more">
+                                more (7)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://stackapps.com" title="apps, scripts, and development with the Stack Exchange API">Stack Apps</a></li>
+                        <li><a href="http://meta.stackexchange.com" title="meta-discussion of the Stack Exchange family of Q&amp;A websites">Meta Stack Exchange</a></li>
+                        <li><a href="http://area51.stackexchange.com" title="proposing new sites in the Stack Exchange network">Area 51</a></li>
+                        <li><a href="http://careers.stackoverflow.com">Stack Overflow Careers</a></li>
+                    
+                </ol>
+            </td>
+    </tr>
+</table>
+                </div>
+            </div>
+
+            <div id="copyright">
+                site design / logo &#169; 2014 stack exchange inc; user contributions licensed under <a href="http://creativecommons.org/licenses/by-sa/3.0/" rel="license">cc by-sa 3.0</a> 
+                with <a href="http://blog.stackoverflow.com/2009/06/attribution-required/" rel="license">attribution required</a>
+            </div>
+            <div id="svnrev">
+                rev 2014.6.30.1688
+            </div>
+            
+        </div>
+    </div>
+    <noscript>
+        <div id="noscript-warning">Stack Overflow works best with JavaScript enabled<img src="http://pixel.quantserve.com/pixel/p-c1rF4kxgLUzNc.gif" alt="" class="dno"></div>
+    </noscript>
+<script>var p = "http", d = "static"; if (document.location.protocol == "https:") { p += "s"; d = "engine"; } var z = document.createElement("script"); z.type = "text/javascript"; z.async = true; z.src = p + "://" + d + ".adzerk.net/ados.js"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(z, s);</script>
+<script>
+    var ados = ados || {};
+    ados.run = ados.run || [];
+    ados.run.push(function () { ados_setKeywords('c%2b%2b,memory-management,local-variables,dangling');; ados_load(); });         
+</script>
+
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () { (i[r].q = i[r].q || []).push(arguments) }, i[r].l = 1 * new Date(); a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m);
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+        ga('create', 'UA-5620270-1');        
+        
+        ga('set', 'dimension2', '|c++|memory-management|local-variables|dangling|');         
+        ga('send', 'pageview');
+        var _qevents = _qevents || [],
+            _comscore = _comscore || [];
+        (function () {
+            var ssl='https:'==document.location.protocol,
+                s=document.getElementsByTagName('script')[0],
+                qc=document.createElement('script');
+            qc.async=true;
+            qc.src=(ssl?'https://secure':'http://edge')+'.quantserve.com/quant.js';
+            s.parentNode.insertBefore(qc, s);
+            var sc=document.createElement('script');
+            sc.async=true;
+            sc.src=(ssl?'https://sb':'http://b') + '.scorecardresearch.com/beacon.js';
+            s.parentNode.insertBefore(sc, s);
+        })();
+        _comscore.push({ c1: "2", c2: "17440561" });
+        _qevents.push({ qacct: "p-c1rF4kxgLUzNc" });
+    </script>        
+    
+    </body>
+</html>

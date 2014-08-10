@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset=utf-8>
+  
+    <title>New Werkzeug and Flask Releases | Armin Ronacher's Thoughts and Writings</title>
+    <link rel="stylesheet" href="/static/style.css" type="text/css">
+    <link href="/feed.atom" rel="alternate" title="Recent Blog Posts" type="application/atom+xml">
+    <link rel="stylesheet" href="/static/_pygments.css" type="text/css">
+  
+  </head>
+  <body>
+    <div class=container>
+      <div class=header>
+        <a href="/about/">Armin Ronacher</a>'s Thoughts and Writings
+      </div>
+      <div class=navigation>
+        <ul>
+          <li><a href="/">blog</a>
+          <li><a href="/archive/">archive</a>
+          <li><a href="/tags/">tags</a>
+          <li><a href="/projects/">projects</a>
+          <li><a href="/talks/">talks</a>
+          <li><a href="/about/">about</a>
+        </ul>
+      </div>
+      <div class=body>
+        
+  <h1 class="title">New Werkzeug and Flask Releases</h1>
+
+  
+  <p class=date>written on Thursday, June 13, 2013
+  
+
+  <p>I'm very happy to announce that after a long break there are finally new
+releases for <a class="reference external" href="http://werkzeug.pocoo.org/">Werkzeug</a> and <a class="reference external" href="http://flask.pocoo.org/">Flask</a>.  These releases took their fair amount of
+time and I will ensure the process is quicker next time around.  There is
+however a good reason it took this long: they come with support for Python
+3 and we had to do some API changes in the process.</p>
+<div class="section" id="what-s-going-to-break-for-you">
+<h2>What's going to break for you</h2>
+<p>Let's start with the unfortunate things first: we probably (slightly)
+broke your code in Werkzeug.  This was necessary because some
+functionality just does not map well to the updated <a class="reference external" href="http://www.python.org/dev/peps/pep-3333/">PEP 3333</a> specification.  This
+backwards incompatible breakage is mostly limited to the <tt class="docutils literal">werkzeug.urls</tt>
+module as well as the <tt class="docutils literal">Headers</tt> and <tt class="docutils literal">EnvironHeaders</tt> data structures.
+You will notice that headers are now coming back in unicode at all times,
+decoded from latin1 and the URLs module now transparently unifies URI and
+IRI representation of URLs.</p>
+<p>The <tt class="docutils literal">Headers</tt> object also lost the ability to modify WSGI headers
+in-place through the old <tt class="docutils literal">linked</tt> classmethod.  This was necessary as we
+could not replace the logic for PEP 3333 with acceptable performance and
+not producing a too complex implementation.</p>
+<p>Flask itself should not break that much, but what do you know.  We cleaned
+up some internal implementations.  Primarily you will notice that the
+<tt class="docutils literal">|tojson</tt> filter in Flask now uses different JSON serialization and HTML
+safety rules.  If you have some tests that rely on that old behavior you
+will need to adjust.</p>
+</div>
+<div class="section" id="goodbye-python-2-5">
+<h2>Goodbye Python 2.5</h2>
+<p>Bad news for you if you're on 2.5: support for your Python version is
+gone.  That was necessary to make the Python 3 port go forward.  Python
+2.5 by now is nearly 7 years old, it's time to move on.</p>
+</div>
+<div class="section" id="hello-python-3">
+<h2>Hello Python 3</h2>
+<p>On the flip-side support for Python 3 is in.  To be more exact: Python 3.3
+and higher.  For Werkzeug applications porting to Python 3 might be not as
+trivial but Flask applications should actually work mostly out of the box
+assuming their extensions are ported.  For instance all of the Flask
+examples work out of the box on 2.x and 3.x and with the exception of
+unit tests no modifications were necessary to their code.</p>
+</div>
+<div class="section" id="notable-changes">
+<h2>Notable Changes</h2>
+<p>Other than that, here are some changes that you will hopefully enjoy:</p>
+<p>Werkzeug:</p>
+<ul>
+<li><p class="first">Werkzeug now pastes traceback into private github gists.</p>
+</li>
+<li><p class="first">Some smaller improvements to make the HTTP exception classes in
+Werkzeug more useful.  They can now carry some payload and aborting
+with exceptions is streamlined.</p>
+</li>
+<li><p class="first">Werkzeug's URL module now gained vastly improved IRI support and
+can properly parse and join URLs.  This support is currently
+intentionally in violation with the RFC to cover real-world cases
+better and to support parsing of unknown schemes.</p>
+<p>This makes it possible for you to parse things like
+<tt class="docutils literal"><span class="pre">sqlite:///foo.db</span></tt> without being surprised by the behavior.</p>
+</li>
+<li><p class="first">Werkzeug gained a lot of utility functions to support bridging the
+differences between PEP 333/PEP 3333 and WSGI on 2.x and 3.x.  This
+includes access to the streams and URLs.</p>
+</li>
+<li><p class="first">Werkzeug's internal form parsing got vastly improved which now makes
+it possible to access the stream in all cases.  It also no longer
+relies on content length which makes it possible to finally deal with
+chunked request bodies assuming the WSGI server provides support for
+it.</p>
+</li>
+<li><p class="first">Introduced <tt class="docutils literal">get_data</tt> methods as future proof replacement for the
+old <tt class="docutils literal">.data</tt> descriptor on requests and responses.  This allows
+greater flexibility on dealing with form data.  In the future we will
+remove support for <tt class="docutils literal">.data</tt> at which point attribute access on the
+request and response objects is largely side-effect free.</p>
+</li>
+</ul>
+<p>Flask:</p>
+<ul>
+<li><p class="first">Flask gained a <tt class="docutils literal">json</tt> module which unifies JSON support for 2.x and
+3.x and extends it with useful helpers.  It provides safe methods to
+dump JSON for script blocks in HTML and also automatically serializes
+some common types like UUIDs and <tt class="docutils literal">datetime</tt> objects.</p>
+</li>
+<li><p class="first">Further work has been done to make the application context more
+prominent.  Templates can now be rendered from the application context
+only and <tt class="docutils literal">flask.g</tt> is now bound to the application context as well.</p>
+<p>This change might seem tiny but actually simplifies working with Flask
+from outside web environments.  You can now easier maintain database
+connections that are not bound to a HTTP request's lifetime.</p>
+<p>The documentation also has started to shift to this new mode of
+working.</p>
+</li>
+<li><p class="first">Flask's internal error handling has been improved to make responding
+to error cases more consistent.  This also has the added benefit of
+making the âcommit on success, rollback on errorâ finally fully
+reliable.  Previously the test client would suppress the error
+information in some cases.</p>
+</li>
+<li><p class="first">Introduced a <tt class="docutils literal">get_json</tt> method on the request to go in line with
+Werkzeug's new <tt class="docutils literal">get_data</tt> method.  The plan here is to remove
+support for the <tt class="docutils literal">.json</tt> descriptor at one point.</p>
+</li>
+<li><p class="first">Added a few configuration options to change defaults for JSON
+serialization.  This includes pretty-printing and ordering of keys.
+By default JSON objects are now ordered by keys to solve issues with
+invalidating HTTP caches due to Python's new randomized hash seed.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="changes-to-the-process">
+<h2>Changes to the Process</h2>
+<p>Going into the future there will be a new process for releases.  The
+target is to have much more frequent releases instead of large ones.
+Werkzeug is now getting to the point where it's possible to do releases
+often without breaking people's code as the API gets more stable.  (This
+release being the notable exception due to the Python 3 support)</p>
+</div>
+<div class="section" id="a-thank-you-note">
+<h2>A Thank You Note</h2>
+<p>Lastly I want to thank the community for making this release possible.  A
+huge amount of the work for these releases has been done on a sprint
+online on a weekend in May.  Special thanks go to DasIch, Thomas Waldmann,
+untitaker, Ronny Pfannschmidt, mgax, puzzlet, ThiefMaster and everybody
+else who contributed.</p>
+<p>In this release the number of commits skyrocketed.  While the total
+changelog might not look all that impressive, the underlying improvements
+and code cleanups are substantial.</p>
+</div>
+
+
+  
+  <p class=tags>This entry was tagged
+    
+      <a href="/tags/announcement/">announcement</a>, 
+      <a href="/tags/flask/">flask</a>, 
+      <a href="/tags/python/">python</a> and 
+      <a href="/tags/werkzeug/">werkzeug</a>
+  
+
+  
+
+
+        <div class=adspace>
+          <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+          <ins class="adsbygoogle"
+               style="display:inline-block;width:728px;height:90px"
+               data-ad-client="ca-pub-6757320953560275"
+               data-ad-slot="8324866143"></ins>
+          <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+      </div>
+      <div class=footer>
+        <p>&copy; Copyright 2014 by Armin Ronacher.
+        <p>
+          Content licensed under the Creative Commons
+          attribution-noncommercial-sharealike License.
+        <p>
+          Contact me via <a href="mailto:armin.ronacher@active-4.com">mail</a>,
+          <a href="http://twitter.com/mitsuhiko">twitter</a>,
+          <a href="http://github.com/mitsuhiko">github</a> or
+          <a href="http://bitbucket.org/mitsuhiko">bitbucket</a>.
+          Tip me via <a href="https://www.gittip.com/mitsuhiko/">gittip</a>.
+          More info: <a href="/about#imprint">imprint</a>.
+          (<a href="/feed.atom" rel="alternate" title="Recent Blog Posts">feed</a>)
+      </div>
+    </div>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-20909083-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

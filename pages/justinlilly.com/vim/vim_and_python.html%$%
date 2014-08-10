@@ -1,0 +1,567 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Vim &amp; Python: Making yourself at home</title>
+<!-- 2013-10-20 Sun 13:10 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<link href='http://fonts.googleapis.com/css?family=Vollkorn' rel='stylesheet' type='text/css'>
+            <link href='http://fonts.googleapis.com/css?family=Nobile' rel='stylesheet' type='text/css'>
+            <link href='/static/css/test.css' rel='stylesheet' type='text/css'>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012  Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="preamble" class="status">
+
+            <!-- stats tracking -->
+            <script type="text/javascript">
+              var _gaq = _gaq || [];
+              _gaq.push(['_setAccount', 'UA-615313-5']);
+              _gaq.push(['_setDomainName', 'abrah.ms']);
+              _gaq.push(['_trackPageview']);
+              (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+              })();
+            </script>
+            <!-- end stats tracking -->
+            <div id="header">
+              <h1>Justin Abrahms</h1>
+              <ul id="nav">
+                <li><a href="/">Home</a></li>
+                <li><a href="http://feeds.feedburner.com/justinlilly">Feed</a></li>
+                <li><a href="https://github.com/justinabrahms/">Projects</a></li>
+                <li><a href="http://gittip.com/justinabrahms/">Gittip</a></li>
+              </ul>
+            </div>
+</div>
+<div id="content">
+<h1 class="title">Vim &amp; Python: Making yourself at home</h1>
+<p>
+You might look at Python code every day, but what is the lens through
+which you view code?  It's your text editor.  This article was written
+for Python Magazine and was first in a series on Python development
+environments.  Here, we look at how Vim users can boost their
+productivity by having Vim tell you as much as possible about your
+program, while you're writing it.
+</p>
+
+<p>
+As developers, we spend a majority of our productive day interacting
+with code. How we interact with this code is often the last thing on
+our mind. Taking a step back and looking at our daily habits can often
+yield surprising results in productivity, and is a healthy thing to do
+once in a while.
+</p>
+
+<p>
+The focus of this article will be on getting comfortable with Vim, but
+learning your tools is a worthwhile pursuit regardless of your
+editor-of-choice. Furthermore, we will assume you have a fair
+understanding of Vim. You should know how to move about, edit text,
+and such. If you don't know how to do this but are interested in Vim,
+please consult the Vim web page for a tutorial.
+</p>
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1">Customization Basics</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+The central place for editing your vim configuration is your
+<code>.vimrc</code> file, located in your home directory or folder.  This
+serves as the primary file for changes to your vim configuration. The
+typical syntax for setting a variable is:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-vimrc">set ruler  " Text after a double-quote is a comment
+set tabstop=4
+</pre>
+</div>
+
+<p>
+As you can see, some arguments are binary (on/off) and some take
+more complicated arguments.
+</p>
+
+<p>
+Also in your home folder is a folder called <code>.vim</code>. In it, there are
+several sub-directories which hold plugins for Vim. The basic
+directory structure is similar to that shown below.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-text">.vim
+|____after    # for overrides to system-level vim
+|____autoload # a directory for some plugins
+|____colors   # custom colorthemes
+|____doc      # documentation
+|____ftplugin # custom filetype plugins
+|____indent   # custom indentation overrides
+|____plugin   # plugin installation directory
+|____syntax   # custom syntax coloring files
+</pre>
+</div>
+
+<p>
+Note that the directories listed above won't necessarily exist on your
+machine already. Furthermore, they might not all be necessary for you,
+depending on which plugins you decide to install down the road.
+</p>
+
+<p>
+There are a few options which will make editing python code much
+easier. To get you started, I've included those below.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-vim">set tabstop=4
+set shiftwidth=4
+set expandtab
+</pre>
+</div>
+
+<p>
+The first option, <code>tabstop</code>, tells vim how many spaces a tab should
+take up. The default is 8, which seems much too wide. (Note, however,
+that this setting will get you into trouble if you load Python scripts
+from people whose editors use a mix of tabs and spaces, since, to
+Python, a tab always equals eight spaces; that is why it is best to
+never include actual tabs in your own programs!) The <code>shiftwidth</code>
+option controls the depth of autoindentation, which we'll keep the
+same width as <code>tabstop</code>. Lastly, <code>expandtab</code> (which doesn't take an
+argument), converts all tabs to spaces.
+</p>
+
+<p>
+Vim also offers extensibility through a language called Vim
+Script. Many people have made some pretty amazing plugins in it. There
+are two methods of installing vim plugins: zip files, and vimballs.
+</p>
+
+<p>
+To install a vimball, download it to a directory, and open it in
+vim. From there, type <code>:so %</code> which means to "source" the current
+fileÂ ("%").
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-bash">wget -O snippets_emu.vba http://www.vim.org/scripts/download_script.php?src_id=8450
+vim snippets_emu.vba
+:so %
+</pre>
+</div>
+
+<p>
+The other method of installing vim plugins are through a zip file. To
+install the zip file, cd into your <code>.vim</code> folder, and extract
+it. Things should just go into their right places.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-bash">cd ~/.vim
+wget -O nerd_tree.zip http://www.vim.org/scripts/download_script.php?src_id=10767
+unzip nerd_tree.zip
+rm nerd_tree.zip
+</pre>
+</div>
+
+<p>
+To find plugins not discussed in this article, you should head over to
+<a href="http://www.vim.org/">http://www.vim.org/</a> where there are a ton of useful (and some not-so-useful)
+plugins for your browsing pleasure. Now that we have an understanding
+of how some things work, let's check out some source code.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2">Viewing Source Code</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Here are some of my default <code>.vimrc</code> settings::
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-vim">syntax on
+set list listchars=tab:â·â,trail:â,nbsp:â
+set statusline=%F%m%r%h%w\ [TYPE=%Y\ %{&amp;ff}]\
+\ [%l/%L\ (%p%%)
+filetype plugin indent on
+au FileType py set autoindent
+au FileType py set smartindent
+au FileType py set textwidth=79 " PEP-8 Friendly
+</pre>
+</div>
+
+<p>
+If you open a Python file, you'll quickly notice that you lack syntax
+highlighting. To fix this, type <code>:syntax on</code>. This will tell Vim that
+you want syntax highlighting. I find it a good idea to keep this on
+always, so it goes in the <code>.vimrc</code>. I also find it helpful to turn on
+invisibles. While Vim doesn't expressly have an option for this, its
+easily fixed with a bit of Unicode.  The listchars will turn tabs into
+large triangles, and trailing spaces and blank lines with spaces into
+small bullets. Along with visible whitespace, you can turn on rather
+nice indentation with the above <code>au</code> commands. These are automatically
+run for a given file type, usually identified by extension. In our
+case, this is the <code>py</code> extension. This offers a handy way to have
+different settings for different kinds of file. The indentation
+commands above do a few complimentary, but different things. An
+<code>autoindent</code> will indent the next line when you start a new line;
+<code>smartindent</code> will also indent after things like a colon (for <code>if</code> or
+<code>for</code> statements) and such.
+</p>
+
+<p>
+You can also get a fair amount more metadata about the file your
+editing with a better statusline. This statusline will tell you the
+filename, type of file that Vim thinks it is, what sort of line
+endings are used, as well as your vertical position in the file. If
+Vim has guessed incorrectly at the type of file you're editing you can
+easily rectify this with the ft (aka filetype) option. <code>:set
+ft=python</code> will turn the buffer to Python mode. Now that we have a
+decent looking single file, lets take a step back and see how Vim can
+help us within the scope of a larger project.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3">Browsing Source Code</h2>
+<div class="outline-text-2" id="text-3">
+<div class="org-src-container">
+
+<pre class="src src-vim">" NERD_tree config
+let NERDTreeChDirMode=2
+let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$', '\.swp$']
+let NERDTreeSortOrder=['^__\.py$', '\/$', '*', '\.swp$',  '\~$']
+let NERDTreeShowBookmarks=1
+map &lt;F3&gt; :NERDTreeToggle&lt;CR&gt;
+
+" Syntax for multiple tag files are
+" set tags=/my/dir1/tags, /my/dir2/tags
+set tags=tags;$HOME/.vim/tags/
+
+" TagList Plugin Configuration
+let Tlist_Ctags_Cmd='/usr/local/bin/ctags'
+let Tlist_GainFocus_On_ToggleOpen = 1
+let Tlist_Close_On_Select = 1
+let Tlist_Use_Right_Window = 1
+let Tlist_File_Fold_Auto_Close = 1
+map &lt;F7&gt; :TlistToggle&lt;CR&gt;
+
+" Viewport Controls
+" ie moving between split panes
+map &lt;silent&gt;,h &lt;C-w&gt;h
+map &lt;silent&gt;,j &lt;C-w&gt;j
+map &lt;silent&gt;,k &lt;C-w&gt;k
+map &lt;silent&gt;,l &lt;C-w&gt;l
+</pre>
+</div>
+
+<p>
+One of the biggest parts about editing speed and efficiency is being
+able to get from one file to another quickly. There are two plugins
+which do an amazing job at this very task. Check out the above code to
+see how I have configured these plugins in my own home directory.
+</p>
+
+<p>
+NERDTree is a fantastic file browser that slots nicely into vim when
+you need it, and hides from view when its not in use. It offers the
+ability to bookmark folders for separating out projects. It is quite
+reminiscent of TextMate's project drawer, but works just as well
+without a GUI. In my config, I've bound NERDTree to F3. From the
+opened pane, you can open files in split view, normal view, or as a
+preview. There are an array of options available for things such as
+sorting, ignoring and so on, but you can consult the documentation for
+a more in-depth look.
+</p>
+
+<p>
+Another great plugin for navigating around your source-code is
+<a href="http://vim-taglist.sourceforge.net/">Taglist</a>. This interacts with ctags to provide a class browser of your
+current code. You need to point it to a ctags binary as well as giving
+it an idea of where to find your tags files. I have it set to look in
+the current directory, followed by a tags sub-directory of my <code>.vim</code>
+folder. I have the pane toggle bound to F7. This setup allows me to
+have NERDTree on the left with my file list, and TagList open on the
+right with an overview of my current file. You can press F1 for a list
+of commands available in that buffer. The most immediately useful will
+be <code>u</code> which will update the taglist for the current file.
+</p>
+
+<p>
+Now that we have a few panes to operate in, we can make some
+improvements on how we work with them. Instead of the old <code>C-w left</code>,
+I found it much easier to bind the viewport changing keys to ,left
+which seems to be a bit easier to type for me.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4">Writing Source Code</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+We've gotten a python file looking respectable, and can now easily
+navigate our project structure. Let's actually improve the speed we
+get work done. The two tips here work on the principle that
+the less you have to type, the faster you'll be.
+</p>
+
+<p>
+The first plugin is <a href="http://www.vim.org/scripts/script.php?script_id=1318">SnippetsEmu</a>. SnippetsEmu operates much like
+TextMate's bundle system, offering a few shortcuts for a variety of
+different languages. It helps expand something like <code>super</code> to:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-text">def {method}(self, *args, **kwargs):
+    { put my cursor here when done }
+    super({class}, self).{method}(*args, **kwargs)
+</pre>
+</div>
+
+<p>
+which is a personal favorite of mine. Once you are inside of a class
+body, type "super", and press tab, then the substitute text above will
+suddenly display and the "method" section will be highlighted. As you
+type, your text gets written into <b>both</b> places. You fill in the class
+variable, and it will place your cursor in the proper place for
+editing the function.
+</p>
+
+<p>
+Another fantastic feature that Vim offers is its own
+auto-completion. This can be invoked with Control-n and Control-p
+after typing a portion of a word. This does a match against the
+currently open buffers for a string matching the same format. This is
+surprisingly useful, even with how simple it is. For Python-specific
+tab completion, there are a few libraries attempting to offer Eclipse
+or VisualStudio style intellisense. The best of these seems to be
+<a href="http://www.vim.org/scripts/script.php?script_id=850">Pydiction</a>. It has extensive documentation on the download page, which
+should get you up and going in no time.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5">Handy Random Extras</h2>
+<div class="outline-text-2" id="text-5">
+<div class="org-src-container">
+
+<pre class="src src-vim">map ,p :Lodgeit&lt;CR&gt;         " pastes selection / file to paste.pocoo.org
+" VCS Command Configs
+let mapleader = ","
+</pre>
+</div>
+
+<p>
+As you can see, a large majority of some of the power of vim comes
+from its extensive plugin community. On that front, there are a few
+other helpful plugins which, while they don't necessarily fit
+anywhere, offer a lot of great situational value.
+</p>
+
+<p>
+The first of these is Lodgeit. Lodgeit is a pastebin service run by
+<a href="http://pocoo.org">http://pocoo.org</a> which offers a vim plugin. By highlighting a section of
+source code and typing, as I have it bound, =,p=, you will paste the
+contents of the selection to the pastebin web site, and a link will be
+placed in your clipboard. This is quite helpful for trading snippets
+of code with coworkers, or when getting help on a particular debugging
+problem.
+</p>
+
+<p>
+From the same folks who wrote <a href="http://www.vim.org/scripts/script.php?script_id=1658">NERDTree</a>, <a href="http://www.vim.org/scripts/script.php?script_id=1218">NerdCommenter</a> allows for easy
+commenting of large regions of text. The language support they have
+for the various commenting features is staggering!
+</p>
+
+<p>
+Another great plugin for Vim is <a href="http://www.vim.org/scripts/script.php?script_id=90">VCS Command</a>. This allows you to
+interact with your source code management tool directly from the
+editor. The more time you spend in your editor, the fewer context
+switches you make. This means you're less likely to notice the little
+email icon when you're alt-tabbing, and you're less likely to get
+side-tracked by that latest inflammatory article on HackerNews. The
+more time you spend in your editor, the more time you can spend
+getting work done.
+</p>
+
+<p>
+Lastly, <a href="http://www.vim.org/scripts/script.php?script_id=2441">pyflakes</a> is an absolutely essential plugin for Vim. As with
+any linter, it catches trivial mistakes that, cumulatively, can add up
+to a sizable amount of time lost. Furthermore, it helps encourage
+consistency, standards, and clean code.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-6" class="outline-2">
+<h2 id="sec-6">Getting More Help</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+While this article should give you a basic understanding of how to get
+plugins and install them, and which plugins might be useful, there's
+still quite a bit more to explore, such as writing your own
+plugin. There are several resources for help. <code>#vim</code> on
+<code>irc.freenode.org</code> is a pretty excellent resource for Vim-related
+things. There is also quite extensive documentation built into Vim
+itself. If you're curious about what a particular option does, type
+<code>:h &lt;option&gt;</code> - for instance, <code>:h undolevels</code> for more information
+about what it does and how to configure it.
+</p>
+
+<p>
+As programmers, we live in our editors every day. Any time you spend
+learning more about your tools will be paid ten-fold with productivity
+gains as you work with them on a daily basis. One great way to see
+what else you may want in your editor, is to give another editor a
+shot. Its really hard to know what's out there, until you've seen it
+yourself. If you'd like to browse through my vim files, you can view
+them on <a href="http://github.com/justinlilly/vim_files/">github</a>.
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr /><!-- Begin MailChimp Signup Form --> <link href="//cdn-images.mailchimp.com/embedcode/slim-081711.css" rel="stylesheet" type="text/css"> <style type="text/css"> #mc_embed_signup{background:#fff; clear:left; font:14px Helvetica,Arial,sans-serif; width: 400px; margin: 0 auto; }/* Add your own MailChimp form style overrides in your site stylesheet or in this style block. We recommend moving this block and the preceding CSS link to the HEAD of your HTML file. */ </style> <div id="mc_embed_signup"> <form action="http://gitstreams.us6.list-manage1.com/subscribe/post?u=b4fc0cc927878a024e46e1413&amp;id=7c57fe5fe7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate> <label for="mce-EMAIL">Get notified when new articles are published</label> <input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="email address" required> <div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div> </form> </div> <!--End mc_embed_signup-->
+</div>
+</body>
+</html>

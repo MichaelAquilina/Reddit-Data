@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset=utf-8" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>The little ssh that (sometimes) couldn't - Mina Naguib</title>
+    <meta name="author" content="Mina Naguib" />
+
+    <link rel="stylesheet" href="/css/normalize.css" type="text/css" media="screen, projection">
+    <link rel="stylesheet" href="/css/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="/css/site.css" type="text/css" media="screen, projection" />
+
+    <link href="/atom.xml" rel="alternate" title="RSS" type="application/rss+xml" />
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-4189849-2']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+       var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+       ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+
+  </head>
+<body>
+
+  <div id="left">
+
+    <h1 id="mina-naguib"><a href="/">Mina Naguib</a></h1>
+
+    
+    <h2 id="title">The little ssh that (sometimes) couldn't</h2>
+    
+
+    <div id="content">
+      <h3>Preface</h3>
+<p>This is a technical article chronicling one of the most interesting bug hunts I&#8217;ve had the pleasure of chasing down.</p>
+<p>At <a href="http://adgear.com/">AdGear Technologies Inc.</a> where I work, ssh is king.  We use it for management, monitoring, deployments, log file harvesting, even real-time event streaming.  It&#8217;s solid, reliable, has all the predictability of a native unix tool, and just works.</p>
+<p>Until one day, random cron emails started flowing about it not working.</p>
+<h3>The timeout</h3>
+<p>The machines in our London data center were randomly failing to send their log files to our data machines in our Montreal data center.  This job is initiated periodically from cron, and the failure manifested itself as:</p>
+<ul>
+	<li>cron emails stating that the ssh was unsuccessful
+	<ul>
+		<li>Sometimes hangs</li>
+		<li>Sometimes exits with a timeout error</li>
+	</ul></li>
+	<li>nagios warnings down the line for in-house sanity checks detecting the missing data in Montreal</li>
+</ul>
+<p>We logged into the London machines, manually ran the push command, and it worked successfully.  We brushed it off as temporary network partitions.</p>
+<h3>The timeouts</h3>
+<p>But the failures kept popping up randomly.  Once a day, a couple of times a day, then one Friday morning, several times an hour.  It was clear something&#8217;s getting worse.  We kept up with manually pushing the files until we figure out what the problem was.</p>
+<p>There were 17 hops between London and Montreal.  We built a profile of latency and packet loss for them, and found that a couple were losing 1-3% of packets.  We filed a ticket with our London DC ops to route away from them.</p>
+<p>While London DC ops were verifying the packet loss, we started seeing random timeouts from London to our <span class="caps">SECOND</span> data center in Montreal, and hops to that data center did not share the same routes we observed the packet loss at.  We concluded packet loss is not the main problem around the same time London DC ops replied saying they&#8217;re not able to replicate the packet loss or timeouts and that everything looked healthy on their end.</p>
+<h3>The revelation</h3>
+<p>While manually keeping up with failed cron uploads, we noticed an interesting pattern.  A file transfer either succeeded at a high speed, or didn&#8217;t succeed at all and hung/timed out.  There were no instances of a file uploading slowly and finishing successfully.</p>
+<p>Removing the large volume of data from the equation, we were able to recreate the scenario via simple vanilla ssh.  On a London machine an &#8220;ssh mtl-machine&#8221; would either work immediately, or hang and never establish a connection.  Eyebrows started going up.</p>
+<h3>Where the wild packets are</h3>
+<p>We triple-checked the ssh server configs and health in Montreal:</p>
+<ul>
+	<li><span class="caps">DNS</span> servers were responding fast</li>
+	<li><span class="caps">DNS</span> reverse lookup was not enabled</li>
+	<li>Maximum client connections was high enough</li>
+	<li>We were not under attack</li>
+	<li>Bandwidth usage was nowhere near saturation</li>
+</ul>
+<p>Besides, even if something was off, we were observing the hangs talking to 2 completely distinct data centers in Montreal.  Furthermore, our other data centers (non-London) were talking happily to Montreal.  Something about London was off.</p>
+<p>We fired up tcpdump and started looking at the packets, both in summary and in captured pcaps loaded into wireshark.  We saw telltale signs of packet loss and retransmission, but it was minimal and not particularly worrisome.</p>
+<p>We then captured full connections from cases where ssh established successfully, and full connections from cases where the ssh connection hung.</p>
+<p>Here&#8217;s what we logically saw when a connection from London to Montreal hung:</p>
+<ul>
+	<li>Normal <span class="caps">TCP</span> handshake</li>
+	<li>Bunch of ssh-specific back and forth, with normal <span class="caps">TCP</span> ack packets where they should be</li>
+	<li>A particular packet sent from London and received in Montreal</li>
+	<li>The same packet re-sent (and re-sent, several times) from London and received in Montreal</li>
+	<li>Montreal&#8217;s just not responding to it!</li>
+</ul>
+<p>It didn&#8217;t make sense why Montreal was not responding (hence London re-transmitting it).  The connection was stalled at this point, as the layer 4 protocol was at a stalemate.  More infuriatingly, if you kill the ssh attempt in London and re-launched it immediately, odds are it worked successfully.  When it did, tcpdump showed Montreal receiving the packet but responding to it, and things moved on.</p>
+<p>We enabled verbose debugging (-vvv) on the ssh client in London, and the hang occurred after it logged:</p>
+<div class="highlight"><pre><code class="text">debug2: kex_parse_kexinit: first_kex_follows 0 
+debug2: kex_parse_kexinit: reserved 0 
+debug2: mac_setup: found hmac-md5
+debug1: kex: server-&gt;client aes128-ctr hmac-md5 none
+debug2: mac_setup: found hmac-md5
+debug1: kex: client-&gt;server aes128-ctr hmac-md5 none
+debug1: SSH2_MSG_KEX_DH_GEX_REQUEST(1024&lt;1024&lt;8192) sent
+debug1: expecting SSH2_MSG_KEX_DH_GEX_GROUP</code></pre></div><p>Googling &#8220;ssh hang SSH2_MSG_KEX_DH_GEX_GROUP&#8221; has many results &#8211; from bad WiFi, to windows <span class="caps">TCP</span> bugs, to buggy routers discarding <span class="caps">TCP</span> fragments.  One solution for LANs was to figure out the path&#8217;s <span class="caps">MSS</span> and set that as the <span class="caps">MTU</span> on both ends.</p>
+<p>I kept decrementing the <span class="caps">MTU</span> on a London server down from 1500 &#8211; it didn&#8217;t help until I hit the magic value 576.  At that point, I was no longer able to get the ssh hanging behavior replicated.  I had an ssh loop script running, and it was on-demand that I could cause timeouts by bringing the <span class="caps">MTU</span> back up to 1500, or make them disappear by setting it to 576.</p>
+<p>Unfortunately these are public ad servers and globally setting the <span class="caps">MTU</span> to 576 won&#8217;t cut it, but the above did suggest that perhaps packet fragmentation or reassembly is broken somewhere.</p>
+<p>Going back to check the received packets with tcpdump, there was no evidence of fragmentation.  The received packet size matched exactly the packet size sent.  If something did fragment the packet at byte 576+, something else reassembled it successfully.</p>
+<h3>Twinkle twinkle little mis-shapen star</h3>
+<p>Digging in some more, I was now looking at full packet dumps (tcpdump -s 0 -X) instead of just the headers.  Comparing that magic packet in instances of ssh success vs ssh hang showed very little difference aside from <span class="caps">TCP</span>/IP header variations.  It was however clear that this is the first packet in the <span class="caps">TCP</span> connection that had enough data to bypass the 576-byte mark &#8211; all previous packets were much smaller.</p>
+<p>Comparing the same packet, during a hanging instance, as it left London, and as captured in Montreal, something caught my eye.  Something very subtle, and I brushed it off as fatigue (it was late Friday at this point), but sure enough after a few refreshes and comparisons, I wasn&#8217;t imagining things.</p>
+<p>Here&#8217;s the packet as it left London (minus the first few bytes identifying the IP addresses):</p>
+<div class="highlight"><pre><code class="text">0x0040:  0b7c aecc 1774 b770 ad92 0000 00b7 6563  .|...t.p......ec
+0x0050:  6468 2d73 6861 322d 6e69 7374 7032 3536  dh-sha2-nistp256
+0x0060:  2c65 6364 682d 7368 6132 2d6e 6973 7470  ,ecdh-sha2-nistp
+0x0070:  3338 342c 6563 6468 2d73 6861 322d 6e69  384,ecdh-sha2-ni
+0x0080:  7374 7035 3231 2c64 6966 6669 652d 6865  stp521,diffie-he
+0x0090:  6c6c 6d61 6e2d 6772 6f75 702d 6578 6368  llman-group-exch
+0x00a0:  616e 6765 2d73 6861 3235 362c 6469 6666  ange-sha256,diff
+0x00b0:  6965 2d68 656c 6c6d 616e 2d67 726f 7570  ie-hellman-group
+0x00c0:  2d65 7863 6861 6e67 652d 7368 6131 2c64  -exchange-sha1,d
+0x00d0:  6966 6669 652d 6865 6c6c 6d61 6e2d 6772  iffie-hellman-gr
+0x00e0:  6f75 7031 342d 7368 6131 2c64 6966 6669  oup14-sha1,diffi
+0x00f0:  652d 6865 6c6c 6d61 6e2d 6772 6f75 7031  e-hellman-group1
+0x0100:  2d73 6861 3100 0000 2373 7368 2d72 7361  -sha1...#ssh-rsa
+0x0110:  2c73 7368 2d64 7373 2c65 6364 7361 2d73  ,ssh-dss,ecdsa-s
+0x0120:  6861 322d 6e69 7374 7032 3536 0000 009d  ha2-nistp256....
+0x0130:  6165 7331 3238 2d63 7472 2c61 6573 3139  aes128-ctr,aes19
+0x0140:  322d 6374 722c 6165 7332 3536 2d63 7472  2-ctr,aes256-ctr
+0x0150:  2c61 7263 666f 7572 3235 362c 6172 6366  ,arcfour256,arcf
+0x0160:  6f75 7231 3238 2c61 6573 3132 382d 6362  our128,aes128-cb
+0x0170:  632c 3364 6573 2d63 6263 2c62 6c6f 7766  c,3des-cbc,blowf
+0x0180:  6973 682d 6362 632c 6361 7374 3132 382d  ish-cbc,cast128-
+0x0190:  6362 632c 6165 7331 3932 2d63 6263 2c61  cbc,aes192-cbc,a
+0x01a0:  6573 3235 362d 6362 632c 6172 6366 6f75  es256-cbc,arcfou
+0x01b0:  722c 7269 6a6e 6461 656c 2d63 6263 406c  r,rijndael-cbc@l
+0x01c0:  7973 6174 6f72 2e6c 6975 2e73 6500 0000  ysator.liu.se...
+0x01d0:  9d61 6573 3132 382d 6374 722c 6165 7331  .aes128-ctr,aes1
+0x01e0:  3932 2d63 7472 2c61 6573 3235 362d 6374  92-ctr,aes256-ct
+0x01f0:  722c 6172 6366 6f75 7232 3536 2c61 7263  r,arcfour256,arc
+0x0200:  666f 7572 3132 382c 6165 7331 3238 2d63  four128,aes128-c
+0x0210:  6263 2c33 6465 732d 6362 632c 626c 6f77  bc,3des-cbc,blow
+0x0220:  6669 7368 2d63 6263 2c63 6173 7431 3238  fish-cbc,cast128
+0x0230:  2d63 6263 2c61 6573 3139 322d 6362 632c  -cbc,aes192-cbc,
+0x0240:  6165 7332 3536 2d63 6263 2c61 7263 666f  aes256-cbc,arcfo
+0x0250:  7572 2c72 696a 6e64 6165 6c2d 6362 6340  ur,rijndael-cbc@
+0x0260:  6c79 7361 746f 722e 6c69 752e 7365 0000  lysator.liu.se..
+0x0270:  00a7 686d 6163 2d6d 6435 2c68 6d61 632d  ..hmac-md5,hmac-
+0x0280:  7368 6131 2c75 6d61 632d 3634 406f 7065  sha1,umac-64@ope
+0x0290:  6e73 7368 2e63 6f6d 2c68 6d61 632d 7368  nssh.com,hmac-sh
+0x02a0:  6132 2d32 3536 2c68 6d61 632d 7368 6132  a2-256,hmac-sha2
+0x02b0:  2d32 3536 2d39 362c 686d 6163 2d73 6861  -256-96,hmac-sha
+0x02c0:  322d 3531 322c 686d 6163 2d73 6861 322d  2-512,hmac-sha2-
+0x02d0:  3531 322d 3936 2c68 6d61 632d 7269 7065  512-96,hmac-ripe
+0x02e0:  6d64 3136 302c 686d 6163 2d72 6970 656d  md160,hmac-ripem
+0x02f0:  6431 3630 406f 7065 6e73 7368 2e63 6f6d  d160@openssh.com
+0x0300:  2c68 6d61 632d 7368 6131 2d39 362c 686d  ,hmac-sha1-96,hm
+0x0310:  6163 2d6d 6435 2d39 3600 0000 a768 6d61  ac-md5-96....hma
+0x0320:  632d 6d64 352c 686d 6163 2d73 6861 312c  c-md5,hmac-sha1,
+0x0330:  756d 6163 2d36 3440 6f70 656e 7373 682e  umac-64@openssh.
+0x0340:  636f 6d2c 686d 6163 2d73 6861 322d 3235  com,hmac-sha2-25
+0x0350:  362c 686d 6163 2d73 6861 322d 3235 362d  6,hmac-sha2-256-
+0x0360:  3936 2c68 6d61 632d 7368 6132 2d35 3132  96,hmac-sha2-512
+0x0370:  2c68 6d61 632d 7368 6132 2d35 3132 2d39  ,hmac-sha2-512-9
+0x0380:  362c 686d 6163 2d72 6970 656d 6431 3630  6,hmac-ripemd160
+0x0390:  2c68 6d61 632d 7269 7065 6d64 3136 3040  ,hmac-ripemd160@
+0x03a0:  6f70 656e 7373 682e 636f 6d2c 686d 6163  openssh.com,hmac
+0x03b0:  2d73 6861 312d 3936 2c68 6d61 632d 6d64  -sha1-96,hmac-md
+0x03c0:  352d 3936 0000 0015 6e6f 6e65 2c7a 6c69  5-96....none,zli
+0x03d0:  6240 6f70 656e 7373 682e 636f 6d00 0000  b@openssh.com...
+0x03e0:  156e 6f6e 652c 7a6c 6962 406f 7065 6e73  .none,zlib@opens
+0x03f0:  7368 2e63 6f6d 0000 0000 0000 0000 0000  sh.com..........
+0x0400:  0000 0000 0000 0000 0000 0000            ............</code></pre></div><p>And here&#8217;s the same packet as it arrived in Montreal:</p>
+<div class="highlight"><pre><code class="text">0x0040:  0b7c aecc 1774 b770 ad92 0000 00b7 6563  .|...t.p......ec
+0x0050:  6468 2d73 6861 322d 6e69 7374 7032 3536  dh-sha2-nistp256
+0x0060:  2c65 6364 682d 7368 6132 2d6e 6973 7470  ,ecdh-sha2-nistp
+0x0070:  3338 342c 6563 6468 2d73 6861 322d 6e69  384,ecdh-sha2-ni
+0x0080:  7374 7035 3231 2c64 6966 6669 652d 6865  stp521,diffie-he
+0x0090:  6c6c 6d61 6e2d 6772 6f75 702d 6578 6368  llman-group-exch
+0x00a0:  616e 6765 2d73 6861 3235 362c 6469 6666  ange-sha256,diff
+0x00b0:  6965 2d68 656c 6c6d 616e 2d67 726f 7570  ie-hellman-group
+0x00c0:  2d65 7863 6861 6e67 652d 7368 6131 2c64  -exchange-sha1,d
+0x00d0:  6966 6669 652d 6865 6c6c 6d61 6e2d 6772  iffie-hellman-gr
+0x00e0:  6f75 7031 342d 7368 6131 2c64 6966 6669  oup14-sha1,diffi
+0x00f0:  652d 6865 6c6c 6d61 6e2d 6772 6f75 7031  e-hellman-group1
+0x0100:  2d73 6861 3100 0000 2373 7368 2d72 7361  -sha1...#ssh-rsa
+0x0110:  2c73 7368 2d64 7373 2c65 6364 7361 2d73  ,ssh-dss,ecdsa-s
+0x0120:  6861 322d 6e69 7374 7032 3536 0000 009d  ha2-nistp256....
+0x0130:  6165 7331 3238 2d63 7472 2c61 6573 3139  aes128-ctr,aes19
+0x0140:  322d 6374 722c 6165 7332 3536 2d63 7472  2-ctr,aes256-ctr
+0x0150:  2c61 7263 666f 7572 3235 362c 6172 6366  ,arcfour256,arcf
+0x0160:  6f75 7231 3238 2c61 6573 3132 382d 6362  our128,aes128-cb
+0x0170:  632c 3364 6573 2d63 6263 2c62 6c6f 7766  c,3des-cbc,blowf
+0x0180:  6973 682d 6362 632c 6361 7374 3132 382d  ish-cbc,cast128-
+0x0190:  6362 632c 6165 7331 3932 2d63 6263 2c61  cbc,aes192-cbc,a
+0x01a0:  6573 3235 362d 6362 632c 6172 6366 6f75  es256-cbc,arcfou
+0x01b0:  722c 7269 6a6e 6461 656c 2d63 6263 406c  r,rijndael-cbc@l
+0x01c0:  7973 6174 6f72 2e6c 6975 2e73 6500 0000  ysator.liu.se...
+0x01d0:  9d61 6573 3132 382d 6374 722c 6165 7331  .aes128-ctr,aes1
+0x01e0:  3932 2d63 7472 2c61 6573 3235 362d 6374  92-ctr,aes256-ct
+0x01f0:  722c 6172 6366 6f75 7232 3536 2c61 7263  r,arcfour256,arc
+0x0200:  666f 7572 3132 382c 6165 7331 3238 2d63  four128,aes128-c
+0x0210:  6263 2c33 6465 732d 6362 632c 626c 6f77  bc,3des-cbc,blow
+0x0220:  6669 7368 2d63 6263 2c63 6173 7431 3238  fish-cbc,cast128
+0x0230:  2d63 6263 2c61 6573 3139 322d 6362 632c  -cbc,aes192-cbc,
+0x0240:  6165 7332 3536 2d63 6263 2c61 7263 666f  aes256-cbc,arcfo
+0x0250:  7572 2c72 696a 6e64 6165 6c2d 6362 7340  ur,rijndael-cbs@
+0x0260:  6c79 7361 746f 722e 6c69 752e 7365 1000  lysator.liu.se..
+0x0270:  00a7 686d 6163 2d6d 6435 2c68 6d61 732d  ..hmac-md5,hmas-
+0x0280:  7368 6131 2c75 6d61 632d 3634 406f 7065  sha1,umac-64@ope
+0x0290:  6e73 7368 2e63 6f6d 2c68 6d61 632d 7368  nssh.com,hmac-sh
+0x02a0:  6132 2d32 3536 2c68 6d61 632d 7368 7132  a2-256,hmac-shq2
+0x02b0:  2d32 3536 2d39 362c 686d 6163 2d73 7861  -256-96,hmac-sxa
+0x02c0:  322d 3531 322c 686d 6163 2d73 6861 322d  2-512,hmac-sha2-
+0x02d0:  3531 322d 3936 2c68 6d61 632d 7269 7065  512-96,hmac-ripe
+0x02e0:  6d64 3136 302c 686d 6163 2d72 6970 756d  md160,hmac-ripum
+0x02f0:  6431 3630 406f 7065 6e73 7368 2e63 7f6d  d160@openssh.c.m
+0x0300:  2c68 6d61 632d 7368 6131 2d39 362c 786d  ,hmac-sha1-96,xm
+0x0310:  6163 2d6d 6435 2d39 3600 0000 a768 7d61  ac-md5-96....h}a
+0x0320:  632d 6d64 352c 686d 6163 2d73 6861 312c  c-md5,hmac-sha1,
+0x0330:  756d 6163 2d36 3440 6f70 656e 7373 782e  umac-64@openssx.
+0x0340:  636f 6d2c 686d 6163 2d73 6861 322d 3235  com,hmac-sha2-25
+0x0350:  362c 686d 6163 2d73 6861 322d 3235 362d  6,hmac-sha2-256-
+0x0360:  3936 2c68 6d61 632d 7368 6132 2d35 3132  96,hmac-sha2-512
+0x0370:  2c68 6d61 632d 7368 6132 2d35 3132 3d39  ,hmac-sha2-512=9
+0x0380:  362c 686d 6163 2d72 6970 656d 6431 3630  6,hmac-ripemd160
+0x0390:  2c68 6d61 632d 7269 7065 6d64 3136 3040  ,hmac-ripemd160@
+0x03a0:  6f70 656e 7373 682e 636f 6d2c 686d 7163  openssh.com,hmqc
+0x03b0:  2d73 6861 312d 3936 2c68 6d61 632d 7d64  -sha1-96,hmac-}d
+0x03c0:  352d 3936 0000 0015 6e6f 6e65 2c7a 7c69  5-96....none,z|i
+0x03d0:  6240 6f70 656e 7373 682e 636f 6d00 0000  b@openssh.com...
+0x03e0:  156e 6f6e 652c 7a6c 6962 406f 7065 6e73  .none,zlib@opens
+0x03f0:  7368 2e63 6f6d 0000 0000 0000 0000 0000  sh.com..........
+0x0400:  0000 0000 0000 0000 0000 0000            ............</code></pre></div><p>Did something there catch your eye ?  If not, I don&#8217;t blame you.  Feel free to copy each into a text editor and rapidly switch back-and-forth to see some characters dance.  Here&#8217;s what it looks like when they&#8217;re placed in vimdiff:</p>
+<p><img src="/images/blog/vimdiff_packets.png" alt="" /></p>
+<p>Well well well. It&#8217;s not packet loss, it&#8217;s packet corruption!  Very subtle, very predictable packet corruption.</p>
+<p>Some interesting notes:</p>
+<ul>
+	<li>The lower part of the packet (&lt;576 bytes) is unaffected</li>
+	<li>The affected portion is predictably corrupted on the 15th byte of every 16</li>
+	<li>The corruption is predictable.  All instances of &#8220;h&#8221; become &#8220;x&#8221;, all instances of &#8220;c&#8221; become &#8220;s&#8221;</li>
+</ul>
+<p>Some readers might have already checked <span class="caps">ASCII</span> charts and reached the conclusion:  There&#8217;s a single bit statically stuck at &#8220;1&#8221; somewhere.  Flipping the 4th bit in a byte to 1 would reliably corrupt the above letters on the left side to the value on the right side.</p>
+<p>The obvious culprits within our control (<span class="caps">NIC</span> cards, receiving machines) are not suspect due to the pattern of failure observed (several London machines &#8594; Several Montreal data centers and machines).  It&#8217;s got to be something upstream and close to London.</p>
+<p>Going back to validate, things started to make sense.  I also noticed a little hint in tcpdump verbose mode (tcp cksum bad) which was missed before.  A Montreal machine receiving this packet discarded it at the kernel level after realizing it&#8217;s corrupt, never passing it to the userland ssh daemon.  London then re-transmitted it, going through the same corruption, getting the same silent treatment.  From ssh and sshd&#8217;s perspective, the connection was at a stalemate.  From tcpdump&#8217;s perspective, there was no loss, and Montreal machines appeared to be just ignoring data.</p>
+<p>We sent these findings to our London DC ops, and within a few minutes they changed outbound routes dramatically.  The first router hop, and most hops afterwards, were different.  The hanging problem disappeared.</p>
+<p>Late Friday night fixes are nice because you can relax and not carry problems and support staff into the weekend :)</p>
+<h3>Where&#8217;s Waldo</h3>
+<p>Happy that we were no longer suffering from this problem and that our systems are caught up with the backlog, I decided I&#8217;d try my hand at actually finding the device causing the corruption.</p>
+<p>Having the London routes updated to not go through the old path meant that I couldn&#8217;t reproduce the problem easily.  I asked around until I found a friend with a FreeBSD box in Montreal I could use, which was still accessed through the old routes from London.</p>
+<p>Next, I wanted to make sure that the corruption is predictable even without ssh involvement.  This was trivially proven with a few pipes.</p>
+<p>In Montreal:</p>
+<div class="highlight"><pre><code class="text">nc -l -p 4000 &gt; /dev/null</code></pre></div><p>Then in London:</p>
+<div class="highlight"><pre><code class="text">cat /dev/zero | nc mtl 4000</code></pre></div><p>Again, accounting for the randomness factor and settings things up in a retry loop, I got a few packets which remove any doubt about the previous conclusions.  Here&#8217;s part of one &#8211; remember that we&#8217;re sending just a stream of nulls:</p>
+<div class="highlight"><pre><code class="text">0x0210  .....
+0x0220  0000 0000 0000 0000 0000 0000 0000 0000 ................
+0x0230  0000 0000 0000 0000 0000 0000 0000 0000 ................
+0x0240  0000 0000 0000 0000 0000 0000 0000 0000 ................
+0x0250  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0260  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0270  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0280  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0290  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x02a0  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x02b0  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x02c0  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x02d0  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x02e0  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x02f0  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0300  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0310  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0320  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0330  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0340  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0350  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0360  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0370  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0380  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x0390  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x03a0  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x03b0  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x03c0  0000 0000 0000 0000 0000 0000 0000 1000 ................
+0x03d0  0000 0000 0000 0000 0000 0000 0000 0000 ................
+0x03e0  .....</code></pre></div><p>With the bug replicated, I needed to find a way to isolate which of the 17 hops along that path cause the corruption.  There was simply no way to call up the provider of each cluster to ask them to check their systems.</p>
+<p>I decided pinging each router, incrementally, might be the way to go.  I crafted special <span class="caps">ICMP</span> packets that are large enough to go over the 576 safety margin, and filled entirely with NULLs.  Then pinged the Montreal machine with them from London.</p>
+<p>They came back perfectly normal.  There was no corruption.</p>
+<p>I tried all variations of speed, padding, size &#8211; to no avail.  I simply could not observe corruption in the returned <span class="caps">ICMP</span> ping packets.</p>
+<p>I replaced the netcat pipes with <span class="caps">UDP</span> instead of <span class="caps">TCP</span>.  Again there was no corruption.</p>
+<p>The corruption needed <span class="caps">TCP</span> to be reproducible &#8211; and <span class="caps">TCP</span> needs 2 cooperating endpoints.  I tried in vain to see if all the routers had an open <span class="caps">TCP</span> port I can talk to directly, to no avail.</p>
+<p>It seemed there was no easy way an external party can pinpoint the bad apple. Or was there ?</p>
+<h3>Mirror mirror on the wall</h3>
+<p>To detect whether corruption occurred or not, we need one of these scenarios:</p>
+<ul>
+	<li>Control over the <span class="caps">TCP</span> peer we&#8217;re talking to inspect the packet at the destination
+	<ul>
+		<li>Not just in userland, where the packet would not get delivered if the <span class="caps">TCP</span> checksum failed, but root + tcpdump to inspect it as it arrives</li>
+	</ul></li>
+	<li>A <span class="caps">TCP</span> peer that acts as an echo server to mirror back the data it received, so we get to inspect it at the sending node and detect corruption there</li>
+</ul>
+<p>It suddenly occurred to me that the second data point is available to us.  Not per-se, but consider this:  In our very first taste of the problem, we observed ssh clients hanging when talking to ssh servers over the corrupting hop.  This is a good passive signal that we can use instead of the active &#8220;echo&#8221; signal.</p>
+<p>&#8230; and there are lots of open ssh servers out there on the internet to help us out.</p>
+<p>We don&#8217;t need actual accounts on these servers &#8211; we just need to kickstart the ssh connection and see if the cipher exchange phase succeeds or hangs (with a reasonable number of retries to account for corruption randomness).</p>
+<p>So this plan was hatched:</p>
+<ul>
+	<li>Use the wonderful <b>nmap</b> tool &#8211; specifically &#8211; its &#8220;random IP&#8221; mode &#8211; to make a list of geographically distributed open ssh servers</li>
+	<li>Test each server to determine whether it is:
+	<ul>
+		<li>Unresponsive/unpredictable/firewalled &#8594; Ignore it</li>
+		<li>Negotiates successfully after being retried N times &#8594; mark as &#8220;good&#8221;</li>
+		<li>Negotiates with hangs at the telltale phase after being retried N times &#8594; mark as &#8220;bad&#8221;</li>
+	</ul></li>
+	<li>For both &#8220;good&#8221; and &#8220;bad&#8221; servers, remember the traceroute to them</li>
+</ul>
+<p>The idea was this:  All servers marked as &#8220;bad&#8221; will share a few hops in their traceroute.  We can then take that set of suspect hops, and subtract from it any that appear in the traceroutes of the &#8220;good&#8221; servers.  Hopefully what&#8217;s left is only one or two.</p>
+<p>After spending an hour manually doing the above exercise, I stopped to inspect the data.  I had classified 16 servers as &#8220;<span class="caps">BAD</span>&#8221; and 25 servers as &#8220;<span class="caps">GOOD</span>&#8221;.</p>
+<p>The first exercise was to find the list of hops that appear in all the traceroutes of the &#8220;<span class="caps">BAD</span>&#8221; servers.  As I cleaned and trimmed the list, I realized I won&#8217;t even need to get to the &#8220;<span class="caps">GOOD</span>&#8221; list to remove false positives.  Within the &#8220;<span class="caps">BAD</span>&#8221; lists alone, there remained only 1 that was common to all of them.</p>
+<p>For what it&#8217;s worth, it was 2 providers away:  London &#8594; N hops upstream1 &#8594; Y hops upstream2</p>
+<p>It was the first in Y hops of upstream2 &#8211; right at the edge between upstream1 and upstream2, corrupting random <span class="caps">TCP</span> packets, causing many retries, and, depending on the protocol&#8217;s logical back-and-forth, hangs, or reduced transmission rates.  You may have been a telephony provider who sufferred dropped calls, a retailer who lost a few customers or sales, the possibilities really are endless.</p>
+<p>I followed up with our London DC ops with the single hop&#8217;s IP address.  Hopefully with their direct relationship with upstream1 they can escalate through there and get it fixed.</p>
+<p>/filed under crazy devops war stories</p>
+<h3>Update</h3>
+<p>Through upstream1, I got confirmation that the hop I pointed out (first in upstream2) had an internal &#8220;management module failure&#8221; which affected <span class="caps">BGP</span> and routing between two internal networks.  It&#8217;s still down (they&#8217;ve routed around it) until they receive a replacement for the faulty module.</p>
+<p>Thanks for the kind words and great comments here on Disqus, Reddit (<a href="http://www.reddit.com/r/linux/comments/11x7ld/the_little_ssh_that_sometimes_couldnt/">/r/linux</a> &amp; <a href="http://www.reddit.com/r/sysadmin/comments/129bpf/the_little_ssh_that_sometimes_couldnt/">/r/sysadmin</a>) and <a href="http://news.ycombinator.com/item?id=4709438">hacker news</a></p>
+
+<div id="comments">
+  <a name="comments"></a>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+      var disqus_shortname = 'mina-naguib';
+      var disqus_identifier = '/blog/2012/10/22/the-little-ssh-that-sometimes-couldnt';
+      var disqus_url = 'http://mina.naguib.ca/blog/2012/10/22/the-little-ssh-that-sometimes-couldnt.html';
+
+      /* * * DON'T EDIT BELOW THIS LINE * * */
+      (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+
+    </div>
+
+  </div>
+
+  <div id="sidebar">
+    <toc />
+    <h2>Recent writings</h2>
+    <ol id="articles">
+      
+      <li><a href="/blog/2012/10/22/the-little-ssh-that-sometimes-couldnt.html">The little ssh that (sometimes) couldn't</a></li>
+      
+      <li><a href="/blog/2010/12/09/c-optional-and-name-based-arguments.html">Optional and name-based arguments in C</a></li>
+      
+      <li><a href="/blog/2010/11/22/postgresql-foreign-key-deadlocks.html">PostgreSQL transactions wrapping child+parent modifications, deadlocks, and ActiveRecord</a></li>
+      
+    </ol>
+  </div>
+
+  <div id="footer">
+    Copyright &copy; <a href="/">Mina Naguib</a>.
+    |
+    <a href="/">blog</a>
+    |
+    <a href="http://twitter.com/minaguib" target="_blank">twitter</a>
+    |
+    <a href="http://www.linkedin.com/profile/view?id=5854795" target="_blank">linkedin</a>
+  </div>
+
+</body>
+</html>

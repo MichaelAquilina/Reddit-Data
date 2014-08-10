@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Face Tracking with OpenCV and a USB Missile Launcher - AlexNisnevich.blog</title>
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" id="googlefonts-css" href="http://fonts.googleapis.com/css?family=Coustard%7CActor&amp;ver=3.9.1" type="text/css" media="all">
+    <link rel="stylesheet" media="screen" href="/blog/stylesheets/screen.css" type="text/css" />
+    
+    <link href="http://feeds.feedburner.com/alexnisnevich" rel="alternate" title="AlexNisnevich.blog" type="application/atom+xml" />
+    
+    
+    <!-- google analytics async -->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-345959-11']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    
+  </head>
+  <body>
+    <div id="page">
+      <div id="header">
+        <a href="/blog">AlexNisnevich.blog</a>
+        <a href="/portfolio" class="secondary_link">.portfolio</a>
+        <a href="/resume" class="secondary_link">.resume</a>
+      </div>
+      <div id="body">
+        <h2>Face Tracking with OpenCV and a USB Missile Launcher</h2>
+        <div class="postdate">Posted on 19 Feb 2013</div>
+
+<div class="post">
+<p><strong><a href="https://github.com/AlexNisnevich/sentinel">Check out Sentinel for Linux, Windows, and OS X on GitHub</a></strong></p>
+
+<p><img src="/blog/images/sentinel.png" alt="Demonstration of Sentinel" /></p>
+
+<p>I recently got my roommate a <a href="http://www.dreamcheeky.com/thunder-missile-launcher">Dream Cheeky Thunder</a> USB missile launcher. It was fun to play around with for a bit, but the included software was very limited in its functionality. Just when I was ready to dismiss it as an overpriced toy, my roommate came up with a great idea: could we mount a camera to the turret and make it automatically aim and fire at faces?</p>
+
+<p>After a couple weeks of experimentation, we came up with <a href="https://github.com/AlexNisnevich/sentinel">Sentinel</a>, a Python script that does just that, making heavy use of the excellent <a href="http://opencv.org/">OpenCV</a> computer vision library. Here's how we did it.</p>
+
+<h3>But first, a video demo!</h3>
+
+<center><iframe width="640" height="480" src="http://www.youtube.com/embed/L2It-kK0yfM" frameborder="0" allowfullscreen></iframe></center>
+
+
+<p><em>Note: The above video was filmed while our computers were rather bogged down, and Sentinel usually runs signficantly faster than that (especially on Windows and OS X, where it can go as fast as 3 iterations per second).</em></p>
+
+<h3>Step Zero. The concept</h3>
+
+<p>The main loop of the program is conceptually quite simple:</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+   <span class="n">camera</span><span class="o">.</span><span class="n">capture</span><span class="p">()</span>
+   <span class="n">face_detected</span><span class="p">,</span> <span class="n">x_adj</span><span class="p">,</span> <span class="n">y_adj</span> <span class="o">=</span> <span class="n">camera</span><span class="o">.</span><span class="n">face_detect</span><span class="p">()</span>
+   <span class="n">camera</span><span class="o">.</span><span class="n">display</span><span class="p">()</span>
+   <span class="k">if</span> <span class="n">face_detected</span><span class="p">:</span>
+      <span class="n">turret</span><span class="o">.</span><span class="n">adjust</span><span class="p">(</span><span class="n">x_adj</span><span class="p">,</span> <span class="n">y_adj</span><span class="p">)</span>
+      <span class="n">turret</span><span class="o">.</span><span class="n">ready_aim_fire</span><span class="p">()</span></code></pre></div>
+
+
+<p>At each iteration, the camera takes a picture, which is then processed to detect any faces. If a face is detected, the turret adjust itself to bring the face closer to the center of the camera's field of view. If the face is close enough to the center and the turret is armed, it then fires a missile at its target. The camera's output is also sent to the screen, with an ominous red reticule drawn over a detected face.</p>
+
+<p><em>Note: I'm only showing bits of pieces of our source code here, and I'm simplifying it where I can to keep the code chunks relevant. You can see the full source code <a href="https://github.com/AlexNisnevich/sentinel/blob/master/sentinel.py">here</a>.</em></p>
+
+<h3>Step One. Assembling the hardware</h3>
+
+<p>We had a small Logitech C270 webcam lying around, so we taped it to the top of the turret, aiming it roughly parallel to the trajectory of the turret's missiles, as shown in the photo above.</p>
+
+<p>The webcam's position about an inch above the turret means that when the camera is pointing toward a target's face, the turret usually ends up shooting them in the neck or chest, which is a nice side effect, since neither of us wanted to get shot in the eye.</p>
+
+<h3>Step Two. Controlling the turret</h3>
+
+<p>Controlling USB devices from Python requires the <a href="https://github.com/walac/pyusb">PyUSB</a> library, which in turn needs a low level driver - we used <a href="http://www.libusb.org/">libusb</a>.</p>
+
+<p>After that, connecting to a USB device is just a matter of finding its vendor and product IDs. In the case of this missile launcher, <code>lsusb</code> reported these IDs to be <code>2123:1010</code>. In Linux, you also need to detach the kernel driver if it is active:</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">class</span> <span class="nc">LauncherDriver</span><span class="p">():</span>
+   <span class="c"># Low level launcher driver commands</span>
+   <span class="c"># this code mostly taken from https://github.com/nmilford/stormLauncher</span>
+   <span class="c"># with bits from https://github.com/codedance/Retaliation</span>
+   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">dev</span> <span class="o">=</span> <span class="n">usb</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">idVendor</span><span class="o">=</span><span class="mh">0x2123</span><span class="p">,</span> <span class="n">idProduct</span><span class="o">=</span><span class="mh">0x1010</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dev</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Missile launcher not found.&#39;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s">&#39;linux2&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">is_kernel_driver_active</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">detach_kernel_driver</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">set_configuration</span><span class="p">()</span></code></pre></div>
+
+
+<p>Now that the device is configured, we can send commands to it. Fortunately for us, <a href="https://github.com/codedance/Retaliation">others</a> had already discovered the commands that the device accepts to position its turret, fire missiles, and toggle its built-in LED:</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">turretUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">ctrl_transfer</span><span class="p">(</span><span class="mh">0x21</span><span class="p">,</span><span class="mh">0x09</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,[</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">])</span>
+   <span class="k">def</span> <span class="nf">turretDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">ctrl_transfer</span><span class="p">(</span><span class="mh">0x21</span><span class="p">,</span><span class="mh">0x09</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,[</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">])</span>
+   <span class="k">def</span> <span class="nf">turretLeft</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">ctrl_transfer</span><span class="p">(</span><span class="mh">0x21</span><span class="p">,</span><span class="mh">0x09</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,[</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">])</span>
+   <span class="k">def</span> <span class="nf">turretRight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">ctrl_transfer</span><span class="p">(</span><span class="mh">0x21</span><span class="p">,</span><span class="mh">0x09</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,[</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x08</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">])</span>
+   <span class="k">def</span> <span class="nf">turretStop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">ctrl_transfer</span><span class="p">(</span><span class="mh">0x21</span><span class="p">,</span><span class="mh">0x09</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,[</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x20</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">])</span>
+   <span class="k">def</span> <span class="nf">turretFire</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">ctrl_transfer</span><span class="p">(</span><span class="mh">0x21</span><span class="p">,</span><span class="mh">0x09</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,[</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x10</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">])</span>
+   <span class="k">def</span> <span class="nf">ledOn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">ctrl_transfer</span><span class="p">(</span><span class="mh">0x21</span><span class="p">,</span><span class="mh">0x09</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,[</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">])</span>
+   <span class="k">def</span> <span class="nf">ledOff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">ctrl_transfer</span><span class="p">(</span><span class="mh">0x21</span><span class="p">,</span><span class="mh">0x09</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,[</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">,</span><span class="mh">0x00</span><span class="p">])</span></code></pre></div>
+
+
+<h3>Step Three. Controlling the camera</h3>
+
+<p>Now that we've set up the rocket launcher, the next step is accessing the webcam to make it take a picture once per loop iteration. We ended up doing this in a few different ways.</p>
+
+<h4>Linux: streamer</h4>
+
+<p>On Linux, I was excited to find <a href="http://linux.die.net/man/1/streamer">streamer</a>, a fast and simple-to-use photo/video capture tool. Even after we switched to using OpenCV's photo capture capabilities on Windows, streamer still ended up giving the best performance on Linux.</p>
+
+<div class="highlight"><pre><code class="python"><span class="c"># captures a single frame - currently a platform-dependent implementation</span>
+<span class="k">def</span> <span class="nf">capture</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+   <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s">&#39;linux2&#39;</span><span class="p">:</span>
+      <span class="c"># on Linux, use streamer to generate a jpeg, then have OpenCV load it into self.current_frame</span>
+
+      <span class="n">img_file</span> <span class="o">=</span> <span class="s">&#39;capture.jpeg&#39;</span>
+      <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s">&quot;streamer -q -c /dev/video&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">camera</span> <span class="o">+</span> <span class="s">&quot; -s &quot;</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">image_dimensions</span> <span class="o">+</span> <span class="s">&quot; -b 16 -o &quot;</span> <span class="o">+</span> <span class="n">img_file</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">FNULL</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">img_file</span><span class="p">)</span></code></pre></div>
+
+
+<h4>Windows and OS X: OpenCV</h4>
+
+<p>Capturing photos on Windows proved trickier. Initially, we used <a href="https://github.com/tedburke/CommandCam">CommandCam</a>, which gave good results but was a litle too slow to use. We finally switched to using OpenCV's <a href="http://opencv.willowgarage.com/documentation/reading_and_writing_images_and_video.html">image capture</a> methods, but ran into a serious problem.</p>
+
+<p>The images that OpenCV was processing were always a few frames out of date compared to the images the camera was taking, which ended up making the turret oscillate back and forth instead of homing in to its target, because it was adjusting its position based on outdated information.</p>
+
+<p>This behavior is actually intentional in OpenCV: images are stored in a buffer and retrieved as quickly as possible, and the latest image taken is not generally the image retrieved. Since OpenCV is generally used in a situation where continuous footage is being taken from a video camera, this is not usually a problem. However, since we were taking only one picture at a time and then repositioning the turret based on each picture, this behavior was unacceptable.</p>
+
+<p>Our solution was a little hackish but succeeded in correcting the problem: we simply made a <code>clear_buffer</code> method that repeatedly grabs images from the buffer until only the latest image is left, slowing the process down slightly but greatly improving the turret's behavior:</p>
+
+<div class="highlight"><pre><code class="python"><span class="c"># grabs several images from buffer to attempt to clear out old images</span>
+<span class="k">def</span> <span class="nf">clear_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">buffer_size</span><span class="p">):</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">webcam</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;no more images in buffer, mate&#39;</span><span class="p">)</span></code></pre></div>
+
+
+<p>The webcam is set up for use with OpenCV via <code>self.webcam = cv2.VideoCapture(int(self.opts.camera))</code> within the <code>Camera</code> class's initializer, and frames are captured like this:</p>
+
+<div class="highlight"><pre><code class="python"><span class="c"># on Windows and OS X, use OpenCV to grab latest camera frame and store in self.current_frame</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">webcam</span><span class="o">.</span><span class="n">grab</span><span class="p">():</span>
+   <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;frame grab failed&#39;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">clear_buffer</span><span class="p">()</span>
+
+<span class="n">retval</span><span class="p">,</span> <span class="n">most_recent_frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">webcam</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">retval</span><span class="p">:</span>
+   <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;frame capture failed&#39;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span> <span class="o">=</span> <span class="n">most_recent_frame</span></code></pre></div>
+
+
+<p>We're currently using OpenCV for photo capture in OS X as well, though it doesn't seem to work as well as in Windows, so we're looking for alternative tools we can use to capture photos from within the script.</p>
+
+<h3>Step Four. Face recognition with OpenCV</h3>
+
+<p>Once a photo is captured, it's taken to OpenCV for face detection. A lot of things are happening in this method, so I've tried to annotate it as much as possible. <code>draw_reticule</code> is a helper method that draws targets of various styles.</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">face_detect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+   <span class="c"># load image, then resize it to specified size</span>
+   <span class="n">img</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span>
+   <span class="n">img_w</span><span class="p">,</span> <span class="n">img_h</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">image_dimensions</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+   <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="n">img_w</span><span class="p">,</span> <span class="n">img_h</span><span class="p">))</span>
+
+   <span class="c"># initialize classifier with training set of faces</span>
+   <span class="n">face_filter</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CascadeClassifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">haar_file</span><span class="p">)</span>
+
+   <span class="c"># detect faces</span>
+   <span class="n">faces</span> <span class="o">=</span> <span class="n">face_filter</span><span class="o">.</span><span class="n">detectMultiScale</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">minNeighbors</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+   <span class="c"># convert to grayscale then back, so that we can draw red targets over a grayscale</span>
+   <span class="c"># photo, for an especially ominous effect</span>
+   <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2GRAY</span><span class="p">)</span>
+   <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_GRAY2BGR</span><span class="p">)</span>
+
+   <span class="c"># sort faces by size (we only use the biggest face for adjusting the camera)</span>
+   <span class="n">faces</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">face</span><span class="p">:</span><span class="n">face</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">face</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+   <span class="n">x_adj</span><span class="p">,</span> <span class="n">y_adj</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+   <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">face_detected</span> <span class="o">=</span> <span class="bp">True</span>
+
+      <span class="c"># draw a rectangle around all faces except last face</span>
+      <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">faces</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+         <span class="n">draw_reticule</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span> <span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">60</span><span class="p">),</span> <span class="s">&quot;box&quot;</span><span class="p">)</span>
+
+      <span class="c"># get last face, draw target, and calculate distance from center</span>
+      <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">)</span> <span class="o">=</span> <span class="n">faces</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+      <span class="n">draw_reticule</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span> <span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">170</span><span class="p">),</span> <span class="s">&quot;corners&quot;</span><span class="p">)</span>
+      <span class="n">x_adj</span> <span class="o">=</span>  <span class="p">((</span><span class="n">x</span> <span class="o">+</span> <span class="n">w</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">img_w</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">img_w</span><span class="p">)</span>
+      <span class="n">y_adj</span> <span class="o">=</span> <span class="p">((</span><span class="n">y</span> <span class="o">+</span> <span class="n">h</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">img_h</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">img_h</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">face_detected</span> <span class="o">=</span> <span class="bp">False</span>
+
+   <span class="c"># output the modified image so that we can display it</span>
+   <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">processed_img_file</span><span class="p">,</span> <span class="n">img</span><span class="p">)</span>
+
+   <span class="k">return</span> <span class="n">face_detected</span><span class="p">,</span> <span class="n">x_adj</span><span class="p">,</span> <span class="n">y_adj</span></code></pre></div>
+
+
+<h3>Step Five. Displaying the target</h3>
+
+<p>After OpenCV has detected any faces, we display the modified image (converted to grayscale, with red targets drawn over faces).</p>
+
+<p>This method has a great deal of platform-dependent code, to make it play equally nicely with Linux, OS X, and Windows:</p>
+
+<ul>
+<li>In Linux, we open up ImageMagick display windows. These windows do not refresh automatically, so we kill any existing windows each time we open a new one.</li>
+<li>In OS X, we open a Preview window. Conveniently, calling <code>open -a Preview [path]</code> refreshes the current Preview window.</li>
+<li>In Windows, we open Windows Photo Viewer (this might not work in older versions of Windows). It refreshes itself automatically, so
+we only open a window the first time <code>Camera.display</code> is called.</li>
+</ul>
+
+
+<div class="highlight"><pre><code class="python"><span class="c"># display the OpenCV-processed images</span>
+<span class="k">def</span> <span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+   <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s">&#39;linux2&#39;</span><span class="p">:</span>
+      <span class="c"># Linux: display with ImageMagick</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_image_viewer</span><span class="p">:</span>
+         <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s">&#39;killall&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_image_viewer</span><span class="p">])</span>
+      <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s">&quot;display &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">processed_img_file</span> <span class="o">+</span> <span class="s">&#39; &amp;&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">current_image_viewer</span> <span class="o">=</span> <span class="s">&#39;display&#39;</span>
+   <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s">&#39;darwin&#39;</span><span class="p">:</span>
+      <span class="c"># OS X: display with Preview</span>
+      <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s">&#39;open -a Preview &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">processed_img_file</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">current_image_viewer</span> <span class="o">=</span> <span class="s">&#39;Preview&#39;</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="c"># Windows: display with Windows Photo Viewer</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_image_viewer</span><span class="p">:</span>
+         <span class="n">viewer</span> <span class="o">=</span> <span class="s">&#39;rundll32 &quot;C:\Program Files\Windows Photo Viewer\PhotoViewer.dll&quot; ImageView_Fullscreen&#39;</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">current_image_viewer</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">\</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">processed_img_file</span><span class="p">))</span></code></pre></div>
+
+
+<h3>Step Six. Aiming and firing</h3>
+
+<p>If a face is detected, the turret adjusts itself to try to bring the face into the center of its field of view. The <code>Camera.face_detect</code> method returns <code>x_adj</code> and <code>y_adj</code>, which correspond to the distance from the center of the most prominent face (expressed as a fraction of the total width and height of the photo, respectively). These values are passed to the <code>Turret.adjust</code> method:</p>
+
+<div class="highlight"><pre><code class="python"><span class="c"># adjusts the turret&#39;s position (units are fairly arbitary but work ok)</span>
+<span class="k">def</span> <span class="nf">adjust</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">right_dist</span><span class="p">,</span> <span class="n">down_dist</span><span class="p">):</span>
+   <span class="n">right_seconds</span> <span class="o">=</span> <span class="n">right_dist</span> <span class="o">*</span> <span class="mf">0.64</span>
+   <span class="n">down_seconds</span> <span class="o">=</span> <span class="n">down_dist</span> <span class="o">*</span> <span class="mf">0.48</span>
+
+   <span class="k">if</span> <span class="n">right_seconds</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">launcher</span><span class="o">.</span><span class="n">turretRight</span><span class="p">()</span>
+      <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">right_seconds</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">launcher</span><span class="o">.</span><span class="n">turretStop</span><span class="p">()</span>
+   <span class="k">elif</span> <span class="n">right_seconds</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">launcher</span><span class="o">.</span><span class="n">turretLeft</span><span class="p">()</span>
+      <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">-</span> <span class="n">right_seconds</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">launcher</span><span class="o">.</span><span class="n">turretStop</span><span class="p">()</span>
+
+   <span class="k">if</span> <span class="n">down_seconds</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">launcher</span><span class="o">.</span><span class="n">turretDown</span><span class="p">()</span>
+      <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">down_seconds</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">launcher</span><span class="o">.</span><span class="n">turretStop</span><span class="p">()</span>
+   <span class="k">elif</span> <span class="n">down_seconds</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">launcher</span><span class="o">.</span><span class="n">turretUp</span><span class="p">()</span>
+      <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">-</span> <span class="n">down_seconds</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">launcher</span><span class="o">.</span><span class="n">turretStop</span><span class="p">()</span></code></pre></div>
+
+
+<p>Note that the only way to move the turret a certain distance is to estimate how long the turret's rotation would last and send it commands to move and stop with the appropriate timing.</p>
+
+<p>Finally, <code>Turret.ready_aim_fire</code> detects if the face was close enough to the center of the camera to fire, turning on the turret's LED as a warning before firing a missile (if the <code>--disarm</code> flag is passed to the script, the LED is turned on, but no missile is fired). Then the loop continues, until the turret has fired all four of its missiles:</p>
+
+<div class="highlight"><pre><code class="python"><span class="c"># turn on LED if face detected in range, and fire missiles if armed</span>
+<span class="k">def</span> <span class="nf">ready_aim_fire</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_adj</span><span class="p">,</span> <span class="n">y_adj</span><span class="p">):</span>
+   <span class="k">if</span> <span class="n">face_detected</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_adj</span><span class="p">)</span><span class="o">&lt;.</span><span class="mo">05</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y_adj</span><span class="p">)</span><span class="o">&lt;.</span><span class="mo">05</span><span class="p">:</span>
+      <span class="n">turret</span><span class="o">.</span><span class="n">launcher</span><span class="o">.</span><span class="n">ledOn</span><span class="p">()</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">armed</span><span class="p">:</span>
+         <span class="n">turret</span><span class="o">.</span><span class="n">launcher</span><span class="o">.</span><span class="n">turretFire</span><span class="p">()</span>
+         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="c"># roughly how long it takes to fire</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">missiles_remaining</span> <span class="o">-=</span> <span class="mi">1</span>
+         <span class="k">print</span> <span class="s">&#39;Missile fired! Estimated &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">missiles_remaining</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; missiles remaining.&#39;</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">missiles_remaining</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Ammunition depleted. Awaiting order to continue assault. [ENTER]&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">missiles_remaining</span> <span class="o">=</span> <span class="mi">4</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">print</span> <span class="s">&#39;Turret trained but not firing because of the --disarm directive.&#39;</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">turret</span><span class="o">.</span><span class="n">launcher</span><span class="o">.</span><span class="n">ledOff</span><span class="p">()</span></code></pre></div>
+
+
+<h3>Try it yourself!</h3>
+
+<p>If you have a Dream Cheeky brand USB missile launcher (though it wouldn't take much work to support other brands of missile launchers), a compact webcam, and a desire to build your very own defense system for your home or workplace, check out <a href="https://github.com/AlexNisnevich/sentinel">our GitHub repository</a>.</p>
+
+<p>We've gotten Sentinel working on Windows, OS X, and several Linux distros, though installing the dependencies (OpenCV, PyUSB, and others, depending on platform) can take some work.</p>
+
+<p>We're currently hard at work on some more features, including:</p>
+
+<ul>
+<li>different modes of operation (such as a "sweep mode", in which the turret continually pans until it locates a face, rather than staying idle when it doesn't see a face)</li>
+<li>a "kill-cam" feature that stores the pictures that it takes right as it shoots a target</li>
+<li>easier installation of dependencies (especially on Windows)</li>
+</ul>
+
+
+<p>Got any comments, questions, or suggestions? Be sure to let me know, either here or on Github.</p>
+
+</div>
+
+
+<div id="related">
+  <h2>Related Posts</h2>
+  <ul class="posts">
+    
+      <li><span>27 Jun 2014</span> - <a href="/blog/2014/06/27/my_first_foray_into_experiential_art.html">A First Foray into Experiential Art</a></li>
+    
+      <li><span>07 May 2014</span> - <a href="/blog/2014/05/07/asteroid_tycoon_postmortem.html">Postmortem - Asteroid Tycoon</a></li>
+    
+      <li><span>03 Sep 2013</span> - <a href="/blog/2013/09/03/10_second_roguelike_postmortem.html">Postmortem - 10 Second Roguelike</a></li>
+    
+  </ul>
+</div>
+
+
+
+<div id="comments">
+  <h2>Comments</h2>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    var disqus_identifier = "/2013/02/19/face_tracking_with_open_cv_and_a_usb_missile_launcher.html";
+    (function() {
+     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+     dsq.src = 'http://alex-nisnevich-blog.disqus.com/embed.js';
+     (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=alex-nisnevich-blog">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+
+
+      </div>
+      <div id="footer">
+        <span>alex [dot] nisnevich [at] gmail [dot] com</span>
+      </div>
+    </div>
+
+  
+    <a href="http://github.com/AlexNisnevich"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" /></a>
+  
+
+    <script type="text/javascript"
+ src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script>
+      MathJax.Hub.Config({
+        tex2jax: {
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+        }
+      });
+      MathJax.Hub.Queue(function() {
+          var all = MathJax.Hub.getAllJax(), i;
+          for(i=0; i < all.length; i += 1) {
+              all[i].SourceElement().parentNode.className += ' has-jax';
+          }
+      });
+    </script>
+  <!-- Piwik --><script type="text/javascript">var pkBaseURL = (("https:" == document.location.protocol) ? " https://piwik.webcontrolcenter.com/ " : " http://piwik.webcontrolcenter.com/");document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));</script><script type="text/javascript">try {var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php",5533);piwikTracker.trackPageView();piwikTracker.enableLinkTracking();} catch( err ) {}</script><noscript><p><img src="http://piwik.webcontrolcenter.com/piwik.php?idsite=5533" style="border:0" alt="" /></p></noscript><!-- End Piwik Tracking Code --></body>
+</html>

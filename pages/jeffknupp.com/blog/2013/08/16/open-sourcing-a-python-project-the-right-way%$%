@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link href='/css/jeffknupp.min.css' rel='stylesheet' type='text/css'>
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,900' rel='stylesheet' type='text/css'>
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <title>Open Sourcing a Python Project the Right Way</title>
+  <meta name="author" content="Jeff Knupp">
+  <meta name="description" content=""> 
+  <link rel="icon" href="/images/favicon.png" >
+  <link rel="alternate" href="http://feeds.feedblitz.com/hackersgonnahack" title="Python Programming" type="application/atom+xml">
+
+  
+<style>
+td.linenos { background-color: #f0f0f0; padding-right: 10px; }
+span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
+table.codehilitetable .hll, .codehilite pre .hll { background-color: #ffffcc }
+table.codehilitetable, .codehilite  { background: #f8f8f8; }
+table.codehilitetable .c, .codehilite pre .c { color: #408080; font-style: italic } /* Comment */
+table.codehilitetable .err, .codehilite pre .err { border: 1px solid #FF0000 } /* Error */
+table.codehilitetable .k, .codehilite pre .k { color: #008000; font-weight: bold } /* Keyword */
+table.codehilitetable .o, .codehilite pre .o { color: #666666 } /* Operator */
+table.codehilitetable .cm, .codehilite pre .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+table.codehilitetable .cp, .codehilite pre .cp { color: #BC7A00 } /* Comment.Preproc */
+table.codehilitetable .c1, .codehilite pre .c1 { color: #408080; font-style: italic } /* Comment.Single */
+table.codehilitetable .cs, .codehilite pre .cs { color: #408080; font-style: italic } /* Comment.Special */
+table.codehilitetable .gd, .codehilite pre .gd { color: #A00000 } /* Generic.Deleted */
+table.codehilitetable .ge, .codehilite pre .ge { font-style: italic } /* Generic.Emph */
+table.codehilitetable .gr, .codehilite pre .gr { color: #FF0000 } /* Generic.Error */
+table.codehilitetable .gh, .codehilite pre .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+table.codehilitetable .gi, .codehilite pre .gi { color: #00A000 } /* Generic.Inserted */
+table.codehilitetable .go, .codehilite pre .go { color: #808080 } /* Generic.Output */
+table.codehilitetable .gp, .codehilite pre .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+table.codehilitetable .gs, .codehilite pre .gs { font-weight: bold } /* Generic.Strong */
+table.codehilitetable .gu, .codehilite pre .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+table.codehilitetable .gt, .codehilite pre .gt { color: #0040D0 } /* Generic.Traceback */
+table.codehilitetable .kc, .codehilite pre .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+table.codehilitetable .kd, .codehilite pre .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+table.codehilitetable .kn, .codehilite pre .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+table.codehilitetable .kp, .codehilite pre .kp { color: #008000 } /* Keyword.Pseudo */
+table.codehilitetable .kr, .codehilite pre .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+table.codehilitetable .kt, .codehilite pre .kt { color: #B00040 } /* Keyword.Type */
+table.codehilitetable .m, .codehilite pre .m { color: #666666 } /* Literal.Number */
+table.codehilitetable .s, .codehilite pre .s { color: #BA2121 } /* Literal.String */
+table.codehilitetable .na, .codehilite pre .na { color: #7D9029 } /* Name.Attribute */
+table.codehilitetable .nb, .codehilite pre .nb { color: #008000 } /* Name.Builtin */
+table.codehilitetable .nc, .codehilite pre .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+table.codehilitetable .no, .codehilite pre .no { color: #880000 } /* Name.Constant */
+table.codehilitetable .nd, .codehilite pre .nd { color: #AA22FF } /* Name.Decorator */
+table.codehilitetable .ni, .codehilite pre .ni { color: #999999; font-weight: bold } /* Name.Entity */
+table.codehilitetable .ne, .codehilite pre .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+table.codehilitetable .nf, .codehilite pre .nf { color: #0000FF } /* Name.Function */
+table.codehilitetable .nl, .codehilite pre .nl { color: #A0A000 } /* Name.Label */
+table.codehilitetable .nn, .codehilite pre .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+table.codehilitetable .nt, .codehilite pre .nt { color: #008000; font-weight: bold } /* Name.Tag */
+table.codehilitetable .nv, .codehilite pre .nv { color: #19177C } /* Name.Variable */
+table.codehilitetable .ow, .codehilite pre .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+table.codehilitetable .w, .codehilite pre .w { color: #bbbbbb } /* Text.Whitespace */
+table.codehilitetable .mf, .codehilite pre .mf { color: #666666 } /* Literal.Number.Float */
+table.codehilitetable .mh, .codehilite pre .mh { color: #666666 } /* Literal.Number.Hex */
+table.codehilitetable .mi, .codehilite pre .mi { color: #666666 } /* Literal.Number.Integer */
+table.codehilitetable .mo, .codehilite pre .mo { color: #666666 } /* Literal.Number.Oct */
+table.codehilitetable .sb, .codehilite pre .sb { color: #BA2121 } /* Literal.String.Backtick */
+table.codehilitetable .sc, .codehilite pre .sc { color: #BA2121 } /* Literal.String.Char */
+table.codehilitetable .sd, .codehilite pre .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+table.codehilitetable .s2, .codehilite pre .s2 { color: #BA2121 } /* Literal.String.Double */
+table.codehilitetable .se, .codehilite pre .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+table.codehilitetable .sh, .codehilite pre .sh { color: #BA2121 } /* Literal.String.Heredoc */
+table.codehilitetable .si, .codehilite pre .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+table.codehilitetable .sx, .codehilite pre .sx { color: #008000 } /* Literal.String.Other */
+table.codehilitetable .sr, .codehilite pre .sr { color: #BB6688 } /* Literal.String.Regex */
+table.codehilitetable .s1, .codehilite pre .s1 { color: #BA2121 } /* Literal.String.Single */
+table.codehilitetable .ss, .codehilite pre .ss { color: #19177C } /* Literal.String.Symbol */
+table.codehilitetable .bp, .codehilite pre .bp { color: #008000 } /* Name.Builtin.Pseudo */
+table.codehilitetable .vc, .codehilite pre .vc { color: #19177C } /* Name.Variable.Class */
+table.codehilitetable .vg, .codehilite pre .vg { color: #19177C } /* Name.Variable.Global */
+table.codehilitetable .vi, .codehilite pre .vi { color: #19177C } /* Name.Variable.Instance */
+table.codehilitetable .il, .codehilite pre .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
+  <style>
+body {
+    font-family: 'Roboto', sans-serif;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", 'Roboto', Arial, "Lucida Grande", sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+}
+.nav {
+    text-align: right;
+    padding-bottom: 20px;
+}
+
+.nav a {
+    padding-right: 2em;
+    color: black;
+    font-size: 14px;
+}
+
+.title {
+   width: 100%; 
+   text-align: center; 
+   border-bottom: 1px solid #000; 
+   line-height: 0.1em;
+   margin: 10px 0 40px; 
+} 
+
+.title span { 
+    background:#fff; 
+    padding:0 20px; 
+}
+
+/* Side notes for calling out things
+-------------------------------------------------- */
+ 
+/* Base styles (regardless of theme) */
+.bs-callout {
+  margin: 20px 0;
+  padding: 15px 30px 15px 15px;
+  border-left: 5px solid #eee;
+}
+.bs-callout h4 {
+  margin-top: 0;
+}
+.bs-callout p:last-child {
+  margin-bottom: 0;
+}
+.bs-callout code,
+.bs-callout .highlight {
+  background-color: #fff;
+}
+ 
+/* Themes for different contexts */
+.bs-callout-danger {
+  background-color: #fcf2f2;
+  border-color: #dFb5b4;
+}
+.bs-callout-warning {
+  background-color: #fefbed;
+  border-color: #f1e7bc;
+}
+.bs-callout-info {
+  background-color: #f0f7fd;
+  border-color: #d0e3f0;
+}
+.bs-callout-danger h4 {
+color: #B94A48;
+}
+
+.bs-callout-warning h4 {
+color: #C09853;
+}
+
+.bs-callout-info h4 {
+color: #3A87AD;
+}
+</style>
+
+  
+  
+  <!-- Google Analytics -->
+  <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-12615441-1', 'jeffknupp.com');
+    ga('send', 'pageview');
+  </script>
+  <!-- Google Plus Author Link -->
+  <link href="https://plus.google.com/102786441324515866525" rel="publisher" />
+
+</head>
+
+<body itemscope itemtype="http://schema.org/Blog">
+<header id="header">
+    <img src="/images/jeff.jpg" class="circular center-block">
+    <h1>Jeff Knupp</h1>
+    <h2>PYTHON PROGRAMMER</h2>
+    <nav>
+        <a href="/">BLOG</a>
+        <span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="/about-me/" itemprop="url">ABOUT</a></span>
+        <a href="/blog/archives">ARCHIVES</a>
+        <a href="/python-tutoring" title="python-tutoring">TUTORING</a>
+        <a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">BOOK</a>
+    </nav>
+</header>
+<div class="container-fluid content">
+    <h2 class="text-center"><span itemprop="name">Everything I know about Python...</span></h2>
+    <div class="col-md-8 col-md-offset-2 col-xs-12">
+        <div class="bs-callout bs-callout-danger">
+            <h4 class="text-center">Learn to Write Pythonic Code!</h4>
+            <p class="text-center"><a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">
+                Check out the book <em>Writing Idiomatic Python</em>!</a></p>
+        </div>
+        <div id="content">
+            
+<article itemscope itemtype="http://schema.org/BlogPosting">
+<header>
+    <h1 class="post-title"><a href="/blog/2013/08/16/open-sourcing-a-python-project-the-right-way"><span itemprop="headline">Open Sourcing a Python Project the Right Way</span></a><br/>
+</header>
+
+<div class="entry-content" itemprop="articleBody">
+    
+        <p>Most Python developers have written at least <em>one</em> tool, script, 
+library or framework that others would find useful. My goal in this article
+is to make the process of open-sourcing existing Python code as clear 
+and painless as possible. And I don't simply mean, "create GitHub repo,
+<code>git push</code>, post on Reddit, and call it a day." By the end of this article,
+you'll be able to take an existing code base and transform it into an open source 
+project that encourages both use <em>and</em> contribution.</p>
+<p>While every project is different, there are some parts of the process of
+open-sourcing existing code that are common to <em>all</em> Python projects. 
+In the vein of another popular series I've written, <a href="http://www.jeffknupp.com/blog/2012/10/24/starting-a-django-14-project-the-right-way/">"Starting a Django Project The Right Way,"</a> I'll outline the steps I've 
+found to be necessary when open-sourcing a Python project.</p>
+<!--more-->
+
+<p><strong>Update (Aug 17):</strong> Thanks to <a href="http://www.twitter.com/pydanny">@pydanny</a> for alerting me
+about the existence of <a href="https://github.com/audreyr/cookiecutter-pypackage">Cookiecutter</a>, 
+an awesome project by <a href="https://twitter.com/audreyr">@audreyr</a>. I've added a
+section on it to the end of this article. Be sure to check out Audrey's awesome
+project!</p>
+<p><strong>Update 2 (Aug 18):</strong> Thanks to <a href="http://www.twitter.com/ChristianHeimes">@ChristianHeimes</a> (and others) for
+suggesting a section on <code>tox</code>. Christian also reminded me about PEP 440 and had some great suggestions
+for other minor improvements, all of which have been implemented.</p>
+<h2>Tools and Concepts</h2>
+<p>In particular, there are a number of tools and concepts I've found 
+useful or necessary. I'll cover each of the topics below, including the 
+precise commands you'll need to run and configuration values you'll need to
+set. The goal is to make the entire process clear and simple.</p>
+<ol>
+<li>Project layout (directory structure)</li>
+<li><code>setuptools</code> and the <code>setup.py</code> file</li>
+<li><a href="http://www.git-scm.com">git</a> for version control</li>
+<li><a href="http://www.github.com">GitHub</a> for project management<ol>
+<li>GitHub's "Issues" for the following:<ol>
+<li>bug tracking</li>
+<li>feature requests</li>
+<li>planned features</li>
+<li>release/version management</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><a href="http://nvie.com/posts/a-successful-git-branching-model/">git-flow</a> for git workflow</li>
+<li><a href="http://www.pytest.org">py.test</a> for unit testing</li>
+<li><a href="http://tox.readthedocs.org/en/latest/">tox</a> for testing standardization</li>
+<li><a href="http://www.sphinx-doc.org">Sphinx</a> for auto-generated HTML documentation</li>
+<li><a href="https://travis-ci.org/">TravisCI</a> for continuous testing integration</li>
+<li><a href="https://readthedocs.org">ReadTheDocs</a> for continuous documentation integration</li>
+<li><a href="https://github.com/audreyr/cookiecutter-pypackage">Cookiecutter</a> to automate these steps when starting your next project</li>
+</ol>
+<h2>Project Layout</h2>
+<p>When setting up a project, the <em>layout</em> (or <em>directory structure</em>) is important
+to get right. A sensible layout means that potential contributors don't have to
+spend forever hunting for a piece of code; file locations are intuitive. Since
+we're dealing with an existing project, it means you'll probably need to move
+some stuff around.</p>
+<p>Let's start at the top. Most projects have a number of top-level files (like
+<code>setup.py</code>, <code>README.md</code>, <code>requirements.txt</code>, etc). There are then three
+directories that <em>every</em> project should have:</p>
+<ol>
+<li>A <code>docs</code> directory containing project documentation</li>
+<li>A directory named with the project's name which stores the actual Python package</li>
+<li>A <code>test</code> directory in one of two places<ol>
+<li>Under the package directory containing test code and resources</li>
+<li>As a stand-alone top level directory</li>
+</ol>
+</li>
+</ol>
+<p>To get a better sense of how your files should be organized, here's a simplified snapshot
+of the layout for one of my projects, <a href="http://www.github.com/jeffknupp/sandman">sandman</a>:</p>
+<div class="codehilite"><pre><span class="nv">$ </span><span class="nb">pwd</span>
+~/code/sandman
+<span class="nv">$ </span>tree
+.
+|- LICENSE
+|- README.md
+|- TODO.md
+|- docs
+|   |-- conf.py
+|   |-- generated
+|   |-- index.rst
+|   |-- installation.rst
+|   |-- modules.rst
+|   |-- quickstart.rst
+|   |-- sandman.rst
+|- requirements.txt
+|- sandman
+|   |-- __init__.py
+|   |-- exception.py
+|   |-- model.py
+|   |-- sandman.py
+|   |-- <span class="nb">test</span>
+|       |-- models.py
+|       |-- test_sandman.py
+|- setup.py
+</pre></div>
+
+
+<p>As you can see, there are some top level files, a <code>docs</code> directory (<code>generated</code>
+is an empty directory where sphinx will put the generated documentation), a
+<code>sandman</code> directory, and a <code>test</code> directory under <code>sandman</code>.</p>
+<h2><code>setuptools</code> and the <code>setup.py</code> File</h2>
+<p>The <code>setup.py</code> file you've likely seen in other packages is used by the
+<code>distutils</code> package for the installation of Python packages. It's an important
+file for any project, as it contains information on versioning, package
+requirements, the project description that will be used on PyPI, and your
+name and contact information, among many other things. It allows packages to be
+searched for and installed in a programmatic way, providing meta-data and
+instructions to tools that do so.</p>
+<p>The <a href="https://pythonhosted.org/setuptools/setuptools.html"><code>setuptools</code></a> package 
+(really a set of enhancements for <code>distutils</code>) simplifies 
+the building and distribution of Python packages. A Python package that was
+packaged with <code>setuptools</code> should be indistinguishable from one packaged with
+<code>distutils</code>. There's really no reason not to use it.</p>
+<p><code>setup.py</code> should live in your project's root directory. 
+The most important section of <code>setup.py</code> is the call to <code>setuptools.setup</code>,
+where all the meta-information about the package lives. Here's the complete
+contents of <code>setup.py</code> from <a href="http://www.github.com/jeffknupp/sandman">sandman</a>:</p>
+<div class="codehilite"><pre>from __future__ import print_function
+from setuptools import setup, find_packages
+from setuptools.command.test import <span class="nb">test </span>as TestCommand
+import io
+import codecs
+import os
+import sys
+
+import sandman
+
+<span class="nv">here</span> <span class="o">=</span> os.path.abspath<span class="o">(</span>os.path.dirname<span class="o">(</span>__file__<span class="o">))</span>
+
+def <span class="nb">read</span><span class="o">(</span>*filenames, **kwargs<span class="o">)</span>:
+    <span class="nv">encoding</span> <span class="o">=</span> kwargs.get<span class="o">(</span><span class="s1">&#39;encoding&#39;</span>, <span class="s1">&#39;utf-8&#39;</span><span class="o">)</span>
+    <span class="nv">sep</span> <span class="o">=</span> kwargs.get<span class="o">(</span><span class="s1">&#39;sep&#39;</span>, <span class="s1">&#39;\n&#39;</span><span class="o">)</span>
+    <span class="nv">buf</span> <span class="o">=</span> <span class="o">[]</span>
+    <span class="k">for </span>filename in filenames:
+        with io.open<span class="o">(</span>filename, <span class="nv">encoding</span><span class="o">=</span>encoding<span class="o">)</span> as f:
+            buf.append<span class="o">(</span>f.read<span class="o">())</span>
+    <span class="k">return </span>sep.join<span class="o">(</span>buf<span class="o">)</span>
+
+<span class="nv">long_description</span> <span class="o">=</span> <span class="nb">read</span><span class="o">(</span><span class="s1">&#39;README.txt&#39;</span>, <span class="s1">&#39;CHANGES.txt&#39;</span><span class="o">)</span>
+
+class PyTest<span class="o">(</span>TestCommand<span class="o">)</span>:
+    def finalize_options<span class="o">(</span>self<span class="o">)</span>:
+        TestCommand.finalize_options<span class="o">(</span>self<span class="o">)</span>
+        self.test_args <span class="o">=</span> <span class="o">[]</span>
+        self.test_suite <span class="o">=</span> True
+
+    def run_tests<span class="o">(</span>self<span class="o">)</span>:
+        import pytest
+        <span class="nv">errcode</span> <span class="o">=</span> pytest.main<span class="o">(</span>self.test_args<span class="o">)</span>
+        sys.exit<span class="o">(</span>errcode<span class="o">)</span>
+
+setup<span class="o">(</span>
+    <span class="nv">name</span><span class="o">=</span><span class="s1">&#39;sandman&#39;</span>,
+    <span class="nv">version</span><span class="o">=</span>sandman.__version__,
+    <span class="nv">url</span><span class="o">=</span><span class="s1">&#39;http://github.com/jeffknupp/sandman/&#39;</span>,
+    <span class="nv">license</span><span class="o">=</span><span class="s1">&#39;Apache Software License&#39;</span>,
+    <span class="nv">author</span><span class="o">=</span><span class="s1">&#39;Jeff Knupp&#39;</span>,
+    <span class="nv">tests_require</span><span class="o">=[</span><span class="s1">&#39;pytest&#39;</span><span class="o">]</span>,
+    <span class="nv">install_requires</span><span class="o">=[</span><span class="s1">&#39;Flask&gt;=0.10.1&#39;</span>,
+                    <span class="s1">&#39;Flask-SQLAlchemy&gt;=1.0&#39;</span>,
+                    <span class="s1">&#39;SQLAlchemy==0.8.2&#39;</span>,
+                    <span class="o">]</span>,
+    <span class="nv">cmdclass</span><span class="o">={</span><span class="s1">&#39;test&#39;</span>: PyTest<span class="o">}</span>,
+    <span class="nv">author_email</span><span class="o">=</span><span class="s1">&#39;jeff@jeffknupp.com&#39;</span>,
+    <span class="nv">description</span><span class="o">=</span><span class="s1">&#39;Automated REST APIs for existing database-driven systems&#39;</span>,
+    <span class="nv">long_description</span><span class="o">=</span>long_description,
+    <span class="nv">packages</span><span class="o">=[</span><span class="s1">&#39;sandman&#39;</span><span class="o">]</span>,
+    <span class="nv">include_package_data</span><span class="o">=</span>True,
+    <span class="nv">platforms</span><span class="o">=</span><span class="s1">&#39;any&#39;</span>,
+    <span class="nv">test_suite</span><span class="o">=</span><span class="s1">&#39;sandman.test.test_sandman&#39;</span>,
+    <span class="nv">classifiers</span> <span class="o">=</span> <span class="o">[</span>
+        <span class="s1">&#39;Programming Language :: Python&#39;</span>,
+        <span class="s1">&#39;Development Status :: 4 - Beta&#39;</span>,
+        <span class="s1">&#39;Natural Language :: English&#39;</span>,
+        <span class="s1">&#39;Environment :: Web Environment&#39;</span>,
+        <span class="s1">&#39;Intended Audience :: Developers&#39;</span>,
+        <span class="s1">&#39;License :: OSI Approved :: Apache Software License&#39;</span>,
+        <span class="s1">&#39;Operating System :: OS Independent&#39;</span>,
+        <span class="s1">&#39;Topic :: Software Development :: Libraries :: Python Modules&#39;</span>,
+        <span class="s1">&#39;Topic :: Software Development :: Libraries :: Application Frameworks&#39;</span>,
+        <span class="s1">&#39;Topic :: Internet :: WWW/HTTP :: Dynamic Content&#39;</span>,
+        <span class="o">]</span>,
+    <span class="nv">extras_require</span><span class="o">={</span>
+        <span class="s1">&#39;testing&#39;</span>: <span class="o">[</span><span class="s1">&#39;pytest&#39;</span><span class="o">]</span>,
+    <span class="o">}</span>
+<span class="o">)</span>
+</pre></div>
+
+
+<p><em>(thanks to Christian Heimes for the suggestion to make <code>read</code> more idiomatic. I'll in turn let whichever project I stole this code from know...)</em></p>
+<p>Most of the contents are straightforward and could be gleaned from the
+<code>setuptools</code> documentation, so I'll only touch on the "interesting" parts.
+Using <code>sandman.__version__</code> and the method of getting <code>long_description</code> 
+(taken from the <code>setup.py</code> of other projects, though I can't remember 
+which ones) reduce the amount of boilerplate code we need to write. Instead 
+of maintaining the project's version in three
+places (<code>setup.py</code>, the package itself via <code>package.__version__</code>, and the
+documentation), we can always use the package's version to populate the
+<code>version</code> parameter in <code>setup</code>.</p>
+<p><code>long_description</code> is the document used by PyPI as the description on your 
+project's PyPI page. As there is another file, <code>README.md</code> with almost the 
+exact same content, I use <a href="http://johnmacfarlane.net/pandoc/">pandoc</a> to
+automatically generate <code>README.rst</code> from <code>README.md</code>. Thus, we can simply <code>read</code>
+the file <code>README.rst</code> and use that as the value for <code>long_description</code>.</p>
+<p>py.test (discussed below) has a special entry (<code>class PyTest</code>)
+to allow <code>python setup.py test</code> to work correctly. That code snippet 
+was taken directly from the <code>py.test</code> documentation.</p>
+<p>Everything else is in the file is simply setting values for the <code>setup</code> 
+parameters described in the documentation.</p>
+<h4>Other <code>setup.py</code> parameters</h4>
+<p>There are some <code>setup</code> arguments that <a href="http://www.github.com/jeffknupp/sandman">sandman</a>
+has no use for, but your package might. For example, you may be distributing
+a script that you'd like your user to be able to execute from the command line.
+In the example above, that script would only be installed in the normal
+<code>site-packages</code> location along with the rest of your code. There would be no
+(easy) way for the user to run it after it was installed.</p>
+<p>For that reason, <code>setup</code> can take a <code>scripts</code> argument that specifies Python
+scripts that should be installed as such. To install a script called <code>go_foo.py</code>
+from your package, the call to <code>setup</code> would include the line:</p>
+<div class="codehilite"><pre><span class="n">scripts</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;go_foo.py&#39;</span><span class="p">],</span>
+</pre></div>
+
+
+<p>Just make sure you put the relative path to your script, not just its name
+(e.g. <code>scripts = ['scripts/foo_scripts/go_foo.py']</code>). Also, your script should
+begin with a "shebang" line with "python" in it, like:</p>
+<div class="codehilite"><pre> <span class="c">#! /usr/bin/env python</span>
+</pre></div>
+
+
+<p><code>distutils</code> will automatically replace this line with the current interpreter
+location during installation.</p>
+<p>If your package is more complex than the simple one discussed here, take a look
+at both the <a href="https://pythonhosted.org/setuptools/setuptools.html"><code>setuptools</code></a>
+documentation and <a href="http://docs.python.org/2/distutils/index.html">"Distributing Python Modules"</a> 
+from the official documentation. Between the two, you should be able to
+straighten out any issues you might have encountered.</p>
+<h2>Source Control With Git, Project Management with GitHub</h2>
+<p>In <a href="http://www.jeffknupp.com/blog/2012/10/24/starting-a-django-14-project-the-right-way/">"Starting a Django Project The Right Way,"</a> I suggest either git
+or mercurial for version control. For a project meant to be both shared and
+contributed to, there's really only one choice: git. In fact, I'll go so far as
+to say that not only is the use of git necessary, you'll also need to use
+<a href="http://www.github.com">GitHub</a> to maintain your project if you want people to
+actually use and contribute to it. </p>
+<p>It's not meant to be an inflammatory statement (though no doubt many will 
+take issue with it). Rather, for better or worse, git
+and <a href="http://www.github.com">GitHub</a> have become the de-facto standard for
+Open Source projects. GitHub is the site potential contributors are 
+most likely to be registered on and familiar with. That, I believe, is not a
+point to be taken lightly.</p>
+<h4>Create a <code>README.md</code> File</h4>
+<p>The project description for repos on GitHub is taken from a file in the project's
+root directory: <code>README.md</code>. This file should contain the following
+pieces of information:</p>
+<ul>
+<li>A description of your project</li>
+<li>Links to the project's ReadTheDocs page</li>
+<li>A TravisCI button showing the state of the build</li>
+<li>"Quickstart" documentation (how to quickly install and use your project)</li>
+<li>A list of non-Python dependencies (if any) and how to install them</li>
+</ul>
+<p>It may sound silly, but this is an important file. It's quite likely to be the first
+thing both prospective users <em>and</em> contributors read about your project. Take
+some time to write a clear description and make use of GFM (<strong>G</strong>itHub<strong>F</strong>lavored<strong>M</strong>arkdown)
+to make it look somewhat attractive. You can actually create/edit this 
+file right on GitHub with a live-preview editor if you're not comfortable 
+writing documents in raw Markdown.</p>
+<p>We haven't yet covered the second and third items in the list yet (ReadTheDocs
+and TravisCI). You'll find these discussed below.</p>
+<h4>Using the "Issues" Page</h4>
+<p>Like most things in life, the more you put into GitHub, the more you get out of
+it. Since users will be using it to file bug reports anyway, making use of 
+GitHub's "Issues" page to track feature requests and enhancements just makes
+sense. </p>
+<p>More importantly, it allows potential contributors to both see a list of
+things they might implement and automatically manages the pull request workflow in
+a reasonably elegant manner. GitHub issues and their comments can be cross-linked
+with commits, other issues in your project, issues in <em>other</em> projects, etc.
+This makes the "Issues" page a good place to keep all of the information related
+to bug fixes, enhancements, and feature requests.</p>
+<p>Make sure to keep "Issues" up to date and to at least briefly respond to new
+issues in a timely manner. As a contributor, there's nothing more 
+demotivating than fixing a bug and watching as it languishes on the 
+issues page, waiting to be merged.</p>
+<h2>A Sensible git Workflow With git-flow</h2>
+<p>To make things easier on both yourself and contributors, I suggest using the
+very popular <a href="http://nvie.com/posts/a-successful-git-branching-model/">git-flow</a>
+model of branching. </p>
+<h6>Quick Overview</h6>
+<p>The <code>develop</code> is the branch you'll be 
+doing most of your work off of; it's also the branch that represents the code to
+be deployed in the next release. <code>feature</code> branches represent
+non-trivial features and fixes that have not yet been deployed (a completed
+<code>feature</code> branch is merged back into <code>develop</code>). Updating <code>master</code> is done through
+the creation of a <code>release</code>. </p>
+<h6>Installation</h6>
+<p>Install git-flow by following the instructions for your platform <a href="https://github.com/nvie/gitflow/wiki/Installation">here</a>.</p>
+<p>Once installed, you can migrate your existing project with the command</p>
+<div class="codehilite"><pre><span class="nv">$ </span>git flow init
+</pre></div>
+
+
+<h5>Branch Details</h5>
+<p>You'll be asked a number of configuration questions by the script. The default values suggested by 
+git-flow are fine to use. You may notice your default branch is set to <code>develop</code>. More 
+on that in a moment. Let's take a step back and describe the git-flow... erm, flow, in 
+a bit more detail. The easiest way to do so is to discuss the various branches
+and <em>types</em> of branches in the model.</p>
+<h6>Master</h6>
+<p><code>master</code> is always "production ready" code. Commits are never made directly to <code>master</code>. Rather, 
+code on <code>master</code> only gets there after a production release branch is created
+and "finished" (more on that in a sec). Thus the code on <code>master</code> is always able
+to be released to production. Also, <code>master</code> is always in a predictable state,
+so you never need to worry if <code>master</code> (and thus production) has changes one of
+your other branches doesn't.</p>
+<h6>Develop</h6>
+<p>Most of your work is done on the <code>develop</code> branch. This branch contains all of the completed features and
+bug fixes yet to be released; nightly builds or continuous integration servers should target <code>develop</code>,
+as it represents the code that will be included in the next release.</p>
+<p>For one-off commits, feel free to commit to <code>develop</code> directly. </p>
+<h6>Feature</h6>
+<p>For larger features, a <code>feature</code> branch should be created. <code>feature</code> branches are created off of
+<code>develop</code>. They can be small enhancements for the next release or further out
+changes that, nonetheless, need to be worked on now. To start work on a new
+feature, use:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>git flow feature start &lt;feature name&gt;
+</pre></div>
+
+
+<p>This creates a new branch: <code>feature/&lt;feature name&gt;</code>. Commits are then made to this branch 
+as normal. When the feature is complete <em>and ready to be released to production</em>, it 
+should be merged back into develop using the following command:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>git flow feature finish &lt;feature name&gt;
+</pre></div>
+
+
+<p>This merges the code into <code>develop</code> and deletes the <code>feature/&lt;feature name&gt;</code> branch.</p>
+<h6>Release</h6>
+<p>A <code>release</code> branch is created from <code>develop</code> when you're ready to begin a
+production release. Create one using the following command:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>git flow release start &lt;release number&gt;
+</pre></div>
+
+
+<p>Note that this is the first time a version number for the release is created.
+All completed and ready to be released features must already be on <code>develop</code>
+(and thus <code>feature finish</code>'ed). After your release branch is created, release
+your code. Any small bug fixes needed after the release are made directly to the
+<code>release/&lt;release number&gt;</code> branch. Once it has settled down and no more bug
+fixes seem necessary, run the following command:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>git flow release finish &lt;release number&gt;
+</pre></div>
+
+
+<p>This merges your <code>release/&lt;release number&gt;</code> changes back into both <code>master</code>
+<em>and</em> <code>develop</code>, meaning you never need to worry about either of those branches
+lacking changes that are in production (perhaps as the result of a quick bug
+fix).</p>
+<h6>Hotfix</h6>
+<p>While potentially useful, <code>hotfix</code> branches are, I would guess, little used in
+the real world. A <code>hotfix</code> is like a <code>feature</code> branch off of <code>master</code>: if you've
+already closed a <code>release</code> branch but realize there are vital changes that need
+to be released, create a <code>hotfix</code> branch off of <code>master</code> (at the tag created
+during <code>$ git flow release finish &lt;release number&gt;</code>) like so:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>git flow hotfix start &lt;release number&gt;
+</pre></div>
+
+
+<p>After you make your changes and bump your version number, finalize the <code>hotfix</code> via</p>
+<div class="codehilite"><pre><span class="nv">$ </span>git flow hotfix finish &lt;release number&gt;
+</pre></div>
+
+
+<p>This, like a <code>release</code> branch (since it essentially <em>is</em> a type of release
+branch), commits the changes to both <code>master</code> and <code>develop</code>.</p>
+<p>The reason I assume they're rarely used is because there is already a mechanism
+for making changes to released code: committing to an un-<code>finish</code>ed release
+branch. Sure, in the beginning, teams may <code>git flow release finish ...</code> too
+early, only to find they need to make some quick changes the next day. Over
+time, though, they'll settle on a reasonable amount of time for a <code>release</code>
+branch to remain open and, thus, won't have a need for <code>hotfix</code> branches. The
+only <em>other</em> time you would need a <code>hotfix</code> branch is if you needed a new
+"feature" in production immediately, without picking up the changes already in
+<code>develop</code>. That strikes me as something that happens (hopefully) very rarely.</p>
+<h2><code>virtualenv</code> and <code>virtualenvwrapper</code></h2>
+<p>Ian Bicking's <code>virtualenv</code> tool has become the de-facto standard mechanism for
+isolating Python environments. Its purpose is simple: if you have a number of
+Python projects on a single machine, each with different dependencies (perhaps
+with dependencies on different versions of the same package), managing the dependencies in a
+single Python installation is nigh impossible. </p>
+<p><code>virtualenv</code> creates "virtual" Python installations, each with their 
+own, segregated, <code>site-packages</code>. <code>distribute</code> and <code>pip</code> are also 
+installed in such a way that <code>pip install</code> correctly installs packages 
+to the <code>virtualenv</code> rather than the system Python installation. Switching back 
+and forth between your <code>virtualenv</code> is a one-command process.</p>
+<p>A separate tool, Doug Hellmann's <code>virtualenvwrapper</code>, makes creating and managing multiple 
+<code>virtualenv</code>s easier. Let's go ahead and install both now:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>pip install <span class="sb">`</span>virtualenvwrapper<span class="sb">`</span>
+...
+Successfully installed <span class="sb">`</span>virtualenvwrapper<span class="sb">`</span> <span class="sb">`</span>virtualenv<span class="sb">`</span> <span class="sb">`</span>virtualenv<span class="sb">`</span>-clone stevedore
+Cleaning up...
+</pre></div>
+
+
+<p>As you can see, the latter has a dependency on the former, so simply installing
+<code>virtualenvwrapper</code> is sufficient. Note that if you're using Python 
+3, <a href="http://www.python.org/dev/peps/pep-0405/">PEP-405</a>, which gives Python 
+native support for virtual environments through the <code>venv</code> package 
+and <code>pyvenv</code> command, was implemented in Python 3.3. You should use that instead
+of the tools mentioned above.</p>
+<p>Once you've installed <code>virtualenvwrapper</code>, you'll need to add a line to your
+<code>.zhsrc</code> file (or <code>.bashrc</code> file for bash users):</p>
+<div class="codehilite"><pre><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;source /usr/local/bin/virtualenvwrapper.sh&quot;</span> &gt;&gt; ~/.zshrc
+</pre></div>
+
+
+<p>This adds a number of useful commands to your shell (remember to <code>source</code> your
+<code>.zshrc</code> to actually make them available for the first time). While you can create a
+<code>virtualenv</code> directly with the <code>mkvirtualenv</code> command, creating a <em>"project"</em>
+using <code>mkproject [OPTIONS] DEST_DIR</code> is usually more useful. Since we have 
+an existing project, however, we'll simply create a new <code>virtualenv</code> for our
+project. We can do this with a simple command:</p>
+<div class="codehilite"><pre><span class="err">$</span> <span class="n">mkvirtualenv</span> <span class="n">ossproject</span>
+
+<span class="n">New</span> <span class="n">python</span> <span class="n">executable</span> <span class="n">in</span> <span class="n">ossproject</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">python</span>
+<span class="n">Installing</span> <span class="n">setuptools</span><span class="p">............</span><span class="n">done</span><span class="p">.</span>
+<span class="n">Installing</span> <span class="n">pip</span><span class="p">...............</span><span class="n">done</span><span class="p">.</span>
+<span class="p">(</span><span class="n">ossproject</span><span class="p">)</span><span class="err">$</span>
+</pre></div>
+
+
+<p>You'll notice your shell prompt is now prepended by the name of your <code>virtualenv</code>
+(which I called "ossproject", but obviously you can use whatever name you'd
+like). Now anything installed via <code>pip install</code> is installed to the
+<code>site-packages</code> of your <code>virtualenv</code>. </p>
+<p>To stop working on your project and switch back to the system installation, use 
+the <code>deactivate</code> command. You should see the <code>virtualenv</code> name that was prepended 
+to your shell prompt disappear. To resume work on your project, run <code>$ workon
+&lt;project name&gt;</code> and you'll be back in your <code>virtualenv</code>.</p>
+<p>Aside from simply creating the <code>virtualenv</code> for your project, you'll use it to
+do one more thing: generate your <code>requirements.txt</code> file. <code>pip</code> is capable of
+installing all of project's dependencies by using a requirements file and the
+<code>-r</code> flag. To create this file, run the following command within your <code>virtualenv</code>
+(once your code is working with the <code>virtualenv</code>, that is):</p>
+<div class="codehilite"><pre><span class="o">(</span>ossproject<span class="o">)</span><span class="nv">$ </span>pip freeze &gt; requirements.txt
+</pre></div>
+
+
+<p>You'll get a nice list of all of the requirements for your project, which can
+later be used by the setup.py file to list your dependencies. One note here: I
+often change the '==' to '&gt;=' in <code>requirements.txt</code> to say "any version of this
+package after the one I'm working on." Whether or not you should/need to do this
+is project specific, but I just thought I'd point it out.</p>
+<p>Commit <code>requirements.txt</code> to your git repo. In addition, you can now add the
+packages listed there as the value for the <code>install_requirements</code> argument to
+<code>distutils.setup</code> in <code>setup.py</code>. Doing that now will ensure that, when we later
+upload the package to PyPI. It can be <code>pip install</code>ed with automatically
+resolved dependencies.</p>
+<h2>Testing With py.test</h2>
+<p>In the Python automated testing ecosystem, there are two main alternatives to
+the (quite usable) Python standard library <code>unittest</code> package:
+<a href="http://www.nosetest.org">nose</a> and <a href="http://www.pytest.org">py.test</a>. Both 
+extend <code>unittest</code> to make it easier to work with while adding additional
+functionality. Truthfully, either is a fine choice. I happen to prefer
+<code>py.test</code> for a few reasons:</p>
+<ul>
+<li>Support for setuptools/distutils projects<ul>
+<li><code>python setup.py test</code> still works</li>
+</ul>
+</li>
+<li>Support for "normal" <code>assert</code> statements (rather than needing to remember all the jUnit-style assert functions)</li>
+<li>Less boilerplate</li>
+<li>Support for multiple testing styles<ul>
+<li><code>unittest</code></li>
+<li><code>doctest</code></li>
+<li>nose tests</li>
+</ul>
+</li>
+</ul>
+<h4>Note</h4>
+<p>If you already have an automated testing solution, feel free to continue using
+it and skip this section. Be warned that later sections may assume testing is
+done using py.test, which may affect configuration values.</p>
+<h4>Test Setup</h4>
+<p>In the <code>test</code> directory, wherever you decided it should live, create a file called
+<code>test_&lt;project_name&gt;.py</code>. py.test's test discovery mechanism will treat any file
+with the <code>test_</code> prefix as a test file (unless told otherwise).</p>
+<p>What you put in that file is largely up to you. Writing tests is a giant topic 
+and outside of the scope of this article. The important thing, however, is that the
+tests are useful to both you <em>and potential contributors</em>. It should be clear
+what functionality each test is exercising. Tests should be written in the same
+"style" so that a potential contributor doesn't have to guess which of the three
+styles of testing used in your project he/she should use.</p>
+<h4>Test Coverage</h4>
+<p>Automated test coverage is a contentious topic. Some believe it to be a
+meaningless metric that gives false security. Others find it genuinely useful.
+At the very least, I would suggest if you already have tests and have <em>never</em>
+checked your test coverage, do so now as an exercise. </p>
+<p>With py.test, we can make use of Ned Batchelder's <a href="http://nedbatchelder.com/code/coverage/">coverage</a>
+tool. To do so, <code>$ pip install pytest-cov</code>. If you previously ran your tests like
+this:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>py.test
+</pre></div>
+
+
+<p>you can generate test coverage reports by passing a few additional flags. Below
+is an example of running <code>sandman</code></p>
+<div class="codehilite"><pre><span class="nv">$ </span>py.test --cov<span class="o">=</span>path/to/package 
+<span class="nv">$ </span>py.test --cov<span class="o">=</span>path/to/package --cov-report<span class="o">=</span>term --cov-report<span class="o">=</span><span class="nv">html</span>
+<span class="o">======================================================</span> <span class="nb">test </span>session <span class="nv">starts</span> <span class="o">=======================================================</span>
+platform darwin -- Python 2.7.5 -- pytest-2.3.5
+plugins: cov
+collected 23 items
+
+sandman/test/test_sandman.py .......................
+---------------------------------------- coverage: platform darwin, python 2.7.5-final-0 -----------------------------------------
+Name                           Stmts   Miss  Cover
+--------------------------------------------------
+sandman/__init__                   5      0   100%
+sandman/exception                 10      0   100%
+sandman/model                     48      0   100%
+sandman/sandman                  142      0   100%
+sandman/test/__init__              0      0   100%
+sandman/test/models               29      0   100%
+sandman/test/test_sandman        114      0   100%
+--------------------------------------------------
+TOTAL                            348      0   100%
+Coverage HTML written to dir <span class="nv">htmlcov</span>
+
+<span class="o">===================================================</span> 23 passed in 1.14 <span class="nv">seconds</span> <span class="o">===========================================================</span>
+</pre></div>
+
+
+<p>Certainly not all of my projects have 100% test coverage (in fact, as you read
+this, <code>sandman</code> might not have 100% coverage anymore). Getting to 100% was a
+useful exercise, though. It exposed bugs and opportunities for refactoring I
+wouldn't have otherwise noticed.</p>
+<p>Since, as for the tests themselves, test coverage reports can be generated
+automatically as part of your continuous integration. If you choose to do so,
+displaying a badge showing your current test coverage adds a bit of transparency
+to your project (and high numbers can sometimes encourage others to contribute).</p>
+<h2>Standardized Testing With Tox</h2>
+<p>One issue all Python project maintainers face is <em>compatibility</em>. If your goal
+is to support both Python 2.x and Python 3.x (and, if you currently only
+support Python 2.x, it should be), how do you make sure your project actually
+works against all the versions you say you support? After all, when you run 
+your tests, you're only testing the specific interpreter version used to run the 
+tests. It's quite possible that a change you made works fine in Python 2.7.5
+but breaks in 2.6 and 3.3.</p>
+<p>Luckily, there's a tool dedicated to solving this exact problem. 
+<a href="http://tox.readthedocs.org/en/latest/">tox</a> provides "standardized testing in 
+Python," and it goes beyond merely running your tests with more than one version 
+of the interpreter. It creates a fully sandboxed environment in which your
+package and its requirements are installed and tested. If you made a change
+that works fine when tested directly but the change inadvertently broke your
+<em>installation</em>, you'll discover that with tox.</p>
+<p><code>tox</code> is configured via an <code>.ini</code> file: <code>tox.ini</code>. It's a very simple file to
+set up. Here's a minimal <code>tox.ini</code> file taken from the tox documentation:</p>
+<div class="codehilite"><pre><span class="c1"># content of: tox.ini , put in same dir as setup.py</span>
+<span class="k">[tox]</span>
+<span class="na">envlist</span> <span class="o">=</span> <span class="s">py26,py27</span>
+<span class="k">[testenv]</span>
+<span class="na">deps</span><span class="o">=</span><span class="s">pytest       # install pytest in the venvs</span>
+<span class="na">commands</span><span class="o">=</span><span class="s">py.test  # or &#39;nosetests&#39; or ...</span>
+</pre></div>
+
+
+<p>By setting <code>py26</code> and <code>py27</code> in the <code>envlist</code>, <code>tox</code> knows that it should run
+your tests against those versions of the interpreter. There are about a dozen
+"default" environments that <code>tox</code> supports out of the box, including
+<code>jython</code> and <code>pypy</code>. <code>tox</code> makes testing against different versions and
+configurations it would be a crime <em>not</em> to support multiple versions, if only
+to get to use such an awesome tool.</p>
+<p><code>deps</code> is a list of dependencies for your package. You can even tell <code>tox</code> to 
+install all or some of your dependencies from an alternate PyPI URL. Clearly, 
+quite a bit of thought and work has gone into the project.</p>
+<p>Actually running your all of your tests against all of your environments now
+takes four keystrokes:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>tox
+</pre></div>
+
+
+<h4>A more complicated setup</h4>
+<p>My book, <a href="http://www.jeffknupp.com/writing-idiomatic-python-ebook/">"Writing Idiomatic Python"</a>, is
+actually written as a series of Python modules and docstrings. This is done to make 
+sure all the code samples work as intended. As part of my build process, I run
+<code>tox</code> to make sure the code in any new idioms works correctly. I also
+occasionally check my test coverage to make sure there are no idioms
+inadvertently being skipped during testing. As such, my <code>tox.ini</code> is a bit more
+complicated than the one above. Take a look:</p>
+<div class="codehilite"><pre><span class="k">[tox]</span>
+<span class="na">envlist</span><span class="o">=</span><span class="s">py27, py34</span>
+
+<span class="k">[testenv]</span>
+<span class="na">deps</span><span class="o">=</span><span class="s"></span>
+<span class="s">    pytest</span>
+<span class="s">    coverage</span>
+<span class="s">    pytest-cov</span>
+<span class="na">setenv</span><span class="o">=</span><span class="s"></span>
+<span class="s">    PYTHONWARNINGS=all</span>
+
+<span class="k">[pytest]</span>
+<span class="na">adopts</span><span class="o">=</span><span class="s">--doctest-modules</span>
+<span class="na">python_files</span><span class="o">=</span><span class="s">*.py</span>
+<span class="na">python_functions</span><span class="o">=</span><span class="s">test_</span>
+<span class="na">norecursedirs</span><span class="o">=</span><span class="s">.tox .git</span>
+
+<span class="k">[testenv:py27]</span>
+<span class="na">commands</span><span class="o">=</span><span class="s"></span>
+<span class="s">    py.test --doctest-module</span>
+
+<span class="k">[testenv:py34]</span>
+<span class="na">commands</span><span class="o">=</span><span class="s"></span>
+<span class="s">    py.test --doctest-module</span>
+
+<span class="k">[testenv:py27verbose]</span>
+<span class="na">basepython</span><span class="o">=</span><span class="s">python</span>
+<span class="na">commands</span><span class="o">=</span><span class="s"></span>
+<span class="s">    py.test --doctest-module --cov=. --cov-report term</span>
+
+<span class="k">[testenv:py34verbose]</span>
+<span class="na">basepython</span><span class="o">=</span><span class="s">python3.4</span>
+<span class="na">commands</span><span class="o">=</span><span class="s"></span>
+<span class="s">    py.test --doctest-module --cov=. --cov-report term</span>
+</pre></div>
+
+
+<p>Even this config file is pretty straightforward. And the result?</p>
+<div class="codehilite"><pre><span class="o">(</span>idiom<span class="o">)</span>~/c/g/idiom git:master &gt;&gt;&gt; tox
+GLOB sdist-make: /home/jeff/code/github_code/idiom/setup.py
+py27 inst-nodeps: /home/jeff/code/github_code/idiom/.tox/dist/Writing Idiomatic Python-1.0.zip
+py27 runtests: commands<span class="o">[</span>0<span class="o">]</span> | py.test --doctest-module
+/home/jeff/code/github_code/idiom/.tox/py27/lib/python2.7/site-packages/_pytest/assertion/oldinterpret.py:3: DeprecationWarning: The compiler package is deprecated and removed in Python 3.x.
+from compiler import parse, ast, <span class="nv">pycodegen</span>
+<span class="o">===============================================================</span> <span class="nb">test </span>session <span class="nv">starts</span> <span class="o">================================================================</span>
+platform linux2 -- Python 2.7.5 -- pytest-2.3.5
+plugins: cov
+collected 150 items 
+...
+<span class="o">============================================================</span> 150 passed in 0.44 <span class="nv">seconds</span> <span class="o">============================================================</span>
+py33 inst-nodeps: /home/jeff/code/github_code/idiom/.tox/dist/Writing Idiomatic Python-1.0.zip
+py33 runtests: commands<span class="o">[</span>0<span class="o">]</span> | py.test --doctest-module
+<span class="o">===============================================================</span> <span class="nb">test </span>session <span class="nv">starts</span> <span class="o">================================================================</span>
+platform linux -- Python 3.3.2 -- pytest-2.3.5
+plugins: cov
+collected 150 items 
+...
+<span class="o">============================================================</span> 150 passed in 0.62 <span class="nv">seconds</span> <span class="o">============================================================</span>
+_____________________________________________________________________ summary ______________________________________________________________________
+py27: commands succeeded
+py33: commands succeeded
+congratulations :<span class="o">)</span>
+</pre></div>
+
+
+<p>(I cut out the list of all the tests it runs from the output). If I want to
+see the coverage of my tests for an environment, I simply run:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>tox -e py33verbose
+-------------------------------------------------- coverage: platform linux, python 3.3.2-final-0 --------------------------------------------------
+Name                                                                                           Stmts   Miss  Cover
+------------------------------------------------------------------------------------------------------------------
+control_structures_and_functions/a_if_statement/if_statement_multiple_lines                       11      0   100%
+control_structures_and_functions/a_if_statement/if_statement_repeating_variable_name              10      0   100%
+control_structures_and_functions/a_if_statement/make_use_of_pythons_truthiness                    20      3    85%
+control_structures_and_functions/b_for_loop/enumerate                                             10      0   100%
+control_structures_and_functions/b_for_loop/in_statement                                          10      0   100%
+control_structures_and_functions/b_for_loop/use_else_to_determine_when_break_not_hit              31      0   100%
+control_structures_and_functions/functions/2only/2only_use_print_as_function                       4      0   100%
+control_structures_and_functions/functions/avoid_list_dict_as_default_value                       22      0   100%
+control_structures_and_functions/functions/use_args_and_kwargs_to_accept_arbitrary_arguments      39     31    21%
+control_structures_and_functions/zexceptions/aaa_dont_fear_exceptions                              0      0   100%
+control_structures_and_functions/zexceptions/aab_eafp                                             22      2    91%
+control_structures_and_functions/zexceptions/avoid_swallowing_exceptions                          17     12    29%
+general_advice/dont_reinvent_the_wheel/pypi                                                        0      0   100%
+general_advice/dont_reinvent_the_wheel/standard_library                                            0      0   100%
+general_advice/modules_of_note/itertools                                                           0      0   100%
+general_advice/modules_of_note/working_with_file_paths                                            39      1    97%
+general_advice/testing/choose_a_testing_tool                                                       0      0   100%
+general_advice/testing/separate_tests_from_code                                                    0      0   100%
+general_advice/testing/unit_test_your_code                                                         1      0   100%
+organizing_your_code/aa_formatting/constants                                                      16      0   100%
+organizing_your_code/aa_formatting/formatting                                                      0      0   100%
+organizing_your_code/aa_formatting/multiple_statements_single_line                                17      0   100%
+organizing_your_code/documentation/follow_pep257                                                   6      2    67%
+organizing_your_code/documentation/use_inline_documentation_sparingly                             13      1    92%
+organizing_your_code/documentation/what_not_how                                                   24      0   100%
+organizing_your_code/imports/arrange_imports_in_a_standard_order                                   4      0   100%
+organizing_your_code/imports/avoid_relative_imports                                                4      0   100%
+organizing_your_code/imports/do_not_import_from_asterisk                                           4      0   100%
+organizing_your_code/modules_and_packages/use_modules_where_other_languages_use_object             0      0   100%
+organizing_your_code/scripts/if_name                                                              22      0   100%
+organizing_your_code/scripts/return_with_sys_exit                                                 32      2    94%
+working_with_data/aa_variables/temporary_variables                                                12      0   100%
+working_with_data/ab_strings/chain_string_functions                                               10      0   100%
+working_with_data/ab_strings/string_join                                                          10      0   100%
+working_with_data/ab_strings/use_format_function                                                  18      0   100%
+working_with_data/b_lists/2only/2only_prefer_xrange_to_range                                      14     14     0%
+working_with_data/b_lists/3only/3only_unpacking_rest                                              16      0   100%
+working_with_data/b_lists/list_comprehensions                                                     13      0   100%
+working_with_data/ca_dictionaries/dict_dispatch                                                   23      0   100%
+working_with_data/ca_dictionaries/dict_get_default                                                10      1    90%
+working_with_data/ca_dictionaries/dictionary_comprehensions                                       21      0   100%
+working_with_data/cb_sets/make_use_of_mathematical_set_operations                                 25      0   100%
+working_with_data/cb_sets/set_comprehensions                                                      12      0   100%
+working_with_data/cb_sets/use_sets_to_remove_duplicates                                           34      6    82%
+working_with_data/cc_tuples/named_tuples                                                          26      0   100%
+working_with_data/cc_tuples/tuple_underscore                                                      15      0   100%
+working_with_data/cc_tuples/tuples                                                                12      0   100%
+working_with_data/classes/2only/2only_prepend_private_data_with_underscore                        43     43     0%
+working_with_data/classes/2only/2only_use_str_for_human_readable_class_representation             18     18     0%
+working_with_data/classes/3only/3only_prepend_private_data_with_underscore                        45      2    96%
+working_with_data/classes/3only/3only_use_str_for_human_readable_class_representation             18      0   100%
+working_with_data/context_managers/context_managers                                               16      7    56%
+working_with_data/generators/use_generator_expression_for_iteration                               16      0   100%
+working_with_data/generators/use_generators_to_lazily_load_sequences                              44      1    98%
+------------------------------------------------------------------------------------------------------------------
+TOTAL                                                                                            849    146    83%
+
+<span class="o">============================================================</span> 150 passed in 1.73 <span class="nv">seconds</span> <span class="o">============================================================</span>
+_____________________________________________________________________ summary ______________________________________________________________________
+py33verbose: commands succeeded
+congratulations :<span class="o">)</span>
+</pre></div>
+
+
+<p>That's pretty damn awesome.</p>
+<h4><code>setuptools</code> integration</h4>
+<p><code>tox</code> can be integrated with <code>setuptools</code> so that <code>python setup.py test</code> runs
+your <code>tox</code> tests. The following snippet should be put in your <code>setup.py</code> file
+and is taken directly from the <code>tox</code> documentation:</p>
+<div class="codehilite"><pre><span class="kn">from</span> <span class="nn">setuptools.command.test</span> <span class="kn">import</span> <span class="n">test</span> <span class="k">as</span> <span class="n">TestCommand</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="k">class</span> <span class="nc">Tox</span><span class="p">(</span><span class="n">TestCommand</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">finalize_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">TestCommand</span><span class="o">.</span><span class="n">finalize_options</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_args</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_suite</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">def</span> <span class="nf">run_tests</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c">#import here, cause outside the eggs aren&#39;t loaded</span>
+        <span class="kn">import</span> <span class="nn">tox</span>
+        <span class="n">errcode</span> <span class="o">=</span> <span class="n">tox</span><span class="o">.</span><span class="n">cmdline</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_args</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">errcode</span><span class="p">)</span>
+
+<span class="n">setup</span><span class="p">(</span>
+    <span class="c">#...,</span>
+    <span class="n">tests_require</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;tox&#39;</span><span class="p">],</span>
+    <span class="n">cmdclass</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;test&#39;</span><span class="p">:</span> <span class="n">Tox</span><span class="p">},</span>
+    <span class="p">)</span>
+</pre></div>
+
+
+<p>Now <code>python setup.py test</code> will download <code>tox</code> and run <code>tox</code>. Seriously cool.
+And a serious time saver.</p>
+<h2>Documentation with <em>Sphinx</em></h2>
+<p><a href="http://www.sphinx-doc.org">Sphinx</a> is a tool by the <a href="http://www.pocoo.org/">pocoo</a> folks. It's used to 
+generate the Python's official documentation and the documentation for almost all other popular Python 
+packages. It was written with idea of making auto-generation of HTML documentation from 
+Python code as easy as possible.</p>
+<h4>Let the tool do the work</h4>
+<p>Sphinx has no implicit knowledge of Python programs and how to extract
+documentation from them. It can only translate reStructured Text files, which
+means a reStructured Text version of your code's documentation needs to be
+available for Sphinx to do its work. But maintaining a reStructured Text 
+version of all of your <code>.py</code> files (minus the actual body of functions and
+classes) is clearly not doable. </p>
+<p>Luckily, Sphinx has a javadoc-like extension, called <code>autodoc</code>, which is
+able to extracted reStructured Text from your code's docstrings. To be able
+to fully utilize the power of Sphinx and <code>autodoc</code>, you'll need to format your
+docstrings in a particular manner. In particular, you should make use of
+Sphinx's Python directives. Here's an example of a function documented using
+reStructured Text directives, making the resulting HTML documentation much
+nicer:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">resource</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;Return ``True`` if the the given *cls* supports the HTTP *method* found</span>
+<span class="sd">on the incoming HTTP request.</span>
+
+<span class="sd">:param cls: class associated with the request&#39;s endpoint</span>
+<span class="sd">:type cls: :class:`sandman.model.Model` instance</span>
+<span class="sd">:param string method: HTTP method of incoming request</span>
+<span class="sd">:param resource: *cls* instance associated with the request</span>
+<span class="sd">:type resource: :class:`sandman.model.Model` or None</span>
+<span class="sd">:rtype: bool</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">__methods__</span><span class="p">:</span>
+    <span class="k">return</span> <span class="bp">False</span>
+
+<span class="n">class_validator_name</span> <span class="o">=</span> <span class="s">&#39;validate_&#39;</span> <span class="o">+</span> <span class="n">method</span>
+
+<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">class_validator_name</span><span class="p">):</span>
+    <span class="n">class_validator</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">class_validator_name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">class_validator</span><span class="p">(</span><span class="n">resource</span><span class="p">)</span>
+
+<span class="k">return</span> <span class="bp">True</span>
+</pre></div>
+
+
+<p>Documentation becomes a bit more work, but the payoff is worth it for your
+users. Good, accessible documentation sets a usable project apart from a
+frustrating one.</p>
+<p>Sphinx's <code>autodoc</code> extension gives you access to a number of directives that
+automatically generate documentation from your docstrings.</p>
+<h4>Installation</h4>
+<p>Be sure to install Sphinx <em>in your <code>virtualenv</code></em>, since documentation will be a
+versioned artifact in your project. Different versions of Sphinx may generate
+different HTML output. By installing in your <code>virtualenv</code>, you can "upgrade" 
+your documentation in a controlled manner.</p>
+<p>We'll be keeping our documentation in the <code>docs</code> directory and the generated
+documentation in the <code>docs/generated</code> directory. To auto-generate reStructured
+Text documentation files from your <code>docstring</code>s, run the following command in
+your project's root directory:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>sphinx-apidoc -F -o docs &lt;package name&gt;
+</pre></div>
+
+
+<p>This will create a <code>docs</code> directory with a number of documentation files. In
+addition, it creates a <code>conf.py</code> file, which is responsible for configuration
+of your documentation. You'll also see a <code>Makefile</code>, handy for building
+HTML documentation in one command (<code>make html</code>).</p>
+<p>Before you actually generate your documentation, be sure you've installed your
+package locally (<code>$ python setup.py develop</code> is the easiest way to keep it up
+to date, though you can use <code>pip</code> as well) or else <code>sphinx-apidoc</code> won't be able
+to find your package.</p>
+<h4>Configuration: <code>conf.py</code></h4>
+<p>The <code>conf.py</code> file that was created controls many aspects of the documentation
+that's generated. It's well documented itself, so I'll briefly touch on just
+two items. </p>
+<h6>version and release</h6>
+<p>First, make sure to keep your <code>version</code> and <code>release</code> values 
+up-to-date. Those numbers will be displayed as part of the generated
+documentation, so you don't want them to drift from the actual values.</p>
+<p>The easiest way to keep your version up to date, in both your documentation and
+<code>setup.py</code> file, is to have it read from your package's <code>__version__</code>
+attribute. I "borrowed" the following <code>conf.py</code> code for <code>sandman</code> from
+Flask's <code>conf.py</code>:</p>
+<div class="codehilite"><pre>import pkg_resources
+try:
+    <span class="nv">release</span> <span class="o">=</span> pkg_resources.get_distribution<span class="o">(</span><span class="s1">&#39;sandman&#39;</span><span class="o">)</span>.version
+except pkg_resources.DistributionNotFound:
+    print <span class="s1">&#39;To build the documentation, The distribution information of sandman&#39;</span>
+    print <span class="s1">&#39;Has to be available.  Either install the package into your&#39;</span>
+    print <span class="s1">&#39;development environment or run &quot;setup.py develop&quot; to setup the&#39;</span>
+    print <span class="s1">&#39;metadata.  A virtualenv is recommended!&#39;</span>
+    sys.exit<span class="o">(</span>1<span class="o">)</span>
+del pkg_resources
+
+<span class="nv">version</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span>.join<span class="o">(</span>release.split<span class="o">(</span><span class="s1">&#39;.&#39;</span><span class="o">)[</span>:2<span class="o">])</span>
+</pre></div>
+
+
+<p>This means that, to get the documentation to generate the correct version
+number, you simply need to have run <code>$ python setup.py develop</code> in your
+project's <code>virtualenv</code>. Now you only need to worry about keeping <code>__version__</code>
+up to date, since <code>setup.py</code> makes use of it as well.</p>
+<h6>html_theme</h6>
+<p>Consider changing the <code>html_theme</code> from <code>default</code>. I'm partial 
+to <code>nature</code>, obviously this is a matter of personal preference. The reason I
+raise this point at all is because the official Python documentation changed
+themes from <code>default</code> to <code>pydoctheme</code> between Python 2 and Python 3 (the latter
+theme is a custom theme only available in the cPython source). To some people,
+seeing the <code>default</code> theme makes a project seem "old".</p>
+<h2>PyPI</h2>
+<p><a href="http://pypi.python.org/pypi">PyPI, the Python Package Index</a> (formerly known as
+"the Cheeseshop") is a central database of publicly available Python packages. 
+PyPI is where your project's releases "live." Once your package (and its
+associate meta-data) has been uploaded to PyPI, others can download and install
+it using <code>pip</code> or <code>easy_install</code>. This point bears repeating:
+<em>even if your project is available on GitHub, it's not until a release is uploaded to PyPI that your project is useful</em>.
+Sure, someone <em>could</em> clone your git repo and
+manually install it directly, but <em>far</em> more people just want to <code>pip install</code>
+it.</p>
+<h4>One last step</h4>
+<p>If you've completed all of the steps in the previous sections, you're likely 
+anxious to bundle up your package, upload it to PyPI, and make it available to the
+world! </p>
+<p>Before you do so, however, there's a helpful tool called <code>cheesecake</code>
+that is helpful to run as the last step before distributing your package. It
+analyzes your package and assigns "scores" in a number of categories. It
+measures how easy/correct packaging and installing your package is, the quality
+of the code, and the quality and quantity of your documentation.</p>
+<p>As a coarse measure of "readiness", <code>cheesecake</code> is great for sanity checking.
+You'll quickly see if there's an issue with your <code>setup.py</code> file or if you
+forgot to document a file. I recommend running it before <em>each</em> upload to PyPI,
+not just the first one.</p>
+<h4>Initial upload</h4>
+<p>Now that you've confirmed your code isn't crap and won't break when people try
+to install it, let's get your package on PyPI! You'll be interacting with PyPI 
+through <code>setuptools</code> and the <code>setup.py</code> script. If this is the first time this 
+particular package is being uploaded to PyPI, you'll first need to <em>register</em> it:</p>
+<div class="codehilite"><pre><span class="err">$</span> <span class="n">python</span> <span class="n">setup</span><span class="p">.</span><span class="n">py</span> <span class="k">register</span>
+</pre></div>
+
+
+<p><em>Note: if you don't yet have a free PyPI account, you'll need to make one now to be able to register the package.</em>
+After you've followed <code>register</code> prompts, you're ready 
+to create your distributable package and upload it to PyPI:</p>
+<div class="codehilite"><pre><span class="err">$</span> <span class="n">python</span> <span class="n">setup</span><span class="p">.</span><span class="n">py</span> <span class="n">sdist</span> <span class="n">upload</span>
+</pre></div>
+
+
+<p>The command above builds a source distribution (<code>sdist</code>) and uploads it to PyPI. If your
+package isn't pure Python (that is, you have binaries that need to be built), you'll 
+need to do a binary distribution. See the <code>setuptools</code> documentation for more info.</p>
+<h4>Releases and version numbers</h4>
+<p>PyPI uses a <em>release version</em> model to decide which version 
+of your package should be available by default. After the initial
+upload, you'll need to create a <em>release</em> with a new <em>version number</em> each time you
+want your updated package to be made available on PyPI. Managing your 
+version number can actually be a fairly complex topic, so much so that there's
+a PEP for it: <a href="http://www.python.org/dev/peps/pep-0440/">PEP 440 -- Version Identification and Dependency Specification</a>. I'd definitely suggest following the guidelines in PEP 440 (obviously), but
+if you choose to use a different versioning scheme, the <code>version</code> used in <code>setup.py</code> 
+<strong>must</strong> be "higher" than what's currently on PyPI for PyPI to consider the package 
+a new version.</p>
+<h5>Workflow</h5>
+<p>After uploading your first release to PyPI, the basic workflow is this: </p>
+<ol>
+<li>Do some work on your package (i.e. fix bugs, add features, etc)</li>
+<li>Make sure the tests pass</li>
+<li>"Freeze" your code by creating a <code>release</code> branch in git-flow</li>
+<li>Update the <code>__version__</code> number in your package's <code>__init__.py</code> file</li>
+<li>Run <code>python setup.py sdist upload</code> to upload the new version of your package to PyPI</li>
+</ol>
+<p>Users depend on you to release frequently enough to get bug fixes out. As long
+as you're properly managing your version numbers, there is no such thing as
+releasing "too frequently." Remember: your users aren't manually maintaining the 
+different versions of every Python package they have installed.</p>
+<h2>Continuous Integration with TravisCI</h2>
+<p><em>Continuous Integration</em> refers to the process of continuously integrating all
+changes for a project (rather than periodic bulk updates). For our purposes, it
+means that <em>each time we push a commit to GitHub our tests run, telling us 
+if the commit broke something.</em> As you can imagine, this is an incredibly 
+valuable practice. There's no more "forgetting to run the tests" before 
+committing/pushing. If you push a commit that breaks the tests, you'll get 
+an email telling you so.</p>
+<p><a href="http://www.travis-ci.org">TravisCI</a> is a service that makes continuous
+integration for GitHub projects embarrassingly easy. Head over there and create
+an account if you don't yet have one. Once you're done, we'll need to create
+one simple file before we're swimming in CI goodness.</p>
+<h4>Configuration via <code>.travis.yml</code></h4>
+<p>Individual projects on TravisCI are configured via a file, <code>.travis.yml</code>, 
+in the project's root directory. Briefly, we need to tell Travis:</p>
+<ol>
+<li>What language our project is written in</li>
+<li>What version of that language it uses</li>
+<li>What commands are used to install it</li>
+<li>What commands are used to run the project's tests</li>
+</ol>
+<p>Doing so is quite straightforward. Here are the contents of the <code>.travis.yml</code>
+file from <a href="http://www.github.com/jeffknupp/sandman">sandman</a>:</p>
+<div class="codehilite"><pre><span class="n">language</span><span class="o">:</span> <span class="n">python</span>
+<span class="n">python</span><span class="o">:</span>
+    <span class="o">-</span> <span class="s2">&quot;2.7&quot;</span>
+<span class="n">install</span><span class="o">:</span> 
+    <span class="o">-</span> <span class="s2">&quot;pip install -r requirements.txt --use-mirrors&quot;</span>
+    <span class="o">-</span> <span class="s2">&quot;pip install coverage&quot;</span>
+    <span class="o">-</span> <span class="s2">&quot;pip install coveralls&quot;</span>
+<span class="n">script</span><span class="o">:</span> 
+    <span class="o">-</span> <span class="s2">&quot;coverage run --source=sandman setup.py test&quot;</span>
+<span class="n">after_success</span><span class="o">:</span>
+    <span class="n">coveralls</span>
+</pre></div>
+
+
+<p>After listing the language and version, we tell Travis how to install our
+package. Under <code>install:</code>, make sure you have the line:</p>
+<div class="codehilite"><pre><span class="o">-</span> <span class="s">&quot;pip install -r requirements.txt --use-mirrors&quot;</span>
+</pre></div>
+
+
+<p>This <code>pip install</code>s our projects requirements (and uses PyPI mirrors if
+necessary). The other two lines in <code>install</code> are specific to <a href="http://www.github.com/jeffknupp/sandman">sandman</a>.
+It's using an additional service (<a href="http://coveralls.io">coveralls.io</a>) to continuously monitor 
+test case coverage, but that's not necessary for all projects.</p>
+<p><code>script:</code> lists the command needed to run the project's tests. Again, <a href="http://www.github.com/jeffknupp/sandman">sandman</a>
+is doing some extra stuff. All your project needs is <code>python setup.py test</code>.
+And the <code>after_success</code> portion can be dropped all together.</p>
+<p>Once you've committed this file and activated your project's repo in TravisCI,
+push to GitHub. In a few moments, you should see a build kick off on TravisCI
+based on your most recent commit. If all is successful, you build will be
+"green" and the status page will show that the build passed. You'll be able to
+see the history of all of your project's builds at any time. This is especially
+useful for multi-developer projects, where the history page can be used to see 
+how often a particular developer breaks the build...</p>
+<p>You should also receive an email letting you know the build was successful.
+Though you can probably configure it otherwise, you'll get emails only when the
+build is broken or fixed, but not if a commit has the same outcome as the build
+that preceded it. This is incredibly useful, as your not inundated by useless
+"the build passed!" emails but are still alerted when something changes.</p>
+<h2>ReadTheDocs for Continuous Documentation Integration</h2>
+<p>While PyPI has an official documentation site (<a href="http://www.pythonhosted.org">pythonhosted.org</a>), 
+<a href="https://readthedocs.org/">ReadTheDocs</a> provides a better experience. Why?
+ReadTheDocs has great integration with GitHub. Once you register on
+ReadTheDocs, you'll see all of your GitHub repos. Select the appropriate repo,
+do some minor configuration, and your documentation will be automatically
+regenerated after each commit to GitHub.</p>
+<p>Configuring your project should be a straightforward affair. There are a few
+things to remember, though. Here's a list of configuration fields and the
+values you should use which might not be immediately obvious:</p>
+<ul>
+<li>Repo: https://github.com/<em>github_username</em>/<em>project_name</em>.git</li>
+<li>Default Branch: <code>develop</code></li>
+<li>Default Version: <code>latest</code></li>
+<li>Python configuration file: (leave blank)</li>
+<li>Use <code>virtualenv</code>: (checked)</li>
+<li>Requirements file: <code>requirements.txt</code></li>
+<li>Documentation Type: Sphinx HTML</li>
+</ul>
+<h2>Don't Repeat Yourself</h2>
+<p>Now that you've done all that hard work to open-source an existing code base,
+you likely don't want to have to repeat it all when starting a <em>new</em> project.
+Luckily, you don't have to. Audrey Roy's <a href="https://github.com/audreyr/cookiecutter-pypackage">Cookiecutter</a>
+tool (I've linked to the Python version, though there are versions for numerous
+languages in <a href="https://github.com/audreyr/cookiecutter">the main repo</a>).</p>
+<p>Cookiecutter is a command line tool that automates the process of starting a
+project in a way that makes doing the stuff discussed in this article easy.
+Daniel Greenfeld (<a href="http://www.twitter.com/pydanny">@pydanny</a>) wrote a great
+blog post about it and how it relates to the practices discussed in this article.
+You should check it out: <a href="http://pydanny.com/cookie-project-templates-made-easy.html">Cookiecutter: Project Templates Made Easy</a>.</p>
+<h2>Conclusion</h2>
+<p>We've now covered all of the commands, tools, and services that go into open
+sourcing an existing Python package. Sure, you could have just thrown it on
+GitHub and said, "install it yourself," <em>but no one would have.</em> And you
+wouldn't <em>really</em> have Open Source Software; you'd simply have "free code."</p>
+<p>What's more, you likely never would have attracted outside contributors to your 
+project. By setting up your project in the manner outlined here, you've created 
+an easy to maintain Python package that encourages <em>both use and contribution</em>.
+And that, after all, is the true spirit of Open Source Software, is it not?</p>
+        
+<small>Posted on <time datetime="2013-08-16 19:21:00" pubdate data-updated="true" itemprop="datePublished">Aug 16, 2013</time> by <span itemprop="author"> Jeff Knupp</span></small> </h1>
+<div class="sharing">
+    <div class="row">
+    <p class="meta" style="padding-top: 20px;">
+    <a class="basic-alignment left" href="/blog/2013/08/09/my-favorite-creation" title="Previous Post: My Favorite Creation">&laquo; My Favorite Creation</a>
+    </p>
+    
+    <div id="mc_embed_signup" class="well">
+<form action="http://jeffknupp.us6.list-manage1.com/subscribe/post?u=51d2d98cf34cbcc20db22e5fa&amp;id=f15bb537ad" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+  <h4>Like this article?</h4>
+  <p>Why not sign up for <strong>Python Tutoring</strong>? Sessions can be held
+  remotely using Google+/Skype or in-person if you're in the NYC area. <a href="mailto:jeff@jeffknupp.com">Email jeff@jeffknupp.com</a> if interested.</p>
+  <p><strong>Sign up for the free jeffknupp.com email newsletter.</strong> Sent roughly once a month, it focuses on Python programming, scalable web development, and growing your freelance consultancy. And of course, you'll never be spammed, your privacy is protected, and you can opt out at any time.</p>
+<div class="mc-field-group">
+	<label for="mce-EMAIL">Email Address</label>
+	<input type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+</div>
+	<div id="mce-responses" class="clear">
+		<div class="response" id="mce-error-response" style="display:none"></div>
+		<div class="response" id="mce-success-response" style="display:none"></div>
+	</div>	<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+</form>
+</div>
+    
+  </footer>
+</article>
+</div>
+<section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Leaderboard -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-2922325862575361"
+     data-ad-slot="6191597138"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <div id="disqus_thread"></div>
+<script type="text/javascript">
+            var disqus_shortname = 'hackersgonnahack';
+
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+ 
+  </section>
+  </div>
+    
+</div>
+</article>
+
+        </div>
+        <div id="footer" class="text-center">
+        
+            <footer role="contentinfo">
+                <p>Copyright &copy; 2014 - Jeff Knupp- <span class="credit">Powered by <a href="http://www.github.com/jeffknupp/blug">Blug</a></span> </p>
+            </footer>
+         
+    </div>
+
+<a title="Web Analytics" href="http://clicky.com/66535137"><img alt="Web Analytics" src="//static.getclicky.com/media/links/badge.gif" border="0" /></a>
+<script type="text/javascript">
+var clicky_site_ids = clicky_site_ids || [];
+clicky_site_ids.push(66535137);
+(function() {
+  var s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.async = true;
+  s.src = '//static.getclicky.com/js';
+  ( document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0] ).appendChild( s );
+})();
+</script>
+<noscript><p><img alt="Clicky" width="1" height="1" src="//in.getclicky.com/66535137ns.gif" /></p></noscript> 
+</div>
+</html>

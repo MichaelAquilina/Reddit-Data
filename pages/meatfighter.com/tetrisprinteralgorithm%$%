@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" type="text/css"/>
+    <title>Tetris Printer Algorithm</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+  <body>
+    <h1>Tetris Printer Algorithm</h1>
+    <p>By rotating, positioning and dropping a predetermined sequence of pieces, the Tetris Printer Algorithm exploits the mechanics of Tetris to generate arbitrary bitmap images.</p>
+    <h2>Algorithm Overview</h2>
+    <p>The algorithm converts pixels from a source image into squares in the <a href="http://en.wikipedia.org/wiki/Tetris">Tetris</a> playfield, one row at a time from the bottom up.  To generate an individual square, the algorithm assembles a structure consisting of a rectangular region fully supported by a single square protruding from the bottom.  When the rectangular region is completed, its rows are cleared, leaving behind the protruding square.  Three examples of the process appear below.</p>
+    <p><img src="pen0.gif"/></p>
+    <p><img src="pen1.gif"/></p>
+    <p><img src="pen2.gif"/></p>
+    <p>The algorithm can also generate multiple squares with a single structure as shown below.</p>
+    <p><img src="pen3.gif"/></p>
+    <p>During construction of a row, all of the squares produced by this method must be supported.  In the images above, the generated squares are supported by the floor of the playfield.  However, if an arbitrary row contains holes, it may not provide the support necessary for the construction of the row above it.  The algorithm solves this problem by constructing a flat platform on top of the row with holes.  In the animation below, a platform is built above a row comprising of a single red square.  The platform is a temporary structure and inserting the final piece removes it.</p>
+    <p><img src="platform0.gif"/></p>
+    <p>Below, a row containing 5 red squares is deposited above a row containing 3 red squares.  This is accomplished by building a flat platform on top of the lower row.  The platform provides the support necessary to generate the 5 red squares.  Finally, the platform is removed by inserting its final piece and the new row drops into place.  Note, if the algorithm needed to generate the rows in the opposite order (a row of 3 red squares above a row of 5 red squares), a platform would not be necessary.</p>
+    <p><img src="platform1.gif"/></p>
+    <h2>Single Square Emitters</h2>
+    <p>For reference, the names of the 7 Tetriminos (the game pieces) appear in the table below.</p>
+    <p><img src="names.png"/></p>
+    <p>The version of the Tetris Printer Algorithm presented here was tailored specifically to render sprites from early video games.  Those games packed graphics into 8&times;8 tiles where 2 bits were dedicated to each pixel.  Consequentially, sprites usually contained only 3 colors plus transparent regions and they were typically sized either 16&times;16 or 16&times;32 pixels.</p>
+    <p>The animation below depicts all the patterns used to emit single squares.  J, T and L Tetriminos are used interchangeably within each pattern to produce the protruding square at the bottom.  The algorithm assigns those Tetriminos to the 3 colors present in the sprite.  The remaining Tetriminos are assigned arbitrary colors.  And, all the colors remain constant during gameplay.</p>
+    <p><img src="pen4.gif"/></p>
+    <p>It is not possible to emit a square of all 3 colors in the first 2 and the last 2 columns due to the shapes of the 3 Tetriminos.  As a result, the minimal width of a playfield to accommodate a 16 pixel wide sprite is 2 + 16 + 2 = 20 squares.  However, it turns out that 20 is too small.</p>
+    <p>As illustrated below, the region above the protruding square cannot exclusively consist of a single row because the only pieces that could fit, the I Tetriminos, are unsupported.</p>
+    <p><img src="pen5.gif"/></p>
+    <p>With 2 rows, the only means of spanning the full playfield width in a way that remains supported is to use S and Z Tetriminos.  But, that will always leave holes in the upper row.</p>
+    <p><img src="pen6.gif"/></p>
+    <p>The minimal number of rows required above the protruding square is 3 and as shown repeatedly above, such patterns do exist.  20 squares is the minimal width required to fit a 16 pixel wide sprite.  But, 20 &times; 3 + 1 = 61, which is not divisible by 4 and hence not constructible out of Tetriminos.  However, a width of 21 yields 21 &times; 3 + 1 = 64, which can be built with 16 Tetriminos.  That width actually enables the algorithm to render sprites up to 17 pixels wide.</p>
+    <p>The original Tetris playfield is 10&times;20 squares, a 1:2 ratio.  This version of the algorithm maintains that ratio by using a playfield of 21&times;42 squares.</p>
+    <p>Since J, T and L Tetriminos are used interchangeably to produce the emitted square and 3 squares of those Tetriminos contribute to the row above it, there are 21 &#8722; 3 = 18 single square emitting patterns.  However, due to mirror symmetry, there are really only 9 patterns.  Clearing 3 rows works for the majority of those 9.  But, an exhaustive computer search revealed that 2 of the patterns require more.  The next possible option is 7 rows since 21 &times; 7 + 1 = 148, requiring 37 Tetriminos.  As the images below show, those patterns do exist.</p>
+    <p><img src="pen7.gif"/></p>
+    <p><img src="pen8.gif"/></p>
+    <h2>Multi-square Emitters</h2>
+    <p>Multi-square emitters are limited to the same 3 colors produced by single square emitters.  The emitted squares originate from J, T and L Tetriminos, each of which occupies 3 squares in the row above the emission row.  The maximum number of squares that can possibly be emitted by a single pattern is 21 / 3 = 7.  However, for sprites that are 16 pixels across, the right-most Tetrimino is unable to contribute a square.  Even for sprites that are 17 pixels across, it would only be able to contribute a square of a single color.  So, the 7-square emitter is seldom used.</p>
+    <p><img src="multi7.gif"/></p>
+    <p>The number of emission patterns for an arbitrary multi-square emitter can be determined using enumerative combinatorics.  Consider the pattern below that represents the row above the emission row of a 3-square emitter.  Each block of 3 contiguous white squares represents part of a Tetrimino; the emitted squares are not shown.</p>
+    <p><img src="permutations0.gif"/></p>
+    <p>The 3 Tetriminos generate 4 gaps.  There are 21 &#8722; 3 &times; 3 = 12 dark squares that can arbitrarily be placed into these gaps to form a particular pattern.  The number of ways to distribute those dark squares can be counted by placing them into a row where single white squares act as partitions.</p>
+    <p><img src="permutations1.gif"/></p>
+    <p>Now, the problem is reduced to computing the value of a binomial coefficient.  Considering those white squares, it is a matter of finding the number of ways of choosing 3 out of the 15.  <img class="math" src="math0.png"/> = 455.</p>
+    <p>In the general case, for <i>n</i> Tetriminos, it is <img class="math" src="math1.png"/>.  But, due to mirror symmetry, there really are only half of that number; if the count is odd, round up to the nearest integer after dividing by 2 to include the perfectly symmetric pattern that must exist within that set such as the one below for the 455 case.</p>
+    <p><img src="permutations2.gif"/></p>
+    <p>Applying that formula to 7 Tetriminos confirms the obvious: there is only one 7-square emitter pattern.</p>
+    <p>A 6-square emitter can be constructed in 2 ways: with 2 completed rows (2 &times; 21 + 6 = 48) and 6 completed rows (6 &times; 21 + 6 = 132), requiring 12 and 33 Tetriminos respectively.  The formula above reveals that there are 84 6-square emitter patterns.  But, only 35 of them can be built with 2 completed rows.  49 patterns require 6 rows.  Those counts are odd numbers due to the symmetric patterns shown below.</p>
+    <p><img src="multi6-2.gif"/></p>
+    <p><img src="multi6-6.gif"/></p>
+    <p>It should also be noted that 2 rows works here because there are 6 supporting pieces unlike the single square emitter case discussed earlier, which required spanning S and Z Tetriminos.</p>
+    <p>For each type of square emitter, the table below list the number of squares emitted, the number of completed rows, the number of Tetriminos used and the number of patterns.</p>
+    <table class="table1">
+    <tr><th>Squares Emitted</th><th>Completed Rows</th><th>Tetriminos</th><th>Patterns</th></tr>
+    <tr><td>1</td><td>7 and 3</td><td>37 and 16</td><td>19 (4 and 15)</td></tr>
+    <tr><td>2</td><td>6</td><td>32</td><td>136</td></tr>
+    <tr><td>3</td><td>5</td><td>27</td><td>455</td></tr>
+    <tr><td>4</td><td>4</td><td>22</td><td>715</td></tr>
+    <tr><td>5</td><td>3</td><td>17</td><td>462</td></tr>
+    <tr><td>6</td><td>2 and 6</td><td>12 and 33</td><td>84 (35 and 49)</td></tr>
+    <tr><td>7</td><td>1</td><td>7</td><td>1</td></tr>
+    </table>
+    <p>Example patterns follow.</p>
+    <p><img src="multi2.gif"/></p>
+    <p><img src="multi3.gif"/></p>
+    <p><img src="multi4.gif"/></p>
+    <p><img src="multi5.gif"/></p>
+    
+    <h2>Platforms</h2>
+    <p>Before a row is constructed, the algorithm inspects the row below it.  If the row below fails to provide support for all of the squares to be deposited above it, then a temporary platform is required.  When that platform is removed, the new row will drop, leaving some of the squares apparently floating above empty space due to the way that gravity works in the original Tetris.</p>        
+    <p>The illustration below depicts the 10 platform patterns.  The construction of a platform begins by dropping a T Tetrimino on top one of the squares of the last generated row.  The remaining Tetriminos support each other down to that first T.  Meaning, as long as the previously generated row contains at least 1 square, like the red square below, then it is possible to construct a flat platform above it for the generation of the next row.</p>
+    <p><img src="platform2.gif"/></p>
+    <p>In the middle of platform construction, the bottom row gets completed and cleared, leaving 3 rows above it.  The final J or L Tetrimino that will remove those rows is not inserted until the square emitters are done generating the next row of the sprite on top of the platform.  That final piece precludes square emission in the first and last 2 columns.  But, as discussed above, the square emitters are limited to the 17 inner columns due to the geometry of the J, T and L Tetriminos used in the process.</p>
+    <p>Also, of the 19 possible ways to start constructing a platform on top of a T Tetrimino, only the 10 patterns shown above exist.</p>
+    
+    <h2>Packed Matrices</h2>
+    <p>As discussed above, a subset of the 6-square emitters involve clearing only 2 rows.  The rest require 6 rows.  To see why this is the case, consider the pattern below.</p>
+    <p><img src="pen11.gif"/></p>
+    <p>Those T Tetriminos are interchangeable with J and L Tetriminos and each contributes 3 contiguous squares in a common row.  The rows to be completed are represented by the matrix below.</p>
+    <p><img src="matrix3.gif"/></p>
+    <p>Now, it's a matter of packing the empty space with Tetriminos.  Starting at the left, the only option is to use a series of I Tetriminos.</p>
+    <p><img src="matrix4.gif"/></p>
+    <p>The only way to fill the remaining space is to use a J and an O or an I and an L.  Both choices appear below.</p>
+    <p><img src="matrix5.gif"/></p>
+    <p><img src="matrix6.gif"/></p>
+    <p>Unfortunately, the O and the L Tetriminos in the matrices above are unsupported.  This 6-square emitter pattern requires a larger matrix.</p>
+    <p>A similar problem occurs for 2 of the single square emitter patterns.  Consider the matrix below.<p>
+    <p><img src="matrix7.gif"/></p>
+    <p>The only way to fill the bottom row on the right is to chain a series of Z Tetriminos.</p>  
+    <p><img src="matrix8.gif"/></p>  
+    <p>Similarly, the only means of reaching the 3 empty squares at the left of the bottom row involves an S Tetrimino.</p>  
+    <p><img src="matrix9.gif"/></p>  
+    <p>In the middle row, there an empty square between the S and a Z and the only way to fill it is to use a J, a T or an L Tetrimino as shown in the images below.</p>  
+    <p><img src="matrix10.gif"/></p>  
+    <p><img src="matrix11.gif"/></p>  
+    <p><img src="matrix12.gif"/></p>  
+    <p>Plugging in any of those pieces partitions the empty space.  The empty region on the left contains 5, 6 and 7 spaces respectively.  Since none of those values are divisible by 4, there is no way to continue.  This single square emitter pattern requires a larger matrix.</p>
+    <p>The same applies to the other single emitter pattern depicted in the matrix below.</p>
+    <p><img src="matrix13.gif"/></p>
+    <p>After using S and Z Tetriminos to cover most of the bottom row, an empty square in the middle row is left between them.</p>
+    <p><img src="matrix14.gif"/></p>
+    <p>As shown in the images below, plugging the hole partitions the empty space and the empty region on the left contains 9, 10, or 11 squares respectively, none of which is divisible by 4.</p>
+    <p><img src="matrix15.gif"/></p>
+    <p><img src="matrix16.gif"/></p>
+    <p><img src="matrix17.gif"/></p>
+    <p>But, packing matrices is not the only way to generate an emitter pattern.  For example, check out the 4-square emitter below.</p>
+    <p><img src="pen12.gif"/></p>
+    <p>An attempt to render the pattern as a set of packed Tetriminos appears below.</p>
+    <p><img src="pen13.gif"/></p>
+    <p>The final L is omitted because the space for it only forms after the third row is completed and removed.</p>
+    <p>But, an exhaustive search revealed that this technique does not provide a means for the aforementioned single square emitter patterns to work in only 3 rows.  Nor, does it offer any new 2-row 6-square emitter patterns.  There is no need to search beyond packed matrices for the remaining patterns since they already use the fewest number of Tetriminos possible.  And, restricting the search to packed matrices yields all the necessary patterns much faster.</p>
+    
+    <h2>Searching for Patterns</h2>
+    
+    <p>To simplify the output, the Tetris Printer Algorithm limits itself to creating Tetriminos at the top-center of the playfield, rotating them, moving them horizontally and dropping them.  It never needs to slide a piece horizontally after dropping a certain distance.  This restriction greatly reduces the search space because it does not permit gaps to form under pieces that are added to the matrix.  For example, consider the 3-square emitter matrix below.</p>
+    <p><img src="matrix0.gif"/></p>
+    <p>Dropping a J in the center of the matrix, as depicted in the illustration below, produces a gap of 2 empty squares that cannot be filled by successive drops.  Hence, the search will not continue down that path.</p>
+    <p><img src="matrix1.gif"/></p>
+    <p>Since capped gaps are not permitted, each column of the matrix can be treated as a stack of solid squares and the heights of those stacks completely describe the contents of the entire matrix.  A 1-dimensional integer array with 21 elements is all that is necessary to describe the 2-dimensional matrix regardless of the number of rows.</p>
+    <p>Dropping a piece into the matrix involves increasing the stack heights of the associated columns.  To speed up this process, all the Tetriminos are analyzed ahead of time.  There are 19 distinct rotations of Tetriminos and the search treats each of them as a unique piece.</p>
+    <p><img src="rotations.png"/></p>
+    <p>The J in the upper-left corner in the image above occupies 3 columns.  When dropped into the matrix, the heights of 3 contiguous stacks will increase by 1, 1 and 2 squares respectively.  But, before the piece can be dropped, the bottom profile of the piece must match the top profile of the associated stacks.  If that J were resting on the floor of the playfield, gaps of 1, 1 and 0 empty squares would exist below each of its columns.  Since gaps are not permitted, the relative heights of the 3 stacks would have to match that pattern exactly.</p>
+    <p>Another consequence of the no gap rule is that as pieces are dropped into the matrix, rows are completed from the bottom up.  It is impossible to complete a row in the middle of the matrix without previously or simultaneously completing all rows below it.  As the matrix fills, its lower boundary effectively propagates towards the top.  Subsequently, a matrix column stack is capable of providing support only if its height minus the number of completed rows is greater than 0.  When a piece is added to the matrix, at least one of the associated columns must provide support.</p>
+    <p>The search maintains a second 1-dimensional array containing the number of solid squares in each row.  The aforementioned J contains 3 and 1 squares within its respective rows.  When it is inserted into the matrix, those values are added to the associated elements of the array.  The number of completed rows is the number of elements with a value of 21.</p>
+    <p>As touched upon in the previous section, if the added piece partitions the matrix, the sizes of the resultant regions must be divisible by 4. For instance, in the image below, the addition of an I generates 2 regions each containing 46 empty squares. Since 46 is not divisible by 4, there is no longer any possibility of filling the remainder of the matrix.</p>
+    <p><img src="matrix2.gif"/></p>
+    <p>A partition is introduced when a stack height equals the height of the matrix.  After inserting a piece by incrementing the associated stack heights, the sizes of all disjoint empty space regions can be determined by sweeping over the heights array and adding together the remaining space within each stack.  That running tally is checked and reset whenever a partition is encountered.</p>
+    <p>The search used to generate all the patterns takes advantage of randomized incremental construction, a backtracking algorithm that systematically tries all combinations in a random ordering.  Incrementally constructing the solution by randomly plugging in pieces causes it to grow like a crystal.  The randomness provides an irregularity containing jagged facets that act as footing for successively added pieces.  The majority of the matrix is randomly packed quickly and then as empty space becomes scarce, backtracking takes over.</p>
+    <p>Random permutations of the 371 ways to add a piece to the matrix are generated prior to the search.  A pseudocode version of the search appears below.</p>
+    
+<div class="centered"><div class="java"><pre style="margin: 0; line-height: 125%"><span style="color: #000080; font-weight: bold">private</span> Result search(Matrix matrix, <span style="color: #000080; font-weight: bold">int</span> remaining) {
+
+  <span style="color: #000080; font-weight: bold">if</span> (remaining == <span style="color: #0000FF">0</span>) {
+    <span style="color: #000080; font-weight: bold">return</span> SOLUTION
+  }
+
+  attempts := attempts + <span style="color: #0000FF">1</span>
+  <span style="color: #000080; font-weight: bold">if</span> (attempts &gt;= MAX_ATTEMPTS) {      
+    <span style="color: #000080; font-weight: bold">return</span> TIMEOUT
+  }
+
+  <span style="color: #000080; font-weight: bold">if</span> (the bottom of the matrix has room for an S or a Z) {
+    attempt to randomly add an S or a Z into that space
+    if (the piece was successfully inserted) {
+      Result result := search(matrix, remaining - <span style="color: #0000FF">1</span>)
+      <span style="color: #000080; font-weight: bold">if</span> (result == SOLUTION) {
+        <span style="color: #000080; font-weight: bold">return</span> SOLUTION
+      } 
+      remove last added piece from matrix
+      if (result == TIMEOUT) {
+        <span style="color: #000080; font-weight: bold">return</span> TIMEOUT
+      }
+    }
+  }
+  
+  randomly select a permutation of the ways to insert a piece into the matrix
+  for(each way to insert a piece ordered by the selected permutation) {
+    attempt to add the piece to the matrix
+    if (the piece was successfully inserted) {        
+      Result result := search(matrix, remaining - <span style="color: #0000FF">1</span>)
+      <span style="color: #000080; font-weight: bold">if</span> (result == SOLUTION) {
+        <span style="color: #000080; font-weight: bold">return</span> SOLUTION
+      } 
+      remove last added piece from matrix
+      if (result == TIMEOUT) {
+        <span style="color: #000080; font-weight: bold">return</span> TIMEOUT
+      }
+    }
+  }
+
+  <span style="color: #000080; font-weight: bold">return</span> NO_SOLUTION
+}
+</pre></div></div>    
+    
+    <p>The initial matrix passed to the search function is empty except for the bottom row, which contains blocks of 3 contiguous squares.  It is passed in along with a count of the remaining pieces to be added. If <span class="code">remaining</span> is 0, then the matrix contains the solution and the function returns. Each recursive call increments the global <span class="code">attempts</span> count. When it exceeds <span class="code">MAX_ATTEMPTS</span>, defined as 1000, the search starts over.</p>
+    <p>The third if-statement attempts to randomly add an S or a Z Tetrimino to the bottom of the matrix when there is space permitting.  The idea is to avoid situations like the one below where it wastes time filling part of the matrix with no ability to fill the rest due to lack of support.</p>
+    <p><img src="pen9.gif"/></p>
+    <p>With the if-statement in place, it quickly ends up with a platform to build on:</p>
+    <p><img src="pen10.gif"/></p>    
+    <p>Attempting to add a piece to the matrix involves the checks discussed above.  It verifies that the piece will be supported, taking into account completed rows.  It also checks that the size of each disjoint empty region created by inserting the piece is divisible by 4.</p>
+
+    <h2>Image Conversion</h2>
+    
+    <p>The Tetris Printer Algorithm converts each row of the bitmap image in a series of passes.  Moving from left to right, each pass greedily plugs in J, T and L Tetriminos whenever they fit.  For example, the image below contains a row of 16 pixels from a bitmap image.</p>
+    <p><img src="pass0.gif"/></p>
+    <p>The 5 passes required to cover the 16 pixels appear in the images below.</p>
+    <p><img src="pass1.gif"/></p>
+    <p><img src="pass2.gif"/></p>
+    <p><img src="pass3.gif"/></p>
+    <p><img src="pass4.gif"/></p>
+    <p><img src="pass5.gif"/></p>
+    <p>The pixel colors determine the sequence of pieces to attempt to insert.  A 1-dimensional boolean array is used to prevent pieces from overlapping.  To insert a piece, 3 unset elements must be present in the array.  When a piece is successfully inserted, the 3 associated array elements are set.</p>
+    <p>A second 1-dimensional boolean array is used to keep track of the completed pixels over several passes.  When every element is set, the row is done.</p>
+    <p>At the end of each pass, the image converter performs a lookup in a table of all the single and multi-square emitter patterns.  It outputs the associated pattern with the respective J, T and L Tetriminos plugged into the bottom.  For example, the first pass above is output as the 5-square emitter pattern below.</p>
+    <p><img src="pen15.gif"/></p>
+    <h2>Real-time Search</h2>
+    <p>The image converter discussed in the previous section is extremely fast because it uses a persisted table containing all of the square emitter patterns rather than searching for patterns in real-time.  However, real-time search can take advantage of patterns not found in the table and, consequentially, it can greatly reduce the total number of Tetriminos needed to generate an image.  It benefits from squares emitted in previous passes by using them as additional supports.  For example, as discussed earlier, the following single square emitter requires 7 completed rows.</p>
+    <p><img src="pen7.gif"/></p>
+    <p>But, the single red square emitted in a previous pass in the lower-left of the image below provides additional support that reduces the number of  completed rows to 3.</p>
+    <p><img src="pen16.gif"/></p>
+    <p>In addition, real-time search can cover 3 contiguous pixels of the same color by flipping over a J, T or L Tetrimino.</p>
+    <p><img src="triple0.gif"/></p>
+    <p>In fact, it can combine flipped and non-flipped Tetriminos to cover large numbers of pixels in a single pass.  For example, the 5 passes required to cover 16 pixels illustrated in the previous section can be reduced to the single pass shown below.</p>
+    <p><img src="triple1.gif"/></p>
+    <p>To attain this pattern, the image converter begins by greedily packing in flipped J, T and L Tetriminos.</p>
+    <p><img src="triple2.gif"/></p>
+    <p>Next, it greedily attempts to add the non-flipped versions and in this case, it manages to add in an extra J.</p>
+    <p><img src="triple3.gif"/></p>
+    <p>In principle, a pre-computed search table could also be used in this process, but the enormous size of such a table renders it impractical.</p>
+    <p>The 8 squares in the row above the emission row in this example are added to the bottom row of an empty matrix.  For <i>n</i> squares in a playfield that is 21 squares wide, the height of the matrix, <i>h</i>, is the smallest positive integer such that <i>21h &minus; n</i> is divisible by 4.  In this case, a matrix with a height of 4 is required.</p>
+    <p><img src="matrix18.gif"/></p>
+    <p>The real-time search works exactly like the search algorithm discussed prior with some minor enhancements.  As before, a matrix column stack only offers support if the stack height minus the number of completed rows is greater than zero.  When the difference is exactly zero, the column stack should not provide any support.  However, in this version, when it's 0, it checks for squares in the emission row generated by previous passes.  Meaning, any squares in the row below the bottom row of the matrix provide support to empty columns.</p>
+    <p>Also, since the search runs in real-time, it is not practical for it to be completely exhaustive.  If it does not discover a solution after a specified number of attempts, it adds 4 more rows to the top of the matrix before trying further.  After that, if it still does not find a solution after a predetermined number of shots, it reverts back to the pre-computed search tables and the image conversion method described in the previous section for that pass.</p>
+    <h2>Printing</h2>
+    <p>Printing involves executing the instructions output by the image converter in a Tetris playfield.  The printer spawns a particular Tetrimino at the top-center of the playfield in a default orientation.  Then, the printer rotates it, moves it horizontally and drops it.  This process is illustrated in the time-lapse video below.</p>
+    <p><iframe width="640" height="480" src="http://www.youtube.com/embed/PJkHwulsac4" frameborder="0" allowfullscreen></iframe></p>    
+    <h2>Source Code</h2>
+    <p>The Java 7 source code for this project is available <a href="tetris_printer_algorithm_src.zip">here</a>.</p>     
+    <p>The pre-computed and real-time search algorithms are located in the <span class="code">search.precomputed</span> and <span class="code">search.realtime</span> packages respectively and they share some common classes located in the <span class="code">search</span> package.  The results of the pre-computed search are stored in the <span class="code">patterns</span> (resource) package in the form of a series of text files.  The text files store the packed matrices using ASCII characters starting with <span class="code">A</span>.  For example, the first 3 matrices in <span class="code">emitters1.txt</span> (the set of single square emitters), looks like this:</p>    
+    <div class="centered"><pre>OODDDDGGGGJJJJMMMMNPP
+OOBBCCEEFFHHIIKKLLNNP
+<mark>AAA</mark>BBCCEEFFHHIIKKLLNP
+
+BPPPFFFFIIIILLLLOOOON
+BBPCCDDEEGGHHJJKKMMNN
+B<mark>AAA</mark>CCDDEEGGHHJJKKMMN
+
+CCEEEEHHHHKKKKNNNNOPP
+CBBBDDFFGGIIJJLLMMOOP
+CB<mark>AAA</mark>DDFFGGIIJJLLMMOP</pre></div>    
+    <p>As discussed throughout this article, the 3 contiguous <span class="code">A</span>'s in the matrices above could be substituted by a J, T or L Tetrimino.  Characters <span class="code">B</span>, <span class="code">C</span>, <span class="code">D</span> and so on represent the sequence of Tetriminos to spawn.</p>
+    <p>The <span class="code">imageconverter.ImageConverter</span> class contains a <span class="code">main</span> method that accepts a single command-line argument: the name of a sprite image file.  The image can be no larger than 17&times;32 pixels and it cannot contain more than 3 opaque colors.  All other pixels must be transparent.</p>
+    <p>Interestingly, the early video game creators often took advantage of the background to gain an extra color.  For example, <a href="http://en.wikipedia.org/wiki/Bubble_bobble">Bub</a>'s pupils and mouth, <a href="http://en.wikipedia.org/wiki/Donkey_kong">Donkey Kong</a>'s pupils and <a href="http://en.wikipedia.org/wiki/Ms._Pac-man">Ms. Pac-Man</a>'s eyebrow and mole are all actually transparent.  The black color comes from the solid colored background.</p>
+    <p><img src="sprites.png"/></p>
+    <p>The Tetris playfield background can be used in the same way.</p>
+    <p>The output of <span class="code">ImageConverter</span> looks like this snippet:</p>
+    <div class="centered"><pre>fc7460 4cdc48 fcfcfc
+
+WWRVVPUUUUTTTMSSXXYYY
+WRRVVPPPOOOTMMMSSXXYQ
+WRLJJNNNOKKKKIIGGHHQQ
+LLLAJJBNCFFFIIDEGGHHQ
+..AAABBBCCCFDDDEEE...
+
+OOKKLLLRRRNNMMMQQQPPP
+OKKJJJLRHHNNIIMQFFGGP
+OCCCJADDDHHIIBEEEFFGG
+...CAAAD...BBBE...... 
+
+<mark>STTTQQKKKKMMMMOOOON..
+SSTQQIIIIJJJJLLLLNNN.
+SRRPPABBCCDDEEFFGGHH.
+RRPPAAABBCCDDEEFFGGHH</mark>
+
+YYY^^^^]]````bbbb__VV
+YRXXNW]]ZL[[[O\aP__VV
+RRRXNWWWZL[SSO\aPPKTT
+QQQXNNUUZLLSOO\aPKKKT
+QMMJJIIUZGGSEE\aFFHHT
+MMJJIIAUGGBEECDDDFFHH
+......AAABBBCCCD.....
+
+IIIPPPJJJJMMMMLLOOOON
+IFFDDPBBCCEEGGLLHKKNN
+FFDDAAABBCCEEGGHHHKKN
+.....A...............
+
+<mark>...................AA
+....................A
+....................A
+.....................</mark>
+
+VWWWNPPUU[[[[YYYQZZZX
+VVLWNNPPUUOOKTYQQQZXX
+VRLLLNHHIOOKKTTMMMMXS
+RRFFEEHHIIIKDDTGGJJSS
+RFFEEAAABBBDDCCCGGJJS
+......A..B...C.......</pre></div> 
+    <p>The 3 hex values in the first line are the 3 opaque colors extracted from the sprite image file.  They correspond to the colors of the J, T and L Tetriminos respectively.  The colors of the other Tetriminos have no lasting effect.  The remaining blocks are the packed patterns to execute on the playfield (refer to an <a href="http://upload.wikimedia.org/wikipedia/commons/8/85/ASCII_Code_Chart-Quick_ref_card.jpg">ASCII table</a> for the characters beyond <span class="code">Z</span> and before <span class="code">a</span>).  The highlighted blocks constitute a platform.  The first block adds the platform and the second removes it.</p>
+    <p>The <span class="code">printer.Printer</span> class accepts a text file in that format and it generates an image file by playing Tetris.</p>
+    <p>The printer algorithm used to generate the video that resembles the <a href="http://en.wikipedia.org/wiki/Tetris_(Nintendo)#NES">NES version of Tetris</a> identifies each Tetrimino type in each block of the text file.  Then, it works backwards from the starting location and initial orientation to the rotation angle and drop coordinates specified in the file.  On a side note, it is not possible to get well beyond the 30<sup>th</sup> level of the real NES version of Tetris due to the exceedingly high drop speed.  It is assumed that the printer transmits all its commands to the playfield fast enough to compensate.</p>
+    <p>To regenerate the pattern files, use <span class="code">search.precomputed.PatternSearcher</span>.  It is configurable by modifying constants at the top of the source file.</p>
+    
+<div class="centered"><div class="java"><pre style="margin: 0; line-height: 125%"><span style="color: #000080; font-weight: bold">public</span> <span style="color: #000080; font-weight: bold">static</span> <span style="color: #000080; font-weight: bold">final</span> <span style="color: #000080; font-weight: bold">int</span> MATRIX_WIDTH = <span style="color: #0000FF">21</span>;
+<span style="color: #000080; font-weight: bold">public</span> <span style="color: #000080; font-weight: bold">static</span> <span style="color: #000080; font-weight: bold">final</span> <span style="color: #000080; font-weight: bold">int</span> MATRIX_HEIGHT = <span style="color: #0000FF">4</span>;
+<span style="color: #000080; font-weight: bold">public</span> <span style="color: #000080; font-weight: bold">static</span> <span style="color: #000080; font-weight: bold">final</span> <span style="color: #000080; font-weight: bold">int</span> EMITTED_SQUARES = <span style="color: #0000FF">4</span>;
+<span style="color: #000080; font-weight: bold">public</span> <span style="color: #000080; font-weight: bold">static</span> <span style="color: #000080; font-weight: bold">final</span> <span style="color: #000080; font-weight: bold">int</span> RANDOM_SETS = <span style="color: #0000FF">100000</span>;
+<span style="color: #000080; font-weight: bold">public</span> <span style="color: #000080; font-weight: bold">static</span> <span style="color: #000080; font-weight: bold">final</span> <span style="color: #000080; font-weight: bold">int</span> MAX_ATTEMPTS = <span style="color: #0000FF">1000</span>;
+</pre></div></div>  
+    
+    <p><span class="code">RANDOM_SETS</span> is the number of random permutations of the 371 ways to add a piece to the matrix.  When set to <span class="code">100000</span>, several seconds are required on startup to initialize the permutations.  In addition, it requires more than a gigabyte of memory to store them.</p>
+    <p><span class="code">MAX_ATTEMPTS</span> controls the search timeout.  The relatively small value of <span class="code">1000</span> enables the search to quickly discard random starts that failed to perform well.  However, to prove that no solution exists for a particular matrix size and number of emitted squares, the entire search space must be examined exhaustively.  This can be configured by setting <span class="code">MAX_ATTEMPTS</span> to <span class="code">Integer.MAX_VALUE</span>.</p>
+    <p>Similar constants appear in <span class="code">search.realtime.RealtimeSearcher</span>, which is used by the image converter.  As mentioned, a large value for <span class="code">RANDOM_SETS</span> requires increasing the maximum memory setting and it results in a long startup time.  <span class="code">MAX_RETRIES</span> controls when the real-time search gives up and reverts back to the pre-computed table method.</p>
+    <p>Note, both search algorithms allocate 100% CPU by creating a set of parallel threads equal in size to the available processor count.</p>
+    <p><img src="master.png"/></p>
+    <p class="img"><b>2013.06.03</b></p>
+  </body>
+</html>

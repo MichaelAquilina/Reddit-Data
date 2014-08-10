@@ -1,0 +1,169 @@
+<HTML>
+
+<HEAD>
+<TITLE>Velvet Advisor</TITLE>
+</HEAD>
+
+<STYLE TYPE='text/css'>
+BODY { font-family: sans-serif; }
+INPUT { text-align: center; border: solid 1px Black; }
+INPUT[readonly] { border: solid 1pt LightGray; }
+HR { border: solid 1pt black; }
+#kmer { background-color: LemonChiffon; font-weight: bold; font-size: larger; }
+</STYLE>
+
+<SCRIPT LANGUAGE='javascript'>
+
+function calc() {
+  var f = document.myform;
+
+  f.yield.value = parseInt(
+    f.numreads.value * f.readlen.value * (f.paired.value != 0 ? 2 : 1)
+  );
+
+  f.coverage.value = parseInt( f.yield.value / f.genomesize.value );
+
+  // k-mer coverage Ck and standard (nucleotide-wise) coverage C 
+  // Ck = C*(L-k+1)/L
+  // C = Ck*L/(L-k+1)
+  // k = L + 1 - Ck*L/C
+
+  // I've put all these 1.0 in to force numeric context,
+  // otherwise "+" behaves like string concatenation?
+  f.kmer.value = parseInt( 
+    1.0 + 1.0*f.readlen.value - 1.0*(f.kcov.value * f.readlen.value / f.coverage.value)
+  );
+  
+  if (f.kmer.value % 2 == 0) {
+    f.kmer.value++;
+  }
+  
+  if (f.kmer.value < 11) {
+    f.kmer.value = ":-(";
+  }
+  
+  f.rtype.value = f.paired.value != 0 ? '-shortPaired' : '-short';
+}
+
+</SCRIPT>
+
+<BODY onload='calc()'>
+<H1>Velvet Advisor</H1>
+
+<HR>
+
+<H2>Questions</H2>
+
+<FORM NAME='myform'>
+<P>
+I have
+<INPUT TYPE='text' NAME='numreads' VALUE='5' SIZE='3' onchange='calc()'>
+million reads.
+
+<P>
+They are 
+<SELECT NAME='paired' onchange='calc()'>
+  <OPTION VALUE='1'>paired-end</OPTION>
+  <OPTION VALUE='0'>single-end</OPTION>
+</SELECT>
+reads.
+
+<P>
+Each read is
+<INPUT TYPE='text' NAME='readlen' VALUE='100' SIZE='5' onchange='calc()'>
+base-pairs long.
+
+<P>
+I estimate my genome size to be
+<INPUT TYPE='text' NAME='genomesize' VALUE='4' SIZE='5' onchange='calc()'>
+megabases (million bases).
+
+<P>
+I would like to have about
+<INPUT TYPE='text' NAME='kcov' VALUE='20' SIZE='3' onchange='calc()'>
+fold k-mer coverage for my assembly (defined below, suggest between 10 and 30)
+
+<HR>
+
+<H2>Answer</H2>
+
+<P>
+You have a yield of
+<INPUT TYPE='text' NAME='yield' SIZE='6' READONLY='readonly'>
+megabases.
+
+<P>
+You have about 
+<INPUT TYPE='text' NAME='coverage' SIZE='4' READONLY='readonly'>
+fold <I>nucleotide</I> coverage of your genome.
+
+<P>
+We recommend trying k=
+<INPUT TYPE='text' NAME='kmer' SIZE='4' READONLY='readonly' ID='kmer'>
+for your Velvet assembly.
+
+<P>
+The Velvet sequence type is:
+<INPUT TYPE='textarea' NAME='rtype' SIZE='12' READONLY='readonly'>
+
+</FORM>
+
+<HR>
+
+<H2>Tips</H2>
+<P>
+If you are using paired reads, you need to either (1) remember to interleave the two reads files first with <TT>shuffleSequences.pl</TT> 
+which comes with Velvet; or (2) use the new "-separate" option.
+<P>
+Make sure you check the <TT>MAXKMERLENGTH</TT> your Velvet was compiled with by typing <TT>velveth</TT> by itself.
+<P>
+Read the
+<A HREF='http://listserver.ebi.ac.uk/mailman/listinfo/velvet-users'>Velvet-Users mailing list</A>
+and ask questions if you need help.
+<P>
+Try using <A HREF="http://bioinformatics.net.au/software.velvetk.shtml">VelvetK</A>
+to <I>a priori</I> suggest a good k-value.
+<P>
+Try using <A HREF="http://bioinformatics.net.au/software.velvetoptimiser.shtml">VelvetOptimiser</A> to help find the
+best k-value automatically.
+<P>We recommend using the <TT>-exp_cov auto</TT> and <TT>-cov_cutoff auto</TT> options to
+<TT>velvetg</TT> when first exploring your data.
+
+<HR>
+
+<A NAME="help"><H2>What is k-mer coverage?</H2></A>
+<P>
+All coverage values in Velvet are provided in k-mer coverage, i.e. how many
+times has a k-mer been seen among the reads. The relation between k-mer coverage
+Ck and standard (nucleotide-wise) coverage C is 
+<I>Ck = C * (L - k + 1) / L</I> 
+ where k is your hash length, and L you read length.
+<P>
+The choice of k is a trade-off between specificity and sensitivity. 
+Longer kmers bring you more specificity (i.e. less spurious overlaps);
+but reduce depth of coverage. The sweet spot is related to the 
+properties of your genome and to the error rate in the reads.
+See <a href='http://ivory.idyll.org/blog/the-k-parameter.html'>Titus Brown's blog
+post</a> for a good description.
+<P>
+Experience shows that kmer coverage should be above 10 to start getting
+decent results. If Ck is above 20, you might be "wasting" coverage.
+Experience also shows that empirical tests with different values of k 
+are not costly to run.
+<P>
+
+<HR>
+<SMALL>
+<I>Written by 
+<A
+HREF='http://scholar.google.com.au/citations?sortby=pubdate;hl=en;user=PuH3Yp4AAAAJ;view_op=list_works'>Torsten Seemann</A>, 
+<A HREF='http://vicbioinformatics.com/'>Victorian Bioinformatics Consortium</A>,
+<A HREF='http://www.monash.edu/'>Monash University</A>,
+<A HREF='http://en.wikipedia.org/wiki/Australia'>AUSTRALIA</A>.</I>
+</SMALL>
+
+</BODY>
+
+
+</HTML>
+

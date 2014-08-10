@@ -1,0 +1,339 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>Diablo III Economy Broken by an Integer Overflow Bug | minimaxir | Max Woolf's Blog</title>
+<meta name="author" content="Max Woolf">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@minimaxir">
+<meta name="twitter:creator" content="@minimaxir">
+<meta name="twitter:title" content="Diablo III Economy Broken by an Integer Overflow Bug">
+<meta name="twitter:url" content="http://minimaxir.com/2013/05/stones-of-jordan/">
+<meta name="twitter:description" content="Diablo III, Blizzard's highly-awaited online-only Action RPG released almost a year ago to the day, has had its share of technical difficulties. From Error 37 to lag spikes that can &hellip;">
+<meta name="twitter:image:src" content="http://minimaxir.com/img/diablo31.png">
+<meta content="minimaxir | Max Woolf's Blog" property="og:site_name">
+<meta content="Diablo III Economy Broken by an Integer Overflow Bug" property="og:title">
+<meta content="article" property="og:type">
+<meta content="Diablo III, Blizzard's highly-awaited online-only Action RPG released almost a year ago to the day, has had its share of technical difficulties. From Error 37 to lag spikes that can &hellip;" property="og:description">
+<meta content="http://minimaxir.com/2013/05/stones-of-jordan/" property="og:url">
+<meta content="http://minimaxir.com/img/diablo31.png" property="og:image">
+<meta content="Bugs" property="article:section">
+<meta property="og:locale" content="en_us"/>
+ 
+ 
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="text/javascript">
+//<![CDATA[
+try{if (!window.CloudFlare) {var CloudFlare=[{verbose:0,p:0,byc:0,owlid:"cf",bag2:1,mirage2:0,oracle:0,paths:{cloudflare:"/cdn-cgi/nexp/dokv=abba2f56bd/"},atok:"ee9a9a295d36aad8099b291a15001918",petok:"3d78e69c449959a6353410f9564bd9dde5956698-1404248410-1800",zone:"minimaxir.com",rocket:"0",apps:{"ga_key":{"ua":"UA-24136337-2","ga_bs":"2"}}}];!function(a,b){a=document.createElement("script"),b=document.getElementsByTagName("script")[0],a.async=!0,a.src="//ajax.cloudflare.com/cdn-cgi/nexp/dokv=97fb4d042e/cloudflare.min.js",b.parentNode.insertBefore(a,b)}()}}catch(e){};
+//]]>
+</script>
+<link rel="canonical" href="http://minimaxir.com/2013/05/stones-of-jordan/">
+<link href="/favicon.png" rel="icon">
+ 
+<link href="/stylesheets/ionicons.min.css" rel="stylesheet">
+<link href="/stylesheets/uikit.css" rel="stylesheet">
+<link href="/stylesheets/minimaxir-uikit.css" rel="stylesheet">
+<link href="/rss.xml" rel="alternate" title="minimaxir | Max Woolf's Blog" type="application/atom+xml">
+<script src="/js/jquery.js"></script>
+<script src="/javascripts/modernizr-2.0.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+ 
+<script>
+ $(document).ready(function() {
+ 
+  // Facebook
+	$( ".social.facebook" ).children().each(function(index,value) {
+	var facebook_button = $(this);
+	var url = facebook_button.attr("data");
+
+  jQuery.getJSON("http://graph.facebook.com/?id="+url, function(data) {
+  if (typeof data.shares != 'undefined') facebook_button.html("<i class=\"ion-social-facebook\"></i><span class=\"uk-hidden-small\"> " + data.shares + "</span>");
+  else if (typeof data.likes != 'undefined') facebook_button.html("<i class=\"ion-social-facebook\"></i><span class=\"uk-hidden-small\"> " + data.likes + "</span>");
+  else facebook_button.html("<i class=\"ion-social-facebook\"></i><span class=\"uk-hidden-small\"> " + " 0</span>");
+  });
+  });
+ 
+ // Twitter
+	$( ".social.twitter" ).children().each(function(index,value) {
+	var twitter_button = $(this);
+	var url = twitter_button.attr("data");
+
+  jQuery.getJSON("http://urls.api.twitter.com/1/urls/count.json?url="+url+"&callback=?", function(data) {
+  twitter_button.html("<i class=\"ion-social-twitter\"></i><span class=\"uk-hidden-small\"> " + data.count + "</span>");
+  });
+  });
+  
+ 
+  
+  
+  // LinkedIn
+	$( ".social.linkedin" ).children().each(function(index,value) {
+	var linkedin_button = $(this);
+	var url = linkedin_button.attr("data");
+
+  jQuery.getJSON("http://www.linkedin.com/countserv/count/share?url="+url+"&format=jsonp&callback=?", function(data) {
+  linkedin_button.html("<i class=\"ion-social-linkedin\"></i><span class=\"uk-hidden-small\"> " + data.count + "</span>");
+  });
+  });
+  
+  
+  
+});
+</script>
+ 
+<script type="text/javascript">
+/* <![CDATA[ */
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-24136337-2']);
+_gaq.push(['_trackPageview']);
+
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+
+(function(b){(function(a){"__CF"in b&&"DJS"in b.__CF?b.__CF.DJS.push(a):"addEventListener"in b?b.addEventListener("load",a,!1):b.attachEvent("onload",a)})(function(){"FB"in b&&"Event"in FB&&"subscribe"in FB.Event&&(FB.Event.subscribe("edge.create",function(a){_gaq.push(["_trackSocial","facebook","like",a])}),FB.Event.subscribe("edge.remove",function(a){_gaq.push(["_trackSocial","facebook","unlike",a])}),FB.Event.subscribe("message.send",function(a){_gaq.push(["_trackSocial","facebook","send",a])}));"twttr"in b&&"events"in twttr&&"bind"in twttr.events&&twttr.events.bind("tweet",function(a){if(a){var b;if(a.target&&a.target.nodeName=="IFRAME")a:{if(a=a.target.src){a=a.split("#")[0].match(/[^?=&]+=([^&]*)?/g);b=0;for(var c;c=a[b];++b)if(c.indexOf("url")===0){b=unescape(c.split("=")[1]);break a}}b=void 0}_gaq.push(["_trackSocial","twitter","tweet",b])}})})})(window);
+/* ]]> */
+</script>
+</head>
+<body>
+<div class="hero top">
+<nav class="uk-navbar ">
+<div class="uk-container uk-container-center">
+<div class="uk-grid">
+<div class="uk-width-1-1">
+<ul class="uk-navbar-nav">
+<li class="uk-parent"><a href="/">Home</a></li>
+<li class="uk-parent"><a href="/about">About</a></li>
+<li class="uk-parent"><a href="/contact">Contact</a></li>
+</ul>
+<div class="uk-navbar-flip uk-hidden-small">
+<ul class="uk-navbar-nav">
+<li class="social facebook-p">
+<a href="http://minimaxir.com/rss.xml" target="_blank"> <i class="ion-social-rss"></i> </a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</nav>
+<style type="text/css">.hero.top{background:-moz-linear-gradient(top,rgba(44,62,80,0.9) 0%,rgba(44,62,80,0.9) 100%),url(http://minimaxir.com/img/diablo31.png);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,rgba(44,62,80,0.9)),color-stop(100%,rgba(44,62,80,0.9))),url(http://minimaxir.com/img/diablo31.png);background:-webkit-linear-gradient(top,rgba(44,62,80,0.9) 0%,rgba(44,62,80,0.9) 100%),url(http://minimaxir.com/img/diablo31.png);background:-o-linear-gradient(top,rgba(44,62,80,0.9) 0%,rgba(44,62,80,0.9) 100%),url(http://minimaxir.com/img/diablo31.png);background:-ms-linear-gradient(top,rgba(44,62,80,0.9) 0%,rgba(44,62,80,0.9) 100%),url(http://minimaxir.com/img/diablo31.png);background:linear-gradient(to bottom,rgba(44,62,80,0.9) 0%,rgba(44,62,80,0.9) 100%),url(http://minimaxir.com/img/diablo31.png);background-size:100% auto;padding-bottom:40px;background-position:0px -100px;}</style>
+<div class="uk-container uk-container-center">
+<div class="uk-grid">
+<div class="uk-width-1-1">
+<h1 class="title">Diablo III Economy Broken by an Integer Overflow Bug</h1>
+</div>
+</div>
+<div class="uk-grid">
+<div class="uk-width-1-1">
+<div class="uk-grid sharing">
+<div class="uk-width-1-3"><span class="social facebook"><a href="http://www.facebook.com/share.php?u=http://minimaxir.com/2013/05/stones-of-jordan/" onclick="javascript:window.open(this.href,
+  '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=350,width=600');return false;" data="http://minimaxir.com/2013/05/stones-of-jordan/"><i class="ion-social-facebook"></i><span class="uk-hidden-small"> -</span></a></span></div>
+<div class="uk-width-1-3"><span class="social twitter"><a href="http://twitter.com/home/?status=Diablo III Economy Broken by an Integer Overflow Bug - http://minimaxir.com/2013/05/stones-of-jordan/ - via @minimaxir" onclick="javascript:window.open(this.href,
+  '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=350,width=600');return false;" data=http://minimaxir.com/2013/05/stones-of-jordan/><i class="ion-social-twitter"></i><span class="uk-hidden-small"> -</span></a> </span></div>
+<div class="uk-width-1-3"><span class="social linkedin"><a href="http://www.linkedin.com/shareArticle?mini=true&title=Diablo III Economy Broken by an Integer Overflow Bug&url=http://minimaxir.com/2013/05/stones-of-jordan/" onclick="javascript:window.open(this.href,
+  '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=450,width=600');return false;" data=http://minimaxir.com/2013/05/stones-of-jordan/><i class="ion-social-linkedin"></i><span class="uk-hidden-small"> -</span></a> </span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="uk-container uk-container-center" id="main post">
+<div class="uk-grid" data-uk-grid-margin>
+<div class="uk-width-1-1">
+<div id="content">
+<article class="hentry" role="article">
+<div class="uk-grid">
+<div class="uk-width-large-2-3 uk-width-medium-1-1">
+<header>
+<h1 class="date-time">
+<time datetime="2013-05-07T21:53:00-07:00" pubdate data-updated="true">May 7<span>th</span>, 2013</time></h1>
+</header>
+<p><a href="http://us.battle.net/d3/en/">Diablo III</a>, Blizzard&rsquo;s highly-awaited online-only Action RPG released almost a year ago to the day, has had its share of technical difficulties. From <a href="http://knowyourmeme.com/memes/error-37">Error 37</a> to lag spikes that can cause hundreds of hours to go to waste, Blizzard has spent the past year improving the game backend to better accommidate the millions of active players.</p>
+<p>Diablo III is also noted for its economy, with an emphasis on a region-wide auction house where players can trade one-in-a-million items for millions and billions of gold. (inflation is crazy). Additionally, Diablo III emphasized the use of a Real World Auction House, where players can sell gold or items for real world cash.</p>
+<p>Today was the launch of <a href="http://us.battle.net/d3/en/blog/9647272/patch-108-now-live-5-7-2013">Patch 1.0.8</a>, a patch which promised improvements to character progression. After spending a few weeks on a Public Test Realm, where players volunteered to tested the patch to ensure that there were game-breaking exploits, the patch released successfully.</p>
+<p>Except for one patch note that was added last minute and not tested in the PTR. And it&rsquo;s a patch note that broke the economy to tiny pieces.</p>
+ 
+<p>The patch notes from the final build contained this change:</p>
+<blockquote><p>The stack size for gold sales on the auction house has been increased from 1 million to 10 million.</p></blockquote>
+<p>Normally, on the Real Money Auction House, the player can only sell money in 1 million gold increments. In 1.0.8, the player can sell it in 10 million increments. So, what happens when the player tries putting an absurd amount of money on the Auction House?</p>
+<p>Reddit user tyropro <a href="http://www.reddit.com/r/Diablo/comments/1dx3wv/some_speculation_on_how_the_gold_bug_made_it_to/">has a nice explanation</a>:</p>
+<blockquote><p>The gold &ldquo;dupe&rdquo; involved creating a RMAH auction for billions of gold while staying under the $250 limit. The example I saw in a video was 6 billion gold (600 x 10,000,000 at $0.39 per stack, for $234). When they posted this auction only ~1.7 billion appeared to be for sale, with the rest &ldquo;missing&rdquo; until they sent it to their stash and ended up with more than they started with. The exact numbers from a duping video:</p>
+<pre><code>Create RMAH auction for:            6,000,000,000 gold
+Auction shows up as:                1,705,032,704 gold
+This much is missing!               4,294,967,296 gold
+The missing amount, divided by 2:   2,147,483,648 gold
+</code></pre>
+<p>2,147,483,648 (or 231) is the maximum value you can store in an int32 in programming. I&rsquo;m no programmer, but I took one class in high school and was taught about the limits of different variable types. See:</p>
+<p>Simply put, their RMAH gold selling code wasn&rsquo;t written to handle numbers over 2,147,483,648 properly, and the result was duplicate gold being added to people&rsquo;s stashes.</p></blockquote>
+<p>4,294,967,296 is also 232, or the bound on an <a href="https://en.wikipedia.org/wiki/Integer_(computer_science)#Common_long_integer_sizes">unsigned integer</a>, which would be an interesting implementation choice on Blizzard&rsquo;s part.</p>
+<p>And so, the dupers created these 6-billion-gold auctions which only appears to sell as 1.7 billion (and therefore only had 1.7 billion deducted from the current balance), canceled them, and were fully refunded the 6 billion for a net profit of the difference (4.2 billion). Repeat <em>ad nauseum</em>.</p>
+<p>A popular game streamer showed off the exploit. Other streamers followed. It was easily reproducible and <a href="http://www.reddit.com/r/Diablo/comments/1dw9kr/there_is_a_gold_dupe_on_na_currently_this_is_the/">everyone knew how to reproduce it</a>.</p>
+<p>Hilarity ensued.</p>
+<p><img src="/img/diablo31.png" alt="diablo31"/></p>
+<p>Yes, that&rsquo;s 420 <em>billion</em> gold.</p>
+<p>After buying up all the duped items in the Auction House, the items were then sold on the Real Money Auction House. For real money. And people bought them.</p>
+<p>This is the definition of a worst-case scenario for Diablo III. All because of an untested patch note. What could Blizzard do? Performing a roll-back would wipe all progress obtained by players for the patch day, which would result in a lot of bad PR. But leaving the economy as-is will devalue all items in the game (and Diablo III is all about getting items).</p>
+<p>In the end, Blizzard <a href="http://www.reddit.com/r/Diablo/comments/1dx4a7/there_will_officially_be_no_rollback_after_the/">has not done a roll-back</a>, but instead <a href="http://www.reddit.com/r/Diablo/comments/1dwk6x/d3_inigomontoya_just_got_banned_for_real/">banned anyone who duped</a>, and <a href="http://i.imgur.com/x5S9Zcx.png">refunded</a> anyone who spent real money. The bug was temporarily fixed by reverting the patch note which caused the entire mess.</p>
+<p>Let this be a lesson on what happens when you include an untested change at the last minute. You could break an entire economy. Eh, no big deal.</p>
+<div class="uk-grid">
+<div class="uk-width-1-1">
+<div class="uk-grid sharing">
+<div class="uk-width-1-3"><span class="social facebook"><a href="http://www.facebook.com/share.php?u=http://minimaxir.com/2013/05/stones-of-jordan/" onclick="javascript:window.open(this.href,
+  '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=350,width=600');return false;" data="http://minimaxir.com/2013/05/stones-of-jordan/"><i class="ion-social-facebook"></i><span class="uk-hidden-small"> -</span></a></span></div>
+<div class="uk-width-1-3"><span class="social twitter"><a href="http://twitter.com/home/?status=Diablo III Economy Broken by an Integer Overflow Bug - http://minimaxir.com/2013/05/stones-of-jordan/ - via @minimaxir" onclick="javascript:window.open(this.href,
+  '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=350,width=600');return false;" data=http://minimaxir.com/2013/05/stones-of-jordan/><i class="ion-social-twitter"></i><span class="uk-hidden-small"> -</span></a> </span></div>
+<div class="uk-width-1-3"><span class="social linkedin"><a href="http://www.linkedin.com/shareArticle?mini=true&title=Diablo III Economy Broken by an Integer Overflow Bug&url=http://minimaxir.com/2013/05/stones-of-jordan/" onclick="javascript:window.open(this.href,
+  '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=450,width=600');return false;" data=http://minimaxir.com/2013/05/stones-of-jordan/><i class="ion-social-linkedin"></i><span class="uk-hidden-small"> -</span></a> </span></div>
+</div>
+</div>
+</div>
+</div>
+<div class="uk-width-large-1-3 uk-width-medium-1-1 sidebar">
+<div class="sidebar-author">
+<h2>About The Author</h2>
+<div>Max Woolf is a 2012 graduate from Carnegie Mellon University in Business Administration with a concentration in Computing and Information Technology, and has been working as a Software QA Engineer in the San Francisco Bay Area for 1.5 years. Max also comments on blogs rather frequently.</div>
+<div>You can learn more about Max <a href="http://minimaxir.com/about">here</a>.
+</div>
+</div>
+<div class="sidebar-post">
+<h2><a href="http://minimaxir.com/2014/06/reviewing-reviews/">
+A Statistical Analysis of 1.2 Million Amazon Reviews</a></h2>
+<div>Analyzing the dataset of 1.2 million Amazon reviews, I found some interesting statistical trends; some are intuitive and obvious, but others give insight to how Amazon's review system actually works.</div>
+</div>
+<div class="sidebar-post">
+<h2><a href="http://minimaxir.com/2014/04/san-francisco/">
+Mapping San Francisco Locations Using Facebook Data</a></h2>
+<div>With the data on approximately 8,000 Facebook Places in San Francisco, we can map where San Franciscans are checking-in, and determine what types of locations they like to visit.</div>
+</div>
+<div class="sidebar-post">
+<h2><a href="http://minimaxir.com/2014/03/hashtag-tag/">
+Does Adding Many Tags to an Instagram Photo Maximize the Number of Likes?</a></h2>
+<div>Instagram photos which have the maximum of 30 #tags receive, on average, about three times as many Likes than photos with only a few tags.</div>
+</div>
+<div class="sidebar-post">
+<h2><a href="http://minimaxir.com/2014/02/hacking-hacker-news/">
+A Statistical Analysis of All Hacker News Submissions</a></h2>
+<div>After downloading all 1,265,114 Hacker News submissions from the official Hacker News API, I gathered a few interesting statistics which show the true impact of Hacker News.</div>
+</div>
+<div class="sidebar-post">
+<h2><a href="http://minimaxir.com/2014/02/glory-to-the-helix/">
+Game Theory: How 70,000 Pokemon Players Sabotage Themselves</a></h2>
+<div>Twitch Plays Pokemon isn't about winning. It's about trying not to fail spectacularly. And they still fail regardless. It's an irresistible train wreck that's hard to stop watching.</div>
+</div>
+</div>
+</div>
+<div class="uk-grid">
+<div class="uk-width-large-2-3 uk-width-medium-1-1">
+<section>
+<h1>Comments</h1>
+<div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+</div>
+<div class="uk-width-large-1-3 uk-width-medium-1-1 sidebar">
+<footer>
+<div class="sharing">
+</div>
+<p class="meta">
+<h2><i class="ion-arrow-left-c"></i> Previously...</h2>
+<h2><a href="/2013/05/comments-everywhere/" title="Previous Post: A Blog Comment System That Steals Comments From Facebook">A Blog Comment System That Steals Comments From Facebook</a></h2>
+<h2><i class="ion-arrow-right-c"></i> Up Next...</h2>
+<h2><a href="/2013/05/overly-attached-startup/" title="Next Post: When a Startup Sends a Passive-Aggressive Email Every Day">When a Startup Sends a Passive-Aggressive Email Every Day</a></h2>
+<hr>
+<h2><i class="ion-ios7-bookmarks-outline"></i> Categories:</h2>
+<p class="meta">
+<span class="categories">
+<span class="badge"><a href="/bugs">Bugs</a></span>
+<span class="badge"><a href="/gaming">Gaming</a></span>
+</span>
+</p>
+</p>
+</footer>
+</div>
+</div>
+</article>
+</div>
+</div>
+</div>
+</div>
+<div class="hero max">
+<style type="text/css">.hero.max{padding-top:4px;margin-bottom:0px;}</style>
+<div class="uk-container uk-container-center">
+<div class="uk-grid" data-uk-grid-match>
+<div class="uk-width-large-2-3 uk-width-medium-1-1">
+<div>
+<h1 class="name">Max Woolf</h1>
+<div class="tagline alias">@minimaxir</div>
+<div class="tagline">Software QA Engineer in San Francisco, CA</div>
+<div class="tagline">Carnegie Mellon Class of 2012 Business IT Graduate</div>
+<div class="uk-grid sharing">
+<div class="uk-width-1-4">
+<span class="social facebook-p">
+<a href="http://facebook.com/max.woolf" target="_blank"> <i class="ion-social-facebook"></i> </a>
+</span>
+</div>
+<div class="uk-width-1-4">
+<span class="social twitter-p">
+<a href="http://twitter.com/minimaxir" target="_blank"> <i class="ion-social-twitter"></i> </a>
+</span>
+</div>
+<div class="uk-width-1-4">
+<span class="social linkedin-p">
+<a href="http://linkedin.com/in/minimaxir" target="_blank"> <i class="ion-social-linkedin"></i> </a>
+</span>
+</div>
+<div class="uk-width-1-4">
+<span class="social github-p">
+<a href="http://github.com/minimaxir" target="_blank"> <i class="ion-social-github"></i> </a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<div class="uk-width-large-1-3 uk-width-medium-1-1 uk-hidden-small">
+<a href="/about"><img src="/Max388.png"></a>
+</div>
+</div>
+</div>
+</div>
+<div class="footer-page">
+<div class="uk-container uk-container-center footer">
+<div class="uk-grid">
+<div class="uk-width-1-1">
+<footer role="contentinfo">
+<p>
+Copyright &copy; 2014 - Max Woolf -
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a> and the <a href="http://www.getuikit.com/">UIkit Framework</a></span> - Theme designed by Max Woolf
+</p>
+<p><strong>All opinions stated by Max Woolf are his own.</strong></p>
+</footer>
+<script type="text/javascript">
+      var disqus_shortname = 'minimaxir';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://minimaxir.com/2013/05/stones-of-jordan/';
+        var disqus_url = 'http://minimaxir.com/2013/05/stones-of-jordan/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

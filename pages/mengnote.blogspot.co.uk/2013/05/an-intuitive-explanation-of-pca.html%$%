@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html class='v2' dir='ltr'>
+<head>
+<meta content='width=1100' name='viewport'/>
+<meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
+<script type="text/javascript">(function() { var b=window,f="chrome",g="tick",k="jstiming";(function(){function d(a){this.t={};this.tick=function(a,d,c){var e=void 0!=c?c:(new Date).getTime();this.t[a]=[e,d];if(void 0==c)try{b.console.timeStamp("CSI/"+a)}catch(h){}};this[g]("start",null,a)}var a;b.performance&&(a=b.performance.timing);var n=a?new d(a.responseStart):new d;b.jstiming={Timer:d,load:n};if(a){var c=a.navigationStart,h=a.responseStart;0<c&&h>=c&&(b[k].srt=h-c)}if(a){var e=b[k].load;0<c&&h>=c&&(e[g]("_wtsrt",void 0,c),e[g]("wtsrt_","_wtsrt",h),e[g]("tbsd_","wtsrt_"))}try{a=null,
+b[f]&&b[f].csi&&(a=Math.floor(b[f].csi().pageT),e&&0<c&&(e[g]("_tbnd",void 0,b[f].csi().startE),e[g]("tbnd_","_tbnd",c))),null==a&&b.gtbExternal&&(a=b.gtbExternal.pageT()),null==a&&b.external&&(a=b.external.pageT,e&&0<c&&(e[g]("_tbnd",void 0,b.external.startE),e[g]("tbnd_","_tbnd",c))),a&&(b[k].pt=a)}catch(p){}})();b.tickAboveFold=function(d){var a=0;if(d.offsetParent){do a+=d.offsetTop;while(d=d.offsetParent)}d=a;750>=d&&b[k].load[g]("aft")};var l=!1;function m(){l||(l=!0,b[k].load[g]("firstScrollTime"))}b.addEventListener?b.addEventListener("scroll",m,!1):b.attachEvent("onscroll",m);
+ })();</script>
+<meta content='blogger' name='generator'/>
+<link href='http://mengnote.blogspot.co.uk/favicon.ico' rel='icon' type='image/x-icon'/>
+<link href='http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html' rel='canonical'/>
+<link rel="alternate" type="application/atom+xml" title="Meng&#39;s Notes - Atom" href="http://mengnote.blogspot.com/feeds/posts/default" />
+<link rel="alternate" type="application/rss+xml" title="Meng&#39;s Notes - RSS" href="http://mengnote.blogspot.com/feeds/posts/default?alt=rss" />
+<link rel="service.post" type="application/atom+xml" title="Meng&#39;s Notes - Atom" href="http://www.blogger.com/feeds/3373377137104117454/posts/default" />
+
+<link rel="alternate" type="application/atom+xml" title="Meng&#39;s Notes - Atom" href="http://mengnote.blogspot.com/feeds/8554487209358707440/comments/default" />
+<!--[if IE]><script type="text/javascript" src="https://www.blogger.com/static/v1/jsbin/1163241896-ieretrofit.js"></script>
+<![endif]-->
+<link href='http://4.bp.blogspot.com/-pleL0HvLUgU/UYqpNFdd8EI/AAAAAAAAAHA/uf11u9lcq5g/s1600/PCA_1.png' rel='image_src'/>
+<link href='https://plus.google.com/106817800523819856156' rel='publisher'/>
+<!--[if IE]> <script> (function() { var html5 = ("abbr,article,aside,audio,canvas,datalist,details," + "figure,footer,header,hgroup,mark,menu,meter,nav,output," + "progress,section,time,video").split(','); for (var i = 0; i < html5.length; i++) { document.createElement(html5[i]); } try { document.execCommand('BackgroundImageCache', false, true); } catch(e) {} })(); </script> <![endif]-->
+<title>Meng's Notes: An intuitive explanation of PCA (Principal Component Analysis)</title>
+<link type='text/css' rel='stylesheet' href='https://www.blogger.com/static/v1/widgets/1535467126-widget_css_2_bundle.css' />
+<link type='text/css' rel='stylesheet' href='https://www.blogger.com/dyn-css/authorization.css?targetBlogID=3373377137104117454&zx=33595969-81ce-4443-9818-4f42e9874497' />
+<style id='page-skin-1' type='text/css'><!--
+/*
+-----------------------------------------------
+Blogger Template Style
+Name:     Simple
+Designer: Josh Peterson
+URL:      www.noaesthetic.com
+----------------------------------------------- */
+/* Variable definitions
+====================
+<Variable name="keycolor" description="Main Color" type="color" default="#66bbdd"/>
+<Group description="Page Text" selector="body">
+<Variable name="body.font" description="Font" type="font"
+default="normal normal 12px Arial, Tahoma, Helvetica, FreeSans, sans-serif"/>
+<Variable name="body.text.color" description="Text Color" type="color" default="#222222"/>
+</Group>
+<Group description="Backgrounds" selector=".body-fauxcolumns-outer">
+<Variable name="body.background.color" description="Outer Background" type="color" default="#66bbdd"/>
+<Variable name="content.background.color" description="Main Background" type="color" default="#ffffff"/>
+<Variable name="header.background.color" description="Header Background" type="color" default="transparent"/>
+</Group>
+<Group description="Links" selector=".main-outer">
+<Variable name="link.color" description="Link Color" type="color" default="#2288bb"/>
+<Variable name="link.visited.color" description="Visited Color" type="color" default="#888888"/>
+<Variable name="link.hover.color" description="Hover Color" type="color" default="#33aaff"/>
+</Group>
+<Group description="Blog Title" selector=".header h1">
+<Variable name="header.font" description="Font" type="font"
+default="normal normal 60px Arial, Tahoma, Helvetica, FreeSans, sans-serif"/>
+<Variable name="header.text.color" description="Title Color" type="color" default="#3399bb" />
+</Group>
+<Group description="Blog Description" selector=".header .description">
+<Variable name="description.text.color" description="Description Color" type="color"
+default="#777777" />
+</Group>
+<Group description="Tabs Text" selector=".tabs-inner .widget li a">
+<Variable name="tabs.font" description="Font" type="font"
+default="normal normal 14px Arial, Tahoma, Helvetica, FreeSans, sans-serif"/>
+<Variable name="tabs.text.color" description="Text Color" type="color" default="#999999"/>
+<Variable name="tabs.selected.text.color" description="Selected Color" type="color" default="#000000"/>
+</Group>
+<Group description="Tabs Background" selector=".tabs-outer .PageList">
+<Variable name="tabs.background.color" description="Background Color" type="color" default="#f5f5f5"/>
+<Variable name="tabs.selected.background.color" description="Selected Color" type="color" default="#eeeeee"/>
+</Group>
+<Group description="Post Title" selector="h3.post-title, .comments h4">
+<Variable name="post.title.font" description="Font" type="font"
+default="normal normal 22px Arial, Tahoma, Helvetica, FreeSans, sans-serif"/>
+</Group>
+<Group description="Date Header" selector=".date-header">
+<Variable name="date.header.color" description="Text Color" type="color"
+default="#666666"/>
+<Variable name="date.header.background.color" description="Background Color" type="color"
+default="transparent"/>
+</Group>
+<Group description="Post Footer" selector=".post-footer">
+<Variable name="post.footer.text.color" description="Text Color" type="color" default="#666666"/>
+<Variable name="post.footer.background.color" description="Background Color" type="color"
+default="#f9f9f9"/>
+<Variable name="post.footer.border.color" description="Shadow Color" type="color" default="#eeeeee"/>
+</Group>
+<Group description="Gadgets" selector="h2">
+<Variable name="widget.title.font" description="Title Font" type="font"
+default="normal bold 11px Arial, Tahoma, Helvetica, FreeSans, sans-serif"/>
+<Variable name="widget.title.text.color" description="Title Color" type="color" default="#000000"/>
+<Variable name="widget.alternate.text.color" description="Alternate Color" type="color" default="#999999"/>
+</Group>
+<Group description="Images" selector=".main-inner">
+<Variable name="image.background.color" description="Background Color" type="color" default="#ffffff"/>
+<Variable name="image.border.color" description="Border Color" type="color" default="#eeeeee"/>
+<Variable name="image.text.color" description="Caption Text Color" type="color" default="#666666"/>
+</Group>
+<Group description="Accents" selector=".content-inner">
+<Variable name="body.rule.color" description="Separator Line Color" type="color" default="#eeeeee"/>
+<Variable name="tabs.border.color" description="Tabs Border Color" type="color" default="transparent"/>
+</Group>
+<Variable name="body.background" description="Body Background" type="background"
+color="#ffffff" default="$(color) none repeat scroll top left"/>
+<Variable name="body.background.override" description="Body Background Override" type="string" default=""/>
+<Variable name="body.background.gradient.cap" description="Body Gradient Cap" type="url"
+default="url(//www.blogblog.com/1kt/simple/gradients_light.png)"/>
+<Variable name="body.background.gradient.tile" description="Body Gradient Tile" type="url"
+default="url(//www.blogblog.com/1kt/simple/body_gradient_tile_light.png)"/>
+<Variable name="content.background.color.selector" description="Content Background Color Selector" type="string" default=".content-inner"/>
+<Variable name="content.padding" description="Content Padding" type="length" default="10px"/>
+<Variable name="content.padding.horizontal" description="Content Horizontal Padding" type="length" default="10px"/>
+<Variable name="content.shadow.spread" description="Content Shadow Spread" type="length" default="40px"/>
+<Variable name="content.shadow.spread.webkit" description="Content Shadow Spread (WebKit)" type="length" default="5px"/>
+<Variable name="content.shadow.spread.ie" description="Content Shadow Spread (IE)" type="length" default="10px"/>
+<Variable name="main.border.width" description="Main Border Width" type="length" default="0"/>
+<Variable name="header.background.gradient" description="Header Gradient" type="url" default="none"/>
+<Variable name="header.shadow.offset.left" description="Header Shadow Offset Left" type="length" default="-1px"/>
+<Variable name="header.shadow.offset.top" description="Header Shadow Offset Top" type="length" default="-1px"/>
+<Variable name="header.shadow.spread" description="Header Shadow Spread" type="length" default="1px"/>
+<Variable name="header.padding" description="Header Padding" type="length" default="30px"/>
+<Variable name="header.border.size" description="Header Border Size" type="length" default="1px"/>
+<Variable name="header.bottom.border.size" description="Header Bottom Border Size" type="length" default="1px"/>
+<Variable name="header.border.horizontalsize" description="Header Horizontal Border Size" type="length" default="0"/>
+<Variable name="description.text.size" description="Description Text Size" type="string" default="140%"/>
+<Variable name="tabs.margin.top" description="Tabs Margin Top" type="length" default="0" />
+<Variable name="tabs.margin.side" description="Tabs Side Margin" type="length" default="30px" />
+<Variable name="tabs.background.gradient" description="Tabs Background Gradient" type="url"
+default="url(//www.blogblog.com/1kt/simple/gradients_light.png)"/>
+<Variable name="tabs.border.width" description="Tabs Border Width" type="length" default="1px"/>
+<Variable name="tabs.bevel.border.width" description="Tabs Bevel Border Width" type="length" default="1px"/>
+<Variable name="date.header.padding" description="Date Header Padding" type="string" default="inherit"/>
+<Variable name="date.header.letterspacing" description="Date Header Letter Spacing" type="string" default="inherit"/>
+<Variable name="date.header.margin" description="Date Header Margin" type="string" default="inherit"/>
+<Variable name="post.margin.bottom" description="Post Bottom Margin" type="length" default="25px"/>
+<Variable name="image.border.small.size" description="Image Border Small Size" type="length" default="2px"/>
+<Variable name="image.border.large.size" description="Image Border Large Size" type="length" default="5px"/>
+<Variable name="page.width.selector" description="Page Width Selector" type="string" default=".region-inner"/>
+<Variable name="page.width" description="Page Width" type="string" default="auto"/>
+<Variable name="main.section.margin" description="Main Section Margin" type="length" default="15px"/>
+<Variable name="main.padding" description="Main Padding" type="length" default="15px"/>
+<Variable name="main.padding.top" description="Main Padding Top" type="length" default="30px"/>
+<Variable name="main.padding.bottom" description="Main Padding Bottom" type="length" default="30px"/>
+<Variable name="paging.background"
+color="#ffffff"
+description="Background of blog paging area" type="background"
+default="transparent none no-repeat scroll top center"/>
+<Variable name="footer.bevel" description="Bevel border length of footer" type="length" default="0"/>
+<Variable name="mobile.background.overlay" description="Mobile Background Overlay" type="string"
+default="transparent none repeat scroll top left"/>
+<Variable name="mobile.background.size" description="Mobile Background Size" type="string" default="auto"/>
+<Variable name="mobile.button.color" description="Mobile Button Color" type="color" default="#ffffff" />
+<Variable name="startSide" description="Side where text starts in blog language" type="automatic" default="left"/>
+<Variable name="endSide" description="Side where text ends in blog language" type="automatic" default="right"/>
+*/
+/* Content
+----------------------------------------------- */
+body {
+font: normal normal 15px Arial, Tahoma, Helvetica, FreeSans, sans-serif;
+color: #666666;
+background: #ffffff none repeat scroll top left;
+padding: 0 0 0 0;
+}
+html body .region-inner {
+min-width: 0;
+max-width: 100%;
+width: auto;
+}
+a:link {
+text-decoration:none;
+color: #2288bb;
+}
+a:visited {
+text-decoration:none;
+color: #888888;
+}
+a:hover {
+text-decoration:underline;
+color: #33aaff;
+}
+.body-fauxcolumn-outer .fauxcolumn-inner {
+background: transparent none repeat scroll top left;
+_background-image: none;
+}
+.body-fauxcolumn-outer .cap-top {
+position: absolute;
+z-index: 1;
+height: 400px;
+width: 100%;
+background: #ffffff none repeat scroll top left;
+}
+.body-fauxcolumn-outer .cap-top .cap-left {
+width: 100%;
+background: transparent none repeat-x scroll top left;
+_background-image: none;
+}
+.content-outer {
+-moz-box-shadow: 0 0 0 rgba(0, 0, 0, .15);
+-webkit-box-shadow: 0 0 0 rgba(0, 0, 0, .15);
+-goog-ms-box-shadow: 0 0 0 #333333;
+box-shadow: 0 0 0 rgba(0, 0, 0, .15);
+margin-bottom: 1px;
+}
+.content-inner {
+padding: 10px 40px;
+}
+.content-inner {
+background-color: #ffffff;
+}
+/* Header
+----------------------------------------------- */
+.header-outer {
+background: transparent none repeat-x scroll 0 -400px;
+_background-image: none;
+}
+.Header h1 {
+font: normal normal 40px 'Trebuchet MS',Trebuchet,Verdana,sans-serif;
+color: #000000;
+text-shadow: 0 0 0 rgba(0, 0, 0, .2);
+}
+.Header h1 a {
+color: #000000;
+}
+.Header .description {
+font-size: 18px;
+color: #000000;
+}
+.header-inner .Header .titlewrapper {
+padding: 22px 0;
+}
+.header-inner .Header .descriptionwrapper {
+padding: 0 0;
+}
+/* Tabs
+----------------------------------------------- */
+.tabs-inner .section:first-child {
+border-top: 0 solid #dddddd;
+}
+.tabs-inner .section:first-child ul {
+margin-top: -1px;
+border-top: 1px solid #dddddd;
+border-left: 1px solid #dddddd;
+border-right: 1px solid #dddddd;
+}
+.tabs-inner .widget ul {
+background: transparent none repeat-x scroll 0 -800px;
+_background-image: none;
+border-bottom: 1px solid #dddddd;
+margin-top: 0;
+margin-left: -30px;
+margin-right: -30px;
+}
+.tabs-inner .widget li a {
+display: inline-block;
+padding: .6em 1em;
+font: normal normal 15px Arial, Tahoma, Helvetica, FreeSans, sans-serif;
+color: #000000;
+border-left: 1px solid #ffffff;
+border-right: 1px solid #dddddd;
+}
+.tabs-inner .widget li:first-child a {
+border-left: none;
+}
+.tabs-inner .widget li.selected a, .tabs-inner .widget li a:hover {
+color: #000000;
+background-color: #eeeeee;
+text-decoration: none;
+}
+/* Columns
+----------------------------------------------- */
+.main-outer {
+border-top: 0 solid transparent;
+}
+.fauxcolumn-left-outer .fauxcolumn-inner {
+border-right: 1px solid transparent;
+}
+.fauxcolumn-right-outer .fauxcolumn-inner {
+border-left: 1px solid transparent;
+}
+/* Headings
+----------------------------------------------- */
+h2 {
+margin: 0 0 1em 0;
+font: normal bold 11px 'Trebuchet MS',Trebuchet,Verdana,sans-serif;
+color: #000000;
+}
+/* Widgets
+----------------------------------------------- */
+.widget .zippy {
+color: #999999;
+text-shadow: 2px 2px 1px rgba(0, 0, 0, .1);
+}
+.widget .popular-posts ul {
+list-style: none;
+}
+/* Posts
+----------------------------------------------- */
+.date-header span {
+background-color: #bbbbbb;
+color: #ffffff;
+padding: 0.4em;
+letter-spacing: 3px;
+margin: inherit;
+}
+.main-inner {
+padding-top: 35px;
+padding-bottom: 65px;
+}
+.main-inner .column-center-inner {
+padding: 0 0;
+}
+.main-inner .column-center-inner .section {
+margin: 0 1em;
+}
+.post {
+margin: 0 0 45px 0;
+}
+h3.post-title, .comments h4 {
+font: normal normal 30px 'Trebuchet MS',Trebuchet,Verdana,sans-serif;
+margin: .75em 0 0;
+}
+.post-body {
+font-size: 110%;
+line-height: 1.4;
+position: relative;
+}
+.post-body img, .post-body .tr-caption-container, .Profile img, .Image img,
+.BlogList .item-thumbnail img {
+padding: 2px;
+background: #ffffff;
+border: 1px solid #eeeeee;
+-moz-box-shadow: 1px 1px 5px rgba(0, 0, 0, .1);
+-webkit-box-shadow: 1px 1px 5px rgba(0, 0, 0, .1);
+box-shadow: 1px 1px 5px rgba(0, 0, 0, .1);
+}
+.post-body img, .post-body .tr-caption-container {
+padding: 5px;
+}
+.post-body .tr-caption-container {
+color: #666666;
+}
+.post-body .tr-caption-container img {
+padding: 0;
+background: transparent;
+border: none;
+-moz-box-shadow: 0 0 0 rgba(0, 0, 0, .1);
+-webkit-box-shadow: 0 0 0 rgba(0, 0, 0, .1);
+box-shadow: 0 0 0 rgba(0, 0, 0, .1);
+}
+.post-header {
+margin: 0 0 1.5em;
+line-height: 1.6;
+font-size: 90%;
+}
+.post-footer {
+margin: 20px -2px 0;
+padding: 5px 10px;
+color: #666666;
+background-color: #eeeeee;
+border-bottom: 1px solid #eeeeee;
+line-height: 1.6;
+font-size: 90%;
+}
+#comments .comment-author {
+padding-top: 1.5em;
+border-top: 1px solid transparent;
+background-position: 0 1.5em;
+}
+#comments .comment-author:first-child {
+padding-top: 0;
+border-top: none;
+}
+.avatar-image-container {
+margin: .2em 0 0;
+}
+#comments .avatar-image-container img {
+border: 1px solid #eeeeee;
+}
+/* Comments
+----------------------------------------------- */
+.comments .comments-content .icon.blog-author {
+background-repeat: no-repeat;
+background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEgAACxIB0t1+/AAAAAd0SU1FB9sLFwMeCjjhcOMAAAD+SURBVDjLtZSvTgNBEIe/WRRnm3U8RC1neQdsm1zSBIU9VVF1FkUguQQsD9ITmD7ECZIJSE4OZo9stoVjC/zc7ky+zH9hXwVwDpTAWWLrgS3QAe8AZgaAJI5zYAmc8r0G4AHYHQKVwII8PZrZFsBFkeRCABYiMh9BRUhnSkPTNCtVXYXURi1FpBDgArj8QU1eVXUzfnjv7yP7kwu1mYrkWlU33vs1QNu2qU8pwN0UpKoqokjWwCztrMuBhEhmh8bD5UDqur75asbcX0BGUB9/HAMB+r32hznJgXy2v0sGLBcyAJ1EK3LFcbo1s91JeLwAbwGYu7TP/3ZGfnXYPgAVNngtqatUNgAAAABJRU5ErkJggg==);
+}
+.comments .comments-content .loadmore a {
+border-top: 1px solid #999999;
+border-bottom: 1px solid #999999;
+}
+.comments .comment-thread.inline-thread {
+background-color: #eeeeee;
+}
+.comments .continue {
+border-top: 2px solid #999999;
+}
+/* Accents
+---------------------------------------------- */
+.section-columns td.columns-cell {
+border-left: 1px solid transparent;
+}
+.blog-pager {
+background: transparent url(//www.blogblog.com/1kt/simple/paging_dot.png) repeat-x scroll top center;
+}
+.blog-pager-older-link, .home-link,
+.blog-pager-newer-link {
+background-color: #ffffff;
+padding: 5px;
+}
+.footer-outer {
+border-top: 1px dashed #bbbbbb;
+}
+/* Mobile
+----------------------------------------------- */
+body.mobile  {
+background-size: auto;
+}
+.mobile .body-fauxcolumn-outer {
+background: transparent none repeat scroll top left;
+}
+.mobile .body-fauxcolumn-outer .cap-top {
+background-size: 100% auto;
+}
+.mobile .content-outer {
+-webkit-box-shadow: 0 0 3px rgba(0, 0, 0, .15);
+box-shadow: 0 0 3px rgba(0, 0, 0, .15);
+}
+body.mobile .AdSense {
+margin: 0 -0;
+}
+.mobile .tabs-inner .widget ul {
+margin-left: 0;
+margin-right: 0;
+}
+.mobile .post {
+margin: 0;
+}
+.mobile .main-inner .column-center-inner .section {
+margin: 0;
+}
+.mobile .date-header span {
+padding: 0.1em 10px;
+margin: 0 -10px;
+}
+.mobile h3.post-title {
+margin: 0;
+}
+.mobile .blog-pager {
+background: transparent none no-repeat scroll top center;
+}
+.mobile .footer-outer {
+border-top: none;
+}
+.mobile .main-inner, .mobile .footer-inner {
+background-color: #ffffff;
+}
+.mobile-index-contents {
+color: #666666;
+}
+.mobile-link-button {
+background-color: #2288bb;
+}
+.mobile-link-button a:link, .mobile-link-button a:visited {
+color: #ffffff;
+}
+.mobile .tabs-inner .section:first-child {
+border-top: none;
+}
+.mobile .tabs-inner .PageList .widget-content {
+background-color: #eeeeee;
+color: #000000;
+border-top: 1px solid #dddddd;
+border-bottom: 1px solid #dddddd;
+}
+.mobile .tabs-inner .PageList .widget-content .pagelist-arrow {
+border-left: 1px solid #dddddd;
+}
+
+--></style>
+<style id='template-skin-1' type='text/css'><!--
+body {
+min-width: 700px;
+}
+.content-outer, .content-fauxcolumn-outer, .region-inner {
+min-width: 700px;
+max-width: 700px;
+_width: 700px;
+}
+.main-inner .columns {
+padding-left: 0px;
+padding-right: 0px;
+}
+.main-inner .fauxcolumn-center-outer {
+left: 0px;
+right: 0px;
+/* IE6 does not respect left and right together */
+_width: expression(this.parentNode.offsetWidth -
+parseInt("0px") -
+parseInt("0px") + 'px');
+}
+.main-inner .fauxcolumn-left-outer {
+width: 0px;
+}
+.main-inner .fauxcolumn-right-outer {
+width: 0px;
+}
+.main-inner .column-left-outer {
+width: 0px;
+right: 100%;
+margin-left: -0px;
+}
+.main-inner .column-right-outer {
+width: 0px;
+margin-right: -0px;
+}
+#layout {
+min-width: 0;
+}
+#layout .content-outer {
+min-width: 0;
+width: 800px;
+}
+#layout .region-inner {
+min-width: 0;
+width: auto;
+}
+--></style>
+<script type="text/javascript">var a="indexOf",b="&m=1",e="(^|&)m=",f="?",g="?m=1";function h(){var c=window.location.href,d=c.split(f);switch(d.length){case 1:return c+g;case 2:return 0<=d[1].search(e)?null:c+b;default:return null}}var k=navigator.userAgent;if(-1!=k[a]("Mobile")&&-1!=k[a]("WebKit")&&-1==k[a]("iPad")||-1!=k[a]("Opera Mini")||-1!=k[a]("IEMobile")){var l=h();l&&window.location.replace(l)};
+</script><script type="text/javascript">
+if (window.jstiming) window.jstiming.load.tick('headEnd');
+</script></head>
+<body class='loading variant-simplysimple'>
+<div class='navbar section' id='navbar'><div class='widget Navbar' id='Navbar1'><script type="text/javascript">
+    function setAttributeOnload(object, attribute, val) {
+      if(window.addEventListener) {
+        window.addEventListener('load',
+          function(){ object[attribute] = val; }, false);
+      } else {
+        window.attachEvent('onload', function(){ object[attribute] = val; });
+      }
+    }
+  </script>
+<div id="navbar-iframe-container"></div>
+<script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript">
+        gapi.load("gapi.iframes:gapi.iframes.style.bubble", function() {
+          if (gapi.iframes && gapi.iframes.getContext) {
+            gapi.iframes.getContext().openChild({
+                url: 'https://www.blogger.com/navbar.g?targetBlogID\0753373377137104117454\46blogName\75Meng\47s+Notes\46publishMode\75PUBLISH_MODE_BLOGSPOT\46navbarType\75LIGHT\46layoutType\75LAYOUTS\46searchRoot\75http://mengnote.blogspot.com/search\46blogLocale\75en\46v\0752\46homepageUrl\75http://mengnote.blogspot.com/\46targetPostID\758554487209358707440\46blogPostOrPageUrl\75http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html\46blogFollowUrl\75https://plus.google.com/106817800523819856156\46vt\0754791016899888517000',
+                where: document.getElementById("navbar-iframe-container"),
+                id: "navbar-iframe"
+            });
+          }
+        });
+      </script><script type="text/javascript">
+(function() {
+var script = document.createElement('script');
+script.type = 'text/javascript';
+script.src = '//pagead2.googlesyndication.com/pagead/js/google_top_exp.js';
+var head = document.getElementsByTagName('head')[0];
+if (head) {
+head.appendChild(script);
+}})();
+</script>
+</div></div>
+<div class='body-fauxcolumns'>
+<div class='fauxcolumn-outer body-fauxcolumn-outer'>
+<div class='cap-top'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+<div class='fauxborder-left'>
+<div class='fauxborder-right'></div>
+<div class='fauxcolumn-inner'>
+</div>
+</div>
+<div class='cap-bottom'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+</div>
+</div>
+<div class='content'>
+<div class='content-fauxcolumns'>
+<div class='fauxcolumn-outer content-fauxcolumn-outer'>
+<div class='cap-top'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+<div class='fauxborder-left'>
+<div class='fauxborder-right'></div>
+<div class='fauxcolumn-inner'>
+</div>
+</div>
+<div class='cap-bottom'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+</div>
+</div>
+<div class='content-outer'>
+<div class='content-cap-top cap-top'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+<div class='fauxborder-left content-fauxborder-left'>
+<div class='fauxborder-right content-fauxborder-right'></div>
+<div class='content-inner'>
+<header>
+<div class='header-outer'>
+<div class='header-cap-top cap-top'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+<div class='fauxborder-left header-fauxborder-left'>
+<div class='fauxborder-right header-fauxborder-right'></div>
+<div class='region-inner header-inner'>
+<div class='header section' id='header'><div class='widget Header' id='Header1'>
+<div id='header-inner'>
+<div class='titlewrapper'>
+<h1 class='title'>
+<a href='http://mengnote.blogspot.co.uk/'>Meng's Notes</a>
+</h1>
+</div>
+<div class='descriptionwrapper'>
+<p class='description'><span>
+</span></p>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<div class='header-cap-bottom cap-bottom'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+</div>
+</header>
+<div class='tabs-outer'>
+<div class='tabs-cap-top cap-top'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+<div class='fauxborder-left tabs-fauxborder-left'>
+<div class='fauxborder-right tabs-fauxborder-right'></div>
+<div class='region-inner tabs-inner'>
+<div class='tabs section' id='crosscol'><div class='widget HTML' id='HTML2'>
+<h2 class='title'>mathjax</h2>
+<div class='widget-content'>
+<script type="text/x-mathjax-config;executed=true">
+MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "AMS" } }
+});
+</script>
+ 
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+</div>
+<div class='clear'></div>
+<span class='widget-item-control'>
+<span class='item-control blog-admin'>
+<a class='quickedit' href='//www.blogger.com/rearrange?blogID=3373377137104117454&widgetType=HTML&widgetId=HTML2&action=editWidget&sectionId=crosscol' onclick='return _WidgetManager._PopupConfig(document.getElementById("HTML2"));' target='configHTML2' title='Edit'>
+<img alt='' height='18' src='http://img1.blogblog.com/img/icon18_wrench_allbkg.png' width='18'/>
+</a>
+</span>
+</span>
+<div class='clear'></div>
+</div></div>
+<div class='tabs section' id='crosscol-overflow'></div>
+</div>
+</div>
+<div class='tabs-cap-bottom cap-bottom'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+</div>
+<div class='main-outer'>
+<div class='main-cap-top cap-top'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+<div class='fauxborder-left main-fauxborder-left'>
+<div class='fauxborder-right main-fauxborder-right'></div>
+<div class='region-inner main-inner'>
+<div class='columns fauxcolumns'>
+<div class='fauxcolumn-outer fauxcolumn-center-outer'>
+<div class='cap-top'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+<div class='fauxborder-left'>
+<div class='fauxborder-right'></div>
+<div class='fauxcolumn-inner'>
+</div>
+</div>
+<div class='cap-bottom'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+</div>
+<div class='fauxcolumn-outer fauxcolumn-left-outer'>
+<div class='cap-top'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+<div class='fauxborder-left'>
+<div class='fauxborder-right'></div>
+<div class='fauxcolumn-inner'>
+</div>
+</div>
+<div class='cap-bottom'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+</div>
+<div class='fauxcolumn-outer fauxcolumn-right-outer'>
+<div class='cap-top'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+<div class='fauxborder-left'>
+<div class='fauxborder-right'></div>
+<div class='fauxcolumn-inner'>
+</div>
+</div>
+<div class='cap-bottom'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+</div>
+<!-- corrects IE6 width calculation -->
+<div class='columns-inner'>
+<div class='column-center-outer'>
+<div class='column-center-inner'>
+<div class='main section' id='main'><div class='widget Blog' id='Blog1'>
+<div class='blog-posts hfeed'>
+<!-- google_ad_section_start(name=default) -->
+
+          <div class="date-outer">
+        
+<h2 class='date-header'><span>Wednesday, May 8, 2013</span></h2>
+
+          <div class="date-posts">
+        
+<div class='post-outer'>
+<div class='post hentry uncustomized-post-template' itemprop='blogPost' itemscope='itemscope' itemtype='http://schema.org/BlogPosting'>
+<meta content='http://4.bp.blogspot.com/-pleL0HvLUgU/UYqpNFdd8EI/AAAAAAAAAHA/uf11u9lcq5g/s1600/PCA_1.png' itemprop='image_url'/>
+<meta content='3373377137104117454' itemprop='blogId'/>
+<meta content='8554487209358707440' itemprop='postId'/>
+<a name='8554487209358707440'></a>
+<h3 class='post-title entry-title' itemprop='name'>
+An intuitive explanation of PCA (Principal Component Analysis)
+</h3>
+<div class='post-header'>
+<div class='post-header-line-1'></div>
+</div>
+<div class='post-body entry-content' id='post-body-8554487209358707440' itemprop='description articleBody'>
+Many research papers apply PCA (Principal Component Analysis) to their data and present results to readers without further explanation of the method. When people search on the internet for a definition of PCA, they sometimes get confused, often by terms like "covariance matrix", "eigenvectors" or "eigenvalues". It is not surprising because most explanatory articles focus on detailed calculation process instead of the basic idea of PCA. They are mathematically correct, yet often not intuitively readable at first glance.<br />
+<br />
+For a mathematical method, I believe most people only need to understand the logic and limitations of it and let software packages to do the rest (implementation, calculation, etc.). Here I am&nbsp; trying to explain that PCA is not an impenetrable soup of acronyms but a quite intuitive approach. It can make large-scale data "smaller" and easier to handle.<br />
+<br />
+<a name='more'></a><br />
+<b>PCA is nothing but coordinate system transformation: A simple example&nbsp;</b><br />
+<b><table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://4.bp.blogspot.com/-pleL0HvLUgU/UYqpNFdd8EI/AAAAAAAAAHA/uf11u9lcq5g/s1600/PCA_1.png" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" src="http://4.bp.blogspot.com/-pleL0HvLUgU/UYqpNFdd8EI/AAAAAAAAAHA/uf11u9lcq5g/s1600/PCA_1.png" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;">Figure 1. (A) A simple object described by a complex set of variables (or coordinate system). (B) Find <span class="short_text" id="result_box" lang="en"><span class="hps">new
+ variables (coordinate axes) orthogonal to each other and pointing to 
+the direction of largest variances. (C) Use new variables (</span></span><span class="short_text" id="result_box" lang="en"><span class="hps"><span class="short_text" id="result_box" lang="en"><span class="hps">coordinate axes</span></span>) to describe object in a more concise way.</span></span></td></tr>
+</tbody></table>
+</b><br />
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+A simple object could be described by complex and unnecessary variables. We don't intend to do so, but often can not avoid that. One problem is <span style="color: red;">how to find the simplest way to describe an object?</span> Here is an example to show that the answer could be<span style="color: red;"> by choosing a proper coordinate system</span>.<br />
+<br />
+Let's assume that we have a "3-D shape detect machine" that can scan anything in front it and output a model of that object. We use it to scan a ellipse made of paper (paper thickness can be neglected). The output model uses three axes: L (Length), W (Width) and H (Height) that <span class="short_text" id="result_box" lang="en"><span class="">perpendicular to each other to represent the 3-D world</span></span><span class="short_text" id="result_box" lang="en"><span class="">&nbsp; (see Figure 1A). So each data point on that object can be written as a function of three variables:</span></span><br />
+<div style="text-align: center;">
+<blockquote class="tr_bq">
+<span class="short_text" id="result_box" lang="en"><span class="">Data(i) = f(L(i), W(i), H(i))&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [function 1]</span></span></blockquote>
+</div>
+Apparently, this is not the best way to describe an ellipse. I guess most people will do the following improvements:<br />
+<ol>
+<li>Find the geometric center of the ellipse, and set it as the <span class="short_text" id="result_box" lang="en"><span class="">coordinate origin;</span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class="">Find the direction along which the ellipse&nbsp; has the longest radius. We call this direction (or variable along this direction) "component one".</span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class="">Find another direction that perpendicular to the first one, and </span></span><span class="short_text" id="result_box" lang="en"><span class="">along which the ellipse&nbsp; has the second longest radius. We call this direction "component two". </span></span><br /><span class="short_text" id="result_box" lang="en"><span class="">(</span></span><span class="short_text" id="result_box" lang="en"><span class=""><span class="short_text" id="result_box" lang="en"><span class="">step 1~3, </span></span>see Figure 1B)</span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class="">Re-plot the ellipse under the new coordinate system defined by component one (C1) and two (C2).</span></span> <span class="short_text" id="result_box" lang="en"><span class="">(</span></span><span class="short_text" id="result_box" lang="en"><span class="">see Figure 1C)</span></span></li>
+</ol>
+In the new <span class="short_text" id="result_box" lang="en"><span class="">coordinate system, </span></span><span class="short_text" id="result_box" lang="en"><span class="">each data point on that ellipse can be re-written as a function of two variables:</span></span><br />
+<div style="text-align: center;">
+<blockquote class="tr_bq">
+<span class="short_text" id="result_box" lang="en"><span class="">Data(j) = g(C1(j), C2(j))&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [function 2]</span></span></blockquote>
+</div>
+<b> </b><br />
+Now it is quite clear that, after proper coordinate system transform, we get:<br />
+<ul>
+<li>Fewer variables (or lower dimensions of variables) of function 2 compared to function 1. </li>
+<ul>
+<li>(L, W, H) --&gt; (C1, C2) </li>
+</ul>
+<li>No information lost.</li>
+<ul>
+<li>function 1 == function 2 </li>
+</ul>
+<ul>
+<li>The relative geometric positions of all data points remain unchanged.</li>
+</ul>
+</ul>
+That's exactly what PCA analysis do. The term "<b>principal component</b>" denotes new variables (or coordinate systems) we choose to describe our data in a more concise or convenient way. All principal components must satisfy two conditions:<br />
+<ol>
+<li>They must be <span class="short_text" id="result_box" lang="en"><span class="">perpendicular (or mathematically, </span></span><span class="short_text" id="result_box" lang="en"><span class=""><span class="short_text" id="result_box" lang="en"><span class="">Orthogonal</span></span>) to each other.</span></span></li>
+<ol>
+<li><span class="short_text" id="result_box" lang="en"><span class="">This means principal components are NOT linear correlated between each other.</span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class="">And that's why PCA can reduce the number of variables with out losing information: variables in raw data are not independent, and correlated variables cause redundancy.</span></span><span class="short_text" id="result_box" lang="en"><span class="">&nbsp;</span></span></li>
+</ol>
+<li><span class="short_text" id="result_box" lang="en"><span class="">Numerical IDs of components are ordered by the length of radius (mathematically speaking, variance) of our data points along them. So our data must have the largest </span></span><span class="short_text" id="result_box" lang="en"><span class="">variance along the axes of component 1, and the 2nd largest </span></span><span class="short_text" id="result_box" lang="en"><span class=""><span class="short_text" id="result_box" lang="en"><span class="">variance</span></span> along the axes of component 2, and so on.</span></span></li>
+<ol>
+<li><span class="short_text" id="result_box" lang="en"><span class="">This means the higher order a </span></span><span class="short_text" id="result_box" lang="en"><span class="">component have, the more important it is. </span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class="">Some times we may sacrifice minor components to further reduce the number of variables. eg, If the first two principal components (out of the total 10) contributed 90% of variance of the data, we might like to focus on them only and discard the other 8 components.</span></span></li>
+</ol>
+</ol>
+<hr />
+<span style="font-size: x-small;">Why <span class="short_text" id="result_box" lang="en"><span class=""> we consider the </span></span></span><span style="font-size: x-small;"><span class="short_text" id="result_box" lang="en"><span class=""><span style="font-size: x-small;"><span class="short_text" id="result_box" lang="en"><span class=""><span style="font-size: x-small;"><span class="short_text" id="result_box" lang="en"><span class="">axes</span></span></span></span></span></span> along which the data has the biggest variance</span></span></span><span style="font-size: x-small;"><span class="short_text" id="result_box" lang="en"><span class=""><span style="font-size: x-small;"><span class="short_text" id="result_box" lang="en"><span class=""> as the most important </span></span></span>one? The reason is that along that axes </span></span><span class="short_text" id="result_box" lang="en"><span class=""><span class="short_text" id="result_box" lang="en"><span class="">we can get the best separation of data points</span></span>. A more natural explanation could be like: along that axes we can see the largest divergence from the mean value. Just like when we talk about trees, rail ways and stars, we describe them as tall, long and far -- the dimensions that have greatest divergences.</span></span></span><br />
+<hr />
+<br />
+<b>PCA can reduce number of variables by eliminating correlations between them: A more realistic example</b><br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://1.bp.blogspot.com/-mFGbHzNOEOU/UYqpONCGj_I/AAAAAAAAAHI/JwUCEdlG0f8/s1600/PCA_2.png" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" src="http://1.bp.blogspot.com/-mFGbHzNOEOU/UYqpONCGj_I/AAAAAAAAAHI/JwUCEdlG0f8/s1600/PCA_2.png" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;">Figure 2 (A) Data set of gene expression level in different tissues. (B) Gene expression level 
+is a n-dimensional function. (C) PCA process. (D) After PCA, gene 
+expression level becomes a k-dimensional function (k&lt;n). (E) Data set is "compressed" with no information lost. </td></tr>
+</tbody></table>
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+Suppose we measure expression levels of N genes in M tissues. We will get a data set of M*N matrix (see Figure 2A). Mathematically, we can describe the data set as:<br />
+<div style="text-align: center;">
+<blockquote class="tr_bq">
+Tissue(i) =&nbsp; f(gene1(i), gene2(i)...geneN(i))</blockquote>
+<div style="text-align: left;">
+In which&nbsp; <i>Tissue(i)</i> means expression level of all genes in the i-th tissue, and gene1(i) denotes expression level of gene 1 in the i-th tissue, and so on. As this function has N variables, we can not use a graph to show the N-dimensional function when N&gt;3. But we can imagine the high dimension as multiple coordinate axes (see Figure 2B). Each axes stands for one gene's expression level.&nbsp;</div>
+<div style="text-align: left;">
+<br /></div>
+<div style="text-align: left;">
+We use PCA to reduce the dimension of variables:</div>
+</div>
+<ol>
+<li>Find the mean value of all data, and set it as the <span class="short_text" id="result_box" lang="en"><span class="">coordinate origin;</span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class="">Find
+ the direction along which the data set&nbsp; has the largest variance. We call it "component 1".</span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class="">Find another direction that </span></span><span class="short_text" id="result_box" lang="en"><span class=""><span class="short_text" id="result_box" lang="en"><span class="">orthogonal</span></span> to all components already found, and </span></span><span class="short_text" id="result_box" lang="en"><span class="">along which the data&nbsp; has the longest possible variance. We call this direction "component 2".&nbsp;</span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class="">repeat step 3 until we get K principal components and no more component can be found. </span></span><br /><span class="short_text" id="result_box" lang="en"><span class="">(</span></span><span class="short_text" id="result_box" lang="en"><span class=""><span class="short_text" id="result_box" lang="en"><span class="">step 1~4, </span></span>see Figure 2C)</span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class="">Re-plot the data set under the new coordinate system defined by K principal components</span></span> <span class="short_text" id="result_box" lang="en"><span class="">(</span></span><span class="short_text" id="result_box" lang="en"><span class="">see Figure 2D).</span></span><span class="short_text" id="result_box" lang="en"><span class="">&nbsp;</span></span></li>
+</ol>
+<hr />
+<span style="font-size: x-small;">Note: These steps are conceptual framework used only for understanding PCA. <span style="font-size: x-small;">In reality we use linear algebra operations of the same idea b<span style="font-size: x-small;">ut may <span style="font-size: x-small;">have</span> <span style="font-size: x-small;">quite different appea<span style="font-size: x-small;">r<span style="font-size: x-small;">a</span></span>nce.</span></span></span></span><br />
+<hr />
+<span class="short_text" id="result_box" lang="en"><span class="">Now we reduced the dimension of variables from N to K and K&lt;N (see Figure 2E). A example provided by <a href="http://www.nature.com/nbt/journal/v26/n3/full/nbt0308-303.html" target="_blank">Nature Biotechnology 26, 303 - 304 (2008)</a></span></span> that when N = 8,534 , K = 104. This means a huge amount of redundancy was removed from original expression data set. Imagine the difference between two functions that have 8,534 and 104 variables accordingly. PCA can make large scale data much easier to handle. Original data table (Figure 2A) will be greatly compressed (Figure 2E) after PCA process.<br />
+<br />
+PCA can reduce data dimension at a minimum cost. But it can not do anything other than that. we still need to use specific approaches for next step analyses like clustering, inferring or other jobs.<br />
+<br />
+<b>PCA has limitations : example of failures</b><br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://3.bp.blogspot.com/-0WYZgN2kPRs/UYqpOofr6oI/AAAAAAAAAHQ/Srx1eY7jBmo/s1600/PCA_3.png" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" src="http://3.bp.blogspot.com/-0WYZgN2kPRs/UYqpOofr6oI/AAAAAAAAAHQ/Srx1eY7jBmo/s1600/PCA_3.png" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;">Figure 3. (A) PCA on non-Gaussian source data. (B) Principal components 
+given by PCA may still be correlated in a non-linear way. <span class="short_text" id="result_box" lang="en"><span class="">Prior knowledge could help us to find out the best principal components. </span></span></td></tr>
+</tbody></table>
+Any algorithm could fail when its assumptions are not satisfied.<b> </b>PCA makes "the largest variance" assumption. If the data does not follow a multidimensional normal (Gaussian) distribution, PCA may not give the best principal components (see Figure 3A). For non-Gaussian source data, we will need independent component analysis (ICA) to separate data into additive, mutual statistical independent  sub-components.<br />
+<br />
+PCA also makes assumption that all principal components are <span class="short_text" id="result_box" lang="en"><span class=""> </span></span><span class="short_text" id="result_box" lang="en"><span class=""><span class="short_text" id="result_box" lang="en"><span class="">orthogonal</span></span> (linear uncorrelated) to each other</span></span>. So it may fail when principal components are correlated in a non-linear manner. For a ring-shape data set (see Figure 3B), PCA will give two principal components C1 and C2, which are actually correlated through rotation angle θ. It's easy to know that instead of C1 or C2, θ should be the real first-order principal component. In such cases, before applying PCA, we need to first perform a non-linear transformation on raw data to create a new linear space in which variable θ becomes a linear dimension. And this method was called kernel-PCA.<br />
+<br />
+<b>PCA implementations :&nbsp; eigenvalue decomposition (EVD) and singular value decomposition (SVD)</b><br />
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://1.bp.blogspot.com/-JlUt0ukrKt0/UYvjGNwD_PI/AAAAAAAAAIk/tjaJ6X1pP7s/s1600/PCA_4.png" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" src="http://1.bp.blogspot.com/-JlUt0ukrKt0/UYvjGNwD_PI/AAAAAAAAAIk/tjaJ6X1pP7s/s1600/PCA_4.png" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;">Figure 4</td></tr>
+</tbody></table>
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+As a conceptual framework, PCA could have different implementations. May be the most popular ones are  eigenvalue decomposition (EVD) and singular value decomposition (SVD). They both can be used to find principal components and will give same results in most cases.<br />
+<br />
+Before applying EVD or SVD, we should define our goal as to find a proper transformation through which a NxM matrix can be transformed (or compressed) into a NxK (K&lt;=M) matrix with no information lost (see Figure 4A).&nbsp; <br />
+<br />
+Now let's imagine EVD algorithm as a machine with inputs and outputs. We feed EVD with our raw data set X, a NxM matrix, as input. EVD will output the following (see Figure 4B):<br />
+<ol>
+<li>Two new matrices W and D. W contains all principal component vectors, while D contains all ranks of those vectors (ordered from the largest variance to the least one). \(X^T\) and \(W^T\) are transposes of X and W accordingly. So they are not considered as new.</li>
+<li>An equation : $$XX^T = WDW^T$$ </li>
+</ol>
+We know that WD is a NxK (K&lt;=M) matrix which is exactly of the same format we want to transform our data set into. So we can re-write the equation into:<br />
+<div style="text-align: center;">
+<blockquote class="tr_bq">
+$$XX^TW = WD&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [Solution 1]$$ </blockquote>
+<div style="text-align: left;">
+OK, we get a solution (transformation) for our goal using EVD. Because we can transform a NxM matrix X into a NxK (K&lt;=M) matrix WD (see Figure 4C). </div>
+<div style="text-align: left;">
+<br /></div>
+<div style="text-align: left;">
+SVD is another method that can be used to reach our goal. Let's imagine SVD as a machine with inputs and outputs. We 
+feed SVD with data set X, the NxM matrix, as input. SVD will 
+output the following (see Figure 4D):</div>
+<ol style="text-align: left;">
+<li>Three new matrix&nbsp; U, \(\Sigma\) and \(V^T\).&nbsp; U and \(V^T\) contain principal component vectors for two directions (column and row of raw data) accordingly. \(\Sigma\) contains ordered ranks of those principal components. </li>
+<li>An equation : $$X = U \Sigma V^T$$</li>
+</ol>
+<div style="text-align: left;">
+We know that U\(\Sigma\) is a NxK (K&lt;=M) matrix which is exactly of the 
+same format we want to transform our data set into. We can re-write 
+the equation into:<br />
+<div style="text-align: center;">
+<blockquote class="tr_bq">
+$$XV = U\Sigma&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [Solution 2]$$</blockquote>
+<div style="text-align: left;">
+So we get another solution for our goal using SVD. Because we can transform a NxM matrix X into a NxK (K&lt;=M) matrix U\(\Sigma\) (see Figure 4E). </div>
+<div style="text-align: left;">
+<br />
+Another question is, as EVD and SVD seemingly do the same work, which one should we choose? I personally recommend SVD. The reason is EVD requires calculation of \(XX^T\) which might lead to losing of precision when X is a Läuchli matrix. In this scenario, \( XX^T\) will perform operations of adding very large numbers with very small numbers, and the small ones will be "eaten" by large ones. SVD does not have this problem. </div>
+</div>
+</div>
+</div>
+<ol>
+</ol>
+<hr size="8/" />
+<span style="font-size: x-small;">I thank the following articles for providing inspiration:&nbsp;</span><br />
+<ol>
+<li><span style="font-size: x-small;"></span><span class="short_text" id="result_box" lang="en"><span class=""><a href="http://www.nature.com/nbt/journal/v26/n3/full/nbt0308-303.html" target="_blank">What is principal component analysis? <i>Nature Biotechnology 26, 303 - 304 (2008)</i></a></span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class=""><a href="http://www.youtube.com/watch?v=ey2PE5xi9-A">Machine Learning Lecture 14, Stanford  <i>(by Andrew Ng)</i></a><i>&nbsp;</i></span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class=""><a href="http://www.snl.salk.edu/~shlens/pca.pdf">A tutorial on Principal Components Analysis (by Jonathon Shlens, 2009)</a><i>&nbsp;</i></span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class=""><a href="https://en.wikipedia.org/wiki/Principal_component_analysis">Principal component analysis <i>(From Wikipedia)</i></a><i>&nbsp;</i></span></span></li>
+<li><span class="short_text" id="result_box" lang="en"><span class=""><a href="http://www.cnblogs.com/jerrylead/archive/2011/04/18/2020209.html">PCA - the maximum variance explanation<i>&nbsp;(JerryLead, in Chinese)</i></a><i> </i></span></span></li>
+<li><a href="http://www.cnblogs.com/jerrylead/archive/2011/04/18/2020216.html">PCA - the least square error explaination <i>(JerryLead, in Chinese) </i></a></li>
+</ol>
+<script type="text/javascript">MathJax.Hub.Queue(["Typeset",MathJax.Hub]);</script>
+<div style='clear: both;'></div>
+</div>
+<div class='post-footer'>
+<div class='post-footer-line post-footer-line-1'>
+<span class='post-author vcard'>
+Posted by
+<span class='fn' itemprop='author' itemscope='itemscope' itemtype='http://schema.org/Person'>
+<meta content='https://plus.google.com/106817800523819856156' itemprop='url'/>
+<a class='g-profile' href='https://plus.google.com/106817800523819856156' rel='author' title='author profile'>
+<span itemprop='name'>Meng Xu</span>
+</a>
+</span>
+</span>
+<span class='post-timestamp'>
+at
+<meta content='http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html' itemprop='url'/>
+<a class='timestamp-link' href='http://mengnote.blogspot.co.uk/2013/05/an-intuitive-explanation-of-pca.html' rel='bookmark' title='permanent link'><abbr class='published' itemprop='datePublished' title='2013-05-08T12:30:00-07:00'>12:30 PM</abbr></a>
+</span>
+<span class='reaction-buttons'>
+</span>
+<span class='star-ratings'>
+</span>
+<span class='post-comment-link'>
+</span>
+<span class='post-backlinks post-comment-link'>
+</span>
+<span class='post-icons'>
+<span class='item-control blog-admin pid-1687400955'>
+<a href='http://www.blogger.com/post-edit.g?blogID=3373377137104117454&postID=8554487209358707440&from=pencil' title='Edit Post'>
+<img alt='' class='icon-action' height='18' src='http://img2.blogblog.com/img/icon18_edit_allbkg.gif' width='18'/>
+</a>
+</span>
+</span>
+<div class='post-share-buttons goog-inline-block'>
+<a class='goog-inline-block share-button sb-email' href='http://www.blogger.com/share-post.g?blogID=3373377137104117454&postID=8554487209358707440&target=email' target='_blank' title='Email This'><span class='share-button-link-text'>Email This</span></a><a class='goog-inline-block share-button sb-blog' href='http://www.blogger.com/share-post.g?blogID=3373377137104117454&postID=8554487209358707440&target=blog' onclick='window.open(this.href, "_blank", "height=270,width=475"); return false;' target='_blank' title='BlogThis!'><span class='share-button-link-text'>BlogThis!</span></a><a class='goog-inline-block share-button sb-twitter' href='http://www.blogger.com/share-post.g?blogID=3373377137104117454&postID=8554487209358707440&target=twitter' target='_blank' title='Share to Twitter'><span class='share-button-link-text'>Share to Twitter</span></a><a class='goog-inline-block share-button sb-facebook' href='http://www.blogger.com/share-post.g?blogID=3373377137104117454&postID=8554487209358707440&target=facebook' onclick='window.open(this.href, "_blank", "height=430,width=640"); return false;' target='_blank' title='Share to Facebook'><span class='share-button-link-text'>Share to Facebook</span></a><a class='goog-inline-block share-button sb-pinterest' href='http://www.blogger.com/share-post.g?blogID=3373377137104117454&postID=8554487209358707440&target=pinterest' target='_blank' title='Share to Pinterest'><span class='share-button-link-text'>Share to Pinterest</span></a><div class='goog-inline-block dummy-container'><g:plusone source='blogger:blog:plusone' href='http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html' size='medium' width='300' annotation='inline'/></div>
+</div>
+</div>
+<div class='post-footer-line post-footer-line-2'>
+<span class='post-labels'>
+</span>
+</div>
+<div class='post-footer-line post-footer-line-3'>
+<span class='post-location'>
+</span>
+</div>
+</div>
+</div>
+<div class='comments' id='comments'>
+<a name='comments'></a>
+<h4>5 comments:</h4>
+<div class='comments-content'>
+<script async='async' src='//www.blogblog.com/dynamicviews/4224c15c4e7c9321/js/comments.js' type='text/javascript'></script>
+<script type='text/javascript'>
+    (function() {
+      var items = [{'id': '4186021109196594921', 'body': 'Thank you for being the only person on the internet that are capable of expressing the differences between PCA using EVD or SVD. \74br /\76\74br /\76Very much appreciated! ', 'timestamp': '1386018355972', 'permalink': 'http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html?showComment\0751386018355972#c4186021109196594921', 'author': {'name': 'Elise Landsem', 'avatarUrl': '//lh4.googleusercontent.com/-ZfBz8i6KXSg/AAAAAAAAAAI/AAAAAAAAAIU/cHvvjuoammM/s512-c/photo.jpg', 'profileUrl': 'http://www.blogger.com/profile/05455532286403319644'}, 'displayTime': 'December 2, 2013 at 1:05 PM', 'deleteclass': 'item-control blog-admin pid-1425425266'}, {'id': '7673447430474975982', 'parentId': '4186021109196594921', 'body': '... EVD or SVD in human language! ', 'timestamp': '1386018437066', 'permalink': 'http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html?showComment\0751386018437066#c7673447430474975982', 'author': {'name': 'Elise Landsem', 'avatarUrl': '//lh4.googleusercontent.com/-ZfBz8i6KXSg/AAAAAAAAAAI/AAAAAAAAAIU/cHvvjuoammM/s512-c/photo.jpg', 'profileUrl': 'http://www.blogger.com/profile/05455532286403319644'}, 'displayTime': 'December 2, 2013 at 1:07 PM', 'deleteclass': 'item-control blog-admin pid-1425425266'}, {'id': '3053898644851677869', 'parentId': '4186021109196594921', 'body': 'Thank you Elise, for your great patience to reach the very end of the article. Very pleased to see the idea behind of the linear algebra equations been understood.', 'timestamp': '1386032703221', 'permalink': 'http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html?showComment\0751386032703221#c3053898644851677869', 'author': {'name': 'Meng Xu', 'avatarUrl': '//lh4.googleusercontent.com/-T084fFMxRMk/AAAAAAAAAAI/AAAAAAAAADQ/LqAnJULIR5w/s512-c/photo.jpg', 'profileUrl': 'http://www.blogger.com/profile/00601792748517163575'}, 'displayTime': 'December 2, 2013 at 5:05 PM', 'deleteclass': 'item-control blog-admin pid-1687400955'}, {'id': '5463174857346787464', 'body': 'Great job! Special thanks for describing the limitations! The only thing that I am missing is a simple example with numbers that would demonstrate what each matrix in the decomposition means.', 'timestamp': '1400590866059', 'permalink': 'http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html?showComment\0751400590866059#c5463174857346787464', 'author': {'name': 'Konstantin Okonechnikov', 'avatarUrl': 'http://3.bp.blogspot.com/_4tpbu3dHZuE/SkeBKhBTvoI/AAAAAAAAABE/gqFo1OUDyUg/S45/ava2.jpg', 'profileUrl': 'http://www.blogger.com/profile/18330971587943165469'}, 'displayTime': 'May 20, 2014 at 6:01 AM', 'deleteclass': 'item-control blog-admin pid-913154584'}, {'id': '3843406339366875685', 'parentId': '5463174857346787464', 'body': 'Thanks Konstanstin! In deed, the matrix decomposition (factorization) part remains non-intuitive. I spent less effort on describing the implementation procedures, because nobody needs to do it by hand (already been taken care of by many software packages). I will write another article specifically focus on the meaning of matrices and their operations.', 'timestamp': '1400605147380', 'permalink': 'http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html?showComment\0751400605147380#c3843406339366875685', 'author': {'name': 'Meng Xu', 'avatarUrl': '//lh4.googleusercontent.com/-T084fFMxRMk/AAAAAAAAAAI/AAAAAAAAADQ/LqAnJULIR5w/s512-c/photo.jpg', 'profileUrl': 'http://www.blogger.com/profile/00601792748517163575'}, 'displayTime': 'May 20, 2014 at 9:59 AM', 'deleteclass': 'item-control blog-admin pid-1687400955'}];
+      var msgs = {'loadMore': 'Load more...', 'loading': 'Loading...', 'loaded': 'No more!', 'addComment': 'Add comment', 'reply': 'Reply', 'delete': 'Delete'};
+      var config = {'blogId': '3373377137104117454', 'postId': '8554487209358707440', 'feed': 'http://mengnote.blogspot.com/feeds/8554487209358707440/comments/default', 'authorName': 'Meng Xu', 'authorUrl': 'http://www.blogger.com/profile/00601792748517163575', 'baseUri': 'http://www.blogger.com', 'maxThreadDepth': 2};
+
+// <![CDATA[
+      var cursor = null;
+      if (items && items.length > 0) {
+        cursor = parseInt(items[items.length - 1].timestamp) + 1;
+      }
+
+      var bodyFromEntry = function(entry) {
+        if (entry.gd$extendedProperty) {
+          for (var k in entry.gd$extendedProperty) {
+            if (entry.gd$extendedProperty[k].name == 'blogger.contentRemoved') {
+              return '<span class="deleted-comment">' + entry.content.$t + '</span>';
+            }
+          }
+        }
+        return entry.content.$t;
+      }
+
+      var parse = function(data) {
+        cursor = null;
+        var comments = [];
+        if (data && data.feed && data.feed.entry) {
+          for (var i = 0, entry; entry = data.feed.entry[i]; i++) {
+            var comment = {};
+            // comment ID, parsed out of the original id format
+            var id = /blog-(\d+).post-(\d+)/.exec(entry.id.$t);
+            comment.id = id ? id[2] : null;
+            comment.body = bodyFromEntry(entry);
+            comment.timestamp = Date.parse(entry.published.$t) + '';
+            if (entry.author && entry.author.constructor === Array) {
+              var auth = entry.author[0];
+              if (auth) {
+                comment.author = {
+                  name: (auth.name ? auth.name.$t : undefined),
+                  profileUrl: (auth.uri ? auth.uri.$t : undefined),
+                  avatarUrl: (auth.gd$image ? auth.gd$image.src : undefined)
+                };
+              }
+            }
+            if (entry.link) {
+              if (entry.link[2]) {
+                comment.link = comment.permalink = entry.link[2].href;
+              }
+              if (entry.link[3]) {
+                var pid = /.*comments\/default\/(\d+)\?.*/.exec(entry.link[3].href);
+                if (pid && pid[1]) {
+                  comment.parentId = pid[1];
+                }
+              }
+            }
+            comment.deleteclass = 'item-control blog-admin';
+            if (entry.gd$extendedProperty) {
+              for (var k in entry.gd$extendedProperty) {
+                if (entry.gd$extendedProperty[k].name == 'blogger.itemClass') {
+                  comment.deleteclass += ' ' + entry.gd$extendedProperty[k].value;
+                } else if (entry.gd$extendedProperty[k].name == 'blogger.displayTime') {
+                  comment.displayTime = entry.gd$extendedProperty[k].value;
+                }
+              }
+            }
+            comments.push(comment);
+          }
+        }
+        return comments;
+      };
+
+      var paginator = function(callback) {
+        if (hasMore()) {
+          var url = config.feed + '?alt=json&v=2&orderby=published&reverse=false&max-results=50';
+          if (cursor) {
+            url += '&published-min=' + new Date(cursor).toISOString();
+          }
+          window.bloggercomments = function(data) {
+            var parsed = parse(data);
+            cursor = parsed.length < 50 ? null
+                : parseInt(parsed[parsed.length - 1].timestamp) + 1
+            callback(parsed);
+            window.bloggercomments = null;
+          }
+          url += '&callback=bloggercomments';
+          var script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.src = url;
+          document.getElementsByTagName('head')[0].appendChild(script);
+        }
+      };
+      var hasMore = function() {
+        return !!cursor;
+      };
+      var getMeta = function(key, comment) {
+        if ('iswriter' == key) {
+          var matches = !!comment.author
+              && comment.author.name == config.authorName
+              && comment.author.profileUrl == config.authorUrl;
+          return matches ? 'true' : '';
+        } else if ('deletelink' == key) {
+          return config.baseUri + '/delete-comment.g?blogID='
+               + config.blogId + '&postID=' + comment.id;
+        } else if ('deleteclass' == key) {
+          return comment.deleteclass;
+        }
+        return '';
+      };
+
+      var replybox = null;
+      var replyUrlParts = null;
+      var replyParent = undefined;
+
+      var onReply = function(commentId, domId) {
+        if (replybox == null) {
+          // lazily cache replybox, and adjust to suit this style:
+          replybox = document.getElementById('comment-editor');
+          if (replybox != null) {
+            replybox.height = '250px';
+            replybox.style.display = 'block';
+            replyUrlParts = replybox.src.split('#');
+          }
+        }
+        if (replybox && (commentId !== replyParent)) {
+          document.getElementById(domId).insertBefore(replybox, null);
+          replybox.src = replyUrlParts[0]
+              + (commentId ? '&parentID=' + commentId : '')
+              + '#' + replyUrlParts[1];
+          replyParent = commentId;
+        }
+      };
+
+      var hash = (window.location.hash || '#').substring(1);
+      var startThread, targetComment;
+      if (/^comment-form_/.test(hash)) {
+        startThread = hash.substring('comment-form_'.length);
+      } else if (/^c[0-9]+$/.test(hash)) {
+        targetComment = hash.substring(1);
+      }
+
+      // Configure commenting API:
+      var configJso = {
+        'maxDepth': config.maxThreadDepth
+      };
+      var provider = {
+        'id': config.postId,
+        'data': items,
+        'loadNext': paginator,
+        'hasMore': hasMore,
+        'getMeta': getMeta,
+        'onReply': onReply,
+        'rendered': true,
+        'initComment': targetComment,
+        'initReplyThread': startThread,
+        'config': configJso,
+        'messages': msgs
+      };
+
+      var render = function() {
+        if (window.goog && window.goog.comments) {
+          var holder = document.getElementById('comment-holder');
+          window.goog.comments.render(holder, provider);
+        }
+      };
+
+      // render now, or queue to render when library loads:
+      if (window.goog && window.goog.comments) {
+        render();
+      } else {
+        window.goog = window.goog || {};
+        window.goog.comments = window.goog.comments || {};
+        window.goog.comments.loadQueue = window.goog.comments.loadQueue || [];
+        window.goog.comments.loadQueue.push(render);
+      }
+    })();
+// ]]>
+</script>
+<div id='comment-holder'>
+<div id='bc_0_6C' kind='c'><div id='bc_0_6CT'><div id='bc_0_5T' class='comment-thread' kind='r'  t='0' u='0'><ol id='bc_0_5TB'><li id='bc_0_2B' class='comment' kind='b'><div class='avatar-image-container'><img src='//lh4.googleusercontent.com/-ZfBz8i6KXSg/AAAAAAAAAAI/AAAAAAAAAIU/cHvvjuoammM/s512-c/photo.jpg'></img></div><div id='c4186021109196594921' class='comment-block'><div id='bc_0_2M' class='comment-header' kind='m'><cite class='user'><a rel='nofollow' href='http://www.blogger.com/profile/05455532286403319644'>Elise Landsem</a></cite><span class='icon user'></span><span class='datetime secondary-text'><a rel='nofollow' href='http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html?showComment=1386018355972#c4186021109196594921'>December 2, 2013 at 1:05 PM</a></span></div><p id='bc_0_2MC' class='comment-content'>Thank you for being the only person on the internet that are capable of expressing the differences between PCA using EVD or SVD. <br /><br />Very much appreciated! </p><span id='bc_0_2MN' class='comment-actions secondary-text' kind='m'><a kind='i' href='javascript:;' target='_self' o='r'>Reply</a><span class='item-control blog-admin pid-1425425266'><a o='d' target='_self' href='http://www.blogger.com/delete-comment.g?blogID=3373377137104117454&amp;postID=4186021109196594921'>Delete</a></span></span></div><div id='bc_0_2BR' class='comment-replies'><span id='bc_0_2b+seedvJJpD' kind='d'><div id='bc_0_0T' class='comment-thread inline-thread' kind='t'   t='0' u='0'><span id='bc_0_0TT' class='thread-toggle thread-expanded' kind='g'><span id='bc_0_0TA' class='thread-arrow'></span><span id='bc_0_0TN' class='thread-count'><span id='bc_0_0TNT' style='display: none;'></span><span id='bc_0_0TNU' style='display: none;'></span><a href='javascript:;' target='_self'>Replies</a><div id='bc_0_0TD' class='thread-dropContainer thread-expanded'><span class='thread-drop'></span></div></span></span><ol id='bc_0_0TC' class='thread-chrome thread-expanded'><div><li id='bc_0_0B' class='comment' kind='b'><div class='avatar-image-container'><img src='//lh4.googleusercontent.com/-ZfBz8i6KXSg/AAAAAAAAAAI/AAAAAAAAAIU/cHvvjuoammM/s512-c/photo.jpg'></img></div><div id='c7673447430474975982' class='comment-block'><div id='bc_0_0M' class='comment-header' kind='m'><cite class='user'><a rel='nofollow' href='http://www.blogger.com/profile/05455532286403319644'>Elise Landsem</a></cite><span class='icon user'></span><span class='datetime secondary-text'><a rel='nofollow' href='http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html?showComment=1386018437066#c7673447430474975982'>December 2, 2013 at 1:07 PM</a></span></div><p id='bc_0_0MC' class='comment-content'>... EVD or SVD in human language! </p><span id='bc_0_0MN' class='comment-actions secondary-text' kind='m'><span class='item-control blog-admin pid-1425425266'><a o='d' target='_self' href='http://www.blogger.com/delete-comment.g?blogID=3373377137104117454&amp;postID=7673447430474975982'>Delete</a></span></span></div><div id='bc_0_0BR' class='comment-replies'></div><div id='bc_0_0B_box' class='comment-replybox-single'></div></li><li id='bc_0_1B' class='comment' kind='b'><div class='avatar-image-container'><img src='//lh4.googleusercontent.com/-T084fFMxRMk/AAAAAAAAAAI/AAAAAAAAADQ/LqAnJULIR5w/s512-c/photo.jpg'></img></div><div id='c3053898644851677869' class='comment-block'><div id='bc_0_1M' class='comment-header' kind='m'><cite class='user blog-author'><a rel='nofollow' href='http://www.blogger.com/profile/00601792748517163575'>Meng Xu</a></cite><span class='icon user blog-author'></span><span class='datetime secondary-text'><a rel='nofollow' href='http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html?showComment=1386032703221#c3053898644851677869'>December 2, 2013 at 5:05 PM</a></span></div><p id='bc_0_1MC' class='comment-content'>Thank you Elise, for your great patience to reach the very end of the article. Very pleased to see the idea behind of the linear algebra equations been understood.</p><span id='bc_0_1MN' class='comment-actions secondary-text' kind='m'><span class='item-control blog-admin pid-1687400955'><a o='d' target='_self' href='http://www.blogger.com/delete-comment.g?blogID=3373377137104117454&amp;postID=3053898644851677869'>Delete</a></span></span></div><div id='bc_0_1BR' class='comment-replies'></div><div id='bc_0_1B_box' class='comment-replybox-single'></div></li></div><div id='bc_0_0I' class='continue' kind='ci'><a href='javascript:;' target='_self'>Reply</a></div></ol><div id='bc_0_0T_box' class='comment-replybox-thread'></div></div></span></div><div id='bc_0_2B_box' class='comment-replybox-single'></div></li><li id='bc_0_4B' class='comment' kind='b'><div class='avatar-image-container'><img src='http://3.bp.blogspot.com/_4tpbu3dHZuE/SkeBKhBTvoI/AAAAAAAAABE/gqFo1OUDyUg/S45/ava2.jpg'></img></div><div id='c5463174857346787464' class='comment-block'><div id='bc_0_4M' class='comment-header' kind='m'><cite class='user'><a rel='nofollow' href='http://www.blogger.com/profile/18330971587943165469'>Konstantin Okonechnikov</a></cite><span class='icon user'></span><span class='datetime secondary-text'><a rel='nofollow' href='http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html?showComment=1400590866059#c5463174857346787464'>May 20, 2014 at 6:01 AM</a></span></div><p id='bc_0_4MC' class='comment-content'>Great job! Special thanks for describing the limitations! The only thing that I am missing is a simple example with numbers that would demonstrate what each matrix in the decomposition means.</p><span id='bc_0_4MN' class='comment-actions secondary-text' kind='m'><a kind='i' href='javascript:;' target='_self' o='r'>Reply</a><span class='item-control blog-admin pid-913154584'><a o='d' target='_self' href='http://www.blogger.com/delete-comment.g?blogID=3373377137104117454&amp;postID=5463174857346787464'>Delete</a></span></span></div><div id='bc_0_4BR' class='comment-replies'><span id='bc_0_4b+seedvJJsD' kind='d'><div id='bc_0_3T' class='comment-thread inline-thread' kind='t'   t='0' u='0'><span id='bc_0_3TT' class='thread-toggle thread-expanded' kind='g'><span id='bc_0_3TA' class='thread-arrow'></span><span id='bc_0_3TN' class='thread-count'><span id='bc_0_3TNT' style='display: none;'></span><span id='bc_0_3TNU' style='display: none;'></span><a href='javascript:;' target='_self'>Replies</a><div id='bc_0_3TD' class='thread-dropContainer thread-expanded'><span class='thread-drop'></span></div></span></span><ol id='bc_0_3TC' class='thread-chrome thread-expanded'><div><li id='bc_0_3B' class='comment' kind='b'><div class='avatar-image-container'><img src='//lh4.googleusercontent.com/-T084fFMxRMk/AAAAAAAAAAI/AAAAAAAAADQ/LqAnJULIR5w/s512-c/photo.jpg'></img></div><div id='c3843406339366875685' class='comment-block'><div id='bc_0_3M' class='comment-header' kind='m'><cite class='user blog-author'><a rel='nofollow' href='http://www.blogger.com/profile/00601792748517163575'>Meng Xu</a></cite><span class='icon user blog-author'></span><span class='datetime secondary-text'><a rel='nofollow' href='http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html?showComment=1400605147380#c3843406339366875685'>May 20, 2014 at 9:59 AM</a></span></div><p id='bc_0_3MC' class='comment-content'>Thanks Konstanstin! In deed, the matrix decomposition (factorization) part remains non-intuitive. I spent less effort on describing the implementation procedures, because nobody needs to do it by hand (already been taken care of by many software packages). I will write another article specifically focus on the meaning of matrices and their operations.</p><span id='bc_0_3MN' class='comment-actions secondary-text' kind='m'><span class='item-control blog-admin pid-1687400955'><a o='d' target='_self' href='http://www.blogger.com/delete-comment.g?blogID=3373377137104117454&amp;postID=3843406339366875685'>Delete</a></span></span></div><div id='bc_0_3BR' class='comment-replies'></div><div id='bc_0_3B_box' class='comment-replybox-single'></div></li></div><div id='bc_0_3I' class='continue' kind='ci'><a href='javascript:;' target='_self'>Reply</a></div></ol><div id='bc_0_3T_box' class='comment-replybox-thread'></div></div></span></div><div id='bc_0_4B_box' class='comment-replybox-single'></div></li></ol><div id='bc_0_5I' class='continue' kind='ci'><a href='javascript:;' target='_self'>Add comment</a></div><div id='bc_0_5T_box' class='comment-replybox-thread'></div><div id='bc_0_5L' class='loadmore loaded' kind='rb'><a href='javascript:;' target='_self'>Load more...</a></div></div></div></div>
+</div>
+</div>
+<p class='comment-footer'>
+<div class='comment-form'>
+<a name='comment-form'></a>
+<p>
+</p>
+<a href='https://www.blogger.com/comment-iframe.g?blogID=3373377137104117454&postID=8554487209358707440' id='comment-editor-src'></a>
+<iframe allowtransparency='true' class='blogger-iframe-colorize blogger-comment-from-post' frameborder='0' height='410' id='comment-editor' name='comment-editor' src='' width='100%'></iframe>
+<script type="text/javascript" src="https://www.blogger.com/static/v1/jsbin/313381681-comment_from_post_iframe.js"></script>
+<script type='text/javascript'>
+      BLOG_CMT_createIframe('https://www.blogger.com/rpc_relay.html', '14620690316893563396');
+    </script>
+</div>
+</p>
+<div id='backlinks-container'>
+<div id='Blog1_backlinks-container'>
+</div>
+</div>
+</div>
+</div>
+
+        </div></div>
+      
+<!-- google_ad_section_end -->
+</div>
+<div class='blog-pager' id='blog-pager'>
+<span id='blog-pager-older-link'>
+<a class='blog-pager-older-link' href='http://mengnote.blogspot.co.uk/2013/03/how-much-confidence-can-we-obtain-from.html' id='Blog1_blog-pager-older-link' title='Older Post'>Older Post</a>
+</span>
+<a class='home-link' href='http://mengnote.blogspot.co.uk/'>Home</a>
+</div>
+<div class='clear'></div>
+<div class='post-feeds'>
+<div class='feed-links'>
+Subscribe to:
+<a class='feed-link' href='http://mengnote.blogspot.com/feeds/8554487209358707440/comments/default' target='_blank' type='application/atom+xml'>Post Comments (Atom)</a>
+</div>
+</div>
+<script type="text/javascript">window.___gcfg = {'lang': 'en'};</script>
+</div></div>
+</div>
+</div>
+<div class='column-left-outer'>
+<div class='column-left-inner'>
+<aside>
+</aside>
+</div>
+</div>
+<div class='column-right-outer'>
+<div class='column-right-inner'>
+<aside>
+</aside>
+</div>
+</div>
+</div>
+<div style='clear: both'></div>
+<!-- columns -->
+</div>
+<!-- main -->
+</div>
+</div>
+<div class='main-cap-bottom cap-bottom'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+</div>
+<footer>
+<div class='footer-outer'>
+<div class='footer-cap-top cap-top'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+<div class='fauxborder-left footer-fauxborder-left'>
+<div class='fauxborder-right footer-fauxborder-right'></div>
+<div class='region-inner footer-inner'>
+<div class='foot section' id='footer-1'><div class='widget HTML' id='HTML1'>
+<div class='widget-content'>
+<script type="text/javascript">MathJax.Hub.Queue(["Typeset",MathJax.Hub]);</script>
+</div>
+<div class='clear'></div>
+<span class='widget-item-control'>
+<span class='item-control blog-admin'>
+<a class='quickedit' href='//www.blogger.com/rearrange?blogID=3373377137104117454&widgetType=HTML&widgetId=HTML1&action=editWidget&sectionId=footer-1' onclick='return _WidgetManager._PopupConfig(document.getElementById("HTML1"));' target='configHTML1' title='Edit'>
+<img alt='' height='18' src='http://img1.blogblog.com/img/icon18_wrench_allbkg.png' width='18'/>
+</a>
+</span>
+</span>
+<div class='clear'></div>
+</div><div class='widget PlusOne' id='PlusOne1'>
+<div class='widget-content'>
+<g:plusone annotation='bubble' href='http://mengnote.blogspot.com/' size='medium' source='blogger:blog:plusone' width='250'></g:plusone>
+<script type='text/javascript'>
+      window.___gcfg = {"lang": "en"};
+    </script>
+</div>
+</div><div class='widget BlogArchive' id='BlogArchive1'>
+<h2>Blog Archive</h2>
+<div class='widget-content'>
+<div id='ArchiveList'>
+<div id='BlogArchive1_ArchiveList'>
+<ul class='hierarchy'>
+<li class='archivedate expanded'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy toggle-open'>&#9660;&#160;</span>
+</a>
+<a class='post-count-link' href='http://mengnote.blogspot.co.uk/search?updated-min=2013-01-01T00:00:00-08:00&amp;updated-max=2014-01-01T00:00:00-08:00&amp;max-results=2'>2013</a>
+<span class='post-count' dir='ltr'>(2)</span>
+<ul class='hierarchy'>
+<li class='archivedate expanded'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy toggle-open'>&#9660;&#160;</span>
+</a>
+<a class='post-count-link' href='http://mengnote.blogspot.co.uk/2013_05_01_archive.html'>May</a>
+<span class='post-count' dir='ltr'>(1)</span>
+<ul class='posts'>
+<li><a href='http://mengnote.blogspot.co.uk/2013/05/an-intuitive-explanation-of-pca.html'>An intuitive explanation of PCA (Principal Compone...</a></li>
+</ul>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+          &#9658;&#160;
+        
+</span>
+</a>
+<a class='post-count-link' href='http://mengnote.blogspot.co.uk/2013_03_01_archive.html'>March</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+          &#9658;&#160;
+        
+</span>
+</a>
+<a class='post-count-link' href='http://mengnote.blogspot.co.uk/search?updated-min=2012-01-01T00:00:00-08:00&amp;updated-max=2013-01-01T00:00:00-08:00&amp;max-results=1'>2012</a>
+<span class='post-count' dir='ltr'>(1)</span>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+          &#9658;&#160;
+        
+</span>
+</a>
+<a class='post-count-link' href='http://mengnote.blogspot.co.uk/2012_12_01_archive.html'>December</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class='clear'></div>
+<span class='widget-item-control'>
+<span class='item-control blog-admin'>
+<a class='quickedit' href='//www.blogger.com/rearrange?blogID=3373377137104117454&widgetType=BlogArchive&widgetId=BlogArchive1&action=editWidget&sectionId=footer-1' onclick='return _WidgetManager._PopupConfig(document.getElementById("BlogArchive1"));' target='configBlogArchive1' title='Edit'>
+<img alt='' height='18' src='http://img1.blogblog.com/img/icon18_wrench_allbkg.png' width='18'/>
+</a>
+</span>
+</span>
+<div class='clear'></div>
+</div>
+</div><div class='widget Profile' id='Profile1'>
+<h2>About Me</h2>
+<div class='widget-content'>
+<a href='https://plus.google.com/106817800523819856156'><img alt='My Photo' class='profile-img' height='80' src='//lh4.googleusercontent.com/-T084fFMxRMk/AAAAAAAAAAI/AAAAAAAAADQ/LqAnJULIR5w/s512-c/photo.jpg' width='80'/></a>
+<dl class='profile-datablock'>
+<dt class='profile-data'>
+<a class='profile-name-link g-profile' href='https://plus.google.com/106817800523819856156' rel='author' style='background-image: url(//www.google.com/images/icons/ui/gprofile_button-16.png);'>
+Meng Xu
+</a>
+<br/>
+<div class='g-follow' data-annotation='bubble' data-height='20' data-href='https://plus.google.com/106817800523819856156'></div>
+</dt>
+</dl>
+<a class='profile-link' href='https://plus.google.com/106817800523819856156' rel='author'>View my complete profile</a>
+<div class='clear'></div>
+<span class='widget-item-control'>
+<span class='item-control blog-admin'>
+<a class='quickedit' href='//www.blogger.com/rearrange?blogID=3373377137104117454&widgetType=Profile&widgetId=Profile1&action=editWidget&sectionId=footer-1' onclick='return _WidgetManager._PopupConfig(document.getElementById("Profile1"));' target='configProfile1' title='Edit'>
+<img alt='' height='18' src='http://img1.blogblog.com/img/icon18_wrench_allbkg.png' width='18'/>
+</a>
+</span>
+</span>
+<div class='clear'></div>
+</div>
+</div></div>
+<!-- outside of the include in order to lock Attribution widget -->
+<div class='foot section' id='footer-3'><div class='widget Attribution' id='Attribution1'>
+<div class='widget-content' style='text-align: center;'>
+Simple template. Powered by <a href='http://www.blogger.com' target='_blank'>Blogger</a>.
+</div>
+<div class='clear'></div>
+<span class='widget-item-control'>
+<span class='item-control blog-admin'>
+<a class='quickedit' href='//www.blogger.com/rearrange?blogID=3373377137104117454&widgetType=Attribution&widgetId=Attribution1&action=editWidget&sectionId=footer-3' onclick='return _WidgetManager._PopupConfig(document.getElementById("Attribution1"));' target='configAttribution1' title='Edit'>
+<img alt='' height='18' src='http://img1.blogblog.com/img/icon18_wrench_allbkg.png' width='18'/>
+</a>
+</span>
+</span>
+<div class='clear'></div>
+</div></div>
+</div>
+</div>
+<div class='footer-cap-bottom cap-bottom'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+</div>
+</footer>
+<!-- content -->
+</div>
+</div>
+<div class='content-cap-bottom cap-bottom'>
+<div class='cap-left'></div>
+<div class='cap-right'></div>
+</div>
+</div>
+</div>
+<script type='text/javascript'>
+    window.setTimeout(function() {
+        document.body.className = document.body.className.replace('loading', '');
+      }, 10);
+  </script>
+<script type="text/javascript">
+if (window.jstiming) window.jstiming.load.tick('widgetJsBefore');
+</script><script type="text/javascript" src="https://www.blogger.com/static/v1/widgets/3401484092-widgets.js"></script>
+<script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
+<script type='text/javascript'>
+if (typeof(BLOG_attachCsiOnload) != 'undefined' && BLOG_attachCsiOnload != null) { window['blogger_templates_experiment_id'] = "templatesV2";window['blogger_blog_id'] = '3373377137104117454';BLOG_attachCsiOnload('item_'); }_WidgetManager._Init('//www.blogger.com/rearrange?blogID\x3d3373377137104117454','//mengnote.blogspot.co.uk/2013/05/an-intuitive-explanation-of-pca.html','3373377137104117454');
+_WidgetManager._SetDataContext([{'name': 'blog', 'data': {'blogId': '3373377137104117454', 'bloggerUrl': 'http://www.blogger.com', 'title': 'Meng\47s Notes', 'pageType': 'item', 'postId': '8554487209358707440', 'url': 'http://mengnote.blogspot.co.uk/2013/05/an-intuitive-explanation-of-pca.html', 'canonicalUrl': 'http://mengnote.blogspot.com/2013/05/an-intuitive-explanation-of-pca.html', 'canonicalHomepageUrl': 'http://mengnote.blogspot.com/', 'homepageUrl': 'http://mengnote.blogspot.co.uk/', 'blogspotFaviconUrl': 'http://mengnote.blogspot.co.uk/favicon.ico', 'enabledCommentProfileImages': true, 'adultContent': false, 'disableAdSenseWidget': false, 'analyticsAccountNumber': '', 'searchLabel': '', 'searchQuery': '', 'pageName': 'An intuitive explanation of PCA (Principal Component Analysis)', 'pageTitle': 'Meng\47s Notes: An intuitive explanation of PCA (Principal Component Analysis)', 'encoding': 'UTF-8', 'locale': 'en', 'localeUnderscoreDelimited': 'en', 'isPrivate': false, 'isMobile': false, 'isMobileRequest': false, 'mobileClass': '', 'isPrivateBlog': false, 'languageDirection': 'ltr', 'feedLinks': '\74link rel\75\42alternate\42 type\75\42application/atom+xml\42 title\75\42Meng\46#39;s Notes - Atom\42 href\75\42http://mengnote.blogspot.com/feeds/posts/default\42 /\76\n\74link rel\75\42alternate\42 type\75\42application/rss+xml\42 title\75\42Meng\46#39;s Notes - RSS\42 href\75\42http://mengnote.blogspot.com/feeds/posts/default?alt\75rss\42 /\76\n\74link rel\75\42service.post\42 type\75\42application/atom+xml\42 title\75\42Meng\46#39;s Notes - Atom\42 href\75\42http://www.blogger.com/feeds/3373377137104117454/posts/default\42 /\76\n\n\74link rel\75\42alternate\42 type\75\42application/atom+xml\42 title\75\42Meng\46#39;s Notes - Atom\42 href\75\42http://mengnote.blogspot.com/feeds/8554487209358707440/comments/default\42 /\76\n', 'meTag': '', 'openIdOpTag': '', 'googleProfileUrl': 'https://plus.google.com/106817800523819856156', 'postImageThumbnailUrl': 'http://4.bp.blogspot.com/-pleL0HvLUgU/UYqpNFdd8EI/AAAAAAAAAHA/uf11u9lcq5g/s72-c/PCA_1.png', 'postImageUrl': 'http://4.bp.blogspot.com/-pleL0HvLUgU/UYqpNFdd8EI/AAAAAAAAAHA/uf11u9lcq5g/s1600/PCA_1.png', 'latencyHeadScript': '\74script type\75\42text/javascript\42\76(function() { var b\75window,f\75\42chrome\42,g\75\42tick\42,k\75\42jstiming\42;(function(){function d(a){this.t\75{};this.tick\75function(a,d,c){var e\75void 0!\75c?c:(new Date).getTime();this.t[a]\75[e,d];if(void 0\75\75c)try{b.console.timeStamp(\42CSI/\42+a)}catch(h){}};this[g](\42start\42,null,a)}var a;b.performance\46\46(a\75b.performance.timing);var n\75a?new d(a.responseStart):new d;b.jstiming\75{Timer:d,load:n};if(a){var c\75a.navigationStart,h\75a.responseStart;0\74c\46\46h\76\75c\46\46(b[k].srt\75h-c)}if(a){var e\75b[k].load;0\74c\46\46h\76\75c\46\46(e[g](\42_wtsrt\42,void 0,c),e[g](\42wtsrt_\42,\42_wtsrt\42,h),e[g](\42tbsd_\42,\42wtsrt_\42))}try{a\75null,\nb[f]\46\46b[f].csi\46\46(a\75Math.floor(b[f].csi().pageT),e\46\0460\74c\46\46(e[g](\42_tbnd\42,void 0,b[f].csi().startE),e[g](\42tbnd_\42,\42_tbnd\42,c))),null\75\75a\46\46b.gtbExternal\46\46(a\75b.gtbExternal.pageT()),null\75\75a\46\46b.external\46\46(a\75b.external.pageT,e\46\0460\74c\46\46(e[g](\42_tbnd\42,void 0,b.external.startE),e[g](\42tbnd_\42,\42_tbnd\42,c))),a\46\46(b[k].pt\75a)}catch(p){}})();b.tickAboveFold\75function(d){var a\0750;if(d.offsetParent){do a+\75d.offsetTop;while(d\75d.offsetParent)}d\75a;750\76\75d\46\46b[k].load[g](\42aft\42)};var l\75!1;function m(){l||(l\75!0,b[k].load[g](\42firstScrollTime\42))}b.addEventListener?b.addEventListener(\42scroll\42,m,!1):b.attachEvent(\42onscroll\42,m);\n })();\74/script\076', 'mobileHeadScript': '', 'ieCssRetrofitLinks': '\74!--[if IE]\76\74script type\75\42text/javascript\42 src\75\42https://www.blogger.com/static/v1/jsbin/1163241896-ieretrofit.js\42\76\74/script\76\n\74![endif]--\076', 'view': '', 'dynamicViewsCommentsSrc': '//www.blogblog.com/dynamicviews/4224c15c4e7c9321/js/comments.js', 'dynamicViewsScriptSrc': '//www.blogblog.com/dynamicviews/76f25a6f2e06af76', 'plusOneApiSrc': 'https://apis.google.com/js/plusone.js', 'sf': 'n', 'tf': ''}}, {'name': 'skin', 'data': {'vars': {'content_padding': '10px', 'paging_background': 'transparent url(//www.blogblog.com/1kt/simple/paging_dot.png) repeat-x scroll top center', 'image_border_small_size': '2px', 'body_background_gradient_cap': 'none', 'tabs_selected_background_color': '#eeeeee', 'body_rule_color': 'transparent', 'header_shadow_spread': '0', 'header_shadow_offset_left': '0', 'header_padding': '0', 'link_visited_color': '#888888', 'mobile_background_size': 'auto', 'post_title_font': 'normal normal 30px \47Trebuchet MS\47,Trebuchet,Verdana,sans-serif', 'tabs_text_color': '#000000', 'date_header_margin': 'inherit', 'header_background_gradient': 'none', 'header_bottom_border_size': '0', 'content_shadow_spread_webkit': '0', 'header_shadow_offset_top': '0', 'mobile_button_color': '#ffffff', 'widget_title_font': 'normal bold 11px \47Trebuchet MS\47,Trebuchet,Verdana,sans-serif', 'main_section_margin': '1em', 'keycolor': '#ffffff', 'content_shadow_spread': '0', 'image_background_color': '#ffffff', 'header_font': 'normal normal 40px \47Trebuchet MS\47,Trebuchet,Verdana,sans-serif', 'header_background_color': 'transparent', 'main_border_width': '0', 'main_padding': '0', 'tabs_border_color': '#dddddd', 'image_text_color': '#666666', 'description_text_size': '18px', 'post_footer_background_color': '#eeeeee', 'body_background_gradient_tile': 'none', 'page_width': 'auto', 'tabs_background_gradient': 'none', 'mobile_background_overlay': 'transparent none repeat scroll top left', 'main_padding_bottom': '65px', 'tabs_background_color': 'transparent', 'image_border_large_size': '5px', 'post_margin_bottom': '45px', 'body_background_override': '', 'tabs_margin_side': '30px', 'link_hover_color': '#33aaff', 'description_text_color': '#000000', 'body_text_color': '#666666', 'content_padding_horizontal': '40px', 'endSide': 'right', 'page_width_selector': '.region-inner', 'date_header_padding': '0.4em', 'post_footer_text_color': '#666666', 'startSide': 'left', 'date_header_color': '#ffffff', 'tabs_font': 'normal normal 15px Arial, Tahoma, Helvetica, FreeSans, sans-serif', 'post_footer_border_color': '#eeeeee', 'body_font': 'normal normal 15px Arial, Tahoma, Helvetica, FreeSans, sans-serif', 'footer_bevel': '1px', 'tabs_bevel_border_width': '1px', 'date_header_background_color': '#bbbbbb', 'content_shadow_spread_ie': '0', 'widget_title_text_color': '#000000', 'header_border_horizontalsize': '1px', 'image_border_color': '#eeeeee', 'tabs_border_width': '1px', 'content_background_color': '#ffffff', 'link_color': '#2288bb', 'header_text_color': '#000000', 'date_header_letterspacing': '3px', 'tabs_margin_top': '0', 'main_padding_top': '35px', 'header_border_size': '1px', 'tabs_selected_text_color': '#000000', 'content_background_color_selector': '.content-inner', 'body_background_color': '#ffffff', 'widget_alternate_text_color': '#999999'}, 'override': ''}}, {'name': 'view', 'data': {'classic': {'name': 'classic', 'url': '?view\75classic'}, 'flipcard': {'name': 'flipcard', 'url': '?view\75flipcard'}, 'magazine': {'name': 'magazine', 'url': '?view\75magazine'}, 'mosaic': {'name': 'mosaic', 'url': '?view\75mosaic'}, 'sidebar': {'name': 'sidebar', 'url': '?view\75sidebar'}, 'snapshot': {'name': 'snapshot', 'url': '?view\75snapshot'}, 'timeslide': {'name': 'timeslide', 'url': '?view\75timeslide'}}}]);
+_WidgetManager._RegisterWidget('_HTMLView', new _WidgetInfo('HTML2', 'crosscol', null, document.getElementById('HTML2'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_AttributionView', new _WidgetInfo('Attribution1', 'footer-3', null, document.getElementById('Attribution1'), {'attribution': 'Simple template. Powered by \74a href\75\47http://www.blogger.com\47 target\75\47_blank\47\76Blogger\74/a\76.'}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_HTMLView', new _WidgetInfo('HTML1', 'footer-1', null, document.getElementById('HTML1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_PlusOneView', new _WidgetInfo('PlusOne1', 'footer-1', null, document.getElementById('PlusOne1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_BlogArchiveView', new _WidgetInfo('BlogArchive1', 'footer-1', null, document.getElementById('BlogArchive1'), {'languageDirection': 'ltr'}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_ProfileView', new _WidgetInfo('Profile1', 'footer-1', null, document.getElementById('Profile1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_HeaderView', new _WidgetInfo('Header1', 'header', null, document.getElementById('Header1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_NavbarView', new _WidgetInfo('Navbar1', 'navbar', null, document.getElementById('Navbar1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_BlogView', new _WidgetInfo('Blog1', 'main', null, document.getElementById('Blog1'), {'cmtInteractionsEnabled': false, 'lightboxEnabled': true, 'lightboxModuleUrl': 'https://www.blogger.com/static/v1/jsbin/1938910137-lbx.js', 'lightboxCssUrl': 'https://www.blogger.com/static/v1/v-css/2392111094-lightbox_bundle.css'}, 'displayModeFull'));
+</script>
+</body>
+</html>

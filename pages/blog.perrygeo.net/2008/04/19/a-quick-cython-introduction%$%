@@ -1,0 +1,389 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>A quick Cython introduction</title>
+    
+    <meta name="author" content="Matthew Perry">
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/themes/twitter/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/themes/twitter/css/style.css?body=1" rel="stylesheet" type="text/css" media="all">
+
+    <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom.xml" />
+
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <div class="pull-right" style="padding-top: 15px;"><a href="atom.xml"><img src="/assets/img/feed.png" /></a> </div>
+          <a class="brand" href="/">Perrygeo</a>
+          <ul class="nav">
+              <!-- 
+              
+            
+            
+
+
+  
+    
+      
+      	
+      	<li><a href="/archive.html">Archive</a></li>
+      	
+      
+    
+  
+    
+  
+    
+      
+      	
+      	<li><a href="/pages.html">Pages</a></li>
+      	
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/tags.html">Tags</a></li>
+      	
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/categories.html">Categories</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+
+
+
+            -->
+            <li class="divider-vertical"></li>
+            <li><a href="/archive.html">Archive</a></li>
+            <li><a href="/pages.html">Pages</a></li>
+            <li><a href="/tags.html">Tags</a></li>
+            <li class="divider-vertical"></li>
+            <li><a href="/pages/about.html">About</a></li>
+            <li><a href="/pages/projects.html">Projects</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        
+<div class="page-header">
+    <h1>A quick Cython introduction </h1> <h1><small></small></h1>
+</div>
+
+<div class="row">
+  <div class="span10">
+    <div class="box"><p>I love python for its beautiful code and practicality. But it’s not going to win a <a href="http://shootout.alioth.debian.org/debian/benchmark.php?test=all&lang=python&lang2=gcc">pure speed race</a> with most languages. Most people think of speed and ease-of-use as polar opposites - probably because they remember the pain of writing C. <a href="http://www.cython.org/">Cython</a> tries to eliminate that duality and lets you have python syntax with C data types and functions - the best of both worlds. Keeping in mind that I’m by no means an expert at this, here are my notes based on my first real experiment with Cython:</p>
+
+<p>EDIT: Based on some feedback I’ve received there seems to be some confusion - Cython is for generating <em>C extensions to Python</em> not standalone programs. The whole point is to speed up an existing python app one function at a time. No rewriting the whole application in C or Lisp. No <a href="http://www.dalkescientific.com/writings/NBN/c_extensions.html">writing C extensions by hand</a>. Just an easy way to get C speed and C data types into your slow python functions.</p>
+<hr />
+<p>So lets say we want to make this function faster. It is the <a href="http://mathworld.wolfram.com/GreatCircle.html">“great circle” calculation</a>, a quick spherical trig problem to calculate distance along the earth’s surface between two points:</p>
+
+<p><em>p1.py</em></p>
+
+<pre><code>import math
+
+def great_circle(lon1,lat1,lon2,lat2):
+    radius = 3956 #miles
+    x = math.pi/180.0
+
+    a = (90.0-lat1)*(x)
+    b = (90.0-lat2)*(x)
+    theta = (lon2-lon1)*(x)
+    c = math.acos((math.cos(a)*math.cos(b)) +
+                  (math.sin(a)*math.sin(b)*math.cos(theta)))
+    return radius*c</code></pre>
+
+<p>Lets try it out and <a href="http://www.diveintopython.org/performance_tuning/timeit.html">time it</a> over 1/2 million function calls:</p>
+
+<pre><code>import timeit  
+
+lon1, lat1, lon2, lat2 = -72.345, 34.323, -61.823, 54.826
+num = 500000
+
+t = timeit.Timer(&quot;p1.great_circle(%f,%f,%f,%f)&quot; % (lon1,lat1,lon2,lat2), 
+                       &quot;import p1&quot;)
+print &quot;Pure python function&quot;, t.timeit(num), &quot;sec&quot;</code></pre>
+
+<p>About <strong>2.2 seconds</strong>. Too slow!</p>
+
+<p>Lets try a quick rewrite in Cython and see if that makes a difference: <em>c1.pyx</em></p>
+
+<pre><code>import math
+
+def great_circle(float lon1,float lat1,float lon2,float lat2):
+    cdef float radius = 3956.0 
+    cdef float pi = 3.14159265
+    cdef float x = pi/180.0
+    cdef float a,b,theta,c
+
+    a = (90.0-lat1)*(x)
+    b = (90.0-lat2)*(x)
+    theta = (lon2-lon1)*(x)
+    c = math.acos((math.cos(a)*math.cos(b)) + (math.sin(a)*math.sin(b)*math.cos(theta)))
+    return radius*c</code></pre>
+
+<p>Notice that we still <em>import math</em> - cython lets you mix and match python and C data types to some extent. The conversion is handled automatically though not without cost. In this example all we’ve done is define a <em>python</em> function, declare its input parameters to be floats, and declare a static C float data type for all the variables. It still uses the python math module to do the calcs.</p>
+
+<p>Now we need to convert this to C code and compile the python extension. The best way to do this is through a <a href="http://ldots.org/pyrex-guide/2-compiling.html#distutils">setup.py distutils script</a>. But we’ll do it the <a href="http://ldots.org/pyrex-guide/2-compiling.html#gcc">manual way</a> for now to see what’s happening:</p>
+
+<pre><code># this will create a c1.c file - the C source code to build a python extension
+cython c1.pyx
+
+# Compile the object file   
+gcc -c -fPIC -I/usr/include/python2.5/ c1.c
+
+# Link it into a shared library
+gcc -shared c1.o -o c1.so</code></pre>
+
+<p>Now you should have a c1.so (or .dll) file which can be imported in python. Lets give it a run:</p>
+
+<pre><code>    t = timeit.Timer(&quot;c1.great_circle(%f,%f,%f,%f)&quot; % (lon1,lat1,lon2,lat2), 
+                     &quot;import c1&quot;)
+    print &quot;Cython function (still using python math)&quot;, t.timeit(num), &quot;sec&quot;</code></pre>
+
+<p>About <strong>1.8 seconds</strong>. Not the kind of speedup we were hoping for but its a start. The bottleneck must be in the usage of the python math module. Lets use the C standard library trig functions instead:</p>
+
+<p><em>c2.pyx</em></p>
+
+<pre><code>cdef extern from &quot;math.h&quot;:
+    float cosf(float theta)
+    float sinf(float theta)
+    float acosf(float theta)
+
+def great_circle(float lon1,float lat1,float lon2,float lat2):
+    cdef float radius = 3956.0 
+    cdef float pi = 3.14159265
+    cdef float x = pi/180.0
+    cdef float a,b,theta,c
+
+    a = (90.0-lat1)*(x)
+    b = (90.0-lat2)*(x)
+    theta = (lon2-lon1)*(x)
+    c = acosf((cosf(a)*cosf(b)) + (sinf(a)*sinf(b)*cosf(theta)))
+    return radius*c</code></pre>
+
+<p>Instead of importing the math module, we use <em>cdef extern</em> which uses the C function declarations from the specified include header (in this case math.h from the C standard library). We’ve replaced the calls to some of the expensive python functions and are ready to build the new shared library and re-test:</p>
+
+<pre><code>    t = timeit.Timer(&quot;c2.great_circle(%f,%f,%f,%f)&quot; % (lon1,lat1,lon2,lat2), 
+                     &quot;import c2&quot;)
+    print &quot;Cython function (using trig function from math.h)&quot;, t.timeit(num), &quot;sec&quot;</code></pre>
+
+<p>Now that’s a bit more like it. ** 0.4 seconds ** - a 5x speed increase over the pure python function. What else can we do to speed things up? Well c2.great_circle() is still a python function which means that calling it incurs the overhead of the python API, constructing the argument tuple, etc. If we could write it as a pure C function, we might be able to speed things up a bit.</p>
+
+<p><em>c3.pyx</em></p>
+
+<pre><code>cdef extern from &quot;math.h&quot;:
+    float cosf(float theta)
+    float sinf(float theta)
+    float acosf(float theta)
+
+cdef float _great_circle(float lon1,float lat1,float lon2,float lat2):
+    cdef float radius = 3956.0 
+    cdef float pi = 3.14159265
+    cdef float x = pi/180.0
+    cdef float a,b,theta,c
+
+    a = (90.0-lat1)*(x)
+    b = (90.0-lat2)*(x)
+    theta = (lon2-lon1)*(x)
+    c = acosf((cosf(a)*cosf(b)) + (sinf(a)*sinf(b)*cosf(theta)))
+    return radius*c
+
+def great_circle(float lon1,float lat1,float lon2,float lat2,int num):
+    cdef int i
+    cdef float x
+    for i from 0 &lt; = i &lt; num:
+        x = _great_circle(lon1,lat1,lon2,lat2)
+    return x</code></pre>
+
+<p>Notice that we still have a python function wrapper (_def_) which takes an extra argument, num. The looping is done inside this function with <code>for i from 0 &lt; = i &lt; num:</code> instead of the more pythonic but slower <code>for i in range(num):</code>. The actual work is done in a C function (_cdef_) which returns float type. This runs in <strong>0.2 seconds</strong> - a 10x speed boost over the original python function.</p>
+
+<p>Just to confirm that we’re doing things optimally, lets write a little app in pure C and time it:</p>
+
+<pre><code>#include &lt;math .h&gt;
+#include &lt;stdio .h&gt;
+#define NUM 500000
+
+float great_circle(float lon1, float lat1, float lon2, float lat2){
+    float radius = 3956.0;
+    float pi = 3.14159265;
+    float x = pi/180.0;
+    float a,b,theta,c;
+
+    a = (90.0-lat1)*(x);
+    b = (90.0-lat2)*(x);
+    theta = (lon2-lon1)*(x);
+    c = acos((cos(a)*cos(b)) + (sin(a)*sin(b)*cos(theta)));
+    return radius*c;
+}
+
+int main() {
+    int i;
+    float x;
+    for (i=0; i &lt; = NUM; i++) 
+        x = great_circle(-72.345, 34.323, -61.823, 54.826);
+    printf(&quot;%f&quot;, x);
+}</code></pre>
+
+<p>Now compile it with <code>gcc -lm -o ctest ctest.c</code> and test it with <code>time ./ctest</code>… about <strong>0.2 seconds as well</strong>. This gives me confidence that my Cython extension is at least as efficient as my C code (which probably isn’t saying much as my C skills are weak).</p>
+<hr />
+<p>Some cases will be more or less optimal for cython depending on how much looping, number-crunching and python-function-calling are slowing you down. In some cases people have reported 100 to 1000x speed boosts. For other tasks it might not be so helpful. Before going crazy rewriting your python code in Cython, keep this in mind:</p>
+
+<blockquote>
+<p>“We should forget about small efficiencies, say about 97% of the time: premature optimization is the root of all evil.” – Donald Knuth</p>
+</blockquote>
+
+<p>In other words, write your program in python first and see if it works alright. Most of the time it will… some times it will bog down. Use a <a href="http://docs.python.org/lib/module-hotshot.html">profiler</a> to find the slow functions and re-implement them in cython and you should see a quick return on investment.</p>
+
+<p>Links: <a href="http://trac.gispython.org/projects/PCL/wiki/WorldMill">WorldMill</a> - a python module by Sean Gillies which uses Cython to provide a fast, clean python interface to the libgdal library for handling vector geospatial data.</p>
+
+<p><a href="http://www.sagemath.org:9001/WritingFastPyrexCode">Writing Fast Pyrex code</a> (Pyrex is the predecessor of Cython with similar goals and syntax)</p></div>
+    <hr>
+    <div class="pagination">
+      <ul>
+      
+        <li class="prev"><a href="/2008/04/15/spatial-data-in-sqlite" title="Spatial data in SQLite">&larr; Previous</a></li>
+      
+        <li><a href="/archive.html">Archive</a></li>
+      
+        <li class="next"><a href="/2008/04/21/hike-of-doom-2-ogc-kml" title="Hike of Doom #2- OGC KML">Next &rarr;</a></li>
+      
+      </ul>
+    </div>
+    <hr>
+    
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    
+    var disqus_shortname = 'perrygeo'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+  </div>
+  
+  <div class="span2">
+    <h4>Published</h4>
+    <div class="date"><span>19 April 2008</span></div>
+    <br />
+
+  
+    
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+    
+
+
+  
+     
+    	<li><a href="/tags.html#c-ref">c <span>1</span></a></li>
+     
+    	<li><a href="/tags.html#cython-ref">cython <span>1</span></a></li>
+     
+    	<li><a href="/tags.html#programming-ref">programming <span>1</span></a></li>
+     
+    	<li><a href="/tags.html#python-ref">python <span>7</span></a></li>
+    
+  
+
+
+
+    </ul>
+    
+
+
+  </div>
+</div>
+
+
+      </div>
+
+      <div class="container">
+      <footer>
+      <p>
+        &copy; Matthew Perry 2012  | 
+        <a href="https://github.com/perrygeo/perrygeo.github.com/tree/master/_posts">src</a> |
+        <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">license</a>
+      </p>
+      </footer>
+      </div>
+
+    </div> <!-- /container -->
+
+    
+
+
+  <script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-253206-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+  </body>
+</html>
+

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>casbon.me &middot; What will pypy do for your website?</title>
+        <link rel="shortcut icon" href="http://casbon.me/favicon.ico" />
+        <link href="http://casbon.me/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="casbon.me Atom Feed" />
+                
+        <link rel="stylesheet" href="http://casbon.me/theme/css/screen.css" type="text/css" />
+        <link rel="stylesheet" href="http://casbon.me/theme/css/pygments.css" type="text/css" />
+    </head>
+    <body>
+        <div id="header">
+            <ul id="nav">
+                <li><a href="http://casbon.me">Home</a></li>
+                <li><a href="http://casbon.me/archives.html">Archives</a></li>
+            </ul>
+            <div class="header_box">
+                <h1><a href="http://casbon.me">casbon.me</a></h1>
+                <h2>James Casbon's Blog</h2>
+            </div>
+        </div>
+        <a href="https://github.com/jamescasbon">
+<img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" />
+</a>
+        <div id="wrapper">
+            <div id="content">
+                <h4 class="date">Feb 21,  2012</h4>
+                <div class="post">
+                    <h2 class="title">
+                        <a href="http://casbon.me/what-will-pypy-do-for-your-website-benchmarki" rel="bookmark" title="Permanent Link to &quot;What will pypy do for your website?&quot;">What will pypy do for your website?</a>
+                    </h2>
+                    
+                    <p>There are currently quite a few different ways of developing a web application in python.&nbsp; When you add in how you deploy the application as well, there are even more choices.&nbsp; In terms of application frameworks, you have at least:</p>
+
+<ul>
+<li>Django</li>
+<li>twisted.web</li>
+<li>flask</li>
+<li>bottle</li>
+<li>cyclone</li>
+<li>tornado</li>
+<li>pyramid</li>
+</ul>
+
+<p>Then these can be run using many different servers, including:</p>
+
+<ul>
+<li>tornado</li>
+<li>twisted</li>
+<li>cyclone</li>
+<li>wsgiref</li>
+<li>rocket</li>
+<li>cherrypy</li>
+<li>gunicorn</li>
+<li>fapws</li>
+<li>google app engine</li>
+<li>gevent</li>
+</ul>
+
+<p>And many more.&nbsp; Typically, these take one of several approaches.&nbsp; Asynchronous either explicit (cyclone, tornado) or via monkey patch and event loop (gevent); threaded such as rocket, or written in C to use an event loop.&nbsp; In addition to this, you now have several different pythons for deployment:</p>
+
+<ul>
+<li>cpython </li>
+<li>jython</li>
+<li>pypy</li>
+</ul>
+
+<p>At some point, these servers are generally dealing with asynchronous event loops or using threading.&nbsp; The two approaches to handling this are either to program in a normal style (gevent) or to explicitly use event based programming (eg cyclone).&nbsp; The rise of javascript and node.js has seen event based programming becoming more mainstream.&nbsp; I wanted to find out which of these many combinations would perform best, and in particular what effect using pypy as the interpreter would have on the performance.</p>
+
+<p><strong>The benchmark</strong></p>
+
+<p>I created a fairly simple benchmark and implemented it across the different application styles.&nbsp; The benchmark creates one route which renders 'Hello world', a click counter stored by redis that we increase, and finally a static 2,000 character string that we retrieve from redis.&nbsp; I then run ab against the application for 10,000 requests for three replicates at different levels of concurrency (4, 16, 64, 256 connections).&nbsp; We take the stats for the requests per second and also the total request time averages, range and standard deviation.</p>
+
+<p>These were run on a linux box with the kernel 'Linux 2.6.41.4-1.fc15.x86_64 #1 SMP Tue Nov 29 11:53:48 UTC 2011 x86_64 x86_64 x86_64 GNU/Linux' and 24 core 'Intel(R) Xeon(R) CPU&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; X5675&nbsp; @ 3.07GH' (although only one core will be used for python) and 48Gb ram.&nbsp; The pythons used were 'Python 2.7.1' and 'Python 2.7.2, [PyPy 1.8.0 with GCC 4.4.6]'.</p>
+
+<p>You can run the benchmark by checking out <a href="https://github.com/jamescasbon/pypy-web-benchmarks">the repository</a> on github.&nbsp; If you know anything about the application styles, I would encourage you to take a look at the implementations in the servers directory.</p>
+
+<p>The versions used are:</p>
+
+<ul>
+<li>Flask==0.8</li>
+<li>Paste==1.7.5.1</li>
+<li>Rocket==1.2.4</li>
+<li>Twisted==12.0.0</li>
+<li>WebOb==1.2b3</li>
+<li>Werkzeug==0.8.3</li>
+<li>bottle==0.10.9</li>
+<li>bottle-redis==0.1</li>
+<li>cyclone==1.0-rc3</li>
+<li>distribute==0.6.24</li>
+<li>pyramid==1.3a8</li>
+<li>redis==2.4.11</li>
+<li>repoze.lru==0.4</li>
+<li>tornado==2.2</li>
+<li>gevent==1.0dev</li>
+<li>greenlet==0.3.4</li>
+<li>eventlet==0.9.16</li>
+<li>CherryPy==3.2.2</li>
+</ul>
+
+<p>I patched bottle-redis to use a connection queue and bottle to silence the logging when using gevent.&nbsp; Twisted needs C extensions disabled to install on pypy.</p>
+
+<p><strong>Results</strong></p>
+
+<p><em>JIT effect</em></p>
+
+<p>The first thing to notice is that pypy takes a little time to optmize the code.&nbsp; This plot shows the requests per second for each test in iterations 1, 2 and 3.&nbsp; Pypy is on the left (True) and cpython on the right (False).&nbsp; The vertical facet is by the concurrency.<img class="posterous_plugin_object posterous_plugin_object_image" src="http://getfile7.posterous.com/getfile/files.posterous.com/temp-2012-02-23/bmGaFmoDEaBqAGjrHIwctEpfeabsnHEaeutztuqpdHjdJxxiDwDDJnHzcEcz/jit-effect.png.thumb100.png?content_part=aaCDhogwbAdzqCsGmFbq" alt="" width="100" height="100" /></p>
+
+<p>You can clearly see the effect of the JIT. Cpython, on the right, has stable performance across all iterations.&nbsp; Pypy shows a marked improvement from the second iteration.</p>
+
+<p><em>Requests per second</em></p>
+
+<p>We now look at requests per second against concurrency across all combinations of application and server.&nbsp; Each box contains pypy and cpython lines, where available.&nbsp; These are from the third iteration, when the JIT compiler has done its work</p>
+
+<p><img class="posterous_plugin_object posterous_plugin_object_image" src="http://getfile3.posterous.com/getfile/files.posterous.com/temp-2012-02-23/oyJiczHyxdCdJwbgpffzzgbjoGoBizIBtauIJnotAorbFkJqDmDmhCtphBxo/rqs.png.thumb100.png?content_part=xDzhccdximrxsAdxugtb" alt="" width="100" height="100" /></p>
+
+<p>Looking at this, you can see a few things.&nbsp; <span style="text-decoration: line-through;">Twisted and</span> Cherrypy and paste are not really stable under increasing concurrency shown by the lines sloping to the right or incomplete lines (server failed).&nbsp; Gevent, tornado and cyclone are stable under loads and show fairly equivalent performance under cpython.&nbsp; Pypy introduces a 1.5-2x performance increase for almost all servers.</p>
+
+<p>Comparing the microframeworks, flask and bottle, bottle is always faster and really flies under tornado and gevent.&nbsp; Pyramid does the best and serves over 5,000 requests per second with tornado and pypy.&nbsp; Cyclone comes second under pypy with over 3,500 requests per second.&nbsp; However, I found the lack of performance increase over tornado and bottle slightly dissapointing, since cyclone is using an async redis connection.</p>
+
+<p><em>Response time</em></p>
+
+<p>Here we look at the average response time, its standard deviation, and the maximum response time.&nbsp; A very similar picture for all technologies: under increasing concurrency the response times degrade.</p>
+
+<p><img class="posterous_plugin_object posterous_plugin_object_image" src="http://getfile2.posterous.com/getfile/files.posterous.com/temp-2012-02-23/FwsagyymsgqhcnnygqsviuvDnudBClIjHJwdhFyGpczbDADlCBlrblklzllq/time.png.thumb100.png?content_part=hBDrHrchezHukbcegIfg" alt="" width="100" height="100" /></p>
+
+<p>No clear winner between pypy and cpython.</p>
+
+<p><strong>Conclusions</strong></p>
+
+<ul>
+<li>Gevent and tornado have excellent WSGI servers that can serve 1,000s of requests per second. </li>
+<li>Pypy can provide 1.5-2x performance, and this is available with tornado and cyclone but not gevent</li>
+<li>Explicit async code in cyclone did not provide a noticeable increase in performance over tornado, pyramid and bottle</li>
+<li>bottle outperforms flask and really flies with gevent and tornado</li>
+<li>pyramid is really fast with gevent and tornado</li>
+<li>threading approaches don't seem to match the other approaches here </li>
+<li>cherrypy seems to have problems with higher concurrencies</li>
+</ul>
+
+<p>Overall, I think this shows if you are really interested in performance you should take a good look at pypy.&nbsp; I have a lot of respect for the tornado code now, and would seriously consider it for future projects.&nbsp; Bottle is a very good microframework that outperforms flask.</p>
+
+<p><strong>Changes</strong></p>
+
+<p>23/2/12 Add cherrypy, eventlet, created common wsgi server code<strong>.&nbsp; </strong>Couldn't get eventlet to run stable under pypy (socket and RPy errors).<strong><br /></strong></p>
+
+                    <div class="clear"></div>
+                    <div class="info">
+                        <a href="http://casbon.me/what-will-pypy-do-for-your-website-benchmarki">posted at 10:20 am</a>&nbsp;&middot;&nbsp;<a href="http://casbon.me/category/python.html" rel="tag">Python</a>                        
+                        <div class="tags">
+                            <a href="http://casbon.me/tag/python.html">python</a>
+                            <a href="http://casbon.me/tag/postgresql.html">postgresql</a>
+                        </div>                        
+                    </div>
+                    <div class="clear"></div>
+
+
+
+                </div>
+        <div class="comments">
+      <h2>Comments !</h2>
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        var disqus_identifier = "what-will-pypy-do-for-your-website-benchmarki";
+        var disqus_url = "http://casbon.me/what-will-pypy-do-for-your-website-benchmarki";
+        (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://casbonme.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+    </div>
+    
+
+
+                <div class="clear"></div>
+                <div id="footer">
+                    <p>
+                    Mockingbird theme by <a href="http://nevanscott.com/">Nevan Scott</a>
+                    &middot;
+                    <a class="atom" href="http://casbon.me/feeds/all.atom.xml">Feed</a>
+                </div>
+            </div>
+            <div class="clear"></div>
+        </div>
+            <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-27713114-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+        <script type="text/javascript">
+    var disqus_shortname = 'casbonme';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+
+    </body>
+</html>

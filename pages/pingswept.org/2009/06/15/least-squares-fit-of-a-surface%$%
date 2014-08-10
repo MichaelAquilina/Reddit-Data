@@ -1,0 +1,238 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    
+  <title>pingswept.org: blogging since the end of time</title>
+
+<meta name="author" content="Brandon Stafford" />
+
+<link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="/feed" />
+<link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="/feed/atom" />
+<link rel='stylesheet' href='/css/pygments_monokai.css' type='text/css' />
+
+<link href="http://pingswept.org/atom.xml" rel="alternate" title="pingswept.org" type="application/atom+xml" />
+<link href="http://pingswept.org/rss.xml" rel="alternate" title="pingswept.org" type="application/rss+xml" />
+<link rel="stylesheet" href="http://pingswept.org/css/style.css" type="text/css" media="screen, projection" />
+
+
+  </head>
+  <body>
+    <div id="column">
+      
+  <div id="header">
+    <a href="/"><div id="title">pingswept.org: blogging since the end of time</div></a>
+    <div id="tagline">now with web 2.1</div>
+</div>
+
+
+      <div id="content">
+          
+
+<div class="blog_post">
+  <a name="Least squares fit of a surface to a 3D cloud of points in Python (with ridiculous application)" />
+  <h2 class="blog_post_title"><a href="/2009/06/15/least-squares-fit-of-a-surface-to-a-3d-cloud-of-points-in-python-(with-ridiculous-application)" rel="bookmark" title="Permanent Link to Least squares fit of a surface to a 3D cloud of points in Python (with ridiculous application)">Least squares fit of a surface to a 3D cloud of points in Python (with ridiculous application)</a></h2>
+  <small>June 15, 2009 | categories: 
+
+<a href='/category/python'>python</a>, <a href='/category/mathematics'>mathematics</a>, <a href='/category/estimation'>estimation</a>
+ | <a href="http://pingswept.org/2009/06/15/least-squares-fit-of-a-surface-to-a-3d-cloud-of-points-in-python-(with-ridiculous-application)#disqus_thread">View Comments</a>
+</small><p/>
+  <span class="post_prose">
+    
+  <p>The floor in the room above the kitchen in our house has a floor that slopes almost 1 inch per foot for half of the room. Experimentally, we have found that this is steep enough to make a desk chair rollâ kind of irritating, particularly to my special ladyfriend who happens to occupy such a chair in that zone.
+</p>
+<p>To compensate for the slope, I decided to fit a stack of masonite sheets to the curve of the floor. Unfortunately, the floor slopes nonlinearly in two directions, like the rounded corner of a swimming pool. After making a series of measurements of the floor, I decided to fit a polynomial in two variables to the cloud of points using a least squares estimate.
+</p>
+<p>(In retrospect, the floor was close enough to singly-curved that I could have gotten away with a linear fit.) The blue thing in the picture is a level. I shimmed the level until it was worthy of its name, and then measured the distance to the floor with calipers.
+</p>
+<p><a href="http://www.flickr.com/photos/pingswept/3453390885/"><img src="http://farm4.static.flickr.com/3603/3453390885_4727c27c5f.jpg" width="500" height="375" alt="Estimating the flatness of the floor" /></a>
+</p>
+<p><strong>Estimating the flatness of the floor</strong>
+</p>
+<p>Iâll recount the basics from my <a href="http://pingswept.org/2009/01/24/least-squares-polynomial-fitting-in-python/">earlier post</a> about least squares fitting in Python. Skip ahead to the next section if you read that already.
+</p>
+<p>As before, the first step is to arrange the equations in canonical form:
+   Ax=y
+   where:
+</p>
+<pre><code>* A is an M x N full rank matrix with M &gt; N (skinny)
+* x is a vector of length N
+* y is a vector of length M
+</code></pre><p>As matrices, this looks like
+   <img src="http://pingswept.org/images/equations/ax_equals_y.png" alt="Ax = y"/>
+</p>
+<p>In polynomial fitting, A is called the Vandermonde matrix and takes the form:
+   <img src="http://pingswept.org/images/equations/vandermonde_matrix.png" alt="Vandermonde matrix"/>
+</p>
+<p><strong>The 3D case</strong>
+</p>
+<p>In the 2D case, weâre trying to find polynomial in x such that f(x) approximates y. In the 3D case at hand, we have two independent variables, so weâre looking for a polynomial in x and y such that f(x, y) approximates z. Rather than the 2D case:
+</p>
+<img src="http://chart.apis.google.com/chart?cht=tx&chl=y = x_Nt^N %2B . . . %2B x_2 t^2 %2B x_1t %2B x_0">
+
+<p>we want the final output to look like this:
+</p>
+<img src="http://chart.apis.google.com/chart?cht=tx&chl=z = a_Nx^N %2B . . . %2B a_2 x^2 %2B a_1x %2B a_0 %2B b_Ny^N %2B . . . %2B b_2 y^2 %2B b_1y %2B b_0">
+
+<p>(Spike Curtis astutely notes in the comments that I am omitting the cross terms, such as xy, and refers us to a Matlab script. Spike is right, but the floorâs already fixed.)
+</p>
+<p>We can use two Vandermonde matrices next to each other.
+   <img src="http://pingswept.org/images/equations/vandermonde_ab_equals_z.png" alt="Vandermonde ab equals z"/>
+</p>
+<p>Hereâs the Python code that creates the two Vandermonde matrices and joins them into one matrix. x, y, and z are lists of corresponding coordinates, so, for example, x[5], y[5] and z[5] are the coordinates of one point that the surface should approximate. The order of the points is not important.
+</p>
+<div class="pygments_monokai"><pre>    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+     
+    <span class="n">z</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">1.345</span><span class="p">,</span> <span class="mf">1.865</span><span class="p">,</span> <span class="mf">2.225</span><span class="p">,</span> <span class="mf">2.590</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.719</span><span class="p">,</span> <span class="mf">1.405</span><span class="p">,</span> <span class="mf">1.978</span><span class="p">,</span> <span class="mf">2.398</span><span class="p">,</span> <span class="mf">2.730</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.789</span><span class="p">,</span> <span class="mf">1.474</span><span class="p">,</span> <span class="mf">2.064</span><span class="p">,</span> <span class="mf">2.472</span><span class="p">,</span> <span class="mf">2.775</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.763</span><span class="p">,</span> <span class="mf">1.453</span><span class="p">,</span> <span class="mf">1.968</span><span class="p">,</span> <span class="mf">2.356</span><span class="p">,</span> <span class="mf">2.649</span><span class="p">]</span>
+     
+    <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">36.0</span><span class="p">,</span> <span class="mf">48.0</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">36.0</span><span class="p">,</span> <span class="mf">48.0</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">36.0</span><span class="p">,</span> <span class="mf">48.0</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">36.0</span><span class="p">,</span> <span class="mf">48.0</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">]</span>
+     
+    <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">48.0</span><span class="p">,</span> <span class="mf">48.0</span><span class="p">,</span> <span class="mf">48.0</span><span class="p">,</span> <span class="mf">48.0</span><span class="p">,</span> <span class="mf">48.0</span><span class="p">,</span> <span class="mf">48.0</span><span class="p">,</span> <span class="mf">72.0</span><span class="p">,</span> <span class="mf">72.0</span><span class="p">,</span> <span class="mf">72.0</span><span class="p">,</span> <span class="mf">72.0</span><span class="p">,</span> <span class="mf">72.0</span><span class="p">,</span> <span class="mf">72.0</span><span class="p">]</span>
+     
+    <span class="n">degree</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">thickness</span> <span class="o">=</span> <span class="mf">0.167</span>
+     
+    <span class="c"># Set up the canonical least squares form</span>
+    <span class="n">Ax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vander</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
+    <span class="n">Ay</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vander</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">Ax</span><span class="p">,</span> <span class="n">Ay</span><span class="p">))</span>
+     
+    <span class="c"># Solve for a least squares estimate</span>
+    <span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">residuals</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">sing_vals</span><span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+     
+    <span class="c"># Extract coefficients and create polynomials in x and y</span>
+    <span class="n">xcoeffs</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">degree</span><span class="p">]</span>
+    <span class="n">ycoeffs</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="n">degree</span><span class="p">:</span><span class="mi">2</span> <span class="o">*</span> <span class="n">degree</span><span class="p">]</span>
+     
+    <span class="n">fx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">(</span><span class="n">xcoeffs</span><span class="p">)</span>
+    <span class="n">fy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">(</span><span class="n">ycoeffs</span><span class="p">)</span>
+</pre></div>
+
+<p>Once I knew the coefficients of the polynomial approximation, I could calculate the contours of the masonite. From a measurement of the stack of masonite, I knew the average thickness is 0.167 inches. (Thanks to Dr. Alex T. Tung, Ph.D., for helping me get the masonite home from Home Depot.) To find out where the first layer should end, I picked a series of stations spaced every 12 inches along the length of the floor in the y-direction. Along those stations, I solved f(x, y) = 0.167, f(x, y) = 2 * 0.167, f(x, y) = 3 * 0.167 and so forth.
+</p>
+<p>In practice, solving f(x, y) = c, where c is a constant, means finding the roots of the equation f(x, y) - c = 0. (The mathematicians call this solving the homogeneous equation.) In Python, the numpy.roots method solves the homogeneous case. For each contour/section crossing, I generated a polynomial of the form f(x, y) - c and solved it with numpy.roots.
+</p>
+<div class="pygments_monokai"><pre>    <span class="n">ystations</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+    <span class="n">sections</span> <span class="o">=</span> <span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">(</span><span class="n">xcoeffs</span> <span class="o">-</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">zoffset</span> <span class="o">-</span> <span class="n">fy</span><span class="p">(</span><span class="n">ypos</span><span class="p">)])</span> <span class="k">for</span> <span class="n">zoffset</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">thickness</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="n">thickness</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span> <span class="k">for</span> <span class="n">ypos</span> <span class="ow">in</span> <span class="n">ystations</span><span class="p">]</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">min</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">roots</span><span class="p">)</span> <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">list_of_fs</span><span class="p">]</span> <span class="k">for</span> <span class="n">list_of_fs</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">]</span>
+</pre></div>
+
+<p>For fabrication, I printed out a list of the locations where the masonite contours crossed the stations.
+</p>
+<div class="pygments_monokai"><pre>    <span class="k">for</span> <span class="p">(</span><span class="n">pt_list</span><span class="p">,</span> <span class="n">ystation</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">ystations</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">Boundaries at station y = {0} inches:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ystation</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;{0:.3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pt</span><span class="p">)</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">pt_list</span><span class="p">]))</span>
+</pre></div>
+
+<p>Armed with my list of measurements, I headed to the garage and set up some sawhorses with a sheet of plywood to keep the masonite from bowing and flopping around. It took a few hours of marking points and cutting gentle curves with a jigsaw, but the results were delightful.
+</p>
+<p><em>The masonite platform (non-impressive view)</em>
+</p>
+<p><a href="http://www.flickr.com/photos/pingswept/3627106741/"><img src="http://farm4.static.flickr.com/3401/3627106741_4ec24959d9.jpg" width="375" height="500" alt="The masonite platform (non-impressive view)" /></a>
+</p>
+<p><em>Level and gleeful</em>
+</p>
+<p><a href="http://www.flickr.com/photos/pingswept/3627929546/"><img src="http://farm4.static.flickr.com/3542/3627929546_c88a341a57.jpg" width="500" height="375" alt="Level and gleeful" /></a>
+</p>
+<p><em>Side view of the masonite platform</em>
+</p>
+<p><a href="http://www.flickr.com/photos/pingswept/3630614507/"><img src="http://farm4.static.flickr.com/3324/3630614507_79b7731799.jpg" width="500" height="375" alt="Side view of the masonite platform" /></a>
+</p>
+<p><em>Another side view of the masonite platform</em>
+</p>
+<p><a href="http://www.flickr.com/photos/pingswept/3631431316/"><img src="http://farm4.static.flickr.com/3646/3631431316_9bac95a888.jpg" width="500" height="375" alt="Another side view of the masonite platform" /></a>
+</p>
+<p>As you can see above, I havenât fastened the layers together yet. They seem to be sticking together reasonably well.
+</p>
+<p>In the end, I think the slope went from about a 2.75â³ drop across the 48â³ span, to within 1/8â³ of flat across the same distance. Sharon was delighted, and I found the whole project both more time-consuming and more satisfying than I expected.
+</p>
+
+  </span>
+</div>
+
+
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_url = "http://pingswept.org/2009/06/15/least-squares-fit-of-a-surface-to-a-3d-cloud-of-points-in-python-(with-ridiculous-application)";
+</script>
+<script type="text/javascript" src="http://disqus.com/forums/pingswept/embed.js"></script>
+<noscript><a href="http://pingswept.disqus.com/?url=ref">View the discussion thread.</a></noscript><a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+      </div> <!-- End Content -->
+      <div id="sidebar"> 
+          <ul> 
+              <li> 
+                  Static pages
+                  <ul> 
+                      <li><a href="http://pingswept.org/static/about.html">About</a></li> 
+                      <li><a href="http://pingswept.org/static/projects.html">Projects</a></li> 
+                      <li><a href="http://pingswept.org/static/commute-data.html">Commute data</a></li> 
+                      <li><a href="http://pingswept.org/static/pcb-checklist.html">PCB checklist</a></li> 
+                      <li><a href="http://pingswept.org/static/quotes-from-a-former-career.html">Quotes from a former career</a></li> 
+                      <li><a href="http://pingswept.org/static/the-four-commandments-of-github.html">The four commandments of Github</a></li> 
+                      <li><a href="http://pingswept.org/static/tools.html">Tools</a></li> 
+                      <li><a href="http://pingswept.org/files/xorgconf-for-xubuntu-on-g3-imac.txt">xorg.conf for Xubuntu on G3 iMac</a></li> 
+                  </ul> 
+              </li> 
+          </ul> 
+      </div> <!-- End Sidebar -->
+      <div id="footer">
+        
+  <p>
+    Brandon Stafford<br />
+    Renewable energy engineer at <a href="http://www.mysticriverengineering.com/">Mystic River Engineering</a><br />
+    brandon at pingswept.org
+</p>
+<p>
+    <a href="http://github.com/pingswept/">github.com/pingswept</a><br />
+    <a href="http://twitter.com/pingswept/">twitter.com/pingswept</a><br />
+    <a href="http://flickr.com/photos/pingswept/">flickr.com/photos/pingswept</a>
+</p>
+<a href="http://pingswept.org/atom.xml">
+<img src="/images/rss.png" alt="Subscribe to feed" />
+</a>
+<p id="credits">
+Powered by <a href="http://www.blogofile.com">Blogofile</a>.<br/>
+<br/>
+RSS feeds for <a href="/feed">Entries</a>
+ and <a
+href="http://pingswept.disqus.com/latest.rss">Comments</a>.
+<br>
+</p>
+<script type="text/javascript">
+//<![CDATA[
+(function() {
+		var links = document.getElementsByTagName('a');
+		var query = '?';
+		for(var i = 0; i < links.length; i++) {
+			if(links[i].href.indexOf('#disqus_thread') >= 0) {
+				query += 'url' + i + '=' + encodeURIComponent(links[i].href) + '&';
+			}
+		}
+		document.write('<script charset="utf-8" type="text/javascript" src="http://disqus.com/forums/pingswept/get_num_replies.js' + query + '"></' + 'script>');
+	})();
+//]]>
+</script>
+
+<script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+    var pageTracker = _gat._getTracker("UA-96134-2");
+    pageTracker._trackPageview();
+</script>
+
+      </div> <!-- End Footer -->
+    </div> <!-- End Column -->
+  </body>
+</html>
+
+
+
+

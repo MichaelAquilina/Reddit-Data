@@ -1,0 +1,2778 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if (!IE)]><!-->
+<html lang="en">
+<!--<![endif]-->
+
+<head>
+<meta charset="UTF-8" />
+<title>A brief, yet helpful, lesson on elementary resource-locking strategy | The Reinvigorated Programmer</title>
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="pingback" href="http://reprog.wordpress.com/xmlrpc.php" />
+<link rel="alternate" type="application/rss+xml" title="The Reinvigorated Programmer &raquo; Feed" href="http://reprog.wordpress.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Reinvigorated Programmer &raquo; Comments Feed" href="http://reprog.wordpress.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Reinvigorated Programmer &raquo; A brief, yet helpful, lesson on elementary resource-locking strategy Comments Feed" href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/feed/" />
+<script type="text/javascript">
+/* <![CDATA[ */
+function addLoadEvent(func){var oldonload=window.onload;if(typeof window.onload!='function'){window.onload=func;}else{window.onload=function(){oldonload();func();}}}
+/* ]]> */
+</script>
+<link rel='stylesheet' id='all-css-0' href='http://s0.wp.com/_static/??-eJyNUltOxDAMvBDBW6gQP4izpIk39a4TR42ram9P2goorIj4m4lmPH4ElmycJMWkEGeTeQ6UCjBdscAFNVt3NRt7dKU8wEE+sIRvg4SAXmY1Z2GWBRbyAfXOdMiYkK2iN1mK/mItm5MJ63vMVldFRE8WGWOVtWwxv3y6VjjWue5jdKx1CuR5WGMsU0IoemP8l5KS29VmyTVq9xAkUaq28gVabQYUw+KskqQfxJzZ0tTe53qRCgNU1YH+1fzYQ2AZLLeq7ncsW8kdmzCRNzb5+i9Kc+dHbxDxE1q/Tf8e37r+1Hfd0+vp+fIBzm3xRQ==' type='text/css' media='all' />
+<script type='text/javascript'>
+/* <![CDATA[ */
+var LoggedOutFollow = {"invalid_email":"Your subscription did not succeed, please try again with a valid email address."};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s2.wp.com/_static/??-eJyFkOsOwiAMhV/IymY08Y/xWXbpSJGbFFz06WVuGp3G/WoL3zmHInoPjbMRbRSKhXE1aYTEGCqZz4Bs59aKVyJzZBudWuQBVOeE4TqVRQAMyVBFXBuyT/gt1TuOBplz5I/bzyiyF8J+EVMYfdWcICDT7cu11k6C10mSZZF7ia1LETqntetFT63EONeY9FIE1HmZFoZ3z6Y/qtH28TljC3UyHqZ1juZQbotity83xUbdAeP9mKg='></script>
+<link rel='stylesheet' id='all-css-0' href='http://s2.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1377793621g' type='text/css' media='all' />
+<!--[if lt IE 8]>
+<link rel='stylesheet' id='highlander-comments-ie7-css'  href='http://s2.wp.com/wp-content/mu-plugins/highlander-comments/style-ie7.css?m=1351637563g&#038;ver=20110606' type='text/css' media='all' />
+<![endif]-->
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://reprog.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://reprog.wordpress.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='What is “simplicity” in programming?,&nbsp;redux' href='http://reprog.wordpress.com/2010/03/28/what-is-simplicity-in-programming-redux/' />
+<link rel='next' title='Today is Document Freedom&nbsp;Day!' href='http://reprog.wordpress.com/2010/03/31/today-is-document-freedom-day/' />
+<meta name="generator" content="WordPress.com" />
+<link rel='canonical' href='http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/' />
+<link rel='shortlink' href='http://wp.me/pPtWk-5g' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=json&amp;url=http%3A%2F%2Freprog.wordpress.com%2F2010%2F03%2F30%2Fa-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=xml&amp;url=http%3A%2F%2Freprog.wordpress.com%2F2010%2F03%2F30%2Fa-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="A brief, yet helpful, lesson on elementary resource-locking strategy" />
+<meta property="og:url" content="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/" />
+<meta property="og:description" content="Last night, Fiona and I sat down to eat my favourite light meal, spaghetti puttanesca.  I&#039;d grated some cheese to sprinkle on top, but when I&#039;d finished mixing the pasta in with the sauce I found t..." />
+<meta property="article:published_time" content="2010-03-30T08:50:51+00:00" />
+<meta property="article:modified_time" content="2010-05-11T13:32:04+00:00" />
+<meta property="article:author" content="http://reprog.wordpress.com/author/sauropoda/" />
+<meta property="og:site_name" content="The Reinvigorated Programmer" />
+<meta property="og:image" content="http://reprog.files.wordpress.com/2010/03/cheese_1292619c.jpg" />
+<meta property="og:image" content="http://reprog.files.wordpress.com/2010/03/spaghettiallaputtanesca500.jpg" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:image" content="http://reprog.files.wordpress.com/2010/03/spaghettiallaputtanesca500.jpg?w=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="fb:app_id" content="249643311490" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<link rel="shortcut icon" type="image/x-icon" href="http://s2.wp.com/i/favicon.ico?m=1311975824g" sizes="16x16 24x24 32x32 48x48" />
+<link rel="icon" type="image/x-icon" href="http://s2.wp.com/i/favicon.ico?m=1311975824g" sizes="16x16 24x24 32x32 48x48" />
+<link rel="apple-touch-icon-precomposed" href="http://s0.wp.com/i/webclip.png?m=1391188133g" />
+<link rel='openid.server' href='http://reprog.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='http://reprog.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="http://reprog.wordpress.com/osd.xml" title="The Reinvigorated Programmer" />
+<link rel="search" type="application/opensearchdescription+xml" href="http://wordpress.com/opensearch.xml" title="WordPress.com" />
+	<style type="text/css">.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>
+		<style type="text/css">
+			.recentcomments a {
+				display: inline !important;
+				padding: 0 !important;
+				margin: 0 !important;
+			}
+
+			table.recentcommentsavatartop img.avatar, table.recentcommentsavatarend img.avatar {
+				border: 0px;
+				margin: 0;
+			}
+
+			table.recentcommentsavatartop a, table.recentcommentsavatarend a {
+				border: 0px !important;
+				background-color: transparent !important;
+			}
+
+			td.recentcommentsavatarend, td.recentcommentsavatartop {
+				padding: 0px 0px 1px 0px;
+				margin: 0px;
+			}
+
+			td.recentcommentstextend {
+				border: none !important;
+				padding: 0px 0px 2px 10px;
+			}
+
+			.rtl td.recentcommentstextend {
+				padding: 0px 10px 2px 0px;
+			}
+
+			td.recentcommentstexttop {
+				border: none !important;
+				padding: 0px 0px 0px 10px;
+			}
+
+			.rtl td.recentcommentstexttop {
+				padding: 0px 10px 0px 0px;
+			}
+		</style>
+		<meta name="application-name" content="The Reinvigorated Programmer" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Everything except sauropod vertebrae" /><meta name="msapplication-task" content="name=Subscribe;action-uri=http://reprog.wordpress.com/feed/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico" /><meta name="title" content="A brief, yet helpful, lesson on elementary resource-locking strategy | The Reinvigorated Programmer on WordPress.com" />
+<meta name="description" content="Last night, Fiona and I sat down to eat my favourite light meal, spaghetti puttanesca.  I&#039;d grated some cheese to sprinkle on top, but when I&#039;d finished mixing the pasta in with the sauce I found that the cheese had GONE! Fiona had taken it down to the other end of the table, next to&hellip;" />
+
+<script type='text/javascript' src='//partner.googleadservices.com/gampad/google_service.js'>
+</script>
+<script type='text/javascript'>
+if ( typeof GS_googleAddAdSenseService == 'function' ) { GS_googleAddAdSenseService("ca-pub-3443918307802676"); }
+if ( typeof GS_googleEnableAllServices == 'function' ) { GS_googleEnableAllServices() };
+</script>
+<script type="text/javascript" src="//c.amazon-adsystem.com/aax2/amzn_ads.js"></script>
+<script type="text/javascript">
+try { amznads.getAds("3033","300x250"); } catch(e) { /* ignore */ }
+</script>
+<script type="text/javascript">
+var amznKeys = amznads.getKeys();
+if (typeof amznKeys != "undefined" && amznKeys != "") { for (var i =0; i < amznKeys.length; i++) { var key = amznKeys[i]; GA_googleAddAttr("amzn", key);} }
+document.close();
+</script>
+<script type='text/javascript'>
+if ( typeof GA_googleAddSlot == 'function' ) { GA_googleAddSlot("ca-pub-3443918307802676", "wpcom_below_post_adsafe"); }
+</script>
+<script type='text/javascript'>
+if ( typeof GA_googleFetchAds == 'function' ) { GA_googleFetchAds(); }
+</script>
+
+<script type="text/javascript">
+var wpcom_ads = { bid: 12269820, pt: 'permalink', wa: 0, as: 1, domain: 'reprog.wordpress.com', url: 'http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/', gid: '', };
+</script>
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+<script type="text/javascript">
+	window.google_analytics_uacct = "UA-52447-2";
+</script>
+
+<script type="text/javascript">
+	var _gaq = _gaq || [];
+	_gaq.push(['_setAccount', 'UA-52447-2']);
+	_gaq.push(['_setDomainName', 'wordpress.com']);
+	_gaq.push(['_initData']);
+	_gaq.push(['_trackPageview']);
+
+	(function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ga);
+	})();
+</script>
+</head>
+
+<body class="single single-post postid-326 single-format-standard mp6 two-column content-sidebar highlander-enabled highlander-light">
+<div id="container" class="hfeed contain">
+	<div id="header">
+		<div id="masthead" role="banner">
+						<div id="site-title">
+				<span>
+					<a href="http://reprog.wordpress.com/" title="The Reinvigorated Programmer" rel="home">The Reinvigorated Programmer</a>
+				</span>
+			</div>
+			<div id="site-description">Everything except sauropod vertebrae</div>
+		</div><!-- #masthead -->
+
+		<div id="access" role="navigation">
+		  			<div class="skip-link screen-reader-text"><a href="#content" title="Skip to content">Skip to content</a></div>
+						<div class="menu"><ul><li ><a href="http://reprog.wordpress.com/">Home</a></li><li class="page_item page-item-2"><a href="http://reprog.wordpress.com/about/">About</a></li><li class="page_item page-item-165"><a href="http://reprog.wordpress.com/free-software/">Free Software</a></li><li class="page_item page-item-1364"><a href="http://reprog.wordpress.com/doctor-who-series-5/"><i>Doctor Who</i> reviews</a></li><li class="page_item page-item-3475"><a href="http://reprog.wordpress.com/book/">My book: <i>The Eleventh&nbsp;Doctor</i></a></li></ul></div>
+		</div><!-- #access -->
+
+		<div id="branding">
+						<a href="http://reprog.wordpress.com/">
+									<img src="http://reprog.files.wordpress.com/2013/07/banner2.jpeg" width="990" height="180" alt="" />
+							</a>
+					</div><!-- #branding -->
+	</div><!-- #header -->
+
+	<div id="content-box">
+
+<div id="content-container">
+	<div id="content" role="main">
+
+	
+		<div id="nav-above" class="navigation">
+			<div class="nav-previous"><a href="http://reprog.wordpress.com/2010/03/28/what-is-simplicity-in-programming-redux/" rel="prev"><span class="meta-nav">&larr;</span> What is “simplicity” in programming?,&nbsp;redux</a></div>
+			<div class="nav-next"><a href="http://reprog.wordpress.com/2010/03/31/today-is-document-freedom-day/" rel="next">Today is Document Freedom&nbsp;Day! <span class="meta-nav">&rarr;</span></a></div>
+		</div><!-- #nav-above -->
+
+		<div id="post-326" class="post-326 post type-post status-publish format-standard hentry category-bad-habits category-domestic-bliss category-food-and-drink category-metablogging category-pasta">
+
+			
+			<h1 class="entry-title">A brief, yet helpful, lesson on elementary resource-locking strategy</h1>
+							<div class="entry-meta">
+					<span class="meta-prep meta-prep-author">Posted on</span> <a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/" title="8:50 am" rel="bookmark"><span class="entry-date">March 30, 2010</span></a> <span class="comments-link"><span class="meta-sep">|</span> <a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comments" title="Comment on A brief, yet helpful, lesson on elementary resource-locking strategy">94 Comments</a></span>
+									</div><!-- .entry-meta -->
+			
+			<div class="entry-content">
+				<p>Last night, Fiona and I sat down to eat my favourite light meal, <a href="http://www.miketaylor.org.uk/misc/recipes/putanesca.html">spaghetti puttanesca</a>.  I&#8217;d grated some cheese to sprinkle on top, but when I&#8217;d finished mixing the pasta in with the sauce I found that the cheese had GONE!</p>
+<p><a href="http://reprog.files.wordpress.com/2010/03/spaghettiallaputtanesca500.jpg"><img class="aligncenter size-medium wp-image-327" title="Spaghetti+alla+Puttanesca+500" src="http://reprog.files.wordpress.com/2010/03/spaghettiallaputtanesca500.jpg?w=300&#038;h=234" alt="" width="300" height="234" /></a>Fiona had taken it down to the other end of the table, next to her plate.  I asked if she&#8217;d finished with it, and it turned out that she HADN&#8217;T EVEN STARTED.  She&#8217;d just acquired the lock, then left the resource unavailable while she responded to a completely unrelated event.</p>
+<p><span id="more-326"></span>I explained to her that it&#8217;s an elementary principle of concurrent system design that you minimise your lock phases: acquire a resource, use it and release it as quickly as possible, so that the resource can be used by other agents.  But she gave me some dumb story about having had to get up to fetch drinks for the boys.  Then she said that I could have had the cheese back more quickly if I&#8217;d got up to help!</p>
+<p>I explained as politely as I could that separation of concerns is one of the most fundamental of all the principles of system design, and that for me to reschedule my own tasks and take on other agents&#8217; responsibilities would be a gross violation of encapsulation.  I explained that, instead, when she accepted the get-the-boys&#8217;-drinks interrupt, she should have relinquished her lock and passed the cheese back down to my end of the table before going swanning off off on the drinks mission.</p>
+<p>Sadly, she was COMPLETELY IRRATIONAL and started talking as though I was some kind of selfish jerk who just wanted the cheese.</p>
+<p>I tried to be sympathetic, but the bottom line is that she was wasting a valuable opportunity to BENEFIT FROM MY EXPERTISE and learn important architectural principles.  I just don&#8217;t understand women.</p>
+<p><a href="http://reprog.files.wordpress.com/2010/03/cheese_1292619c.jpg"><img class="aligncenter size-medium wp-image-328" title="PD*26802742" src="http://reprog.files.wordpress.com/2010/03/cheese_1292619c.jpg?w=300&#038;h=187" alt="" width="300" height="187" /></a></p>
+<p>&#8211;</p>
+<p>[By the way, I noticed yesterday that The Reinvigorated Programmer is now just over a month old.  Many thanks to all of you who have read, and especially commented on, these posts -- you're making this site what it is.  I hope you're very proud.]</p>
+<p>&#8211;</p>
+<h2>Update (later the same day)</h2>
+<p>Lots of <a href="http://www.reddit.com/r/programming/comments/bk40q/my_wife_has_no_idea_about_resource_acquisition/">discussion at Reddit</a>, but <a href="http://www.reddit.com/r/programming/comments/bk40q/my_wife_has_no_idea_about_resource_acquisition/c0n6aiy">this comment by egarland</a> is sheer gold &#8212; I LOLled, literally.  Amazingly, it seems this &#8220;Lite&#8221; post is <a href="http://reprog.files.wordpress.com/2010/03/2010-03-30-reddit-front-page.png">top of the Reddit front page</a> right now.</p>
+
+<div class="wpa" style="position: relative; width:300px; text-align: center; padding: 0; margin: 10px auto; overflow: hidden; clear: both;">
+<a style="position: absolute; text-align: left; display: block; font: 9px/1 sans-serif; text-decoration: underline;" href="http://en.wordpress.com/about-these-ads/" rel="nofollow">About these ads</a>
+<script type="text/javascript">
+		var wpcom_adclk_hovering = false;
+		var wpcom_adclk_recorded = false;
+		var wpcom_adclk_theme = "Coraline";
+		var wpcom_adclk_slot = "wpcom_below_post_adsafe";
+		var wpcom_adclk_network = ( typeof wpcom_adclk_network === "undefined" ) ? "" : wpcom_adclk_network ;
+
+		jQuery(document).ready( function() {
+			function wpcom_adclk_hover_yes() { wpcom_adclk_hovering = true; }
+			function wpcom_adclk_hover_no() { wpcom_adclk_hovering = false; }
+			jQuery(".wpa").click(wpcom_adclk_click);
+			jQuery(".wpa iframe").hover( wpcom_adclk_hover_yes, wpcom_adclk_hover_no );
+			jQuery(".wpa object").hover( wpcom_adclk_hover_yes, wpcom_adclk_hover_no );
+
+			jQuery(window).blur( function() {
+				if ( wpcom_adclk_hovering ) { wpcom_adclk_click(); }
+			});
+		});
+
+		function wpcom_adclk_impression() {
+			var stat_gif = document.location.protocol + "//stats.wordpress.com/g.gif?v=wpcom-no-pv";
+			stat_gif += "&x_ads_imp_theme=" + wpcom_adclk_theme;
+			stat_gif += "&x_ads_imp_placement="+wpcom_adclk_slot;
+			stat_gif += "&x_ads_imp_network=" + wpcom_adclk_network;
+			stat_gif += "&x_ads_imp_theme_network="+wpcom_adclk_theme+"_"+wpcom_adclk_network;
+			new Image().src = stat_gif + "&baba=" + Math.random();
+			return true;
+		}
+
+		function wpcom_adclk_click() {
+			if (wpcom_adclk_recorded) { return true; } // no double counting
+			var stat_gif = document.location.protocol + "//stats.wordpress.com/g.gif?v=wpcom-no-pv";
+			stat_gif += "&x_ads_click_theme=" + wpcom_adclk_theme;
+			stat_gif += "&x_ads_click_placement="+wpcom_adclk_slot;
+			stat_gif += "&x_ads_click_network=" + wpcom_adclk_network;
+			stat_gif += "&x_ads_click_theme_network="+wpcom_adclk_theme+"_"+wpcom_adclk_network;
+
+			new Image().src = stat_gif + "&baba=" + Math.random();
+			wpcom_adclk_recorded = true;
+			var now=new Date(); var end=now.getTime()+250;
+			while(true){now=new Date();if(now.getTime()>end){break;}}
+			return true;
+		}
+	
+if ( typeof GA_googleAddAttr == 'function' ) {
+GA_googleAddAttr("AdOpt", "1");
+GA_googleAddAttr("Origin", "other");
+GA_googleAddAttr("LangId", "1");
+GA_googleAddAttr("Domain", "reprog.wordpress.com");
+GA_googleAddAttr("BlogId", "12269820");
+GA_googleAddAttr("PageURL", "http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/");
+GA_googleAddAttr("AdSafe", "1");
+GA_googleAddAttr("Autotag", "food");
+GA_googleAddAttr("Tag", "bad-habits");
+GA_googleAddAttr("Tag", "domestic-bliss");
+GA_googleAddAttr("Tag", "food-and-drink");
+GA_googleAddAttr("Tag", "metablogging");
+GA_googleAddAttr("Tag", "pasta");
+GA_googleAddAttr("Partner", "AOL");
+GA_googleAddAttr("theme_bg", "ffffff");
+GA_googleAddAttr("theme_border", "cccccc");
+GA_googleAddAttr("theme_text", "333333");
+GA_googleAddAttr("theme_link", "0060ff");
+GA_googleAddAttr("theme_url", "df0000");
+GA_googleAddAdSensePageAttr("google_page_url", "http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/");
+GA_googleFillSlot("wpcom_below_post_adsafe");
+}
+</script>
+</div>
+<style type="text/css">
+div.wpa>div { margin-top: 1em; } #google_ads_div_wpcom_below_post_adsafe_ad_container { display: block !important; }
+</style>
+<script type="text/javascript">
+jQuery( window ).load( function() {
+    if ( jQuery(".wpa script[src*='virool.com']").length > 0 || jQuery(".wpa script[src*='shareth.ru']").length > 0 || jQuery(".wpa iframe[src*='boomvideo.tv']").length > 0 || jQuery(".wpa iframe[src*='viewablemedia.net']").length > 0 || jQuery(".wpa .sharethrough-placement").length > 0 ) {
+        jQuery( '.wpa' ).css( 'width', '400px' );
+    }
+setTimeout(function(){if(typeof GS_googleAddAdSenseService !== 'function'){new Image().src=document.location.protocol+"//stats.wordpress.com/g.gif?v=wpcom-no-pv&x_noads=adblock&baba="+Math.random()}},100);
+} );
+</script>
+<div id="jp-post-flair" class="sharedaddy sd-like-enabled"><div class='sharedaddy sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-unloaded' id='like-post-wrapper-12269820-326-53b321481f0d0' data-src='//widgets.wp.com/likes/#blog_id=12269820&amp;post_id=326&amp;origin=reprog.wordpress.com&amp;obj_id=12269820-326-53b321481f0d0' data-name='like-post-frame-12269820-326-53b321481f0d0'><h3 class='sd-title'>Like this:</h3><div class='likes-widget-placeholder post-likes-widget-placeholder' style='height:55px'><span class='button'><span>Like</span></span> <span class="loading">Loading...</span></div><span class='sd-text-color'></span><a class='sd-link-color'></a></div>
+<div id='jp-relatedposts' class='jp-relatedposts' >
+	<h3 class="jp-relatedposts-headline"><em>Related</em></h3>
+</div></div>							</div><!-- .entry-content -->
+
+			<div class="entry-info">
+							This entry was posted in <a href="http://reprog.wordpress.com/category/bad-habits/" rel="category tag">Bad habits</a>, <a href="http://reprog.wordpress.com/category/domestic-bliss/" rel="category tag">Domestic bliss</a>, <a href="http://reprog.wordpress.com/category/food-and-drink/" rel="category tag">Food and drink</a>, <a href="http://reprog.wordpress.com/category/metablogging/" rel="category tag">Metablogging</a>, <a href="http://reprog.wordpress.com/category/food-and-drink/pasta/" rel="category tag">Pasta</a>. Bookmark the <a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/" title="Permalink to A brief, yet helpful, lesson on elementary resource-locking strategy" rel="bookmark">permalink</a>.							</div><!-- .entry-info -->
+		</div><!-- #post-## -->
+
+		<div id="nav-below" class="navigation">
+			<div class="nav-previous"><a href="http://reprog.wordpress.com/2010/03/28/what-is-simplicity-in-programming-redux/" rel="prev"><span class="meta-nav">&larr;</span> What is “simplicity” in programming?,&nbsp;redux</a></div>
+			<div class="nav-next"><a href="http://reprog.wordpress.com/2010/03/31/today-is-document-freedom-day/" rel="next">Today is Document Freedom&nbsp;Day! <span class="meta-nav">&rarr;</span></a></div>
+		</div><!-- #nav-below -->
+
+		
+<div id="comments">
+
+	
+			<h3 id="comments-title">
+			94 responses to &ldquo;<span>A brief, yet helpful, lesson on elementary resource-locking strategy</span>&rdquo;		</h3>
+
+		
+		<ol class="commentlist">
+				<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-933">
+		<div id="comment-933">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/472178e8a2879672b4f1604371202db5?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://ilgattosilver.splinder.com/' rel='external nofollow' class='url'>ilgattosilver</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-933">
+				March 30, 2010 at 9:25 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>In the multi-core processor age, to have only ONE cup of cheese can be a real bottleneck&#8230;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-936">
+		<div id="comment-936">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/08267a1190c2d41afba0cf9db8211d0e?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://i.nt.ro' rel='external nofollow' class='url'>Joseph Le Brech</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-936">
+				March 30, 2010 at 10:53 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>You should have grated your cheese onto two plates, mate.</p>
+<p>This would be like multithreading.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-937">
+		<div id="comment-937">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/40a3ea66b48c1e228b81c02caa058726?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Jonix</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-937">
+				March 30, 2010 at 11:03 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>A classical example of multi-threaded starvation. </p>
+<p>I just hope you are still coupled with the other agent.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://SarcasticDeveloper.com/2010/03/30/uncategorized/grated-cheese-is-not-thread-safe/' rel='external nofollow' class='url'>Sarcastic Developer &raquo; Blog Archive &raquo; Grated cheese is not thread safe.</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-941">
+		<div id="comment-941">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/0bb4ab97f9ea71543c41c9bee4939b92?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Mark</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-941">
+				March 30, 2010 at 11:47 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Hilarious!! Exactly the thoughts that go through my head in real life.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-942">
+		<div id="comment-942">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/24db25a514cca237098febc931d0bf09?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.github.com/chriswebstar' rel='external nofollow' class='url'>Chris Webstar</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-942">
+				March 30, 2010 at 11:51 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>One of the best IT blogs I&#8217;ve ever read. Keep up the good work ;)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-943">
+		<div id="comment-943">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6d50c7934547d6032e642b8eb74e89c6?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Findlers McGiven</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-943">
+				March 30, 2010 at 11:54 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Fabulous.  I&#8217;ve had a crappy day but that&#8217;s just made me smile :)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-mafr even thread-even depth-1 highlander-comment" id="li-comment-944">
+		<div id="comment-944">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/59c9677a3b9569af44561adab6c2a980?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://unmaintainable.wordpress.com/' rel='external nofollow' class='url'>mafr</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-944">
+				March 30, 2010 at 12:22 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I&#8217;m always surprised with how little system design knowledge people expect to get through life :)</p>
+<p>A (technically) acceptable solution would have been preemption: time slots for the cheese. I&#8217;d be interested in a lessons learned posting after implementation :)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-945">
+		<div id="comment-945">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/bac97a8a080201d0feac0dab26f81138?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Colin</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-945">
+				March 30, 2010 at 12:25 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I&#8217;m just glad you didn&#8217;t have a deadlock because you were holding the grater and she had the cheese.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-946">
+		<div id="comment-946">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/86e35b1186624015a9d0d47b515a48e7?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://donorcycle.blogspot.com' rel='external nofollow' class='url'>Susan</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-946">
+				March 30, 2010 at 12:40 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>You have summed up the difference between the sexes in one hilarious blog post.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://ok-cleek.com/blogs/?p=8515' rel='external nofollow' class='url'>cleek &raquo; A brief, yet helpful, lesson on elementary resource-locking strategy</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-948">
+		<div id="comment-948">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/b270b861279079dd268baa6cde5f3941?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Al Brown</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-948">
+				March 30, 2010 at 1:07 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>ha ha. awesome.  </p>
+<p>maybe you can write some cool script that will totally get this agent under control.  or get you killed :-)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-949">
+		<div id="comment-949">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/b2d9894abe5049a06eefe963ad13fecd?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">John</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-949">
+				March 30, 2010 at 1:08 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>You failed to realize that two little viruses have entered your system and will attempt to consume all the available resources regardless of priority or purpose.  She is not irrational, she&#8217;s just been reprogrammed by the viruses.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-950">
+		<div id="comment-950">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/84d5175ef6e9cdf864c7b357907639c1?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Carlos Azevedo</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-950">
+				March 30, 2010 at 1:11 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>That situation sounds like a Dilbert comic strip.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-953">
+		<div id="comment-953">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/2d272fa18493ffd50f11a75100f4f8ef?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://domain.com' rel='external nofollow' class='url'>fake</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-953">
+				March 30, 2010 at 1:38 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>dyin&#8217; over here&#8230;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-959">
+		<div id="comment-959">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/a082d1ea7d520325bdd7a92b291213a5?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Patrick</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-959">
+				March 30, 2010 at 2:19 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>This is why we have to cheese grinders. We can&#8217;t get stuck behind the other. Our kitchen has vast storage capacity so we just throw more resources at the problem. No need for optimization.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-960">
+		<div id="comment-960">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/4758dbe559190af45e4cfc3b4fe2401a?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://Noneyet' rel='external nofollow' class='url'>Another Mark</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-960">
+				March 30, 2010 at 2:19 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Win! Wow that was funny.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-964">
+		<div id="comment-964">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/a75904fde646d1b9111eb32ea8f40ef3?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://mega-tokyo.com/blog' rel='external nofollow' class='url'>Stu</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-964">
+				March 30, 2010 at 2:32 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>hahah. no fighting over the last black olive!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-968">
+		<div id="comment-968">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/1793c5f254549333d738bb4ff4e6edd6?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.iloveplanes.com/' rel='external nofollow' class='url'>Rafael Marquez</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-968">
+				March 30, 2010 at 2:34 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>That was funny. The multithreading comment was the best.</p>
+<p>Rafael</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-973">
+		<div id="comment-973">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/3afd9de53c7b6e17703be3cc1de62f14?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://metacosm.com' rel='external nofollow' class='url'>rand0mmm</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-973">
+				March 30, 2010 at 2:57 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>YES! Reinvogorated me for sure. In similar fashion I have attempted to explain the efficiency of using the kitchen sink as a dirty dish buffer. The distance from the water heater to the sink is enough that warming the pipes is a significant energy investment, not to mention that the interrupt priority of such tasks is significantly lower than servicing my dinner partners post-prandial demands.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-974">
+		<div id="comment-974">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/91a008c6306afac5d9002b840525f632?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://maxmaclaren.blogspot.com' rel='external nofollow' class='url'>Max Maclaren</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-974">
+				March 30, 2010 at 3:18 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I think you underestimate your wife.  Clearly all of your processes were waiting on that lock. Had your own system been designed more like your wifes, you could have engaged in a creative disentanglement of resources, offering your own (currently unused) processing capabilities to any process that claimed priority on the locked resource you needed.  For instance, had your wife said &#8220;I cannot release the lock on the only current instance of the cheese object until I run Kitchen.fetch(drinks, boys)&#8221; You could have run your own fetch routine, possibly at the same time as hers, resulting in the boys getting two resulting drink sets and you getting your cheese lock back while in the middle of that process. Or you could have gone to the kitchen and gotten a second cheese plate, created your own instance of the object she had a lock on, and completed your dinner long before she even had a chance to start on hers, freeing you up to process the garbage collection routine on all dinner objects. And by that I mean do the washing up.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-sauropoda bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-975">
+		<div id="comment-975">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/22e75aceafe54758fc84f162387bb77b?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.miketaylor.org.uk/dino/pubs/' rel='external nofollow' class='url'>Mike Taylor</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-975">
+				March 30, 2010 at 3:32 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Max, you have a point; but I think that at this stage the boys are old enough that we should be invoking:</p>
+<p><code>%w(dan matt jonno).each { |boy| boy.get_your_own_darned_drink }<br />
+</code><br />
+rather than the legacy implementation:</p>
+<p><code>%w(dan matt jonno).each { |boy| mum.get_drink_for(boy) }<br />
+</code></p>
+<p>Bonus observation: the new algorithm also works in lame languages without closures.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-977">
+		<div id="comment-977">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/e494482f74c89a87508ab42307c4ceae?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Anis Khan</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-977">
+				March 30, 2010 at 4:34 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Women are still living in single tasking operating system (probably still on DOS) :-)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-978">
+		<div id="comment-978">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/5cfab5cf61d2cda78b92bdc44b626d7c?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Fiona</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-978">
+				March 30, 2010 at 4:40 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>OK, firstly, I&#8217;m NOT irrational.<br />
+Secondly, Mike should just get over it, already.<br />
+Thirdly, what on earth is multi-threading?<br />
+Fourthly, we need to talk.<br />
+(Posted by Mike&#8217;s wife).</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-979">
+		<div id="comment-979">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/f10c01097ba4529875c2d22f0710f903?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.endswithsaurus.com/' rel='external nofollow' class='url'>BenAlabaster</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-979">
+				March 30, 2010 at 4:40 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I&#8217;d have solved the problem like I do with all the other problems I have &#8211; by grating the cheese right onto everyone&#8217;s dinner &#8211; simple, saves washing up.  You grate the same amount of cheese &#8211; less in fact, because you only grate the right amount, you don&#8217;t feel obligated to eat the left over cheese rather than waste a sandwich bag to preserve it or throw it out.  It&#8217;s also a pre-emptively strike against the wife holding the cheese hostage to lecture you about not following the principle of &#8216;many hands makes light work&#8217;.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-981">
+		<div id="comment-981">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/f40f8ec83f2c377398f349699ea8e1f8?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Bernd</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-981">
+				March 30, 2010 at 5:09 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Max, you will never understand that you HAVE to acquire a lock regardless of your needs, just because it&#8217;s on sale. Where do you gonna sleep tonight? On the couch??</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-985">
+		<div id="comment-985">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/1f3083754b79e77c7d06f353c2f7cbd9?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.mostlymaths.net' rel='external nofollow' class='url'>Ruben Berenguel</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-985">
+				March 30, 2010 at 5:35 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Glad you made it to the front page. In fact it is quite a nice and funny post what you made. Congrats!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-sauropoda bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-988">
+		<div id="comment-988">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/22e75aceafe54758fc84f162387bb77b?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.miketaylor.org.uk/dino/pubs/' rel='external nofollow' class='url'>Mike Taylor</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-988">
+				March 30, 2010 at 5:54 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Wait, BenAlabaster &#8212; you solve ALL your problems by grating cheese right onto everyone&#8217;s dinner?  Does that work?  It&#8217;s am amazing breakthrough if it does.  We need to get you involved in the Middle-East peace process, stat.  Also, maybe you could sort out the USA&#8217;s heath-care issues.  By, you know, grating cheese directly onto everyone&#8217;s dinner.  I mean, it&#8217;s gotta help, right?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-992">
+		<div id="comment-992">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6fd946e69b7b426bb98c4690847458e0?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Nathan Lasseter</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-992">
+				March 30, 2010 at 6:39 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Gee, I do love a good critical section.<br />
+Maybe you could have used the Bankers algorithm to determine a safe way to allocate the resource?<br />
+=]</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-993">
+		<div id="comment-993">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/75a974738bee02bad85a352cafe75c05?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Ben</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-993">
+				March 30, 2010 at 6:41 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>puttanesca should never be served with cheese.  It has fish in it.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-994">
+		<div id="comment-994">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/e8fe64ce521373100a4a3cf6396255fb?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Garret</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-994">
+				March 30, 2010 at 6:42 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>haha!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-995">
+		<div id="comment-995">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c98773e8a852b1e8268dccad46c1fc29?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://dorkage.net' rel='external nofollow' class='url'>Colleen Dick</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-995">
+				March 30, 2010 at 6:45 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>To Fiona (Mike&#8217;s wife),</p>
+<p>Just because he SAYS you are irrational doesn&#8217;t mean you are.   He&#8217;s just not privvy to all aspects of your software.  Like the untrained user who thinks his computer is acting crazy, but to  the IT guy who completely understands it it&#8217;s completely logical.  </p>
+<p>Mike&#8217;s over it.  He&#8217;s just having fun now.  </p>
+<p>You *DO* know what multi-threading is,  but maybe not by that name.  With two young boys you do more of it every day than he could hope to do in a lifetime.  </p>
+<p>Talking probably won&#8217;t help.  ;)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://www.boschmans.net/2010/03/30/understanding-resource-locking/' rel='external nofollow' class='url'>The Boschmans Account &raquo; Blog Archive &raquo; Understanding Resource Locking&#8230;</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-998">
+		<div id="comment-998">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/753e31caadeb0046cfdb03237b93f798?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://twitter.com/DasbootMaguire' rel='external nofollow' class='url'>Sean Maguire</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-998">
+				March 30, 2010 at 7:26 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>brother you are preaching to the choir. Ever since I was a child, I have been irritated by the actions of my sister, who would have the butter in front of her when I ask her to pass it to me. Instead of passing it to me in a polite, timely fashion, she would make me wait until she had finished what ever she was doing, served herself butter, then pass it to me.</p>
+<p>All the while I sit waiting for her to get done with her own singular processes and am allowed to finally serve myself butter.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-999">
+		<div id="comment-999">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/3cd1a8977daac75524b3019aab4b76fc?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">David King</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-999">
+				March 30, 2010 at 7:30 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Sounds like you need better fine-grated locking</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1002">
+		<div id="comment-1002">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/58b4b61d4ca35199768de694f5d3e5bd?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">V</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1002">
+				March 30, 2010 at 9:16 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Unlock this situation by attaining and pursuing to be inebriated by some grape fermented liquid derived from the hillsides of Le France to enhance this cheese dilemma your currently experiencing. Studies show, that this quick commercialized remedy shall render the female homo-sapient from any further inhibitions to comply with your conjectures on this web page of your personal needs to acquire some cheese. Speed is of the essence mon frere&#8230; furthermore, zee super fantastic mega-blockbuster action-hero Arnold Schwarzenegger just interjected with an  infamous quote of his, &#8220;I&#8217;m here! Do it NOW!!!&#8221;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1003">
+		<div id="comment-1003">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/f55dcbbff96524a9fb9a8ba905a8b5af?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">patrick</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1003">
+				March 30, 2010 at 9:17 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>You sound like a couple of dining philosophers!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1006">
+		<div id="comment-1006">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/13173c42d06ea0cb1cf671f8497cd518?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Seth Hodgson</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1006">
+				March 30, 2010 at 10:39 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Cheese Convoys!!!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1007">
+		<div id="comment-1007">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/79891a6015572bf85f4243bdc1e81029?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://awsm.komm' rel='external nofollow' class='url'>mary</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1007">
+				March 30, 2010 at 10:49 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>unfortunately in today&#8217;s world being a programmer is an excuse to act like a Dick.<br />
+good people make concessions and<br />
+Dicks Are Dicks.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1008">
+		<div id="comment-1008">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/49cffb0c8c3abe79d8c1d32734bd69c6?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Stacey Becker</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1008">
+				March 30, 2010 at 10:55 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>For Fiona (and other wives in the wonderful world of IT.)</p>
+<p><a href="http://hubpages.com/hub/What-to-Expect-When-You-Marry-an-IT-Nerd" rel="nofollow">http://hubpages.com/hub/What-to-Expect-When-You-Marry-an-IT-Nerd</a></p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1009">
+		<div id="comment-1009">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/e6b8e8626b366efaaabea32e3d962c4c?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.ninjacracker.com' rel='external nofollow' class='url'>otaku13</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1009">
+				March 30, 2010 at 11:03 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>@ Joseph Le Brech<br />
+If he had grated cheese onto two plates that wouldn&#8217;t have been multithreading, it would have been multiSHREDDING…<br />
+::hides from the pun retaliation::</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://botd.wordpress.com/2010/03/31/top-posts-1432/' rel='external nofollow' class='url'>Top Posts &#8212; WordPress.com</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1012">
+		<div id="comment-1012">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/292e4984bb764a41d326fa4f9848428d?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Fred Fnord</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1012">
+				March 31, 2010 at 12:07 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I&#8217;ve seen this type of problem a lot in spaghetti code.</p>
+<p>-fred</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://blogs.howstuffworks.com/2010/03/30/interesting-reading-455/' rel='external nofollow' class='url'>Interesting Reading #455 &#8211; China preparing to bomb aircraft carriers, Amazing Boeing wing test, Fatty foods may be addictive, best free software, Nvidia&#8217;s problem and much more&#8230; &#8211; The Blogs at HowStuffWorks</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1014">
+		<div id="comment-1014">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/15869f261649a2f43304dc29f16c4208?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Tatts</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1014">
+				March 31, 2010 at 12:25 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>cough..cough&#8230;semaphore&#8230;cough</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1015">
+		<div id="comment-1015">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/564de8a252e84135648bfdb9826945d6?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Ace</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1015">
+				March 31, 2010 at 1:23 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I believe use of two plates would be an inefficient use of resources, leading to increased burden on cleanup routines and the garbage collector.</p>
+<p>Perhaps a shared lock may have more efficient. It might have meant moving the two competing processes into the same session to help with inter-process communication, although I would agree this could lead to memory (table) contention, and a potential deadlock. Yike.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1017">
+		<div id="comment-1017">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/15888105e7c482e7d509529a2cebff71?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Don</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1017">
+				March 31, 2010 at 1:39 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>If I had tried that explanation on my wife (who does understands systems engineering, yet also has to get drinks for our boys), she woulda clocked me, and it would have megahurtzd.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1018">
+		<div id="comment-1018">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/4f810554691feff0ad5368cf8ffaf562?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Marius</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1018">
+				March 31, 2010 at 3:05 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I think reading this actually made me a little smarter.  Can anyone use the aquiring a lock concept in a more programming related example to help me understand it a bit better?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1020">
+		<div id="comment-1020">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6f3eef80ef9f44f755f1eea287dc058e?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.snuggiecult.com' rel='external nofollow' class='url'>Snuggie Pattern Pat</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1020">
+				March 31, 2010 at 4:51 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Does the processing speed of your meals double every 18 months or so?</p>
+<p>LOAD&#8221;*&#8221;,8,1</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1021">
+		<div id="comment-1021">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/3eda6fcd3204ef285fa52176c28c4d3e?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://none.com' rel='external nofollow' class='url'>k</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1021">
+				March 31, 2010 at 5:12 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Your complimentary marital unit is operating at less than operational reliability.</p>
+<p>My guess is that she got sick of your geek-speak.</p>
+<p>There is a another possibility, which is she does not care about you, i.e. does not love you.  In which case you might as well get divorced.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1024">
+		<div id="comment-1024">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/865a2ecf364b5eb0e07c48395b6e040d?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Hilton</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1024">
+				March 31, 2010 at 6:43 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Hilarious! My twisted sense of humour considers this the absolute best post on this blog yet. More like this!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1025">
+		<div id="comment-1025">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/7c99b0d72a58c0539022bdadd887f167?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">abc</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1025">
+				March 31, 2010 at 6:43 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>You should have just grabbed the cheese and used it hoping she wouldn&#8217;t look back. Locks only slow you down.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://steve.mouf.net/blog/2010/03/31/twitter-updates-for-2010-03-31/' rel='external nofollow' class='url'>Steve Wills&#8217; Weblog &raquo; Blog Archive &raquo; Twitter Updates for 2010-03-31</a></p>
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://www.ultralord.za.net/2010/03/31/elementary-resource-locking-explained-via-dinner-example/' rel='external nofollow' class='url'>Elementary Resource Locking explained via Dinner example &laquo; Ultra&#39;s Brain dump</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-sauropoda bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1029">
+		<div id="comment-1029">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/22e75aceafe54758fc84f162387bb77b?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.miketaylor.org.uk/dino/pubs/' rel='external nofollow' class='url'>Mike Taylor</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1029">
+				March 31, 2010 at 9:21 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Don&#8217;t worry, k, your concerns are unfounded.  We&#8217;ve been happily married for 17 years; there mere fact that she was COMPLETELY IRRATIONAL about some cheese and REFUSED TO LEARN what could have been a VALUABLE LESSON is not going to change that.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1030">
+		<div id="comment-1030">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/1f14f3f82b207f94389e1ab4db3c8929?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">klang</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1030">
+				March 31, 2010 at 10:21 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Dining philosophers, locked by cheese!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1031">
+		<div id="comment-1031">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/a3236ca994e9238651b7289d5153a655?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">BobbyG</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1031">
+				March 31, 2010 at 11:28 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>You forgot the rules engine! Women are always right,  especially wives. Yes dear. And no, you don&#8217;t look fat in that. Even after the cheese.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1033">
+		<div id="comment-1033">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/b3dbb188c157414d14e7ee216050e8e3?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Imran Kazmi</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1033">
+				March 31, 2010 at 11:44 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>An excellent example.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1045">
+		<div id="comment-1045">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/af0a5e968fba145d69454b8924c4f353?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Funkmyster</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1045">
+				March 31, 2010 at 3:02 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I hate it when my single threaded db client freezes because it thinks it has to wait for my multi-threaded MySQL Server to return a row set&#8230;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1046">
+		<div id="comment-1046">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/af0a5e968fba145d69454b8924c4f353?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Funkmyster</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1046">
+				March 31, 2010 at 3:15 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>It&#8217;s like a single threaded web browser freezing while Apache has to deal with child processes&#8230;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://www.chipsquips.com/?p=2320' rel='external nofollow' class='url'>Chipping the web: March 31st -- Chip&#39;s Quips</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1058">
+		<div id="comment-1058">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/efb80b4d43036781d5d03f5eafb35f20?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Fred</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1058">
+				March 31, 2010 at 7:00 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Thread 1 needs the following logic inserted in his code.</p>
+<p>IF<br />
+lockholderThreadTimeToResourceUse &gt; myTimeToSneakResourceAndPutBack</p>
+<p>THEN<br />
+get lazy ass out of chair;<br />
+walk to other end of table;<br />
+grab cheese;<br />
+walk to own plate;<br />
+use cheese;<br />
+walk back to thread2 plate;<br />
+replace cheese;</p>
+<p>also</p>
+<p>IF marriage = good<br />
+++flexibility<br />
+ELSE<br />
+complain in a cute way with futile hope real emotions aren&#8217;t blindingly obvious through the cute</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1059">
+		<div id="comment-1059">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/2dbd32f71a0a95b1b9415d181c3df44c?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">mohit</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1059">
+				March 31, 2010 at 7:37 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Haha.. gud one.. where were u when i was learning how to program!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1061">
+		<div id="comment-1061">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/f19e65846a146d1fbe42f7ece28c44d5?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">helfri82</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1061">
+				March 31, 2010 at 7:55 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>LOL! What a &#8220;grate&#8221; story.</p>
+<p>I don&#8217;t know about the rest of you, but under the heading of &#8220;A happy wife means a happy life&#8221;, my wife has taught me that the most important things a husband can learn to say are:</p>
+<p>1. Yes, ma&#8217;am.<br />
+2. I&#8217;m sorry, ma&#8217;am.  I&#8217;ll never do it again.<br />
+3. Right away, ma&#8217;am.</p>
+<p>I think you&#8217;re up for a #2.   ;-)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-sauropoda bypostauthor even thread-even depth-1 highlander-comment" id="li-comment-1062">
+		<div id="comment-1062">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/22e75aceafe54758fc84f162387bb77b?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.miketaylor.org.uk/dino/pubs/' rel='external nofollow' class='url'>Mike Taylor</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1062">
+				March 31, 2010 at 8:38 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Fred, I am genuinely interested in what Real Emotions you think you detected.  Do tell.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1064">
+		<div id="comment-1064">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/5e02ac7c560afe428569a545048ca1b1?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">charlie</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1064">
+				March 31, 2010 at 9:11 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Very funny and very memorable. You can bet hundreds of computer science profs will add this story to their lectures on locks.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1083">
+		<div id="comment-1083">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/84130c1df46a376850e5f2f6acf22614?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Anna</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1083">
+				April 1, 2010 at 10:11 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>This is why I tell my guy friends they should stick to geek girls. They come with pre-optimized routines!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://ortimes.org/2010/04/02/geek-humor/' rel='external nofollow' class='url'>Geek humor&#8230; &laquo; Healthcare Systems Engineering and Analysis</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1111">
+		<div id="comment-1111">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/ff75d7a485cd3bc4d6fd5954430071b0?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">bernerbits</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1111">
+				April 2, 2010 at 5:18 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>What you probably should have done is allocate cheese in thread local storage. This way, there is no contention, everyone has cheese, and nobody segfaults when the location of their cheese is modified by an errant thread.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://saravananthirumuruganathan.wordpress.com/2010/04/02/biweekly-links-04-02-2010/' rel='external nofollow' class='url'>Biweekly Links &#8211; 04-02-2010 &laquo; God, Your Book Is Great !!</a></p>
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://www.phphatesme.com/blog/lesestoff/max-lesestoff-zum-wochenende-28/' rel='external nofollow' class='url'>Max&#8217; Lesestoff zum Wochenende | PHP hates me - Der PHP Blog</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1116">
+		<div id="comment-1116">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d100e9a5f03b2d48957d7e678b28aa50?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Markosolo</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1116">
+				April 3, 2010 at 11:17 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Smaller table&#8230;.Or sit closer to her.. The only programming I ever did was with GFA on the Atari so can&#8217;t help you there</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1204">
+		<div id="comment-1204">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/9e744ffdb202e382ec0d5b70b7b87534?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">luxifer</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1204">
+				April 6, 2010 at 6:56 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Just read this post to my girlfriend&#8230; she came up with some very important questions you left unanswered&#8230;</p>
+<p>- Does your wife work? If not and she&#8217;s handling the household, you&#8217;re a jerk!<br />
+- Did you cook or at least help your wife with it? If not, you&#8217;re a jerk!<br />
+- How did she get the cheese in the first place? Did she have to grab it from your side of the table? If so, not only are you a jerk but you got the situation all wrong. That&#8217;s because then she&#8217;d implicitly released the lock on the resource by reacting to the interrupts and just left it in HER local cache where it was in yours before that so you&#8217;d just have to make the same effort to get it as she had to.</p>
+<p>Additionally: You said that you had the cheese resource locked while mixing the pasta with the sauce, which also is an unrelated task so your resource handling isn&#8217;t better in any way.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1209">
+		<div id="comment-1209">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/bca6a41d61aea348267b42b6a6aa5048?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">DougC.</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1209">
+				April 6, 2010 at 7:44 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Loved this post. Mom needs a rewrite, though. Interrupts need to be handled quickly. Just acknowledge the interrupt and schedule a deferred procedure call to get the drinks at a much lower priority level (or spawn a thread to let the boys get their own drinks). :)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://www.edthedev.com/2010/cheese-and-resource-locking/' rel='external nofollow' class='url'>Ed The Dev .com &raquo; Blog Archive &raquo; Cheese and Resource Locking</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1254">
+		<div id="comment-1254">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6604845dc36fc5041891ccb5eb896983?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://anubha-bhat.blogspot.com' rel='external nofollow' class='url'>Anu</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1254">
+				April 7, 2010 at 6:54 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Hey you could&#8217;ve cut the cheese slab into two halves. That way, you could&#8217;ve got the cheese + could&#8217;ve escaped that argument with your wife! Partition the resources! ;)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-1272">
+		<div id="comment-1272">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c16da753357a129aca8d3d75dcfed523?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Ken W</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1272">
+				April 8, 2010 at 6:35 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Being a DBA I would have killed the offending deadlock, and thus taken control of the cheese.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1374">
+		<div id="comment-1374">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c4e01c11b9b7a01b2ad8d808e4a20637?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Daniel Taylor</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-1374">
+				April 13, 2010 at 10:30 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Don&#8217;t you think, the Problem is not so much Fiona&#8217;s admittedly terrible ability to efficiently use resorces as her husband&#8217;s inadaquite  programming in the area conserning empathy, and flexability&#8230;  </p>
+<p>Perhaps the old husband should be thrown out and a new, revised model installed?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-2127">
+		<div id="comment-2127">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/16cea8e88dfd95360538ebce61bd5523?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Groxx</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-2127">
+				April 20, 2010 at 10:18 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>@Mike re: Fred: I&#8217;d be willing to bet those Emotions exist in both the Real and Complex planes.  And I highly doubt they&#8217;re linearly separable in _any_ number of dimensions, so it may be that a neural network cannot find a solution.</p>
+<p>@Tatts: can semaphores exist for an operation that involves quantum states?  How can you be sure you actually acquired the lock?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-alexdbk odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-3482">
+		<div id="comment-3482">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/62fd8ab08c487953e969595e2dfd042b?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://useuseuse.wordpress.com' rel='external nofollow' class='url'>Alexandr</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-3482">
+				May 26, 2010 at 6:53 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Rational women would make a boring company. :D<br />
+Good illustration of the principle though!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://reprog.wordpress.com/2010/06/21/the-pandorica-opens-11th-doctor-episode-12/' rel='external nofollow' class='url'>The Pandorica Opens (11th Doctor, episode 12) &laquo; The Reinvigorated Programmer</a></p>
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://svpow.wordpress.com/2010/06/23/things-to-make-and-do-part-6-fun-with-ostrich-heads/' rel='external nofollow' class='url'>Things to Make and Do, part 6: fun with ostrich heads &laquo; Sauropod Vertebra Picture of the Week</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-3923">
+		<div id="comment-3923">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d7d58aef2061a6ffd198a2b80f7add7a?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">sarah b</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-3923">
+				July 5, 2010 at 8:48 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I&#8217;m with Ben, Italians would NEVER eat Puttenesca with cheese- but actually I know these guys &amp; I know they won&#8217;t let a thing like that stop &#8216;em.<br />
+@luxifer- Mike does most of the cooking &amp; they both work&#8230;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-3924">
+		<div id="comment-3924">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/9e744ffdb202e382ec0d5b70b7b87534?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">luxifer</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-3924">
+				July 6, 2010 at 8:46 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>@sarah b: good to hear&#8230; but still my third argument remains intact :-)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://jasonpresleydotnet.wordpress.com/2010/08/30/locking-resources-at-dinner/' rel='external nofollow' class='url'>Locking Resources at Dinner &laquo; Jason Presley Dot Net</a></p>
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://twoguysarguing.wordpress.com/2011/01/06/1280/' rel='external nofollow' class='url'>Two Guys Arguing</a></p>
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://twoguysarguing.wordpress.com/2011/01/06/2011-tech_resolutions-pop5-questions/' rel='external nofollow' class='url'>2011.tech_resolutions.pop(5.questions) &laquo; Two Guys Arguing</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-5279">
+		<div id="comment-5279">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/81943a486ccd90136db95516e4aaa881?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn">Nicole</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-5279">
+				March 21, 2011 at 1:32 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Frankly, all I can say is &#8220;Serves you right for putting cheese on a puttanesca.&#8221; It doesn&#8217;t need it and it doesn&#8217;t work: it&#8217;ll be drowned by the chilli. Go to Rome (the home of the puttanesca) and you&#8217;ll not be offered cheese with it &#8211; for a good reason.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-sauropoda bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-5280">
+		<div id="comment-5280">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/22e75aceafe54758fc84f162387bb77b?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.miketaylor.org.uk/dino/pubs/' rel='external nofollow' class='url'>Mike Taylor</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-5280">
+				March 21, 2011 at 1:37 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Ah, such dogmatism from one so young.  I prefer to think of cheese on the puttanesca not as &#8220;wrong&#8221; but as fusion cuisine &#8212; as an experiment which in my experience, whatever you may say, <i>does</i> work.</p>
+<p>No doubt there are Japanese who feel that Californians are terribly wrong to put avocado in their sushi.  But they&#8217;re not.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-5281">
+		<div id="comment-5281">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/472178e8a2879672b4f1604371202db5?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://ilgattosilver.splinder.com/' rel='external nofollow' class='url'>ilgattosilver</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-5281">
+				March 21, 2011 at 2:39 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>There&#8217;s a little questioning on the home of puttanesca, someone say Rome, someone say Naples, but one for sure: avocado in sushi is a bright invention&#8230;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-salsapinkkat odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-5282">
+		<div id="comment-5282">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d7d58aef2061a6ffd198a2b80f7add7a?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://bickerssarah.wordpress.com' rel='external nofollow' class='url'>salsapinkkat</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-5282">
+				March 21, 2011 at 4:02 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I know you sooo well Mr Taylor!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-sauropoda bypostauthor even thread-even depth-1 highlander-comment" id="li-comment-5283">
+		<div id="comment-5283">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/22e75aceafe54758fc84f162387bb77b?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.miketaylor.org.uk/dino/pubs/' rel='external nofollow' class='url'>Mike Taylor</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-5283">
+				March 21, 2011 at 4:05 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Hey!  That&#8217;s &#8220;I know you sooo well <i>Dr</i> Taylor!&#8221;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-salsapinkkat odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-5284">
+		<div id="comment-5284">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d7d58aef2061a6ffd198a2b80f7add7a?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://bickerssarah.wordpress.com' rel='external nofollow' class='url'>salsapinkkat</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-5284">
+				March 21, 2011 at 4:19 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Hmmm, the word &#8216;pedant&#8217; immediately springs to mind ;)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-sauropoda bypostauthor even thread-even depth-1 highlander-comment" id="li-comment-5285">
+		<div id="comment-5285">
+		<div class="comment-author vcard">
+			<img alt='' src='http://2.gravatar.com/avatar/22e75aceafe54758fc84f162387bb77b?s=48&#038;d=monsterid&#038;r=G' class='avatar avatar-48' height='48' width='48' />
+			<cite class="fn"><a href='http://www.miketaylor.org.uk/dino/pubs/' rel='external nofollow' class='url'>Mike Taylor</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#comment-5285">
+				March 21, 2011 at 6:33 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>What else would you expect from the originator of <a / rel="nofollow">The Self-Appointed Grammar Police</a>?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+		</ol>
+
+		
+	
+									<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/#respond" style="display:none;">Cancel reply</a></small></h3>
+									<form action="http://reprog.wordpress.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+																										
+
+
+												<input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="8afbefef68" /><input type="hidden" name="_wp_http_referer" value="/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" title="Guest">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" title="WordPress.com">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" title="Twitter">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" title="Facebook">
+					<span></span>
+				</a>
+			</li>
+			<li>
+			<iframe id="googleplus-sign-in" name="googleplus-sign-in" src="https://public-api.wordpress.com/connect/?googleplus-sign-in=http%3A%2F%2Freprog.wordpress.com" width="24" height="24" scrolling="no" allowtransparency="true" seamless="seamless" frameborder="0"></iframe>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=monsterid&amp;forcedefault=y&amp;r=G" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="text" value="" /></div>
+				</div>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://s2.wp.com/wp-content/mu-plugins/highlander-comments/images/wplogo.png?m=1391188133g" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+				<p class="comment-form-posting-as pa-wordpress"><strong></strong> You are commenting using your WordPress.com account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=monsterid&amp;forcedefault=y&amp;r=G" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+				<p class="comment-form-posting-as pa-twitter"><strong></strong> You are commenting using your Twitter account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=monsterid&amp;forcedefault=y&amp;r=G" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+				<p class="comment-form-posting-as pa-facebook"><strong></strong> You are commenting using your Facebook account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-googleplus" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="http://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=monsterid&amp;forcedefault=y&amp;r=G" alt="Google+ photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="googleplus_avatar" id="googleplus-avatar" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_user_id" id="googleplus-user_id" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_access_token" id="googleplus-access_token" class="comment-meta-googleplus" value="" />
+				<p class="comment-form-posting-as pa-googleplus"><strong></strong> You are commenting using your Google+ account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'googleplus' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+	
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function(){
+	var input = document.createElement( 'input' ),
+	    comment = jQuery( '#comment' );
+
+	if ( 'placeholder' in input ) {
+		comment.attr( 'placeholder', jQuery( '.comment-textarea label' ).remove().text() );
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	jQuery( '#comment-form-identity' ).hide();
+	jQuery( '#comment-form-subscribe' ).hide();
+	jQuery( '#commentform .form-submit' ).hide();
+
+	comment.css( { 'height':'10px' } ).one( 'focus', function() {
+		var timer = setInterval( HighlanderComments.resizeCallback, 10 )
+		jQuery( this ).animate( { 'height': HighlanderComments.initialHeight } ).delay( 100 ).queue( function(n) { clearInterval( timer ); HighlanderComments.resizeCallback(); n(); } );
+		jQuery( '#comment-form-identity' ).slideDown();
+		jQuery( '#comment-form-subscribe' ).slideDown();
+		jQuery( '#commentform .form-submit' ).slideDown();
+	});
+}
+jQuery(document).ready( highlander_expando_javascript );
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;" tabindex="6"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of follow-up comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;" tabindex="7"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+												<p class="form-submit">
+							<input name="submit" type="submit" id="comment-submit" value="Post Comment" />
+							<input type='hidden' name='comment_post_ID' value='326' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+						</p>
+						<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="bcbd6b2f7b" /></p>
+<input type="hidden" name="genseq" value="1404248392" />
+<p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="37"/></p>					</form>
+							</div><!-- #respond -->
+			<div style="clear: both"></div>
+</div><!-- #comments -->
+	
+	</div><!-- #content -->
+</div><!-- #content-container -->
+
+
+		
+		<div id="primary" class="widget-area" role="complementary">
+					<ul class="xoxo">
+
+			<li id="search-3" class="widget-container widget_search"><form role="search" method="get" id="searchform" class="searchform" action="http://reprog.wordpress.com/">
+				<div>
+					<label class="screen-reader-text" for="s">Search for:</label>
+					<input type="text" value="" name="s" id="s" />
+					<input type="submit" id="searchsubmit" value="Search" />
+				</div>
+			</form></li><li id="rss_links-3" class="widget-container widget_rss_links"><h3 class="widget-title">RSS Feeds</h3><ul><li><a href="http://reprog.wordpress.com/feed/" title="Subscribe to Posts">RSS - Posts</a></li><li><a href="http://reprog.wordpress.com/comments/feed/" title="Subscribe to Comments">RSS - Comments</a></li></ul>
+</li>		<li id="recent-posts-2" class="widget-container widget_recent_entries">		<h3 class="widget-title">Recent Posts</h3>		<ul>
+					<li>
+				<a href="http://reprog.wordpress.com/2014/07/01/desert-island-albums-2-rainbow-rising-1976/">Desert island albums #2: Rainbow — Rising&nbsp;(1976)</a>
+						</li>
+					<li>
+				<a href="http://reprog.wordpress.com/2014/06/21/oh-england/">Oh, England.</a>
+						</li>
+					<li>
+				<a href="http://reprog.wordpress.com/2014/06/18/separated-at-birth-richard-owen-and-william-hartnell/">Separated at birth? Richard Owen and William&nbsp;Hartnell</a>
+						</li>
+					<li>
+				<a href="http://reprog.wordpress.com/2014/06/13/also-coming-up-and-more-exciting-band-set-at-the-mitcheldean-folk-festival/">Also coming up (and more exciting): band set at the Mitcheldean Folk&nbsp;Festival</a>
+						</li>
+					<li>
+				<a href="http://reprog.wordpress.com/2014/06/11/coming-up-solo-set-at-the-mitcheldean-folk-festival/">Coming up: solo set at the Mitcheldean Folk&nbsp;Festival</a>
+						</li>
+				</ul>
+		</li><li id="recent-comments-2" class="widget-container widget_recent_comments"><h3 class="widget-title">Recent Comments</h3>				<table class="recentcommentsavatar" cellspacing="0" cellpadding="0" border="0">
+					<tr><td title="Pedro" class="recentcommentsavatartop" style="height:32px; width:32px;"><img alt='' src='http://0.gravatar.com/avatar/0cfde88b0615b8db6bd8dbf3d8377c09?s=32&#038;d=monsterid&#038;r=G' class='avatar avatar-32' height='32' width='32' /></td><td class="recentcommentstexttop" style="">Pedro on <a href="http://reprog.wordpress.com/2014/07/01/desert-island-albums-2-rainbow-rising-1976/#comment-13347">Desert island albums #2: Rainb&hellip;</a></td></tr><tr><td title="Desert island albums #2: Rainbow — Rising (1976) | The Reinvigorated Programmer" class="recentcommentsavatarend" style="height:32px; width:32px;"><a href="http://reprog.wordpress.com/2014/07/01/desert-island-albums-2-rainbow-rising-1976/" rel="nofollow"></a></td><td class="recentcommentstextend" style=""><a href="http://reprog.wordpress.com/2014/07/01/desert-island-albums-2-rainbow-rising-1976/" rel="nofollow">Desert island albums&hellip;</a> on <a href="http://reprog.wordpress.com/2014/04/08/desert-island-albums-1-joni-mitchell-hejira-1976/#comment-13338">Desert island albums #1: Joni&hellip;</a></td></tr><tr><td title="Mike Taylor" class="recentcommentsavatarend" style="height:32px; width:32px;"><a href="http://www.miketaylor.org.uk/dino/pubs/" rel="nofollow"><img alt='' src='http://2.gravatar.com/avatar/22e75aceafe54758fc84f162387bb77b?s=32&#038;d=monsterid&#038;r=G' class='avatar avatar-32' height='32' width='32' /></a></td><td class="recentcommentstextend" style=""><a href="http://www.miketaylor.org.uk/dino/pubs/" rel="nofollow">Mike Taylor</a> on <a href="http://reprog.wordpress.com/2014/06/13/also-coming-up-and-more-exciting-band-set-at-the-mitcheldean-folk-festival/#comment-13337">Also coming up (and more excit&hellip;</a></td></tr><tr><td title="futilelaneswapper" class="recentcommentsavatarend" style="height:32px; width:32px;"><img alt='' src='http://2.gravatar.com/avatar/e3437f37c5027fb406c652ea2c25d0ce?s=32&#038;d=monsterid&#038;r=G' class='avatar avatar-32' height='32' width='32' /></td><td class="recentcommentstextend" style="">futilelaneswapper on <a href="http://reprog.wordpress.com/2014/06/13/also-coming-up-and-more-exciting-band-set-at-the-mitcheldean-folk-festival/#comment-13324">Also coming up (and more excit&hellip;</a></td></tr><tr><td title="Understanding this Brian Kernighan quote | Coding and Programing" class="recentcommentsavatarend" style="height:32px; width:32px;"><a href="http://program.0zed.com/understanding-this-brian-kernighan-quote/" rel="nofollow"></a></td><td class="recentcommentstextend" style=""><a href="http://program.0zed.com/understanding-this-brian-kernighan-quote/" rel="nofollow">Understanding this B&hellip;</a> on <a href="http://reprog.wordpress.com/2010/03/06/programming-books-part-2-the-elements-of-programming-style/#comment-13294">Programming Books, part 2: The&hellip;</a></td></tr>				</table>
+				</li><li id="archives-3" class="widget-container widget_archive"><h3 class="widget-title">Archives</h3>		<ul>
+	<li><a href='http://reprog.wordpress.com/2014/07/'>July 2014</a></li>
+	<li><a href='http://reprog.wordpress.com/2014/06/'>June 2014</a></li>
+	<li><a href='http://reprog.wordpress.com/2014/05/'>May 2014</a></li>
+	<li><a href='http://reprog.wordpress.com/2014/04/'>April 2014</a></li>
+	<li><a href='http://reprog.wordpress.com/2014/03/'>March 2014</a></li>
+	<li><a href='http://reprog.wordpress.com/2014/02/'>February 2014</a></li>
+	<li><a href='http://reprog.wordpress.com/2014/01/'>January 2014</a></li>
+	<li><a href='http://reprog.wordpress.com/2013/12/'>December 2013</a></li>
+	<li><a href='http://reprog.wordpress.com/2013/11/'>November 2013</a></li>
+	<li><a href='http://reprog.wordpress.com/2013/10/'>October 2013</a></li>
+	<li><a href='http://reprog.wordpress.com/2013/09/'>September 2013</a></li>
+	<li><a href='http://reprog.wordpress.com/2013/07/'>July 2013</a></li>
+	<li><a href='http://reprog.wordpress.com/2013/06/'>June 2013</a></li>
+	<li><a href='http://reprog.wordpress.com/2013/05/'>May 2013</a></li>
+	<li><a href='http://reprog.wordpress.com/2013/04/'>April 2013</a></li>
+	<li><a href='http://reprog.wordpress.com/2013/03/'>March 2013</a></li>
+	<li><a href='http://reprog.wordpress.com/2013/02/'>February 2013</a></li>
+	<li><a href='http://reprog.wordpress.com/2013/01/'>January 2013</a></li>
+	<li><a href='http://reprog.wordpress.com/2012/12/'>December 2012</a></li>
+	<li><a href='http://reprog.wordpress.com/2012/11/'>November 2012</a></li>
+	<li><a href='http://reprog.wordpress.com/2012/10/'>October 2012</a></li>
+	<li><a href='http://reprog.wordpress.com/2012/09/'>September 2012</a></li>
+	<li><a href='http://reprog.wordpress.com/2012/06/'>June 2012</a></li>
+	<li><a href='http://reprog.wordpress.com/2012/05/'>May 2012</a></li>
+	<li><a href='http://reprog.wordpress.com/2012/04/'>April 2012</a></li>
+	<li><a href='http://reprog.wordpress.com/2012/03/'>March 2012</a></li>
+	<li><a href='http://reprog.wordpress.com/2012/02/'>February 2012</a></li>
+	<li><a href='http://reprog.wordpress.com/2012/01/'>January 2012</a></li>
+	<li><a href='http://reprog.wordpress.com/2011/12/'>December 2011</a></li>
+	<li><a href='http://reprog.wordpress.com/2011/11/'>November 2011</a></li>
+	<li><a href='http://reprog.wordpress.com/2011/10/'>October 2011</a></li>
+	<li><a href='http://reprog.wordpress.com/2011/09/'>September 2011</a></li>
+	<li><a href='http://reprog.wordpress.com/2011/08/'>August 2011</a></li>
+	<li><a href='http://reprog.wordpress.com/2011/07/'>July 2011</a></li>
+	<li><a href='http://reprog.wordpress.com/2011/06/'>June 2011</a></li>
+	<li><a href='http://reprog.wordpress.com/2011/05/'>May 2011</a></li>
+	<li><a href='http://reprog.wordpress.com/2011/04/'>April 2011</a></li>
+	<li><a href='http://reprog.wordpress.com/2011/03/'>March 2011</a></li>
+	<li><a href='http://reprog.wordpress.com/2011/02/'>February 2011</a></li>
+	<li><a href='http://reprog.wordpress.com/2011/01/'>January 2011</a></li>
+	<li><a href='http://reprog.wordpress.com/2010/12/'>December 2010</a></li>
+	<li><a href='http://reprog.wordpress.com/2010/11/'>November 2010</a></li>
+	<li><a href='http://reprog.wordpress.com/2010/10/'>October 2010</a></li>
+	<li><a href='http://reprog.wordpress.com/2010/09/'>September 2010</a></li>
+	<li><a href='http://reprog.wordpress.com/2010/08/'>August 2010</a></li>
+	<li><a href='http://reprog.wordpress.com/2010/07/'>July 2010</a></li>
+	<li><a href='http://reprog.wordpress.com/2010/06/'>June 2010</a></li>
+	<li><a href='http://reprog.wordpress.com/2010/05/'>May 2010</a></li>
+	<li><a href='http://reprog.wordpress.com/2010/04/'>April 2010</a></li>
+	<li><a href='http://reprog.wordpress.com/2010/03/'>March 2010</a></li>
+	<li><a href='http://reprog.wordpress.com/2010/02/'>February 2010</a></li>
+		</ul>
+</li><li id="text-4" class="widget-container widget_text"><h3 class="widget-title">Doctor Who, Series 5</h3>			<div class="textwidget"><a href="/doctor-who-series-5/">Reviews of all episodes.</a>
+</div>
+		</li><li id="text-3" class="widget-container widget_text"><h3 class="widget-title">Greatest Hits</h3>			<div class="textwidget"><p>In reverse chronological order:</p>
+<ul>
+<li><a href="http://reprog.wordpress.com/2011/08/04/c-s-lewis-on-intelligence-in-christianity/">C. S. Lewis on intelligence in Christianity</a></li>
+<li><a href="http://reprog.wordpress.com/2011/04/18/programming-books-part-5-programming-pearls/">Programming Pearls</a></li>
+<li><a href="http://reprog.wordpress.com/2010/09/06/steve-jobs-never-had-any-designs-he-has-not-designed-a-single-project/">Steve Jobs “never had any designs. He has not designed a single project”</a></li>
+<li><a href="http://reprog.wordpress.com/2010/05/19/another-challenge-can-you-write-a-correct-selection-sort/">Another challenge: can you write a correct selection sort</a></li>
+<li><a href="http://reprog.wordpress.com/2010/05/12/still-hatin-on-git-now-with-added-actual-reasons/">Still hatin’ on git: now with added Actual Reasons!</a></li>
+<li><a href="http://reprog.wordpress.com/2010/05/05/the-long-overdue-serious-attempt-at-the-silmarillion-part-1-what-it-isnt-and-what-it-is/">The long-overdue serious attempt at <i>The Silmarillion</i>, part 1: what it isn’t and what it is</a></li>
+<li><a href="http://reprog.wordpress.com/2010/04/25/writing-correct-code-part-1-invariants-binary-search-part-4a/">Writing correct code, part 1: invariants</a></li>
+<li><a href="http://reprog.wordpress.com/2010/04/19/are-you-one-of-the-10-percent/">Only 10% of programmers can write a binary search</a></li>
+<li><a href="http://reprog.wordpress.com/2010/04/14/the-long-overdue-serious-attempt-at-lisp-part-2-is-lisp-just-too-hard/">The long-overdue serious attempt at Lisp, part 2: is Lisp just too hard?</a></li>
+ <li><a href="http://reprog.wordpress.com/2010/04/06/programming-books-part-4-the-c-programming-language/"><i>The C Programming Language</i></a></li>
+ <li><a href="http://reprog.wordpress.com/2010/04/03/the-eleventh-doctor-first-impressions/">The eleventh Doctor: first impressions</a></li>
+ <li><a href="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/">A brief, yet helpful, lesson on elementary resource-locking strategy</a></li>
+ <li><a href="http://reprog.wordpress.com/2010/03/21/the-hacker-the-architect-and-the-superhero-three-completely-different-ways-to-be-an-excellent-programmer/">The hacker, the architect and the superhero</a></li>
+ <li><a href="http://reprog.wordpress.com/2010/03/12/programming-books-part-3-programming-the-commodore-64/"><i>Programming the Commodore 64</i></a></li>
+ <li><a href="http://reprog.wordpress.com/2010/03/09/where-dijkstra-went-wrong-the-value-of-basic-as-a-first-programming-language/">Where Dijkstra went wrong</a></li>
+ <li><a href="http://reprog.wordpress.com/2010/03/06/programming-books-part-2-the-elements-of-programming-style/"><i>The Elements of Programming Style</i></a></li>
+ <li><a href="http://reprog.wordpress.com/2010/03/04/whatever-happened-to-programming-redux-it-may-not-be-as-bad-as-all-that/">Whatever happened to programming?, redux</a></li>
+ <li><a href="http://reprog.wordpress.com/2010/03/03/whatever-happened-to-programming/">Whatever happened to programming?</a></li>
+</ul>
+</div>
+		</li><li id="top-posts-2" class="widget-container widget_top-posts"><h3 class="widget-title">Most viewed today/yesterday</h3><ul><li><a href="http://reprog.wordpress.com/2010/04/05/ages-of-doctor-who-actors-on-their-debuts/" class="bump-view" data-bump-view="tp">Ages of &lt;i&gt;Doctor Who&lt;/i&gt; actors on their debuts</a></li>
+<li><a href="http://reprog.wordpress.com/2010/11/30/dammit-amazon-com-will-you-please-let-me-use-my-store-credit/" class="bump-view" data-bump-view="tp">Dammit, Amazon.com, will you &lt;i&gt;please&lt;/i&gt; let me use my store credit?</a></li>
+<li><a href="http://reprog.wordpress.com/2012/12/29/i-wish-jackson-hadnt-ruined-galadriels-speech/" class="bump-view" data-bump-view="tp">I wish Jackson hadn&#039;t ruined Galadriel&#039;s speech</a></li>
+<li><a href="http://reprog.wordpress.com/2014/07/01/desert-island-albums-2-rainbow-rising-1976/" class="bump-view" data-bump-view="tp">Desert island albums #2: Rainbow — Rising (1976)</a></li>
+<li><a href="http://reprog.wordpress.com/2010/11/30/if-i-buy-a-us-kindle-from-amazon-com-will-it-work-in-the-uk/" class="bump-view" data-bump-view="tp">If I buy a US Kindle from amazon.com, will it work in the UK?</a></li>
+<li><a href="http://reprog.wordpress.com/2014/06/21/oh-england/" class="bump-view" data-bump-view="tp">Oh, England.</a></li>
+<li><a href="http://reprog.wordpress.com/2011/10/08/you-can-do-anything-if-you-believe-in-yourself/" class="bump-view" data-bump-view="tp">&quot;You can do anything if you believe in yourself&quot;</a></li>
+<li><a href="http://reprog.wordpress.com/2010/03/12/programming-books-part-3-programming-the-commodore-64/" class="bump-view" data-bump-view="tp">Programming Books, part 3: Programming the Commodore 64</a></li>
+<li><a href="http://reprog.wordpress.com/2010/04/19/are-you-one-of-the-10-percent/" class="bump-view" data-bump-view="tp">Are you one of the 10% of programmers who can write a binary search?</a></li>
+<li><a href="http://reprog.wordpress.com/2010/03/03/whatever-happened-to-programming/" class="bump-view" data-bump-view="tp">Whatever happened to programming?</a></li>
+</ul></li><li id="tag_cloud-2" class="widget-container widget_tag_cloud"><h3 class="widget-title"></h3><div style="overflow: hidden;"><a href="http://reprog.wordpress.com/category/art/" style="font-size: 103.43137254902%; padding: 1px; margin: 1px;"  title="Art (9)">Art</a> <a href="http://reprog.wordpress.com/category/bad-habits/" style="font-size: 103.43137254902%; padding: 1px; margin: 1px;"  title="Bad habits (9)">Bad habits</a> <a href="http://reprog.wordpress.com/category/books/" style="font-size: 172.05882352941%; padding: 1px; margin: 1px;"  title="Books (29)">Books</a> <a href="http://reprog.wordpress.com/category/challenges/" style="font-size: 106.86274509804%; padding: 1px; margin: 1px;"  title="Challenges (10)">Challenges</a> <a href="http://reprog.wordpress.com/category/culture/" style="font-size: 237.25490196078%; padding: 1px; margin: 1px;"  title="Culture (48)">Culture</a> <a href="http://reprog.wordpress.com/category/design/" style="font-size: 103.43137254902%; padding: 1px; margin: 1px;"  title="Design (9)">Design</a> <a href="http://reprog.wordpress.com/category/tv/doctor-who/" style="font-size: 275%; padding: 1px; margin: 1px;"  title="Doctor Who (59)">Doctor Who</a> <a href="http://reprog.wordpress.com/category/food-and-drink/" style="font-size: 124.01960784314%; padding: 1px; margin: 1px;"  title="Food and drink (15)">Food and drink</a> <a href="http://reprog.wordpress.com/category/frustration/" style="font-size: 237.25490196078%; padding: 1px; margin: 1px;"  title="Frustration (48)">Frustration</a> <a href="http://reprog.wordpress.com/category/programming/good-code/" style="font-size: 103.43137254902%; padding: 1px; margin: 1px;"  title="Good code (9)">Good code</a> <a href="http://reprog.wordpress.com/category/programmers/guys-from-bell-labs/" style="font-size: 103.43137254902%; padding: 1px; margin: 1px;"  title="Guys from Bell Labs (9)">Guys from Bell Labs</a> <a href="http://reprog.wordpress.com/category/life/" style="font-size: 161.76470588235%; padding: 1px; margin: 1px;"  title="Life (26)">Life</a> <a href="http://reprog.wordpress.com/category/music/me-singing-folk-songs/" style="font-size: 120.58823529412%; padding: 1px; margin: 1px;"  title="Me singing folk songs (14)">Me singing folk songs</a> <a href="http://reprog.wordpress.com/category/movies/" style="font-size: 144.60784313725%; padding: 1px; margin: 1px;"  title="Movies (21)">Movies</a> <a href="http://reprog.wordpress.com/category/music/" style="font-size: 230.39215686275%; padding: 1px; margin: 1px;"  title="Music (46)">Music</a> <a href="http://reprog.wordpress.com/category/not-my-favourite/" style="font-size: 124.01960784314%; padding: 1px; margin: 1px;"  title="Not my favourite (15)">Not my favourite</a> <a href="http://reprog.wordpress.com/category/politics/" style="font-size: 127.45098039216%; padding: 1px; margin: 1px;"  title="Politics (16)">Politics</a> <a href="http://reprog.wordpress.com/category/programming/" style="font-size: 209.80392156863%; padding: 1px; margin: 1px;"  title="Programming (40)">Programming</a> <a href="http://reprog.wordpress.com/category/reviews/" style="font-size: 175.49019607843%; padding: 1px; margin: 1px;"  title="Reviews (30)">Reviews</a> <a href="http://reprog.wordpress.com/category/programming-languages/ruby/" style="font-size: 100%; padding: 1px; margin: 1px;"  title="Ruby (8)">Ruby</a> <a href="http://reprog.wordpress.com/category/tv/doctor-who/series-5/" style="font-size: 144.60784313725%; padding: 1px; margin: 1px;"  title="Series 5 (21)">Series 5</a> <a href="http://reprog.wordpress.com/category/tv/doctor-who/series-6/" style="font-size: 158.33333333333%; padding: 1px; margin: 1px;"  title="Series 6 (25)">Series 6</a> <a href="http://reprog.wordpress.com/category/tv/doctor-who/series-7/" style="font-size: 110.29411764706%; padding: 1px; margin: 1px;"  title="Series 7 (11)">Series 7</a> <a href="http://reprog.wordpress.com/category/sheer-mind-bending-stupidity/" style="font-size: 110.29411764706%; padding: 1px; margin: 1px;"  title="Sheer, mind-bending stupidity (11)">Sheer, mind-bending stupidity</a> <a href="http://reprog.wordpress.com/category/shiny-digital-future/" style="font-size: 113.72549019608%; padding: 1px; margin: 1px;"  title="Shiny digital future (12)">Shiny digital future</a> <a href="http://reprog.wordpress.com/category/the-real-world/" style="font-size: 120.58823529412%; padding: 1px; margin: 1px;"  title="The Real World (14)">The Real World</a> <a href="http://reprog.wordpress.com/category/tolkien/" style="font-size: 117.1568627451%; padding: 1px; margin: 1px;"  title="Tolkien (13)">Tolkien</a> <a href="http://reprog.wordpress.com/category/train-wrecks/" style="font-size: 110.29411764706%; padding: 1px; margin: 1px;"  title="Train wrecks (11)">Train wrecks</a> <a href="http://reprog.wordpress.com/category/tv/" style="font-size: 199.50980392157%; padding: 1px; margin: 1px;"  title="TV (37)">TV</a> <a href="http://reprog.wordpress.com/category/uncategorized/" style="font-size: 113.72549019608%; padding: 1px; margin: 1px;"  title="Uncategorized (12)">Uncategorized</a> </div></li><li id="blog-stats-2" class="widget-container widget_blog-stats"><h3 class="widget-title">Blog Stats</h3>		<ul>
+			<li>1,610,967 hits</li>
+		</ul>
+		</li>			</ul>
+		</div><!-- #primary .widget-area -->
+
+		
+			</div><!-- #content-box -->
+
+	<div id="footer" role="contentinfo">
+		
+		<div id="colophon">
+			<span class="generator-link"><a href="http://wordpress.com/?ref=footer_blog">Blog at WordPress.com</a>.</span>
+			<a href="http://theme.wordpress.com/themes/coraline/" title="Learn more about this theme">The Coraline Theme</a>.		</div><!-- #colophon -->
+	</div><!-- #footer -->
+
+</div><!-- #container -->
+
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201427x'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s2.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781g'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-472178e8a2879672b4f1604371202db5">
+	</div>
+	<div class="grofile-hash-map-08267a1190c2d41afba0cf9db8211d0e">
+	</div>
+	<div class="grofile-hash-map-40a3ea66b48c1e228b81c02caa058726">
+	</div>
+	<div class="grofile-hash-map-0bb4ab97f9ea71543c41c9bee4939b92">
+	</div>
+	<div class="grofile-hash-map-24db25a514cca237098febc931d0bf09">
+	</div>
+	<div class="grofile-hash-map-6d50c7934547d6032e642b8eb74e89c6">
+	</div>
+	<div class="grofile-hash-map-59c9677a3b9569af44561adab6c2a980">
+	</div>
+	<div class="grofile-hash-map-bac97a8a080201d0feac0dab26f81138">
+	</div>
+	<div class="grofile-hash-map-86e35b1186624015a9d0d47b515a48e7">
+	</div>
+	<div class="grofile-hash-map-b270b861279079dd268baa6cde5f3941">
+	</div>
+	<div class="grofile-hash-map-b2d9894abe5049a06eefe963ad13fecd">
+	</div>
+	<div class="grofile-hash-map-84d5175ef6e9cdf864c7b357907639c1">
+	</div>
+	<div class="grofile-hash-map-2d272fa18493ffd50f11a75100f4f8ef">
+	</div>
+	<div class="grofile-hash-map-a082d1ea7d520325bdd7a92b291213a5">
+	</div>
+	<div class="grofile-hash-map-4758dbe559190af45e4cfc3b4fe2401a">
+	</div>
+	<div class="grofile-hash-map-a75904fde646d1b9111eb32ea8f40ef3">
+	</div>
+	<div class="grofile-hash-map-1793c5f254549333d738bb4ff4e6edd6">
+	</div>
+	<div class="grofile-hash-map-3afd9de53c7b6e17703be3cc1de62f14">
+	</div>
+	<div class="grofile-hash-map-91a008c6306afac5d9002b840525f632">
+	</div>
+	<div class="grofile-hash-map-22e75aceafe54758fc84f162387bb77b">
+	</div>
+	<div class="grofile-hash-map-e494482f74c89a87508ab42307c4ceae">
+	</div>
+	<div class="grofile-hash-map-5cfab5cf61d2cda78b92bdc44b626d7c">
+	</div>
+	<div class="grofile-hash-map-f10c01097ba4529875c2d22f0710f903">
+	</div>
+	<div class="grofile-hash-map-f40f8ec83f2c377398f349699ea8e1f8">
+	</div>
+	<div class="grofile-hash-map-1f3083754b79e77c7d06f353c2f7cbd9">
+	</div>
+	<div class="grofile-hash-map-6fd946e69b7b426bb98c4690847458e0">
+	</div>
+	<div class="grofile-hash-map-75a974738bee02bad85a352cafe75c05">
+	</div>
+	<div class="grofile-hash-map-e8fe64ce521373100a4a3cf6396255fb">
+	</div>
+	<div class="grofile-hash-map-c98773e8a852b1e8268dccad46c1fc29">
+	</div>
+	<div class="grofile-hash-map-753e31caadeb0046cfdb03237b93f798">
+	</div>
+	<div class="grofile-hash-map-3cd1a8977daac75524b3019aab4b76fc">
+	</div>
+	<div class="grofile-hash-map-58b4b61d4ca35199768de694f5d3e5bd">
+	</div>
+	<div class="grofile-hash-map-f55dcbbff96524a9fb9a8ba905a8b5af">
+	</div>
+	<div class="grofile-hash-map-13173c42d06ea0cb1cf671f8497cd518">
+	</div>
+	<div class="grofile-hash-map-79891a6015572bf85f4243bdc1e81029">
+	</div>
+	<div class="grofile-hash-map-49cffb0c8c3abe79d8c1d32734bd69c6">
+	</div>
+	<div class="grofile-hash-map-e6b8e8626b366efaaabea32e3d962c4c">
+	</div>
+	<div class="grofile-hash-map-292e4984bb764a41d326fa4f9848428d">
+	</div>
+	<div class="grofile-hash-map-15869f261649a2f43304dc29f16c4208">
+	</div>
+	<div class="grofile-hash-map-564de8a252e84135648bfdb9826945d6">
+	</div>
+	<div class="grofile-hash-map-15888105e7c482e7d509529a2cebff71">
+	</div>
+	<div class="grofile-hash-map-4f810554691feff0ad5368cf8ffaf562">
+	</div>
+	<div class="grofile-hash-map-6f3eef80ef9f44f755f1eea287dc058e">
+	</div>
+	<div class="grofile-hash-map-3eda6fcd3204ef285fa52176c28c4d3e">
+	</div>
+	<div class="grofile-hash-map-865a2ecf364b5eb0e07c48395b6e040d">
+	</div>
+	<div class="grofile-hash-map-7c99b0d72a58c0539022bdadd887f167">
+	</div>
+	<div class="grofile-hash-map-1f14f3f82b207f94389e1ab4db3c8929">
+	</div>
+	<div class="grofile-hash-map-a3236ca994e9238651b7289d5153a655">
+	</div>
+	<div class="grofile-hash-map-b3dbb188c157414d14e7ee216050e8e3">
+	</div>
+	<div class="grofile-hash-map-af0a5e968fba145d69454b8924c4f353">
+	</div>
+	<div class="grofile-hash-map-efb80b4d43036781d5d03f5eafb35f20">
+	</div>
+	<div class="grofile-hash-map-2dbd32f71a0a95b1b9415d181c3df44c">
+	</div>
+	<div class="grofile-hash-map-f19e65846a146d1fbe42f7ece28c44d5">
+	</div>
+	<div class="grofile-hash-map-5e02ac7c560afe428569a545048ca1b1">
+	</div>
+	<div class="grofile-hash-map-84130c1df46a376850e5f2f6acf22614">
+	</div>
+	<div class="grofile-hash-map-ff75d7a485cd3bc4d6fd5954430071b0">
+	</div>
+	<div class="grofile-hash-map-d100e9a5f03b2d48957d7e678b28aa50">
+	</div>
+	<div class="grofile-hash-map-9e744ffdb202e382ec0d5b70b7b87534">
+	</div>
+	<div class="grofile-hash-map-bca6a41d61aea348267b42b6a6aa5048">
+	</div>
+	<div class="grofile-hash-map-6604845dc36fc5041891ccb5eb896983">
+	</div>
+	<div class="grofile-hash-map-c16da753357a129aca8d3d75dcfed523">
+	</div>
+	<div class="grofile-hash-map-c4e01c11b9b7a01b2ad8d808e4a20637">
+	</div>
+	<div class="grofile-hash-map-16cea8e88dfd95360538ebce61bd5523">
+	</div>
+	<div class="grofile-hash-map-62fd8ab08c487953e969595e2dfd042b">
+	</div>
+	<div class="grofile-hash-map-d7d58aef2061a6ffd198a2b80f7add7a">
+	</div>
+	<div class="grofile-hash-map-81943a486ccd90136db95516e4aaa881">
+	</div>
+	<div class="grofile-hash-map-d7d58aef2061a6ffd198a2b80f7add7a">
+	</div>
+	<div class="grofile-hash-map-0cfde88b0615b8db6bd8dbf3d8377c09">
+	</div>
+	<div class="grofile-hash-map-e3437f37c5027fb406c652ea2c25d0ce">
+	</div>
+	</div>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"http:\/\/reprog.wordpress.com\/public.api\/connect\/?action=request","logoutURL":"https:\/\/reprog.wordpress.com\/wp-login.php?action=logout&_wpnonce=549b3c572c","homeURL":"http:\/\/reprog.wordpress.com\/","postID":"326","gravDefault":"monsterid","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"0"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://s1.wp.com/_static/??/wp-content/js/jquery/jquery.autoresize.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1403644162j'></script>
+
+	<div id="bit" class="loggedout-follow-normal">
+		<a class="bsub" href="javascript:void(0)"><span id='bsub-text'>Follow</span></a>
+		<div id="bitsubscribe">
+
+					<h3><label for="loggedout-follow-field">Follow &ldquo;The Reinvigorated Programmer&rdquo;</label></h3>
+
+			<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="loggedout-follow">
+			<p>Get every new post delivered to your Inbox.</p>
+
+			<p id="loggedout-follow-error" style="display: none;"></p>
+
+						<p class="bit-follow-count">Join 2,433 other followers</p>
+			<p><input type="email" name="email" value="Enter your email address" onfocus='this.value=(this.value=="Enter your email address") ? "" : this.value;' onblur='this.value=(this.value=="") ? "Enter email address" : this.value;'  id="loggedout-follow-field"/></p>
+
+			<input type="hidden" name="action" value="subscribe"/>
+			<input type="hidden" name="blog_id" value="12269820"/>
+			<input type="hidden" name="source" value="http://reprog.wordpress.com/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/"/>
+			<input type="hidden" name="sub-type" value="loggedout-follow"/>
+
+			<input type="hidden" id="_wpnonce" name="_wpnonce" value="8c0444bb3c" /><input type="hidden" name="_wp_http_referer" value="/2010/03/30/a-brief-yet-helpful-lesson-on-elementary-resource-locking-strategy/" />
+			<p id='bsub-subscribe-button'><input type="submit" value="Sign me up" /></p>
+			</form>
+					<div id='bsub-credit'><a href="http://wordpress.com/signup/?ref=lof">Powered by WordPress.com</a></div>
+		</div><!-- #bitsubscribe -->
+	</div><!-- #bit -->
+		<iframe src='http://widgets.wp.com/likes/master.html?ver=20140528#ver=20140528&amp;mp6=1' scrolling='no' id='likes-master' name='likes-master' style='display:none;'></iframe>
+		<div id='likes-other-gravatars'><div class="likes-text"><span>%d</span> bloggers like this:</div><ul class="wpl-avatars sd-like-gravatars"></ul></div>
+		<script type="text/javascript">
+		//<![CDATA[
+			var jetpackLikesWidgetQueue = [];
+			var jetpackLikesWidgetBatch = [];
+			var jetpackLikesMasterReady = false;
+
+			function JetpackLikespostMessage( message, target ) {
+				if ( "string" === typeof message ){
+					try{
+						message = JSON.parse( message );
+					}
+					catch(e) {
+						return;
+					}
+				}
+
+				pm( {
+					target: target,
+					type: 'likesMessage',
+					data: message,
+					origin: '*'
+				} );
+			}
+
+			function JetpackLikesBatchHandler() {
+				var requests = [];
+				jQuery( 'div.jetpack-likes-widget-unloaded' ).each( function( i ) {
+					if ( jetpackLikesWidgetBatch.indexOf( this.id ) > -1 )
+						return;
+					jetpackLikesWidgetBatch.push( this.id );
+					var regex = /like-(post|comment)-wrapper-(\d+)-(\d+)-(\w+)/;
+					var match = regex.exec( this.id );
+					if ( ! match || match.length != 5 )
+						return;
+
+					var info = {
+						blog_id: match[2],
+						width:   this.width
+					};
+
+					if ( 'post' == match[1] ) {
+						info.post_id = match[3];
+					} else if ( 'comment' == match[1] ) {
+						info.comment_id = match[3];
+					}
+
+					info.obj_id = match[4];
+
+					requests.push( info );
+				});
+
+				if ( requests.length > 0 ) {
+					JetpackLikespostMessage( { event: 'initialBatch', requests: requests }, window.frames['likes-master'] );
+				}
+			}
+
+			function JetpackLikesMessageListener( event ) {
+				if ( "undefined" == typeof event.event )
+					return;
+
+				if ( 'masterReady' == event.event ) {
+					jQuery( document ).ready( function() {
+						jetpackLikesMasterReady = true;
+
+						var stylesData = {
+								event: 'injectStyles'
+						};
+
+						if ( jQuery( 'iframe.admin-bar-likes-widget' ).length > 0 ) {
+							JetpackLikespostMessage( { event: 'adminBarEnabled' }, window.frames[ 'likes-master' ] );
+
+							stylesData.adminBarStyles = {
+								background: jQuery( '#wpadminbar .quicklinks li#wp-admin-bar-wpl-like > a' ).css( 'background' ),
+								isRtl: ( 'rtl' == jQuery( '#wpadminbar' ).css( 'direction' ) )
+							};
+						}
+
+						if ( !window.addEventListener )
+							jQuery( '#wp-admin-bar-admin-bar-likes-widget' ).hide();
+
+						stylesData.textStyles = {
+							color: jQuery( '.sd-text-color').css( 'color' ),
+							fontFamily: jQuery( '.sd-text-color' ).css( 'font-family' ),
+							fontSize: jQuery( '.sd-text-color' ).css( 'font-size' ),
+							direction: jQuery( '.sd-text-color' ).css( 'direction' ),
+							fontWeight: jQuery( '.sd-text-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-text-color' ).css( 'font-style' ),
+							textDecoration: jQuery( '.sd-text-color' ).css('text-decoration')
+						};
+
+						stylesData.linkStyles = {
+							color: jQuery( '.sd-link-color' ).css('color'),
+							fontFamily: jQuery( '.sd-link-color' ).css('font-family'),
+							fontSize: jQuery( '.sd-link-color' ).css('font-size'),
+							textDecoration: jQuery( '.sd-link-color' ).css('text-decoration'),
+							fontWeight: jQuery( '.sd-link-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-link-color' ).css( 'font-style' )
+						};
+
+						JetpackLikespostMessage( stylesData, window.frames[ 'likes-master' ] );
+
+						JetpackLikesBatchHandler();
+
+						jQuery( document ).on( 'inview', 'div.jetpack-likes-widget-unloaded', function() {
+							jetpackLikesWidgetQueue.push( this.id );
+						});
+					});
+				}
+
+				if ( 'showLikeWidget' == event.event ) {
+					jQuery( '#' + event.id + ' .post-likes-widget-placeholder'  ).fadeOut( 'fast', function() {
+						jQuery( '#' + event.id + ' .post-likes-widget' ).fadeIn( 'fast', function() {
+							JetpackLikespostMessage( { event: 'likeWidgetDisplayed', blog_id: event.blog_id, post_id: event.post_id, obj_id: event.obj_id }, window.frames['likes-master'] );
+						});
+					});
+				}
+
+				if ( 'clickReblogFlair' == event.event ) {
+					wpcom_reblog.toggle_reblog_box_flair( event.obj_id );
+				}
+
+				if ( 'showOtherGravatars' == event.event ) {
+					var $container = jQuery( '#likes-other-gravatars' );
+					var $list = $container.find( 'ul' );
+
+					$container.hide();
+					$list.html( '' );
+
+					$container.find( '.likes-text span' ).text( event.total );
+
+					jQuery.each( event.likers, function( i, liker ) {
+						$list.append( '<li class="' + liker.css_class + '"><a href="' + liker.profile_URL + '" class="wpl-liker" rel="nofollow" target="_parent"><img src="' + liker.avatar_URL + '" alt="' + liker.name + '" width="30" height="30" style="padding-right: 3px;" /></a></li>');
+					} );
+
+					var offset = jQuery( "[name='" + event.parent + "']" ).offset();
+
+					$container.css( 'left', offset.left + event.position.left - 10 + 'px' );
+					$container.css( 'top', offset.top + event.position.top - 33 + 'px' );
+
+					var rowLength = Math.floor( event.width / 37 );
+					var height = ( Math.ceil( event.likers.length / rowLength ) * 37 ) + 13;
+					if ( height > 204 ) {
+						height = 204;
+					}
+
+					$container.css( 'height', height + 'px' );
+					$container.css( 'width', rowLength * 37 - 7 + 'px' );
+
+					$list.css( 'width', rowLength * 37 + 'px' );
+
+					$container.fadeIn( 'slow' );
+
+					var scrollbarWidth = $list[0].offsetWidth - $list[0].clientWidth;
+					if ( scrollbarWidth > 0 ) {
+						$container.width( $container.width() + scrollbarWidth );
+						$list.width( $list.width() + scrollbarWidth );
+					}
+				}
+			}
+
+			pm.bind( 'likesMessage', function(e) { JetpackLikesMessageListener(e); } );
+
+			jQuery( document ).click( function( e ) {
+				var $container = jQuery( '#likes-other-gravatars' );
+
+				if ( $container.has( e.target ).length === 0 ) {
+					$container.fadeOut( 'slow' );
+				}
+			});
+
+			function JetpackLikesWidgetQueueHandler() {
+				var wrapperID;
+				if ( ! jetpackLikesMasterReady ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				if ( jetpackLikesWidgetQueue.length > 0 ) {
+					// We may have a widget that needs creating now
+					var found = false;
+					while( jetpackLikesWidgetQueue.length > 0 ) {
+						// Grab the first member of the queue that isn't already loading.
+						wrapperID = jetpackLikesWidgetQueue.splice( 0, 1 )[0];
+						if ( jQuery( '#' + wrapperID ).hasClass( 'jetpack-likes-widget-unloaded' ) ) {
+							found = true;
+							break;
+						}
+					}
+					if ( ! found ) {
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				} else if ( jQuery( 'div.jetpack-likes-widget-unloaded' ).length > 0 ) {
+					// Grab any unloaded widgets for a batch request
+					JetpackLikesBatchHandler();
+
+					// Get the next unloaded widget
+					wrapperID = jQuery( 'div.jetpack-likes-widget-unloaded' ).first()[0].id;
+					if ( ! wrapperID ) {
+						// Everything is currently loaded
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				}
+
+				if ( 'undefined' === typeof wrapperID ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				var $wrapper = jQuery( '#' + wrapperID );
+				$wrapper.find( 'iframe' ).remove();
+
+				if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='22px' width='68px' frameBorder='0' scrolling='no' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				} else {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='55px' width='100%' frameBorder='0' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				}
+
+				$wrapper.removeClass( 'jetpack-likes-widget-unloaded' ).addClass( 'jetpack-likes-widget-loading' );
+
+				$wrapper.find( 'iframe' ).load( function( e ) {
+					var $iframe = jQuery( e.target );
+					$wrapper.removeClass( 'jetpack-likes-widget-loading' ).addClass( 'jetpack-likes-widget-loaded' );
+
+					JetpackLikespostMessage( { event: 'loadLikeWidget', name: $iframe.attr( 'name' ), width: $iframe.width() }, window.frames[ 'likes-master' ] );
+
+					if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+						$wrapper.find( 'iframe' ).Jetpack( 'resizeable' );
+					}
+				});
+				setTimeout( JetpackLikesWidgetQueueHandler, 250 );
+			}
+			JetpackLikesWidgetQueueHandler();
+		//]]>
+		</script>
+<script type='text/javascript' src='http://s1.wp.com/_static/??/wp-content/js/devicepx.js,/wp-content/mu-plugins/akismet-3.0/_inc/form.js?m=1399919068j'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script>	<script type="text/javascript">
+	var skimlinks_pub_id = "725X584219"
+	var skimlinks_sitename = "reprog.wordpress.com";
+	</script>
+	<script type="text/javascript" src="http://s.skimresources.com/js/725X1342.skimlinks.js"></script><script src="http://s.stats.wordpress.com/w.js?21" type="text/javascript"></script>
+<script type="text/javascript">
+st_go({'blog':'12269820','v':'wpcom','tz':'0','user_id':'0','post':'326','subd':'reprog'});
+ex_go({'crypt':'UE5XaGUuOTlwaD85flAmcm1mcmZsaDhkV11YdWFnNncxc1tjZG9XVXhRTmIuSltuLkN1bEJJJUc9ai9uZD89S19hQnhUZXdBLjNwbE4tUS98SE9sQTd5czZuZU5jX3x3bz9kMW1OLTdmbi5GRllufE9Ta0J5OWVwWXlNX1gxQSxrcWUlbHBNZFd3ZzJxMiw1UmxDP0lWYmI9JnVbSnBwTDUrMUhNP0w3cTJlR0EvWDArRkxpMnVJQ3FiTUN6RHJ1LEJRSC15dk98RHkraTg1eD1dTn4tdGZrZDVsPTdWbTkrMWxjeU52anldaS9QZS9Ufn53JS93K1ZdUX5OYlRFbkpIMW89N2p2bmR3UXVDfCxSRUctaFExRUlVMnIzLW8/P2hHW0QxW1l5MT9dMDFPPW9IbzhSZkpBVVc0Y1VjKy9FJkZJYlZYNFhMaVlweU9zW2JZN25mbGxPR103TVRMWC1oeEw='});
+addLoadEvent(function(){linktracker_init('12269820',326);});
+	</script>
+<noscript><img src="http://stats.wordpress.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//stats.wordpress.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

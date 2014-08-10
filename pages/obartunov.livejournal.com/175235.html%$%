@@ -1,0 +1,670 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9" />
+    <title>... - Hstore development for 9.4 release: part 3</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<!--[if IE]><link rel="shortcut icon" type="image/vnd.microsoft.icon" href="http://l-stat.livejournal.net/img/userinfo.ico?v=117.1"><![endif]-->
+<link rel="icon" type="image/gif" href="http://l-stat.livejournal.net/img/userinfo.gif?v=17080?v=117.1">
+<link rel='stylesheet' href='' type='text/css' />
+<link rel="meta" type="application/rdf+xml" title="FOAF" href="http://obartunov.livejournal.com/data/foaf" />
+<link rel="stylesheet" type="text/css" href="http://l-stat.livejournal.net/??lj_base.css,controlstrip-new.css,controlstrip-light-new.css,widgets/calendar.css,widgets/filter-settings.css,popup/popupus.css,popup/popupus-blue.css,lj_base-journal.css,journalpromo/journalpromo_v3.css?v=1404222078" >
+<link rel="stylesheet" type="text/css" href="http://l-stat.livejournal.net/??sup/s/print.css?v=1404222078" media="print">
+<link rel="stylesheet" type="text/css" href="http://l-stat.livejournal.net/??sup/s/style.css,sup/s/x-4.css,sup/s/x-5.css,sup/s/x-5-1.css?v=1404222078" media="screen">
+<!--[if IE]><link rel="stylesheet" type="text/css" href="http://l-stat.livejournal.net/??sup/s/ie.css?v=1404222078" media="screen"><![endif]-->
+<!--[if lte IE 8]><link rel="stylesheet" type="text/css" href="http://l-stat.livejournal.net/??ie.css?v=1404222078" ><![endif]-->
+<link rel="stylesheet" type="text/css" href="http://l-stat.livejournal.net/??proximanova-opentype.css?v=1404222078" >
+<meta property="og:description" content="I returned back home from PGCon.EU-2013 conference, Dublin, Ireland, where we gave two talks - Next Generation of GIN and Binary storage for nested data structures and application to hstore data type . These projects as well as visiting the conference (I, Teodor Sigaev and Alexander Korotkov)…" /><meta property="og:image" content="http://l-userpic.livejournal.com/96063716/24248903" /><meta property="og:title" content="Hstore development for 9.4 release: part 3" /><meta property="og:type" content="website" /><meta property="og:url" content="http://obartunov.livejournal.com/175235.html" /><meta property="twitter:app:id:ipad" content="383091547" /><meta property="twitter:app:id:iphone" content="383091547" /><meta property="twitter:app:name:ipad" content="LiveJournal" /><meta property="twitter:app:name:iphone" content="LiveJournal" /><meta property="twitter:app:url:ipad" content="lj://obartunov.livejournal.com/175235.html" /><meta property="twitter:app:url:iphone" content="lj://obartunov.livejournal.com/175235.html" /><meta property="twitter:card" content="summary_large_image" /><meta property="twitter:description" content="I returned back home from PGCon.EU-2013 conference, Dublin, Ireland, where we gave two talks - Next Generation of GIN and Binary storage for nested data structures and application to hstore data type . These projects as well as visiting the conference (I, Teodor Sigaev and Alexander Korotkov)…" /><meta property="twitter:image:src" content="http://l-userpic.livejournal.com/96063716/24248903" /><meta property="twitter:site" content="@livejournal" /><meta property="twitter:title" content="Hstore development for 9.4 release: part 3" />
+</head>
+<body class="view-entry type-P column-right tags-cloud theme-x5 themeid-x-5-1 j-p-resize-all-images">
+<div id="page">
+    <div class="layout">
+    <div class="layout-inner" ng-app="S2Layout">
+
+            <div class="header">
+                <div class="header-sec">
+                    <div class="userpic"><div class="userpic-in"><img alt="trekking, Himalaya" width="69" height="100" src="http://l-userpic.livejournal.com/96063716/24248903" /></div></div>
+                    <h1><span  class="ljuser  i-ljuser  i-ljuser-type-P     "  lj:user="obartunov" ><a href="http://obartunov.livejournal.com/profile"  target="_self"  class="i-ljuser-profile" ><img  class="i-ljuser-userhead"  src="http://l-stat.livejournal.net/img/userinfo.gif?v=17080?v=117.1" /></a><a href="http://obartunov.livejournal.com/" class="i-ljuser-username"   target="_self"   ><b>obartunov</b></a></span> </h1>
+                    <ul class="nav">
+                         <li class="item item-recent"><a rel="home" href="http://obartunov.livejournal.com">Recent Entries</a></li> <li class="item item-friends"><a href="http://obartunov.livejournal.com/friends">Friends</a></li> <li class="item item-archive"><a href="http://obartunov.livejournal.com/calendar">Archive</a></li> <li class="item item-profile"><a href="http://obartunov.livejournal.com/profile">Profile</a></li> 
+                    </ul>
+                </div>
+                <ul class="nav-sub">
+                     <li class="item item-rss"><a class="btn btn-rss" href="http://obartunov.livejournal.com/data/rss"><span><span><span>RSS</span></span></span></a></li>
+                </ul>
+                <div class="hr"><hr /></div>
+                <h2><span>...</span></h2>
+                <h3><span>или внеочередные заметки</span></h3>
+                <div class="hr hr-afterhead"><hr /></div>
+            </div>
+            <div class="content">
+                <div class="content-inner">
+                    
+                <div class="entry-wrap">
+                <dl class="entry hentry" id="post-obartunov-175235">
+<dt class="entry-title entry-linkbar"><span class="entry-linkbar-inner"><a href="http://obartunov.livejournal.com/174887.html" ><img border='0' width="24" height="24" alt="Previous Entry" title="Previous Entry" src="http://l-stat.livejournal.net/img/btn_prev.gif?v=17312"  /></a>        <a href="http://www.livejournal.com/tools/memadd.bml?journal=obartunov&amp;itemid=175235" lj-memories="getFeedItemOptions(element)" ><img border='0' width="24" height="24" alt="Add to Memories" title="Add to Memories" src="http://l-stat.livejournal.net/img/btn_memories.gif?v=17312"  /></a>    <a href="http://obartunov.livejournal.com/175235.html?title=Hstore%20development%20for%209.4%20release%3A%20part%203&hashtags=pgen,hstore,pg&text=I%20returned%20back%20home%20from%20PGCon.EU-2013%20conference,%20Dublin,%20Ireland,%20where%20we%20gave%20two%20talks%20-%20%20Next%20Generation%20of%20GIN%20and%20%20Binary%20storage%20for%20nested%20data%20structures%20and%20application%20to%20hstore%20data%20type.%20These%20projects%20as%20well%20as%20visiting%20the%20conference%E2%80%A6" data-text="I%20returned%20back%20home%20from%20PGCon.EU-2013%20conference,%20Dublin,%20Ireland,%20where%20we%20gave%20two%20talks%20-%20%20Next%20Generation%20of%20GIN%20and%20%20Binary%20storage%20for%20nested%20data%20structures%20and%20application%20to%20hstore%20data%20type.%20These%20projects%20as%20well%20as%20visiting%20the%20conference%E2%80%A6" data-poster="obartunov" data-ditemid="175235" data-hashtags="pgen,hstore,pg" class="js-lj-share" data-title="Hstore%20development%20for%209.4%20release%3A%20part%203" data-url="http%3A%2F%2Fobartunov.livejournal.com%2F175235.html" ><img border='0' width="24" height="24" alt="Share" title="Share" src="http://l-stat.livejournal.net/img/btn_sharethis.gif?v=18499"  /></a>        <a href="http://obartunov.livejournal.com/175547.html" ><img border='0' width="24" height="24" alt="Next Entry" title="Next Entry" src="http://l-stat.livejournal.net/img/btn_next.gif?v=17312"  /></a></span></dt>
+                    <dt class="entry-title">Hstore development for 9.4 release: part 3<a href="http://obartunov.livejournal.com/175235.html" rel="bookmark" style="display:none;"></a><i class="cornerz cornerz-top"><b></b></i></dt>
+                    <dd class="entry-text">
+
+                        <dl class="vcard author">
+                            <dt><img src="http://l-userpic.livejournal.com/96063716/24248903" alt="trekking, Himalaya" height="100" width="69"  /></dt>
+                            <dd class="username"><span  class="ljuser  i-ljuser  i-ljuser-type-P     "  lj:user="obartunov" ><a href="http://obartunov.livejournal.com/profile"  target="_self"  class="i-ljuser-profile" ><img  class="i-ljuser-userhead"  src="http://l-stat.livejournal.net/img/userinfo.gif?v=17080?v=117.1" /></a><a href="http://obartunov.livejournal.com/" class="i-ljuser-username"   target="_self"   ><b>obartunov</b></a></span> </dd>
+                            <dd class="entry-date"><abbr class="updated" title="2013-11-04T23:50:00+03:00">November 4th, 2013</abbr></dd>
+                        </dl>
+<div class="entry-content">I returned back home from PGCon.EU-2013 conference, Dublin, Ireland, where we gave two talks - <a href="http://www.sai.msu.su/~megera/postgres/talks/Next%20generation%20of%20GIN.pdf" rel="nofollow">Next Generation of GIN</a> and <a href="http://www.sai.msu.su/~megera/postgres/talks/hstore-dublin-2013.pdf" rel="nofollow">Binary storage for nested data structures and application to hstore data type</a>. These projects as well as visiting the conference  (I, Teodor Sigaev and Alexander Korotkov) were sponsored by EngineYard company and we hope it will supports us in other projects. I already wrote about hstore development, see <a href="http://obartunov.livejournal.com/172503.html" rel="nofollow">Part 1</a>,<br /><a href="http://obartunov.livejournal.com/171959.html" rel="nofollow">GIN fast-scan and speedup of @&gt; operator</a>,<br /><a href="http://obartunov.livejournal.com/174887.html" rel="nofollow">Part 2</a>, so today I'll just highlight only new features of hstore we added since PGCon-2013, Ottawa, Canada.<br /><br /><ul><br /><li><br />We reworked the <em>binary storage</em> (slides 17-21) for nested hstore to add scalars and types support.<br /></li><br /><li><br /><em>Scalars</em> now supported in hstore (slide 10)<br /><pre>
+postgres=# select 'a'::hstore, 't'::hstore;
+ hstore | hstore
+--------+--------
+ "a"    | t
+</pre><br /></li><br /><li><br />Finally, <em>types</em> are supported in hstore (slides 11-13). They are <em>numeric, boolean, strings and NULL</em>. We added a bunch of new operators and functions to work with these types (slides 42-46). Types are huge improvement, since now hstore and json could be converted to each other without any problem. Slide 40:<br /><pre>
+=# select '{"a":3.14}'::json::hstore::json;
+ json
+--------------- 
+{"a": 3.14}
+=# select '3.14'::json::hstore::json;
+ json
+----------
+3.14
+</pre><br /></li><br /><li><br />GUC variable <em>hstore.root_array_decorated</em> is now deprecated and arrays always have to be embedded in curly braces.<br /></li><br /><li><br />We added performance comparison with MongoDB. MongoDB is very slow on loading data (slide 59) - 8 minutes vs 76s,<br />seqscan speed is the same - about 1s, index scan is very fast - 1ms vs 17 ms with GIN fast-scan patch. But we managed to create new opclass (slides 61-62) for hstore using hashing of full-paths concatenated with values and got 0.6ms, which is faster than mongodb ! Here GIN++ is the GIN with fast-scan patch.<br /><pre>
+Hstore - seqscan, GiST,  GIN   GIN++  GINhash  MongoDB
+                  64MB   815MB        349MB    100MB
+         0.98s    0.3s   0.1s  0.017s  0.0007s 0.001s
+                  3x     10x    60x    1400x   1000x
+</pre><br />It's worth noticing, that MongoDB index is very "narrow" index, while hstore's indexes could speedup more queries.<br /></li><br /><li><br />New hstore is now documented, thanks David Wheeler, who also is reviewing our patch.<br /></li><br /><li><br />The last patch to 9.4dev is available <a href='http://www.sigaev.ru/misc/nested_hstore-0.36.patch.gz' rel='nofollow'>http://www.sigaev.ru/misc/nested_hs<wbr />tore-0.36.patch.gz</a>, but expect the new one with gin_hstore_hash_ops opclass included.<br /></li><br /></ul><br /><p><br /><b><br />Now, there is no obstacle to prevent json development for 9.4 to use our binary storage. Andrew Dunstan has started thinking about this.<br /></b><br /><p><br />We have many discussions after our talk (which has a great success) about future development and improvements and we really have several interesting ideas about extending GIN interface and bitmap filtering.  I hope that we find support of our work (several companies already shown some interest).<br /><p><br />Again, thanks EngineYard for support !<div class='ljtags'>Tags: <a rel='tag' href='http://obartunov.livejournal.com/tag/hstore'>hstore</a>, <a rel='tag' href='http://obartunov.livejournal.com/tag/pg'>pg</a>, <a rel='tag' href='http://obartunov.livejournal.com/tag/pgen'>pgen</a></div></div>
+                    </dd>
+
+                </dl>
+                <i class="cornerz cornerz-bot"><b></b></i></div>
+
+                <div class="hr"><hr /></div>
+
+                    <div id="comments" class="entry-wrap entry-comments">
+
+                    <div class="entry"><i class="cornerz cornerz-top"><b></b></i>
+                        <div class="entry-text"><div class="entry-comments-text">
+<a name='comments'></a><div class="comments-links">( <span class="comments-count">2 comments</span> <span class="emdash">—</span>  <span class="replylink"><a href="http://obartunov.livejournal.com/175235.html?mode=reply" rel="nofollow">Leave a comment</a></span> )</div><div  id="ljqrttopcomment" style="display: none;"></div><div class="comments-pages"></div><div id="ljcmt523139" class="comment-wrap" style="margin-left:0px;"><a name="t523139"></a><div class="comment-head odd"><div class="comment-upic"><img src="http://l-userpic.livejournal.com/122942177/69366718" width="50" height="50" alt="" /></div><div class="comment-head-in"><p><span  class="ljuser  i-ljuser  i-ljuser-type-I     "  lj:user="ext_2476727" ><a href="http://www.livejournal.com/profile?userid=69366718&t=I"  target="_self"  class="i-ljuser-profile" ><img  class="i-ljuser-userhead"  src="http://l-stat.livejournal.net/img/icons/facebook-16.png?v=29916?v=117.1" /></a><a href="https://www.facebook.com/ivan.wang.the.terrible" class="i-ljuser-username"   target="_self"   ><b>Ivan Wang</b></a></span> </p><p><a class="comment-permalink" href="http://obartunov.livejournal.com/175235.html?thread=523139#t523139"><span title="126 days after journal entry">2014-03-11 02:19 am (UTC)</span></a><span class="comment-controls">                </span></p></div></div><div class="comment-text">"Now, there is no obstacle to prevent json development for 9.4 to use our binary storage. Andrew Dunstan has started thinking about this." Then what is the advantage of hstore over JSON? And are they actually becoming very the same, or even just become one combined thing?</div><div class="comment-menu">(<a href="http://obartunov.livejournal.com/175235.html?replyto=523139" rel="nofollow">Reply</a>) (<a href="http://obartunov.livejournal.com/175235.html?thread=523139#t523139">Thread</a>) </div><div class="hr"><hr /></div></div><div  id="ljqrt523139" style="display: none;"></div><div id="ljcmt523395" class="comment-wrap" style="margin-left:25px;"><a name="t523395"></a><div class="comment-head even"><div class="comment-upic"><img src="http://l-userpic.livejournal.com/96063716/24248903" width="69" height="100" alt="" /></div><div class="comment-head-in"><p><span  class="ljuser  i-ljuser  i-ljuser-type-P     "  lj:user="obartunov" ><a href="http://obartunov.livejournal.com/profile"  target="_self"  class="i-ljuser-profile" ><img  class="i-ljuser-userhead"  src="http://l-stat.livejournal.net/img/userinfo.gif?v=17080?v=117.1" /></a><a href="http://obartunov.livejournal.com/" class="i-ljuser-username"   target="_self"   ><b>obartunov</b></a></span> </p><p><a class="comment-permalink" href="http://obartunov.livejournal.com/175235.html?thread=523395#t523395"><span title="126 days after journal entry, 09:38 am (obartunov&#39;s time)">2014-03-11 05:38 am (UTC)</span></a><span class="comment-controls">                </span></p></div></div><div class="comment-text">No advantage, so we left hstore unchanged and encourage people use jsonb.</div><div class="comment-menu">(<a href="http://obartunov.livejournal.com/175235.html?replyto=523395" rel="nofollow">Reply</a>) (<a href="http://obartunov.livejournal.com/175235.html?thread=523139#t523139">Parent</a>) (<a href="http://obartunov.livejournal.com/175235.html?thread=523395#t523395">Thread</a>) </div><div class="hr"><hr /></div></div><div  id="ljqrt523395" style="display: none;"></div><div class="comments-footer"><div class="comments-links">( <span class="comments-count">2 comments</span> <span class="emdash">—</span>  <span class="replylink"><a href="http://obartunov.livejournal.com/175235.html?mode=reply" rel="nofollow">Leave a comment</a></span> )</div><div  id="ljqrtbottomcomment" style="display: none;"></div><div class="hr"><hr /></div></div><div class="comments-pages"></div>
+                        </div></div>
+                    </div>
+                    <i class="cornerz cornerz-bot"><b></b></i></div>
+
+                </div>
+            </div>
+
+                <div class="sidebar">
+                    <div class="sidebar-inner">
+
+                    <dl class="sidebar-block sidebar-cal">
+                        <dt>Archive</dt>
+                        <dd class="calendar-wrap"><p class="sbar-cal-nav"><span class="sbar-cal-nav-month"><i class="sbar-cal-nav-prev" title="Previous Month"><i class="sbar-cal-nav-arr"></i></i><span class="sbar-cal-month"><a href="http://obartunov.livejournal.com/2014/06/" class="month">Jun</a></span><i class="sbar-cal-nav-next disabled" title="Next Month"><i class="sbar-cal-nav-arr"></i></i></span><span class="sbar-cal-nav-year"><i class="sbar-cal-nav-prev" title="Previous Year"><i class="sbar-cal-nav-arr"></i></i><span class="sbar-cal-year"><a href="http://obartunov.livejournal.com/2014/" class="year">2014</a></span><i class="sbar-cal-nav-next disabled" title="Next Year"><i class="sbar-cal-nav-arr"></i></i></span></p><table cellspacing="1" data-date="2014-06-01">
+    <thead>
+        <tr><th class="child-1"><div>S</div></th><th class="child-2"><div>M</div></th><th class="child-3"><div>T</div></th><th class="child-4"><div>W</div></th><th class="child-5"><div>T</div></th><th class="child-6"><div>F</div></th><th class="child-7"><div>S</div></th></tr>
+    </thead>
+
+    <tbody>
+    <tr><td><span>1</span></td><td><span>2</span></td><td><span>3</span></td><td><span>4</span></td><td><span>5</span></td><td><span>6</span></td><td><span>7</span></td></tr>
+<tr><td><span><a href="http://obartunov.livejournal.com/2014/06/08/"><span>8</span></a></span></td><td><span>9</span></td><td><span>10</span></td><td><span>11</span></td><td><span>12</span></td><td><span>13</span></td><td><span>14</span></td></tr>
+<tr><td><span>15</span></td><td><span>16</span></td><td><span>17</span></td><td><span>18</span></td><td><span>19</span></td><td><span>20</span></td><td><span>21</span></td></tr>
+<tr><td><span>22</span></td><td><span>23</span></td><td><span>24</span></td><td><span>25</span></td><td><span>26</span></td><td><span>27</span></td><td><span>28</span></td></tr>
+<tr><td><span>29</span></td><td><span>30</span></td><td><span>&nbsp;</span></td><td><span>&nbsp;</span></td><td><span>&nbsp;</span></td><td><span>&nbsp;</span></td><td><span>&nbsp;</span></td></tr>
+</tbody></table></dd>
+                    </dl>
+
+                    <dl class="sidebar-block">
+                        <dd><!--AdFox START-->
+<!--Banner name: 300x250_right-->
+
+<script type="text/javascript">
+<!--
+if (typeof(pr) == 'undefined') { var pr = Math.floor(Math.random() * 1000000); }
+if (typeof(document.referrer) != 'undefined') {
+  if (typeof(afReferrer) == 'undefined') {
+    afReferrer = escape(document.referrer);
+  }
+} else {
+  afReferrer = '';
+}
+var addate = new Date(); 
+var scrheight = '', scrwidth = '';
+if (self.screen) {
+scrwidth = screen.width;
+scrheight = screen.height;
+} else if (self.java) {
+var jkit = java.awt.Toolkit.getDefaultToolkit();
+var scrsize = jkit.getScreenSize();
+scrwidth = scrsize.width;
+scrheight = scrsize.height;
+}
+document.write('<scr' + 'ipt type="text/javascript" src="//ads.adfox.ru/171817/prepareCode?p1=bjqqh&amp;p2=emit&amp;pct=a&amp;pfc=a&amp;pfb=a&amp;pr=' + pr +'&amp;pt=b&amp;pd=' + addate.getDate() + '&amp;pw=' + addate.getDay() + '&amp;pv=' + addate.getHours() + '&amp;prr=' + afReferrer + '&amp;puid1=&amp;puid2=&amp;puid3=&amp;puid4=&amp;puid5=&amp;puid6=&amp;puid7=&amp;puid8=&amp;puid9=&amp;puid10=&amp;puid11=&amp;puid12=&amp;puid13=&amp;puid14=&amp;puid15=&amp;puid16=&amp;puid17=&amp;puid18=&amp;puid19=&amp;puid20=&amp;puid21=&amp;puid22=&amp;puid23=&amp;puid24=&amp;puid25=&amp;puid26=&amp;puid27=&amp;puid28=&amp;puid29=&amp;puid30=&amp;puid31=&amp;puid32=&amp;puid33=&amp;puid34=&amp;puid35=&amp;pdw=' + scrwidth + '&amp;pdh=' + scrheight + '"></scr' + 'ipt>');
+// -->
+</script>
+<!--AdFox END-->
+
+</dd>
+                    </dl>
+<div class="hr"><hr /></div>
+                    <dl class="sidebar-block sidebar-links">
+                        <dt>Links</dt><dd><a href="http://www.flickr.com/photos/obartunov/sets/" rel="nofollow">My Flickr page</a></dd><dd><a href="http://www.flickr.com/photos/obartunov/collections/72157621983304701/" rel="nofollow">Непал, Гималаи</a></dd><dd><a href="http://www.sai.msu.su/~megera/wiki/" rel="nofollow">My Wiki  (mostly it stuff)</a></dd><dd><a href="http://manaslutrek.org" rel="nofollow">Manaslu Trek</a></dd><dd><a href="http://www.facebook.com/oleg.bartunov" rel="nofollow">I&#39;m in Facebook</a></dd>
+                    </dl>
+<div class="hr"><hr /></div>
+                    <dl class="sidebar-block sidebar-tags">
+                        <dt>Tags</dt>
+                        <dd class="tags"><a href="http://obartunov.livejournal.com/tag/annapurna" title="25 uses" rel="tag" style="font-size:1.22em;">annapurna</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/astronet" title="7 uses" rel="tag" style="font-size:1.04em;">astronet</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/barcelona" title="5 uses" rel="tag" style="font-size:1.02em;">barcelona</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/bardak" title="13 uses" rel="tag" style="font-size:1.10em;">bardak</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/canada" title="7 uses" rel="tag" style="font-size:1.04em;">canada</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/d700" title="8 uses" rel="tag" style="font-size:1.05em;">d700</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/data%20management" title="18 uses" rel="tag" style="font-size:1.15em;">data management</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/everest" title="55 uses" rel="tag" style="font-size:1.52em;">everest</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/family" title="11 uses" rel="tag" style="font-size:1.08em;">family</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/florence" title="4 uses" rel="tag" style="font-size:1em;">florence</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/france" title="22 uses" rel="tag" style="font-size:1.19em;">france</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/gear" title="8 uses" rel="tag" style="font-size:1.05em;">gear</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/gokyo" title="5 uses" rel="tag" style="font-size:1.02em;">gokyo</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/himalaya" title="109 uses" rel="tag" style="font-size:2.08em;">himalaya</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/hmm" title="65 uses" rel="tag" style="font-size:1.63em;">hmm</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/hstore" title="7 uses" rel="tag" style="font-size:1.04em;">hstore</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/italy" title="4 uses" rel="tag" style="font-size:1em;">italy</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/karakorum" title="4 uses" rel="tag" style="font-size:1em;">karakorum</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/kathmandu" title="8 uses" rel="tag" style="font-size:1.05em;">kathmandu</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/knn" title="7 uses" rel="tag" style="font-size:1.04em;">knn</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/lenses" title="25 uses" rel="tag" style="font-size:1.22em;">lenses</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/linux" title="4 uses" rel="tag" style="font-size:1em;">linux</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/lyon" title="4 uses" rel="tag" style="font-size:1em;">lyon</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/manaslu" title="6 uses" rel="tag" style="font-size:1.03em;">manaslu</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/mark" title="8 uses" rel="tag" style="font-size:1.05em;">mark</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/marseille" title="4 uses" rel="tag" style="font-size:1em;">marseille</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/mera" title="5 uses" rel="tag" style="font-size:1.02em;">mera</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/misc" title="11 uses" rel="tag" style="font-size:1.08em;">misc</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/montreal" title="6 uses" rel="tag" style="font-size:1.03em;">montreal</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/moscow" title="66 uses" rel="tag" style="font-size:1.64em;">moscow</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/msu" title="25 uses" rel="tag" style="font-size:1.22em;">msu</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/music" title="4 uses" rel="tag" style="font-size:1em;">music</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/nepal" title="50 uses" rel="tag" style="font-size:1.47em;">nepal</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/npp" title="4 uses" rel="tag" style="font-size:1em;">npp</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/oldtimes" title="5 uses" rel="tag" style="font-size:1.02em;">oldtimes</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/pakistan" title="12 uses" rel="tag" style="font-size:1.09em;">pakistan</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/people" title="40 uses" rel="tag" style="font-size:1.37em;">people</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/pg" title="63 uses" rel="tag" style="font-size:1.61em;">pg</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/pgcon" title="7 uses" rel="tag" style="font-size:1.04em;">pgcon</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/pgen" title="15 uses" rel="tag" style="font-size:1.12em;">pgen</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/pisang%20peak" title="6 uses" rel="tag" style="font-size:1.03em;">pisang peak</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/rainbow%20clouds" title="4 uses" rel="tag" style="font-size:1em;">rainbow clouds</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/running" title="9 uses" rel="tag" style="font-size:1.06em;">running</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/sai" title="73 uses" rel="tag" style="font-size:1.71em;">sai</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/science" title="8 uses" rel="tag" style="font-size:1.05em;">science</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/spain" title="4 uses" rel="tag" style="font-size:1em;">spain</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/street%20life" title="5 uses" rel="tag" style="font-size:1.02em;">street life</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/sunset" title="7 uses" rel="tag" style="font-size:1.04em;">sunset</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/toulouse" title="11 uses" rel="tag" style="font-size:1.08em;">toulouse</a><span class="comma">,</span> <a href="http://obartunov.livejournal.com/tag/%D0%BF%D0%BE%D0%BA%D0%B0%D1%82%D1%83%D1%88%D0%BA%D0%B8" title="5 uses" rel="tag" style="font-size:1.02em;">покатушки</a><span class="comma">,</span> <strong class="tags-all"><a href="http://obartunov.livejournal.com/tag">…</a></strong></dd>
+                    </dl>
+
+                    <dl class="sidebar-block">
+                        <dd><!--AdFox START-->
+<!--Banner name: 160x600_bottom-->
+
+<script type="text/javascript">
+<!--
+if (typeof(pr) == 'undefined') { var pr = Math.floor(Math.random() * 1000000); }
+if (typeof(document.referrer) != 'undefined') {
+  if (typeof(afReferrer) == 'undefined') {
+    afReferrer = escape(document.referrer);
+  }
+} else {
+  afReferrer = '';
+}
+var addate = new Date(); 
+var scrheight = '', scrwidth = '';
+if (self.screen) {
+scrwidth = screen.width;
+scrheight = screen.height;
+} else if (self.java) {
+var jkit = java.awt.Toolkit.getDefaultToolkit();
+var scrsize = jkit.getScreenSize();
+scrwidth = scrsize.width;
+scrheight = scrsize.height;
+}
+document.write('<scr' + 'ipt type="text/javascript" src="//ads.adfox.ru/171817/prepareCode?p1=bjhej&amp;p2=eqxl&amp;pct=a&amp;pfc=a&amp;pfb=a&amp;pr=' + pr +'&amp;pt=b&amp;pd=' + addate.getDate() + '&amp;pw=' + addate.getDay() + '&amp;pv=' + addate.getHours() + '&amp;prr=' + afReferrer + '&amp;puid1=&amp;puid2=&amp;puid3=&amp;puid4=&amp;puid5=&amp;puid6=&amp;puid7=&amp;puid8=&amp;puid9=&amp;puid10=&amp;puid11=&amp;puid12=&amp;puid13=&amp;puid14=&amp;puid15=&amp;puid16=&amp;puid17=&amp;puid18=&amp;puid19=&amp;puid20=&amp;puid21=&amp;puid22=&amp;puid23=&amp;puid24=&amp;puid25=&amp;puid26=&amp;puid27=&amp;puid28=&amp;puid29=&amp;puid30=&amp;puid31=&amp;puid32=&amp;puid33=&amp;puid34=&amp;puid35=&amp;pdw=' + scrwidth + '&amp;pdh=' + scrheight + '"></scr' + 'ipt>');
+// -->
+</script>
+<!--AdFox END-->
+
+</dd>
+                    </dl>
+
+                    <div class="sidebar-block sidebar-powered">
+                        Powered by <a href="http://www.livejournal.com/">LiveJournal.com</a></div>
+
+
+                        </div>
+                    </div>
+    
+                    <div class="footer">
+                        <div class="hr"><hr /></div>
+<!--AdFox START-->
+<!--Banner name: 728x90_bottom-->
+
+<script type="text/javascript">
+<!--
+if (typeof(pr) == 'undefined') { var pr = Math.floor(Math.random() * 1000000); }
+if (typeof(document.referrer) != 'undefined') {
+  if (typeof(afReferrer) == 'undefined') {
+    afReferrer = escape(document.referrer);
+  }
+} else {
+  afReferrer = '';
+}
+var addate = new Date(); 
+var scrheight = '', scrwidth = '';
+if (self.screen) {
+scrwidth = screen.width;
+scrheight = screen.height;
+} else if (self.java) {
+var jkit = java.awt.Toolkit.getDefaultToolkit();
+var scrsize = jkit.getScreenSize();
+scrwidth = scrsize.width;
+scrheight = scrsize.height;
+}
+document.write('<scr' + 'ipt type="text/javascript" src="//ads.adfox.ru/171817/prepareCode?p1=bjqqi&amp;p2=emhn&amp;pct=a&amp;pfc=a&amp;pfb=a&amp;pr=' + pr +'&amp;pt=b&amp;pd=' + addate.getDate() + '&amp;pw=' + addate.getDay() + '&amp;pv=' + addate.getHours() + '&amp;prr=' + afReferrer + '&amp;puid1=&amp;puid2=&amp;puid3=&amp;puid4=&amp;puid5=&amp;puid6=&amp;puid7=&amp;puid8=&amp;puid9=&amp;puid10=&amp;puid11=&amp;puid12=&amp;puid13=&amp;puid14=&amp;puid15=&amp;puid16=&amp;puid17=&amp;puid18=&amp;puid19=&amp;puid20=&amp;puid21=&amp;puid22=&amp;puid23=&amp;puid24=&amp;puid25=&amp;puid26=&amp;puid27=&amp;puid28=&amp;puid29=&amp;puid30=&amp;puid31=&amp;puid32=&amp;puid33=&amp;puid34=&amp;puid35=&amp;pdw=' + scrwidth + '&amp;pdh=' + scrheight + '"></scr' + 'ipt>');
+// -->
+</script>
+<!--AdFox END-->
+
+
+                    </div>
+
+        <div id="layinner-decor"></div>
+        </div>
+        </div>
+    </div>
+
+
+
+<div class="w-cs" id="lj_controlstrip_new">
+
+    <div class="w-cs-userinfo">
+
+        <div class="w-cs-options">
+
+            <div class="w-cs-logo"><!--
+                --><a href="http://www.livejournal.com">LiveJournal</a><!--
+            --></div>
+
+            <form
+                id="login"
+                class="w-cs-login"
+                action="https://www.livejournal.com/login.bml?ret=1"
+                method="post">
+                
+                <input type="hidden" name="mode" value="login" />
+                
+                
+
+                <ul class="w-cs-signin">
+                    <li class="w-cs-signin-item">
+
+                        <div class="w-cs-group w-cs-group-first">
+                            <input
+                                type="text"
+                                name="user"
+                                size="10"
+                                maxlength="17"
+                                tabindex="1"
+                                class="w-cs-text"
+                                placeholder='Username' />
+                        </div>
+
+                        <div class="w-cs-group w-cs-group-second">
+                            <label
+                                for="remember"
+                                class="note remember"><!--
+                                --><input
+                                    type="checkbox"
+                                    id="remember"
+                                    name="remember_me"
+                                    value="1"
+                                    tabindex="3"
+                                    class="w-cs-checkbox" /><!--
+                                -->Remember Me<!--
+                            --></label>
+                        </div>
+
+                    </li>
+                    <li class="w-cs-signin-item">
+
+                        <div class="w-cs-group w-cs-group-first">
+                            <input
+                                type="password"
+                                name="password"
+                                size="10"
+                                tabindex="2"
+                                class="w-cs-text"
+                                placeholder='Password' />
+                        </div>
+
+                        <div class="w-cs-group w-cs-group-second">
+                            <p class="note">
+                                <a
+                                    href="http://www.livejournal.com/lostinfo.bml"
+                                    tabindex="5"><!--
+                                    -->Forgot your password?<!--
+                                --></a>
+                            </p>
+                        </div>
+
+                    </li>
+                    <li class="w-cs-signin-item w-cs-signin-buttons">
+
+                        <div class="w-cs-group w-cs-group-first">
+                            <span class="submit-wrap"><!--
+                                --><input
+                                    type="submit"
+                                    tabindex="4"
+                                    class="w-cs-submit"
+                                    value='Log in' /><!--
+                            --></span>
+
+                            <ul class="login-with">
+                                <li>
+                                    <a
+                                        href="http://www.livejournal.com/identity/login.bml?type=facebook"
+                                        title=""
+                                        class="i-auth"
+                                        tabindex="6"><!--
+                                        --><img
+                                            src="http://l-stat.livejournal.net/img/icons/facebook-16.png?v=29916"
+                                            width="16"
+                                            height="16"
+                                            alt="" /><!--
+                                    --></a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="http://www.livejournal.com/identity/login.bml?type=twitter"
+                                        title=""
+                                        class="i-auth"
+                                        tabindex="6"><!--
+                                        --><img
+                                            src="http://l-stat.livejournal.net/img/icons/twitter-16.png?v=29916"
+                                            width="16"
+                                            height="16"
+                                            alt="" /><!--
+                                    --></a>
+                                </li>
+                                <li class="last">
+                                    <a
+                                        href="#"
+                                        title=""
+                                        class="i-auth i-auth-control"
+                                        tabindex="6"><!--
+                                        --><img
+                                            src="http://l-stat.livejournal.net/img/icons/showmore.gif?v=11430"
+                                            width="16"
+                                            height="16"
+                                            alt="" /><!--
+                                    --></a>
+                                    <div
+                                        class="b-loginpopup"
+                                        id="login-more">
+                                        <ul class="b-loginpopup-items">
+                                            <li class="b-loginpopup-item">
+                                                <a
+                                                    href="http://www.livejournal.com/identity/login.bml?type=openid"
+                                                    title="Open ID"
+                                                    tabindex="7"><!--
+                                                    --><img
+                                                        src="http://l-stat.livejournal.net/img/icons/openid-16.gif?v=17127"
+                                                        width="16"
+                                                        height="16"
+                                                        alt="Open ID" /><!--
+                                                    -->Open ID<!--
+                                                --></a>
+                                            </li>
+                                            <li class="b-loginpopup-item">
+                                                <a
+                                                    href="http://www.livejournal.com/identity/login.bml?type=google"
+                                                    title="Google"
+                                                    tabindex="7"><!--
+                                                    --><img
+                                                        src="http://l-stat.livejournal.net/img/icons/google-16.png?v=35137"
+                                                        width="16"
+                                                        height="16"
+                                                        alt="Google" /><!--
+                                                    -->Google<!--
+                                                --></a>
+                                            </li>
+                                            <li class="b-loginpopup-item">
+                                                <a
+                                                    href="http://www.livejournal.com/identity/login.bml?type=mailru"
+                                                    title="Mail.ru"
+                                                    tabindex="7"><!--
+                                                    --><img
+                                                        src="http://l-stat.livejournal.net/img/icons/mailru-16.gif?v=11910"
+                                                        width="16"
+                                                        height="16"
+                                                        alt="Mail.ru" /><!--
+                                                    -->Mail.ru<!--
+                                                --></a>
+                                            </li>
+                                            <li class="b-loginpopup-item">
+                                                <a
+                                                    href="http://www.livejournal.com/identity/login.bml?type=vkontakte"
+                                                    title="VKontakte"
+                                                    tabindex="7"><!--
+                                                    --><img
+                                                        src="http://l-stat.livejournal.net/img/icons/vkontakte-16.png?v=29916"
+                                                        width="16"
+                                                        height="16"
+                                                        alt="VKontakte" /><!--
+                                                    -->VKontakte<!--
+                                                --></a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="w-cs-group w-cs-group-second w-cs-group-aside">
+                            <p class="note create">
+                                <a href="http://www.livejournal.com/create.bml"><!--
+                                    -->Create an Account<!--
+                                --></a>
+                            </p>
+                        </div>
+
+                    </li>
+                </ul>
+
+            </form>
+        </div><!-- w-cs-options -->
+
+    </div><!-- w-cs-userinfo -->
+
+    <div class="w-cs-user-controls">
+
+        <div class="w-cs-group w-cs-group-first">
+
+            <div class="w-cs-status">
+                <p>You are viewing <span  class="ljuser  i-ljuser  i-ljuser-type-P     "  lj:user="obartunov" ><a href="http://obartunov.livejournal.com/profile"  target="_self"  class="i-ljuser-profile" ><img  class="i-ljuser-userhead"  src="http://l-stat.livejournal.net/img/userinfo.gif?v=17080?v=117.1" /></a><a href="http://obartunov.livejournal.com/" class="i-ljuser-username"   target="_self"   ><b>obartunov</b></a></span> </p>
+            </div>
+
+            <form class="w-cs-search" action="http://www.livejournal.com/search/">
+                
+                    <input
+                        type="hidden"
+                        name="journal"
+                        value="obartunov">
+                
+
+                <fieldset>
+                    <input
+                        type="text"
+                        name="q"
+                        class="w-cs-text"
+                        tabindex="8"
+                        placeholder="Search at obartunov" />
+                </fieldset>
+
+                <fieldset>
+                    <button
+                        type="submit"
+                        title="Найти"
+                        class="w-cs-search-submit"
+                        tabindex="9">
+                        <span class="w-cs-search-inner"><!--
+                            -->Find<!--
+                        --></span>
+                    </button>
+                </fieldset>
+            </form>
+
+        </div>
+
+    </div><!-- w-cs-user-controls -->
+	
+
+</div>
+
+
+            <script type="text/javascript">
+                Site = window.Site || {};
+                Site.ml_text = {"date.month.september.short":"Sep","date.day.thursday.short":"Thu","filterset.link.addnewgroup":"Add new group","date.month.march.short":"Mar","date.month.february.long":"February","memories.title.edit":"Edit privacy level","date.month.january.long":"January","date.month.june.long":"June","filterset.title.addfriend.journal":"You have added [[username]] as friend and have subscribed to their new entries on friends feed","memories.options":"Full options","filterset.link.addnewfilter":"Add new filter","date.month.april.short":"Apr","date.month.december.short":"Dec","date.month.june.short":"Jun","date.format.short":"%M/%D/%Y","repost.button.title":"Repost this entry to my journal","date.month.october.short":"Oct","confirm.bubble.no":"No","date.month.august.short":"Aug","memories.security.friends":"Friends only","filterset.title.subscribed.community":"You have subscribed to new [[username]]'s entries on friends feed","date.month.december.long":"December","date.format.offset":"0","api.error.filters.filter_already_exist":"Filter already exist","date.day.wednesday.short":"Wed","date.month.september.long":"September","memories.title.add":"Select privacy level","filterset.title.subscribed.journal":"You have subscribed to new [[username]]'s entries on friends feed","repost.button.counter":"Already reposted by...","api.error.filters.filter_name_not_specified":"Filter name must be specified","confirm.bubble.yes":"Yes","date.month.july.long":"July","date.month.november.long":"November","api.error.groups.group_name_not_specified":"Group name must be specified","sharing.popup.title":"Share","memories.security.public":"Public","paidrepost.button.title":"Repost me","paidrepost.button.title.counter":"Repost counter","component.messages.close":"Close","date.month.may.short":"May","repost.button.label":"Repost","date.day.friday.short":"Fri","date.month.october.long":"October","paidrepost.button.title.delete":"Delete repost","date.day.tuesday.short":"Tue","paidrepost.button.title.curr":" LJ Tokens","filterset.submit.subscribe":"Subscribe","web.controlstrip.view.calendar":"Calendar","date.month.january.short":"Jan","date.day.monday.short":"Mon","paidrepost.button.title.owner":"Your repost total budget: ","repost.popup.footer":"Show more…","date.month.april.long":"April","repost.popup.head":"Reposted by","filterset.button.save":"Save","date.month.march.long":"March","date.day.saturday.short":"Sat","paidrepost.button.label.done":"Already reposted","memories.title":"Add to memories","date.month.july.short":"Jul","entry.reference.label.reposted":"Reposted","date.month.august.long":"August","date.format.long":"%B %D, %Y","memories.remove":"Remove","memories.security.private":"Private","date.month.may.long":"May","filterset.subtitle.addfriend.journal":"[[username]] could view your friends only entries ","filterset.subtitle.join":"Subscribe to read [[username]]'s entries on your friends feed","date.day.sunday.short":"Sun","date.month.february.short":"Feb","entry.reference.label.title":"Remove repost","filterset.title.join":"You are the member of the community","date.month.november.short":"Nov","paidrepost.button.label":"Repost","filterset.subtitle.filters":"Filter your friends feed:","api.error.groups.group_already_exist":"Group already exist"};
+                Site.page = {"LJ_cmtinfo":{"523139":{"parent":null,"u":"Ivan Wang","rc":["523395"],"has_link":0,"depth":0,"full":1,"username":"ext_2476727"},"form_auth":"c0%3A1404241200%3A1681%3A86400%3Aw9TJtVgpeF-0-%3A133cb053b589ad65d8f0334eaf261273","523395":{"parent":523139,"u":"obartunov","rc":[],"has_link":0,"depth":1,"full":1,"username":"obartunov"},"remote":null,"canAdmin":0,"journal":"obartunov"},"calendar":{"month":{"short":["date.month.january.short","date.month.february.short","date.month.march.short","date.month.april.short","date.month.may.short","date.month.june.short","date.month.july.short","date.month.august.short","date.month.september.short","date.month.october.short","date.month.november.short","date.month.december.short"],"long":["date.month.january.long","date.month.february.long","date.month.march.long","date.month.april.long","date.month.may.long","date.month.june.long","date.month.july.long","date.month.august.long","date.month.september.long","date.month.october.long","date.month.november.long","date.month.december.long"]},"week":["date.day.sunday.short","date.day.monday.short","date.day.tuesday.short","date.day.wednesday.short","date.day.thursday.short","date.day.friday.short","date.day.saturday.short"]},"controlstrip":{"status":"You are viewing <span  class=\"ljuser  i-ljuser  i-ljuser-type-P     \"  lj:user=\"obartunov\" ><a href=\"http://obartunov.livejournal.com/profile\"  target=\"_self\"  class=\"i-ljuser-profile\" ><img  class=\"i-ljuser-userhead\"  src=\"http://l-stat.livejournal.net/img/userinfo.gif?v=17080?v=117.1\" /></a><a href=\"http://obartunov.livejournal.com/\" class=\"i-ljuser-username\"   target=\"_self\"   ><b>obartunov</b></a></span> ","calendar":{"lastDate":"2014,6,1","earlyDate":"2009,11,8"}},"D":{},"LJShareParams":{"services":{"stumbleupon":{"bindLink":"http://www.livejournal.com/redirect/SHARING_stumbleupon?url=http%3A%2F%2Fwww.stumbleupon.com%2Fsubmit%3Furl%3D{url}","title":"StumbleUpon"},"moimir":{"bindLink":"http://www.livejournal.com/redirect/SHARING_moimir?url=http%3A%2F%2Fconnect.mail.ru%2Fshare%3Furl%3D{url}","title":"Moi mir"},"twitter":{"bindLink":"http://www.livejournal.com/redirect/SHARING_twitter?url=http%3A%2F%2Ftwitter.com%2Fshare%3Furl%3D{url}%26text%3D{title}%26hashtags%3D{hashtags}","title":"Twitter"},"digg":{"bindLink":"http://www.livejournal.com/redirect/SHARING_digg?url=http%3A%2F%2Fdigg.com%2Fsubmit%3Furl%3D{url}","title":"Digg"},"email":{"bindLink":"http://www.livejournal.com/redirect/SHARING_email?url=http%3A%2F%2Fapi.addthis.com%2Foexchange%2F0.8%2Fforward%2Femail%2Foffer%3Fusername%3Dinternal%26url%3D{url}%26title%3D{title}","title":"E-mail"},"livejournal":{"bindLink":"http://www.livejournal.com/redirect/SHARING_livejournal?url=http%3A%2F%2Fwww.livejournal.com%2Fupdate.bml%3Frepost_type%3Dc%26repost%3D{url}","openInTab":1,"title":"LiveJournal"},"vkontakte":{"bindLink":"http://www.livejournal.com/redirect/SHARING_vkontakte?url=http%3A%2F%2Fvkontakte.ru%2Fshare.php%3Furl%3D{url}","title":"VKontakte"},"facebook":{"bindLink":"http://www.livejournal.com/redirect/SHARING_facebook?url=http%3A%2F%2Fwww.facebook.com%2Fsharer.php%3Fu%3D{url}","title":"Facebook"},"odnoklassniki":{"bindLink":"http://www.livejournal.com/redirect/SHARING_odnoklassniki?url=http%3A%2F%2Fwww.odnoklassniki.ru%2Fdk%3Fst.cmd%3DaddShare%26st.s%3D1%26st._surl%3D{url}","title":"Odnoklassniki"},"tumblr":{"bindLink":"http://www.livejournal.com/redirect/SHARING_tumblr?url=http%3A%2F%2Fwww.tumblr.com%2Fshare%2Flink%3Furl%3D{url}%26name%3D{title}%26description%3D{text}","title":"Tumblr"}},"links":["livejournal","facebook","twitter","digg","tumblr","stumbleupon","email"]}};
+                Site.page.template = {};
+                Site.page.ljlive = {"is_enabled":false};
+                Site.timer = +(new Date());
+                Site.remote = null;
+                Site.journal = {"journal_title":"...","journal_url":"http://obartunov.livejournal.com/","is_identity":false,"is_personal":true,"is_community":false,"userhead_url":"http://l-stat.livejournal.net/img/userinfo.gif?v=17080?v=117.1","username":"obartunov","is_suspended":false,"profile_url":"http://obartunov.livejournal.com/profile","id":24248903,"is_paid":false,"display_username":"obartunov"};
+                Site.entry = {"title":"Hstore development for 9.4 release: part 3","journal":"obartunov","poster":"obartunov","ditemid":175235};
+                (function(){
+                    var p = {"remote_is_identity":null,"remote_is_maintainer":0,"auth_token":"sessionless:1404241200:/__api/::cc366326778c22132b6b204c80d457b3a3607f1b","locale":"en_US","remoteUser":null,"remote_is_sup":0,"remoteJournalBase":null,"statprefix":"http://l-stat.livejournal.net","vk_api_id":"2244371","ctx_popup":1,"jsonrpcprefix":"http://l-api.livejournal.com","siteroot":"http://www.livejournal.com","templates_update_time":900,"media_embed_enabled":1,"v":1404222078,"currentEntryRecommendations":0,"server_time":1404242881,"logprefix":"","counterprefix":"http://xc3.services.livejournal.com/ljcounter/","currentJournalBase":"http://obartunov.livejournal.com","ljold":"","country":"AT","inbox_update_poll":0,"flags":{"homepage_v3":true,"friendsfeed_v3":true,"new_friends_and_subscriptions":false,"discovery":true},"rpc":{"public":["discovery.get_item","discovery.suggest","discovery.today","discovery.get_categories","discovery.get_feed","homepage.get_rating","homepage.get_categories","latest.get_entries","sitemessage.get_message","comment.get_thread"]},"has_remote":0,"remoteLocale":"en_US","picsUploadDomain":"up.pics.livejournal.com","remote_is_suspended":0,"imgprefix":"http://l-stat.livejournal.net/img","esn_async":1,"remote_can_track_threads":null,"currentJournal":"obartunov","pics_production":"","currentEntry":"http://obartunov.livejournal.com/175235.html"}, i;
+                    for (i in p) Site[i] = p[i];
+                })();
+                Site.current_journal = {"url_profile":"http://obartunov.livejournal.com/profile","userid":24248903,"journaltype":"P","is_comm":"","is_syndicated":"","userpic_h":100,"is_person":"1","display_username":"obartunov","url_journal":"http://obartunov.livejournal.com","is_identity":"","is_shared":"","display_name":"obartunov","username":"obartunov","userpic_w":69,"can_receive_vgifts":1,"url_allpics":"http://www.livejournal.com/allpics.bml?user=obartunov","url_message":"http://www.livejournal.com/inbox/compose.bml?user=obartunov","url_userpic":"http://l-userpic.livejournal.com/96063716/24248903"};
+                Site.version = '117.1';
+           </script>
+<script type="text/javascript" src="http://l-stat.livejournal.net/js/??.ljlib.js?v=1404222078"></script>
+<script type="text/javascript" src="http://l-stat.livejournal.net/js/??jquery/jquery.lj.calendar.js,jquery/jquery.mask.js,controlstrip.js,jquery/jquery.lj.repostbutton.js,s2.js,esn.js,jquery/jquery.lj.confirmbubble.js,jquery/jquery.lj.ljcut.js,fb-select-image.js,quickreply.js,md5.js,thread_expander.js,thread_expander.ex.js,commentmanage.js,jquery/jquery.lj.inlineCalendar.js,jquery/jquery.calendarEvents.js,apps.js,apps/appcontainer.js,jquery/jquery.lj.journalPromoStrip.js?v=1404222078"></script>
+<!--[if gte IE 9]><script type="text/javascript" src="http://l-stat.livejournal.net/js/??ie9pinned.js?v=1404222078"></script><![endif]-->
+<!--AdFox START-->
+<!--sup-com-->
+<!-- LJSUP-17777 -->
+<!-- ________________________AdFox Asynchronous code START__________________________ -->
+<script type="text/javascript">
+<!--
+if (typeof(pr) == 'undefined') { var pr = Math.floor(Math.random() * 1000000); }
+if (typeof(document.referrer) != 'undefined') {
+  if (typeof(afReferrer) == 'undefined') {
+    afReferrer = escape(document.referrer);
+  }
+} else {
+  afReferrer = '';
+}
+var addate = new Date();
+var scrheight = '', scrwidth = '';
+if (self.screen) {
+scrwidth = screen.width;
+scrheight = screen.height;
+} else if (self.java) {
+var jkit = java.awt.Toolkit.getDefaultToolkit();
+var scrsize = jkit.getScreenSize();
+scrwidth = scrsize.width;
+scrheight = scrsize.height;
+}
+var dl = escape(document.location);
+var pr1 = Math.floor(Math.random() * 1000000);
+document.write('<div id="AdFox_banner_'+pr1+'"></div>');
+document.write('<div style="visibility:hidden;position:absolute;top:0;right:0;"><iframe id="AdFox_iframe_'+pr1+'" width=1 height=1 marginwidth=0 marginheight=0 scrolling=no frameborder=0></iframe></div>');
+AdFox_getCodeScript(1,pr1,'//ads.adfox.ru/171817/prepareCode?p1=bnjgf&amp;p2=exqv&amp;pct=a&amp;pfc=a&amp;pfb=a&amp;pr=' + pr +'&amp;pt=b&amp;pd=' + addate.getDate() + '&amp;pw=' + addate.getDay() + '&amp;pv=' + addate.getHours() + '&amp;prr=' + afReferrer + '&amp;puid1=&amp;puid2=&amp;puid3=&amp;puid4=&amp;puid5=&amp;puid6=&amp;puid7=&amp;puid8=&amp;puid9=&amp;puid10=&amp;puid11=&amp;puid12=&amp;puid13=&amp;puid14=&amp;puid15=&amp;puid16=&amp;puid17=&amp;puid18=&amp;puid19=&amp;puid20=&amp;puid21=&amp;puid22=&amp;puid23=&amp;puid24=&amp;puid25=&amp;puid26=&amp;puid27=&amp;puid28=&amp;puid29=&amp;puid30=&amp;puid31=&amp;puid32=&amp;puid33=&amp;puid34=&amp;puid35=&amp;pdw=' + scrwidth + '&amp;pdh=' + scrheight + '&amp;dl='+dl+'&amp;pr1='+pr1);
+// -->
+</script>
+<!-- _________________________AdFox Asynchronous code END___________________________ -->
+<div id='hello-world' style='text-align: left; font-size:0; line-height:0; height:0; overflow:hidden;'>
+<!-- tns-counter.ru -->
+<script language="JavaScript" type="text/javascript">
+(new Image()).src = '//www.tns-counter.ru/V13a***R>' + document.referrer.replace(/\*/g,'%2a') + '*sup_ru/ru/UTF-8/tmsec=lj_blogs-vis-ad/';
+</script>
+<noscript>
+<img src="http://www.tns-counter.ru/V13a****sup_ru/ru/UTF-8/tmsec=lj_blogs-vis-ad/" width="1" height="1" alt="" />
+</noscript>
+<!--/ tns-counter.ru -->
+<!-- begin of Top100 code -->
+<script id="top100Counter" type="text/javascript" src="http://counter.rambler.ru/top100.jcn?1111412"></script>
+<noscript>
+    <img src="http://counter.rambler.ru/top100.cnt?1111412" alt="" width="1" height="1" border="0" />
+</noscript>
+<!-- end of Top100 code -->
+<!-- begin Rambler Ad code -->
+<div id="rambler_ad_counter_140424288154"></div>
+<script>
+    ;(function () {
+        LJ.injectScript('//ad.rambler.ru/static/green2.min.js')
+            .done(function () {
+                _green.defineSlot('8990', [1, 1], 'rambler_ad_counter_140424288154');
+                _green.display('rambler_ad_counter_140424288154');
+            });
+    }());
+</script>
+<!-- end Rambler Ad code -->
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-24823174-1']);
+  _gaq.push(['_setDomainName', '.livejournal.com']);
+  _gaq.push(['_trackPageview']);
+  _gaq.push(['_trackPageLoadTime']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+<!-- LiveJournal COUNTER -->
+<img src="http://xc3.services.livejournal.com/ljcounter/?d=srv:bil1-ws17,r:0,j:24248903,uri:%22%2F175235.html%22,vig:0,extra:AXICRwFyAkcAAqyD" alt="" />
+<!-- /COUNTER -->
+<!-- begin of yandex code --> 
+<script language=JavaScript>
+<!--
+    var seed=Math.round(Math.random()*65535);
+    document.write("<img src=http://awaps.yandex.ru/0/9999/001001.gif?0-0-"+seed+"-0-&" + "timestamp=" + seed + "&awcode=6&" + "subsection=0 width=1 height=1 border=0>");
+//-->
+</script>
+<noscript>
+    <img src=http://awaps.yandex.ru/0/9999/001001.gif?subsection=0 width=1 height=1 border=0>
+</noscript> 
+<!-- end of yandex code -->
+<!-- begin of Begun code -->
+<script>
+    (new Image).src = [
+        "https:" === document.location.protocol ? "https:" : "http:",
+        "//autocontext.begun.ru/analytics?target_id=0&counter_id=0&url=",
+        encodeURIComponent(document.URL),
+        "&ref=", encodeURIComponent(document.referrer),
+        "&rnd=", Math.random()
+    ].join('');
+</script>
+<!-- end of Begun code -->
+<!-- Begun Sync -->
+<img src="//sync.rambler.ru/emily?partner_id=begun">
+<!-- Begun Sync END-->
+<!-- Begin ATI Basic Tracking Code -->
+<script type="text/javascript">
+LJ.define('LJ.ATI');
+
+xtnv   = document;
+xtsd   = 'http://logc400';
+xtsite = '528851';
+xtn2   = '2';
+xtpage = 'journal::personal::obartunov::obartunov.livejournal.com%2F175235.html';
+xtdi   = '';
+
+LJ.ATI.page = xtpage;
+LJ.ATI.level2id = xtn2;
+
+LJ.ATI.queryString = '';
+LJ.ATI.params = {
+    ac: '',
+    an: '',
+
+    x1:  '[' + encodeURIComponent(document.title) + ']',
+    x2:  '[undef]',
+    x3:  '2',
+    x4:  '0',
+    x5:  '[schemius]',
+    x6:  '0',
+    x7:  '[lj]',
+    x8:  '2',
+    x9:  '1',
+    x10: '1',
+    x11: '1',
+    x12: '2',
+    x13: '2',
+    x14: '[Minimalism]',
+    x15: '0',
+    x16: '2',
+    x17: '[undef]',
+    x18: '9',
+
+    f1: '',
+    f2: '',
+    f3: '',
+    f4: '',
+
+    tag: '',
+    ptype: '2-2-1'
+};
+LJ.ATI.queryString = '&' + LiveJournal.constructUrl('', LJ.ATI.params).replace('?', '');
+
+if (window.xtparam != null) {
+    window.xtparam += LJ.ATI.queryString;
+} else{
+    window.xtparam  = LJ.ATI.queryString + '&ati=PUB-[livejournal]-[demand_media]--[300x250],PUB-[livejournal]-[demand_media]--[160x600],PUB-[livejournal]-[demand_media]--[728x90]';
+};
+
+LJ.injectScript('http://l-stat.livejournal.net/js/ads/xtcore.js');
+</script>
+<noscript>
+<img width="1" height="1" alt="" src="http://logc400.xiti.com/hit.xiti?s=528851&s2=2&p=journal::personal::obartunov::obartunov.livejournal.com%2F175235.html&di=&an=&ac=&x2=undef&x3=2&x4=0&x5=schemius&x6=0&x7=lj&x8=2&x9=1&x10=1&x11=1&x12=2&x13=2&x14=Minimalism&x15=0&x16=2&x17=undef&x18=9&tag=&ptype=2-2-1&f1=&f2=&f3=&f4=&xtpage=journal::personal::obartunov::obartunov.livejournal.com%2F175235.html&xtn2=2&ati=PUB-[livejournal]-[demand_media]--[300x250],PUB-[livejournal]-[demand_media]--[160x600],PUB-[livejournal]-[demand_media]--[728x90]" >
+</noscript>
+<!-- End ATI Basic Tracking Code -->
+</div></body>
+</html>

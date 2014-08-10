@@ -1,0 +1,353 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Face Detection in Static Images with Python - Creating with Code</title>
+  <meta name="author" content="Marty McGuire">
+
+  
+  <meta name="description" content="One of the things I&rsquo;ve been longing to do with my mobile photo-sharing site Camura is to offer image annotations, like objects and faces.Â  Over &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://creatingwithcode.com//howto/face-detection-in-static-images-with-python">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/feed/index.xml" rel="alternate" title="Creating with Code" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-4472804-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Creating with Code</a></h1>
+  
+    <h2>The web is a powerful toolbox</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/feed/index.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:creatingwithcode.com/" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Face Detection in Static Images With Python</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-02-20T00:00:00-05:00" pubdate data-updated="true">Feb 20<span>th</span>, 2009</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>One of the things I&rsquo;ve been longing to do with my mobile photo-sharing site <a href="http://camura.com/">Camura</a> is to offer image annotations, like objects and faces.Â  Over the last couple of years I have been increasingly frustrated by the appearance of face tagging on services like Facebook, and the recent <a href="http://www.apple.com/ilife/iphoto/#faces">addition of face recognition to iPhoto</a> has brought this frustration to the surface once again.Â  I don&rsquo;t even want to do something as complex as face recognition &ndash; I just want to find faces in an image.</p>
+
+<p>Googling for things like &ldquo;open source face detector&rdquo; doesn&rsquo;t come up with much.Â  The landscape seems to be comprised of mostly expensive for-pay libraries written for Windows, abandoned research projects, and lots of research papers full of equations &mdash; but no code that I could get to run.</p>
+
+<p>To make a long post short, it turns out that Intel&rsquo;s <a href="http://sourceforge.net/projects/opencvlibrary/">OpenCV</a> computer vision library comes with a <a href="http://opencv.willowgarage.com/wiki/FaceDetection">face detector</a> example that should work out of the box.Â  Better yet, there are now some decent <a href="http://wwwx.cs.unc.edu/~gb/wp/blog/2007/02/04/python-opencv-wrapper-using-ctypes/">Python bindings</a> for OpenCV that come pre-packaged with OpenCV for Ubuntu and Debian.Â  You can install them with:
+<code>
+$ sudo apt-get install python-opencv
+</code></p>
+
+<p>Now, it seems that most OpenCV <a href="http://blog.jozilla.net/2008/06/27/fun-with-python-opencv-and-face-detection/">face detector examples</a> are meant to be run &ldquo;live&rdquo;, usually taking the image from a webcam and highlighting faces with a red box in real-time.Â  However, I have a large database of static images that I want to consider individually, and I simply want to save the face coordinates for later use, rather than altering the picture.</p>
+
+<p>So, with a bit more Googling, I found a Python script that I could chop up and use for this purpose, and here is what I came up with:</p>
+
+<div><script src='https://gist.github.com/67044.js'></script>
+<noscript><pre><code>#!/usr/bin/python
+
+# face_detect.py
+
+# Face Detection using OpenCV. Based on sample code from:
+# http://python.pastebin.com/m76db1d6b
+
+# Usage: python face_detect.py &lt;image_file&gt;
+
+import sys, os
+from opencv.cv import *
+from opencv.highgui import *
+
+def detectObjects(image):
+  &quot;&quot;&quot;Converts an image to grayscale and prints the locations of any 
+     faces found&quot;&quot;&quot;
+  grayscale = cvCreateImage(cvSize(image.width, image.height), 8, 1)
+  cvCvtColor(image, grayscale, CV_BGR2GRAY)
+
+  storage = cvCreateMemStorage(0)
+  cvClearMemStorage(storage)
+  cvEqualizeHist(grayscale, grayscale)
+  cascade = cvLoadHaarClassifierCascade(
+    '/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml',
+    cvSize(1,1))
+  faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.2, 2,
+                             CV_HAAR_DO_CANNY_PRUNING, cvSize(50,50))
+
+  if faces:
+    for f in faces:
+      print(&quot;[(%d,%d) -&gt; (%d,%d)]&quot; % (f.x, f.y, f.x+f.width, f.y+f.height))
+
+def main():
+  image = cvLoadImage(sys.argv[1]);
+  detectObjects(image)
+
+if __name__ == &quot;__main__&quot;:
+  main()
+</code></pre></noscript></div>
+
+
+<p>An example run of the script looks something like this:</p>
+
+<pre><code>$ python face_detect.py marty_mcguire.jpg
+[(50,36) -&gt; (115,101)]
+</code></pre>
+
+<p>You can overlay that rectangle on an output image with ImageMagick&rsquo;s &ldquo;convert&rdquo;:</p>
+
+<pre><code>$ convert marty_mcguire.jpg -stroke red -fill none -draw "rectangle 50,36 115,101" output.jpg
+</code></pre>
+
+<p>And the output might look something like this:</p>
+
+<p><a href="http://s3.amazonaws.com/static.creatingwithcode.com/wp-content/uploads/2009/02/output.jpg"><img class="size-medium wp-image-18" title="My face: detected!" src="http://s3.amazonaws.com/static.creatingwithcode.com/wp-content/uploads/2009/02/output.jpg" alt="My face, it has been detected." width="180" height="240" /></a></p>
+
+<p>Pretty fun stuff!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Marty McGuire</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2009-02-20T00:00:00-05:00" pubdate data-updated="true">Feb 20<span>th</span>, 2009</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/howto/'>howto</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://creatingwithcode.com//howto/face-detection-in-static-images-with-python/" data-via="schmarty" data-counturl="http://creatingwithcode.com//howto/face-detection-in-static-images-with-python/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/howto/setting-up-rails-and-mysql-on-os-x-leopard/" title="Previous Post: Setting up Rails and MySQL on OS X Leopard">&laquo; Setting up Rails and MySQL on OS X Leopard</a>
+      
+      
+        <a class="basic-alignment right" href="/howto/makerbot-cam-1-chdk/" title="Next Post: Automatic MakerBot Camera Pt. 1 - Remote control camera with CHDK">Automatic MakerBot Camera Pt. 1 - Remote control camera with CHDK &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/thing-a-day-2011/thing-a-day-28-finished-an-audiobook/">Thing-a-Day #28 - Finished an Audiobook</a>
+      </li>
+    
+      <li class="post">
+        <a href="/thing-a-day-2011/thing-a-day-2011-26-improved-scribbling-in-ja/">Thing-a-Day 2011 #26 - "Improved" Scribbling in JavaScript</a>
+      </li>
+    
+      <li class="post">
+        <a href="/thing-a-day-2011/thing-a-day-2011-25-scribbling-in-svg-hershey/">Thing-a-Day 2011 #25 - Scribbling in SVG (+Hershey Font Typing)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/thing-a-day-2011/thing-a-day-2011-24-hershey-fonts-in-js-now-s/">Thing-a-Day 2011 #24 - Hershey Fonts in JS, Now Sized for Unicorn Plotting!</a>
+      </li>
+    
+      <li class="post">
+        <a href="/thing-a-day-2011/thing-a-day-2011-23-svg-output-for-hershey-fo/">Thing-a-Day 2011 #23 - SVG Output for Hershey Fonts in JavaScript</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/martymcguire">@martymcguire</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'martymcguire',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus googleplus-hidden">
+  <h1>
+    <a href="https://plus.google.com/+MartyMcGuire?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Marty McGuire -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'creatingwithcode';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

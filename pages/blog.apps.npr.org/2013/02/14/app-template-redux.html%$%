@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script> <!-- FOR CHARTBEAT -->
+        <title>How to build a news app that never goes down and costs you practically nothing | NPR Visuals</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+        <link href="/css/app.css" rel="stylesheet">
+        <link href="/css/syntax.css" rel="stylesheet">
+        <link rel="shortcut icon" href="http://blog.apps.npr.org/img/favicon.ico">
+        <link rel="apple-touch-icon-precomposed" sizes="144x144" href="ico/apple-touch-icon-144-precomposed.png">
+        <link rel="apple-touch-icon-precomposed" sizes="114x114" href="ico/apple-touch-icon-114-precomposed.png">
+        <link rel="apple-touch-icon-precomposed" sizes="72x72" href="ico/apple-touch-icon-72-precomposed.png">
+        <link rel="apple-touch-icon-precomposed" href="ico/apple-touch-icon-57-precomposed.png">
+        <link rel="alternate" type="application/atom+xml" title="Atom Feed for NPR visuals team blog" href="http://blog.apps.npr.org/atom.xml">
+    </head>
+    <body>
+    <div class="container">
+        
+        <div class="row">
+            <div id="small-logo"><a href="/"><img src="/img/nprlogo.gif"/> visuals team</a></div>
+            <div class="span1">&nbsp;</div>
+            <div class="span6" id="content">
+                <article class="entry">
+    <header>
+        <h1>How to build a news app that never goes down and costs you practically nothing</h1>
+        <p class="byline"> By <a href="http://twitter.com/kzhu91">Katie Zhu</a> | February 14, 2013</p>
+    </header>
+    
+    <section><p><img src="/img/posts/inaug.png" alt="inauguration app"><br/>
+<small>Our app on a shiny iPad: <a href="http://apps.npr.org/inauguration">Inauguration 2013</a>.</small></p>
+
+<h2>Prelude</h2>
+
+<p>I&#39;ve been on the NPR apps team for a little over a month now. I&#39;ll be real – it&#39;s been pretty dope.</p>
+
+<p>We launched a slideshow showcasing the <a href="http://apps.npr.org/sotomayor-family-photos">family photos of Justice Sotomayor</a>, an <a href="http://apps.npr.org/inauguration">inauguration app</a> using <a href="http://inauguration2013.tumblr.com/">Tumblr</a>, and we just wrapped up our <a href="http://apps.npr.org/state-of-the-union-2013/">State of the Union</a> live coverage.</p>
+
+<p>And we did it all in the <a href="http://github.com/nprapps">open</a>.</p>
+
+<p>But the thing that really blew my mind is this: We&#39;re only running two servers. These two servers let us build news applications that never go down and cost very little (here&#39;s looking at you, <a href="http://www.hongkiat.com/blog/amazon-s3-the-beginners-guide/">S3</a>). Exhibit A: NPR&#39;s elections site only required a <em>single</em> server for running cron jobs — and was rock solid throughout election night. Even in 8-bit mode.</p>
+
+<p>Developing in the newsroom is fast-paced and comes with a different set of priorities than when you&#39;re coding for a technology product team. There are three salient Boyerisms I&#39;ve picked up in my month as an NP-Rapper that sum up these differences:</p>
+
+<ol>
+<li><p><strong>Servers are for chumps.</strong> Newsrooms aren&#39;t exactly making it rain. Cost-effectiveness is key. Servers are expensive and maintaining servers means less time to make the internets. Boo and boo. (We&#39;re currently running only one production server, an <a href="http://aws.amazon.com/ec2/pricing/#on-demand">EC2 small instance</a> for running scheduled jobs. It does not serve web content.)</p></li>
+<li><p><strong>If it doesn&#39;t work on mobile, it doesn&#39;t work.</strong> Most of our work averages 10 to 20 percent mobile traffic. But for our <a href="http://elections.npr.org/">elections app</a>, 50 percent of users visited our <a href="http://elections.npr.org/bigboard/president.html">Big Board</a> on their phone. (And it wasn&#39;t even responsive!) Moral of the stats: A good mobile experience is absolutely necessary.</p></li>
+<li><p><strong>Build for use. Refactor for reuse.</strong> This one has been the biggest transition for me. When we&#39;re developing on deadline, there are certain sacrifices we have to make to roll our app out time – news doesn&#39;t wait. Yet as a programmer, it causes me tension and anxiety to ignore code smells in the shitty JavaScript I write because I know that&#39;s technical debt we&#39;ll have to pay back later.</p></li>
+</ol>
+
+<p>On our team, these Boyerisms aren&#39;t just preached — they&#39;re practiced and implemented in code.</p>
+
+<p>Cue our team&#39;s <a href="http://github.com/nprapps/app-template">app template</a>.</p>
+
+<p><em>drumroll ...</em></p>
+
+<h2>Raison d&#39;être</h2>
+
+<p>It&#39;s an opinionated template for building client-side apps, lovingly maintained by <a href="http://twitter.com/onyxfish">Chris</a>, which provides a skeleton for bootstrapping projects that can be served entirely from flat files.</p>
+
+<p>Briefly, it ships with:</p>
+
+<ul>
+<li><a href="http://flask.pocoo.org/">Flask</a> (for rendering the project locally)</li>
+<li><a href="http://jinja.pocoo.org/">Jinja</a> (HTML templates)</li>
+<li><a href="http://lesscss.org">LESS</a> (because who writes vanilla CSS anymore, right?)</li>
+<li><a href="http://ricostacruz.com/backbone-patterns/#jst_templates">JST</a> (<a href="http://underscorejs.org/#template">Underscore.js templates</a> for JavaScript)</li>
+</ul>
+
+<p>For a more detailed rundown of the structure, check out the <a href="https://github.com/nprapps/app-template/blob/master/README.md#about-this-template">README</a>.</p>
+
+<p>There&#39;s a lot of work that went into this app template and a fair amount of discipline after each project we do to continue to maintain it. With every project we learn something new, so we backport these things accordingly to ensure our app template is in tip-top shape and ready to go for the next project.</p>
+
+<h2>Design choices: A brief primer</h2>
+
+<p>Here&#39;s a rundown of how we chose the right tools for the job and why.</p>
+
+<h3>Flask — <em>seamless development workflow</em></h3>
+
+<p>We run a Flask app to simplify local development and is the crucial part of our template.</p>
+
+<p><code>app.py</code> is rigged to provide a development workflow that minimizes the pains between local development and deployment. It lets us:</p>
+
+<ul>
+<li>Render Jinja HTML templates on demand</li>
+<li>Compile LESS into CSS</li>
+<li>Compile individual JST templates into a single file called <code>templates.js</code></li>
+<li>Compile <code>app_config.py</code> into <code>app_config.js</code> so our application configuration is also available in JavaScript</li>
+</ul>
+
+<p>That last point is worth elaborating on. We store our application configuration in <code>app_config.py</code>. We use environment variables to set our deployment targets. This allows <code>app_config.py</code> to detect if we&#39;re running in staging or production and changes config values appropriately. For both local dev and deployed projects, we automatically compile <code>app_config.js</code> to have our same application configuration available on the client side. Consistent configuration without repetition — it&#39;s <a href="http://en.wikipedia.org/wiki/Don&#x27;t_repeat_yourself">DRY</a>!</p>
+
+<h3>Asset pipeline – <em>simplifies local development</em></h3>
+
+<p>Our homegrown app template asset pipeline is quite nifty. As noted above, we write styles in LESS and keep our JS in separate files when developing locally. When we deploy, we push all our CSS into one file and all of our JS into a single file. We then gzip all of these assets for production (we only gzip, not minify, to avoid obfuscation).</p>
+
+<p>Chris wrote some dope &quot;pseudo-template tags&quot; for Jinja that allow us to automatically serve original files locally or compress them when we deploy.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">&lt;!-- CSS --&gt;
+{{ CSS.push(&#39;css/bootstrap.css&#39;) }}
+{{ CSS.push(&#39;css/bootstrap-responsive.css&#39;) }}
+{{ CSS.push(&#39;less/app.less&#39;) }}
+{{ CSS.render(&#39;css/app.min.css&#39;) }}
+
+&lt;!-- JS --&gt;
+{{ JS.push(&#39;js/app_config.js&#39;) }}
+{{ JS.push(&#39;js/console.js&#39;) }}
+{{ JS.push(&#39;js/lib/jquery-1.8.3.js&#39;) }}
+{{ JS.push(&#39;js/lib/modernizr.js&#39;) }}
+{{ JS.push(&#39;js/responsive-ad.js&#39;) }}
+{{ JS.render(&#39;js/app-header.min.js&#39;) }}
+</code></pre></div>
+<p>You can see these in action in <a href="https://github.com/nprapps/app-template/blob/master/templates/_base.html">base.html</a>.</p>
+
+<p>The <code>push</code> and <code>render</code> are defined in <a href="https://github.com/nprapps/app-template/blob/master/render_utils.py">render_utils.py</a>.</p>
+
+<p>So what does this actually mean? Our asset pipeline works like this:</p>
+
+<ul>
+<li>If running locally, we compile our LESS and JSTs to serve individual files.</li>
+<li>If deploying, we compile, concatenate our CSS and JS into single files, minify these two batches (remove whitespace), then gzip all static assets.</li>
+</ul>
+
+<p>We push all our CSS and JS into single files to make our apps mobile-friendly. This translates to fewer browser requests and a faster page load time. Of course, this helps with desktop performance as well, but you really feel the snappiness on your phone.</p>
+
+<h3>Bootstrap – <em>front-end foundation</em></h3>
+
+<p>We use Bootstrap as our base layer of CSS. Why? Because of reasons.</p>
+
+<ul>
+<li>Grid system</li>
+<li>Natively responsive — having a responsive base is cool</li>
+<li>Bootstrap modules are relatively painless to implement (i.e. modals)</li>
+<li>Not terribly ugly (we re-style almost everything anyways)</li>
+<li>Cross-browser testing is much easier</li>
+</ul>
+
+<p>Let&#39;s elaborate on that last point. Having Bootstrap on the page is a giant CSS reset (plus plus). Our browser testing process becomes much simpler, way less painful, and there&#39;s almost no crying.</p>
+
+<p>As a n00b on the apps team, using the Bootstrap as a foundation gives me <em>reasonable</em> peace of mind that the hacky JavaScript event bindings and functions I write will work across browsers.</p>
+
+<h3>Fab is fabulous — <em>DRY (don&#39;t repeat yourself!)</em></h3>
+
+<p><code>fab</code> ties our template together. We&#39;ve got environment-configuration functions, template functions, deployment functions and supermerge functions (stay tuned!) all covered.</p>
+
+<p>We use <a href="http://docs.fabfile.org/en/1.5/">Fabric</a> to manage our setup and configuration, both locally and when we deploy. <code>fabfile.py</code> pulls its config from <code>app_config.py</code>. The cool thing I learned about Fabric in my first week here was its ability to chain commands together.</p>
+
+<p>Here&#39;s the command that deploys our master branch to production:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">$ fab production master deploy
+</code></pre></div>
+<p>This will automatically render files with the correct configuration for prod, gzips our assets, and then pushes files out to S3.</p>
+
+<h2>Sold?</h2>
+
+<p>Get our code <a href="http://github.com/nprapps/app-template">here</a>. It&#39;s got a shiny <a href="https://github.com/nprapps/app-template/blob/master/LICENSE">MIT license</a> so take &#39;er for a spin! If you are so inclined, try deploying a small little test app. All you&#39;ll need is S3 and a small EC2 instance (only if you want crons). Our template is always a work in progress and we&#39;d love to hear your <a href="https://github.com/nprapps/app-template/pulls">feedback</a>.</p>
+
+<blockquote>
+<p>Nerd aside: ICYW, our servers are running vanilla Ubuntu. We are planning to document our server configuration, but we haven&#39;t had the time to do so yet.</p>
+</blockquote>
+
+<p>Happy hacking!</p>
+</section>
+
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'nprnewsappsblog'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</article>
+
+            </div>
+            <div class="span1">&nbsp;</div>
+            <div class="span3" id="rail">
+                <div id="logo">
+                    <h1>
+                        <a href="/"><img src="/img/nprlogo.gif"/> visuals team</a>
+                    </h1>
+                </div>
+                <ul class="nav nav-list">
+                    <li><a href="/apps/">Things We Made</a></li>
+                    <li><a href="https://github.com/nprapps">Source On GitHub</a></li>
+                    <li><a href="https://twitter.com/nprviz/the-team/members">Meet The Team</a></li>
+                </ul>
+            </div>
+            <div class="span1">&nbsp;</div>
+        </div>
+        
+    </div>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+    
+    <!-- GOOGLE ANALYTICS -->
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-5828686-4']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+
+
+    <!-- CHARTBEAT -->
+    <script type="text/javascript">
+        var _sf_async_config={};
+        /** CONFIGURATION START **/
+        _sf_async_config.uid = 18888;
+        _sf_async_config.domain = "npr.org";
+        /** CONFIGURATION END **/
+        (function(){
+            function loadChartbeat() {
+                window._sf_endpt=(new Date()).getTime();
+                var e = document.createElement("script");
+                e.setAttribute("language", "javascript");
+                e.setAttribute("type", "text/javascript");
+                e.setAttribute("src",
+                    (("https:" == document.location.protocol) ?
+                     "https://a248.e.akamai.net/chartbeat.download.akamai.com/102508/" :
+                     "http://static.chartbeat.com/") +
+                    "js/chartbeat.js");
+                document.body.appendChild(e);
+            }
+            var oldonload = window.onload;
+            window.onload = (typeof window.onload != "function") ?
+                loadChartbeat : function() { oldonload(); loadChartbeat(); };
+        })();
+    </script>
+
+    </body>
+</html>

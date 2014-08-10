@@ -1,0 +1,396 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>CSS should not be used for layout</title>
+  <link href="demo.css" media="screen" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<div style="width:640px; margin:auto;">
+<center>
+<h1>Why CSS should not be used for layout</h1>
+<p><small>
+<a href="http://www.flownet.com/ron">Ron Garret</a>, 2 Feb 2009
+</small></p>
+</center>
+<p>
+Seeing as how the
+<a href="http://iamelgringo.blogspot.com/2009/02/tables-vs-css-css-trolls-begone.html">CSS wars</a>
+seem to have flared up again, I thought I would weigh in.  I have finally
+had a chance to really dive in to the details, and I have come to the
+following conclusion:
+</p>
+<blockquote>
+CSS is really cool.  It is useful for a lot of things.  The basic
+idea of separating content from presentation is sound.  But when it comes
+to <em>layout</em>, the design of CSS is fundamentally flawed.  Use tables
+instead.
+</blockquote>
+
+<p>
+There, I've said it.  But you might want to hear what I have to say
+before you release the hounds.
+</p>
+<p>
+There are two reasons that CSS is fundamentally flawed for doing layout:
+</p>
+<ol>
+<li>The CSS layout primitives are inadequate because they do not allow
+elements to be positioned relative to each other, only relative to their
+containers.
+<li>The way CSS layout is rendered results in unavoidable interactions between
+the style sheets and the underlying content.  So even when CSS is used
+exactly as intended, it is not possible to separate content from layout.
+</ol>
+
+<p>
+These points are best illustrated by means of example.  Here's a typical
+CSS layout:
+</p>
+
+<div id="container">
+  <div id="top">
+    Top
+  </div>
+  <div id="leftnav">
+    Left
+  </div>
+  <div id="rightnav">
+    Right
+  </div>
+  <div id="content">
+    <h1>Center</h1>
+  </div>
+  <div id="footer">
+    Bottom
+  </div>
+</div>
+
+<p>
+One of the problems with criticising CSS is that it's very hard to write
+good CSS, so pointing out problems with CSS begs the question of whether
+this is an indictment of CSS or one's coding ability.  The problem is
+particularly pernicious for layout.  (One
+indication of this is <a href="http://www.google.com/search?q=css+layout">
+how many CSS layout tutorials</a> there are on the web.)
+</p>
+
+<p>
+The code for the example I'm using here was taken almost verbatim from
+<a href="http://www.maxdesign.com.au/presentation/page_layouts/">
+MaxDesign's CSS tutorials</a>, so this was written by someone
+who actualy knows what they are doing.  If this code isn't written properly
+that to me would be in and of itself evidence that CSS is broken, because
+if the MaxDesign folks can't figure it out there is little hope for the
+rest of us.
+</p>
+<p>
+In order to understand the argument I'm about to make we have to look at
+the code that generated the rendering above.  The CSS is <a href=demo.css>
+here</a>.  Here's the HTML:
+
+<pre>
+&lt;div id="container">
+  &lt;div id="top">
+    Top
+  &lt;/div>
+  &lt;div id="leftnav">
+    Left
+  &lt;/div>
+  &lt;div id="rightnav">
+    Right
+  &lt;/div>
+  &lt;div id="content">
+    &lt;h1>Center&lt;/h1>
+  &lt;/div>
+  &lt;div id="footer">
+    Bottom
+  &lt;/div>
+&lt;/div>
+</pre>
+
+<p>
+Pretty straightforward.  This is CSS at its best.  But you will notice
+one odd thing about this code and how it relates to what you see on the
+screen.  On the screen the natural order of flow for the five major layout
+elements is: top, left, center, right, bottom.  But the actual order in
+which they appear in the code has "right" and "center" reversed.  Is this
+a mistake?  To find out, let's see what happens if we change them around
+so that the order in the code matches the presentation order:
+</p>
+
+<div id="container">
+  <div id="top">
+    Top
+  </div>
+  <div id="leftnav">
+    Left
+  </div>
+  <div id="content">
+    <h1>Center</h1>
+  </div>
+  <div id="rightnav">
+    Right
+  </div>
+  <div id="footer">
+    Bottom
+  </div>
+</div>
+
+<p>
+Youch!  That looks terrible!  Apparently the order matters.  The
+<i>reason</i> that the order matters is that this layout, like all
+multi-column CSS layouts, is achieved with floats, and the way that
+floats get rendered depends on the order in which they appear.  So
+we have <i>not</i> managed to separate content from presentation.
+How things appear on the screen still depends on the order in which they
+appear in the content.  Worse, in order to be rendered properly, the
+order in which elements must appear is <i>different</i> from their
+natural flow in the layout.
+</p>
+<p>
+It gets worse.
+</p>
+
+<p>
+Let's go back to our original content, the one that layed out properly,
+and try to make a small change to the appearance: suppose we want the
+left column to have a background color.  This is the sort of thing that
+CSS is made for.  It should be trivial.  All we have to do is to add
+"background-color: blue;" to the style sheet for the leftnav style.  Let's
+see what happens if we try this:
+</p>
+
+<div id="container">
+  <div id="top">
+    Top
+  </div>
+  <div id="leftnav1">
+    Left
+  </div>
+  <div id="rightnav">
+    Right
+  </div>
+  <div id="content">
+    <h1>Center</h1>
+  </div>
+  <div id="footer">
+    Bottom
+  </div>
+</div>
+
+<p>
+Hm, maybe not quite what one would have expected.  (BTW, if you actually
+look at the CSS you will notice that I've actually been kind by tweaking
+the width of the leftnav div so that the color doesn't leak over into the
+center div, which is what it would have done if I'd just made the
+small incremental change.  So the real situation is generally even worse
+than what I'm showing here.)
+</p>
+<p>
+And it gets even worse than that.  If the content of the leftnav gets
+too long then you really lose:
+</p>
+
+<div id="container">
+  <div id="top">
+    Top
+  </div>
+  <div id="leftnav1">
+    Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy
+  </div>
+  <div id="rightnav">
+    Right
+  </div>
+  <div id="content">
+    <h1>Center</h1>
+  </div>
+  <div id="footer">
+    Bottom
+  </div>
+</div>
+
+Likewise if it gets too wide:
+
+<div id="container">
+  <div id="top">
+    Top
+  </div>
+  <div id="leftnav1">
+    Supercalifragilisticexpialidocious
+  </div>
+  <div id="rightnav">
+    Right
+  </div>
+  <div id="content">
+    <h1>Center</h1>
+  </div>
+  <div id="footer">
+    Bottom
+  </div>
+</div>
+
+<p>
+Of course, all of these things can be fixed.  But the point is <i>they
+have to be fixed!</i>  The correct CSS is <i>inextricably bound</i> to the
+content.  Smarter people than me have tied themselves into knots trying
+to figure out how to make a three-column CSS layout that doesn't have these
+problems.  To my knowledge, no one has succeeded.  It may be possible.  I
+don't have a mathematical proof that it's not.  But it sure ain't easy.
+</p>
+<p>
+By way of contrast, doing the same thing with a table is borderline
+trivial:
+</p>
+<pre>
+&lt;table>
+  &lt;tr>&lt;td colspan=3>Top&lt;/td>&lt;/tr>
+  &lt;tr>
+    &lt;td>Left&lt;/td>
+    &lt;td>
+      &lt;h1>Center&lt;/h1>
+    &lt;/td>
+    &lt;td>Right&lt;/td>
+  &lt;/tr>
+  &lt;tr>&lt;td colspan=3>Bottom&lt;/td>&lt;/tr>
+&lt;/table>
+</pre>
+
+<p>
+If you compare the structure of this code to the CSS example above you will
+see that they are very similar indeed.  In fact, about the only difference
+is that in the table example, the elements all appear in their natural order.
+</p>
+<p>
+Of course, a naked HTML table looks like crap:
+<p>
+
+<table border=1>
+  <tr><td colspan=3>Top</td></tr>
+  <tr>
+    <td>Left</td>
+    <td>
+      <h1>Center</h1>
+    </td>
+    <td>Right</td>
+  </tr>
+  <tr><td colspan=3>Bottom</td></tr>
+</table>
+
+<p>
+but we can still add CSS to make it look decent.  This is the result of
+adding just <i>five lines</i> of CSS:
+</p>
+
+<table class=demo1>
+  <tr><td class=shaded colspan=3>Top</td></tr>
+  <tr>
+    <td class=left>Left</td>
+    <td>
+      <h1>Center</h1>
+    </td>
+    <td>Right</td>
+  </tr>
+  <tr><td class=shaded colspan=3>Bottom</td></tr>
+</table>
+
+<p>
+In case you're curious, here's the CSS:
+<p>
+<pre>
+table.demo1 { width: 480px; margin: auto; border-collapse: collapse; }
+table.demo1 td { text-align: center; border: solid 1px gray; padding: 10px; }
+table.demo1 td.shaded { background-color:#ddd; }
+table.demo1 td.center { width: 80%; }
+table.demo1 td.left { background-color: #cce; }
+</pre>
+<p>
+It looks exactly the same as the pure-CSS version.  But now, when the
+center content grows, the left column grows with it:
+</p>
+
+<table class=demo1>
+  <tr><td class=shaded colspan=3>Top</td></tr>
+  <tr>
+    <td class=left>
+      Left
+    </td>
+    <td>
+      <h1>Center</h1>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut sodales, augue sed ornare adipiscing, orci dolor blandit ligula, id mattis ipsum ante eget velit. Phasellus pretium commodo est. Donec scelerisque lectus vel justo. Vivamus lorem lorem, congue a, tincidunt in, convallis eget, nunc. Proin interdum. Etiam vel nunc. Cras pharetra auctor sem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi nisi magna, malesuada et, feugiat interdum, lacinia non, urna. Sed dictum hendrerit eros. Praesent tempus, sem adipiscing tincidunt vulputate, nunc arcu sodales mauris, et tincidunt quam leo eget neque.
+    </td>
+    <td>Right</td>
+  </tr>
+  <tr><td class=shaded colspan=3>Bottom</td></tr>
+</table>
+
+<p>
+Even if the left column content gets out of control, it still looks reasonable:
+</p>
+
+<table class=demo1>
+  <tr><td class=shaded colspan=3>Top</td></tr>
+  <tr>
+    <td class=left>
+    Lorem ipsum dolor sit amet,<br>
+    consectetuer adipiscing elit,<br>
+    sed diam nonummy<br>
+    </td>
+    <td>
+      <h1>Center</h1>
+    </td>
+    <td>Right</td>
+  </tr>
+  <tr><td class=shaded colspan=3>Bottom</td></tr>
+</table>
+
+<p></p>
+
+<table class=demo1>
+  <tr><td class=shaded colspan=3>Top</td></tr>
+  <tr>
+    <td class=left>
+    SupercalifragilisticexpialidociousSupercalifragilisticexpialidocious
+    </td>
+    <td>
+      <h1>Center</h1>
+    </td>
+    <td>Right</td>
+  </tr>
+  <tr><td class=shaded colspan=3>Bottom</td></tr>
+</table>
+
+<p>
+The reason this was so easy is that <i>tables have the correct semantics
+for doing layout</i>.  CSS doesn't.  When you do layout you want to be have
+things adjust their sizes and positions based on not only their containers
+but also on their siblings.  When the leftnav content grows you want the
+center div to grow to compensate, and vice versa.  Table cells do this
+naturally.  CSS DIVs do it only under extreme duress, and only by making
+assumptions about (and thus becoming tightly bound to) their underlying
+content, which undermines the whole point of CSS.
+</p>
+
+<p>
+And that is why, while CSS should be used for styling, tables should be
+used for layout.
+</p>
+
+<p>
+(Here's a link to <a href="http://rondam.blogspot.com/2009/02/why-css-should-not-be-used-for-layout.html#comments">my blog</a> if you want to comment on this
+article.)
+</p>
+
+<p>
+UPDATE: Here's a <a href="http://rondam.blogspot.com/2009/02/css-and-meaning-of-life.html">followup</a> article.<br>
+UPDATE2: And <a href="http://rondam.blogspot.com/2009/02/on-semantics-of-html.html">another</a>.
+</p>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="http://sontek.net/static/css/svbtle.css">
+  <!--<link rel="stylesheet/less" type="text/css" href="/theme/css/style.less">-->
+  <!--<script src="/theme/js/less.js" type="text/javascript"></script>-->
+  <link href="http://sontek.net/static/css/sourcehighlight.css" rel="stylesheet">
+  <link href="http://sontek.net/static/css/main.css" rel="stylesheet">
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="http://sontek.net/blog/rss/index.rss">
+
+
+  
+
+  <title>sontek's humble adode - John Anderson</title>
+  <meta charset="utf-8" />
+</head>
+<body>
+  <section id="sidebar">
+    <figure id="user_logo">
+        <img src="http://s.gravatar.com/avatar/848c8fa8f54256aa570becc90123bee2?s=130" />
+    </figure>
+
+    <div class="user_meta">
+      <h1 id="user"><a href="#" class="">John Anderson</a></h1>
+      <a class="rss" href="http://sontek.net/blog/rss/index.rss"><img src="http://sontek.net/static/img/rss.png" /></a>
+      <h2>Open Source Hacker</h2>
+      <ul>
+          <li><a href="http://sontek.net/">Home</a></li>
+          <li><a href="http://sontek.net/blog/category/tech">Tech Blog</a></li>
+          <li><a href="http://sontek.net/blog/category/personal">Personal Blog</a></li>
+          <li><a href="http://sontek.net/projects">Projects</a></li>
+          <li><a href="http://sontek.net/resume">Resumé</a></li>
+          <li><a href="http://sontek.net/about">About</a></li>
+      </ul>
+    </div>
+    <footer>
+      <address>
+        Powered by <a href="https://github.com/eventray/hiero">Hiero</a>
+      </address>
+    </footer>
+  </section>
+
+  <section id="posts">
+    
+
+
+
+<div class="blog-body">
+   
+  <a href="http://sontek.net/blog/detail/turning-vim-into-a-modern-python-ide"><h1 class="entry-title">Turning Vim into a modern Python IDE</h1></a>
+  <p class="entry-metadata">
+    Posted by sontek on 2011-05-07 04:37:55
+  </p>
+  <div class="entry-content">
+    <div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#intro" id="id1">Intro</a></li>
+<li><a class="reference internal" href="#basic-editing-and-debugging" id="id2">Basic Editing and Debugging</a><ul>
+<li><a class="reference internal" href="#code-folding" id="id3">Code Folding</a></li>
+<li><a class="reference internal" href="#window-splits" id="id4">Window Splits</a></li>
+<li><a class="reference internal" href="#snippets" id="id5">Snippets</a></li>
+<li><a class="reference internal" href="#task-lists" id="id6">Task lists</a></li>
+<li><a class="reference internal" href="#revision-history" id="id7">Revision History</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#syntax-highlighting-and-validation" id="id8">Syntax Highlighting and Validation</a><ul>
+<li><a class="reference internal" href="#pep8" id="id9">Pep8</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tab-completion-and-documentation" id="id10">Tab Completion and Documentation</a></li>
+<li><a class="reference internal" href="#code-navigation" id="id11">Code Navigation</a><ul>
+<li><a class="reference internal" href="#buffers" id="id12">Buffers</a></li>
+<li><a class="reference internal" href="#fuzzy-text-file-search" id="id13">Fuzzy Text File Search</a></li>
+<li><a class="reference internal" href="#file-browser" id="id14">File Browser</a></li>
+<li><a class="reference internal" href="#refactoring-and-go-to-definition" id="id15">Refactoring and Go to definition</a></li>
+<li><a class="reference internal" href="#searching" id="id16">Searching</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#integration-with-git" id="id17">Integration with Git</a></li>
+<li><a class="reference internal" href="#test-integration" id="id18">Test Integration</a><ul>
+<li><a class="reference internal" href="#django-nose" id="id19">django nose</a></li>
+<li><a class="reference internal" href="#py-test" id="id20">py.test</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#virtualenv" id="id21">Virtualenv</a></li>
+<li><a class="reference internal" href="#django" id="id22">Django</a></li>
+<li><a class="reference internal" href="#random-tips" id="id23">Random Tips</a></li>
+</ul>
+</div>
+<p>TL;DR:</p>
+<pre class="literal-block">
+$ git clone https://github.com/sontek/dotfiles.git
+$ cd dotfiles
+$ ./install.sh vim
+</pre>
+<p>Download <a class="reference external" href="http://sontek.net/media/uploads/vim.pdf">PDF Version</a></p>
+<div class="section" id="intro">
+<h1><a class="toc-backref" href="#id1">Intro</a></h1>
+<p>Back in 2008, I wrote the article <a class="reference external" href="http://sontek.net/python-with-a-modular-ide-vim">Python with a modular IDE (Vim)</a>. Years later, I have people e-mailing me and commenting daily asking for more information, even though most of the information in it is outdated. Here is the modern way to work with Python and Vim to achieve the perfect environment.</p>
+<p>Because one of the most important parts about a development environment is the ability to easily reproduce across machines, we are going to store our vim configuration in git:</p>
+<pre class="literal-block">
+$ mkdir ~/.vim/
+$ mkdir ~/.vim/{autoload,bundle}
+$ cd ~/.vim/
+$ git init
+</pre>
+<p>The purpose of the autoload directory is to automatically load the vim plugin <a class="reference external" href="https://github.com/tpope/vim-pathogen">Pathogen</a>, which we'll then use to load all other plugins that are located in the bundle directory. So download pathogen and put it in your autoload folder.</p>
+<p>You'll need to add the following to your ~/.vimrc so that pathogen will be loaded properly. Filetype detection must be off when you run the commands so its best to execute them first:</p>
+<pre class="literal-block">
+filetype off
+call pathogen#runtime_append_all_bundles()
+call pathogen#helptags()
+</pre>
+<p>Now lets add all of the vim plugins we plan on using as submodules to our git repository:</p>
+<pre class="literal-block">
+git submodule add http://github.com/tpope/vim-fugitive.git bundle/fugitive
+git submodule add https://github.com/msanders/snipmate.vim.git bundle/snipmate
+git submodule add https://github.com/tpope/vim-surround.git bundle/surround
+git submodule add https://github.com/tpope/vim-git.git bundle/git
+git submodule add https://github.com/ervandew/supertab.git bundle/supertab
+git submodule add https://github.com/sontek/minibufexpl.vim.git bundle/minibufexpl
+git submodule add https://github.com/wincent/Command-T.git bundle/command-t
+git submodule add https://github.com/mitechie/pyflakes-pathogen.git
+git submodule add https://github.com/mileszs/ack.vim.git bundle/ack
+git submodule add https://github.com/sjl/gundo.vim.git bundle/gundo
+git submodule add https://github.com/fs111/pydoc.vim.git bundle/pydoc
+git submodule add https://github.com/vim-scripts/pep8.git bundle/pep8
+git submodule add https://github.com/alfredodeza/pytest.vim.git bundle/py.test
+git submodule add https://github.com/reinh/vim-makegreen bundle/makegreen
+git submodule add https://github.com/vim-scripts/TaskList.vim.git bundle/tasklist
+git submodule add https://github.com/vim-scripts/The-NERD-tree.git bundle/nerdtree
+git submodule add https://github.com/sontek/rope-vim.git bundle/ropevim
+git submodule init
+git submodule update
+git submodule foreach git submodule init
+git submodule foreach git submodule update
+</pre>
+<p>Thats it! Now that we've got our vim configuration in git!</p>
+<p>Now lets look at how to use each of these plugins to improve the power of vim:</p>
+</div>
+<div class="section" id="basic-editing-and-debugging">
+<h1><a class="toc-backref" href="#id2">Basic Editing and Debugging</a></h1>
+<div class="section" id="code-folding">
+<h2><a class="toc-backref" href="#id3">Code Folding</a></h2>
+<p>Lets first enable code folding. This makes it a lot easier to organize your code and hide portions that you aren't interested in working on.  This is quite easy for Python, since whitespace is required.</p>
+<p>In your ~/.vimrc just add:</p>
+<pre class="literal-block">
+set foldmethod=indent
+set foldlevel=99
+</pre>
+<p>Then you will be able to be inside a method and type 'za' to open and close a fold.</p>
+</div>
+<div class="section" id="window-splits">
+<h2><a class="toc-backref" href="#id4">Window Splits</a></h2>
+<p>Sometimes code folding isn't enough; you may need to start opening up multiple windows and working on multiple files at once or different locations within the same file. To do this in vim, you can use these shortcuts:</p>
+<pre class="literal-block">
+Vertical Split : Ctrl+w + v
+Horizontal Split: Ctrl+w + s
+Close current windows: Ctrl+w + q
+</pre>
+<p>I also like to bind Ctrl+&lt;movement&gt; keys to move around the windows, instead of using Ctrl+w + &lt;movement&gt;:</p>
+<pre class="literal-block">
+map &lt;c-j&gt; &lt;c-w&gt;j
+map &lt;c-k&gt; &lt;c-w&gt;k
+map &lt;c-l&gt; &lt;c-w&gt;l
+map &lt;c-h&gt; &lt;c-w&gt;h
+</pre>
+<img alt="http://i.imgur.com/krj0l.png" src="http://i.imgur.com/krj0l.png" />
+</div>
+<div class="section" id="snippets">
+<h2><a class="toc-backref" href="#id5">Snippets</a></h2>
+<p>The next tweak that really speeds up development is using snipmate. We've already included it in our bundle/ folder so its already enabled.  Try opening up a python file and typing 'def&lt;tab&gt;'. It should stub out a method definition for you and allow you to tab through and fill out the arguments, doc string, etc.</p>
+<p>I also like to create my own snippets folder to put in some custom snippets:</p>
+<pre class="literal-block">
+$ mkdir ~/.vim/snippets
+$ vim ~/.vim/snippets/python.snippets
+</pre>
+<p>Put this in the file:</p>
+<pre class="literal-block">
+snippet pdb
+    import pdb; pdb.set_trace()
+</pre>
+<p>Now you can type pdb&lt;tab&gt; and it'll insert your breakpoint!</p>
+</div>
+<div class="section" id="task-lists">
+<h2><a class="toc-backref" href="#id6">Task lists</a></h2>
+<p>Another really useful thing is to mark some of your code as TODO or FIXME!  I know we all like to think we write perfect code, but sometimes you just have to settle and leave a note for yourself to come back later. One of the plugins we included was the tasklist plugin that will allow us to search all open buffers for things to fix.  Just add a mapping to open it in ~/.vimrc:</p>
+<pre class="literal-block">
+map &lt;leader&gt;td &lt;Plug&gt;TaskList
+</pre>
+<p>Now you can hit &lt;leader&gt;td to open your task list and hit 'q' to close it.  You can also hit enter on the task to jump to the buffer and line that it is placed on.</p>
+</div>
+<div class="section" id="revision-history">
+<h2><a class="toc-backref" href="#id7">Revision History</a></h2>
+<p>The final basic editing tweak I suggest everyone start utilizing is the Gundo plugin.  It'll allow you to view diff's of every save on a file you've made and allow you to quickly revert back and forth:</p>
+<img alt="http://i.imgur.com/2NrPS.png" src="http://i.imgur.com/2NrPS.png" />
+<p>Just bind a key in your .vimrc to toggle the Gundo window:</p>
+<pre class="literal-block">
+map &lt;leader&gt;g :GundoToggle&lt;CR&gt;
+</pre>
+</div>
+</div>
+<div class="section" id="syntax-highlighting-and-validation">
+<h1><a class="toc-backref" href="#id8">Syntax Highlighting and Validation</a></h1>
+<p>Simply enable syntax highlighting in your ~/.vimrc:</p>
+<pre class="literal-block">
+syntax on                           &quot; syntax highlighing
+filetype on                          &quot; try to detect filetypes
+filetype plugin indent on    &quot; enable loading indent file for filetype
+</pre>
+<p>Because we enabled pyflakes when we added it as a submodule in ~/.vim/bundle, it will notify you about unused imports and invalid syntax. It will save you a lot of time saving and running just to find out you missed a colon. I like to tell it not use the quickfix window:</p>
+<pre class="literal-block">
+let g:pyflakes_use_quickfix = 0
+</pre>
+<img alt="http://i.imgur.com/ZfjFe.png" src="http://i.imgur.com/ZfjFe.png" />
+<div class="section" id="pep8">
+<h2><a class="toc-backref" href="#id9">Pep8</a></h2>
+<p>The final plugin that really helps validate your code is the pep8 plugin, it'll make sure your code is consistent across all projects. Add a key mapping to your ~/.vimrc and then you'll be able to jump to each of the pep8 violations in the quickfix window:</p>
+<pre class="literal-block">
+let g:pep8_map='&lt;leader&gt;8'
+</pre>
+<img alt="http://i.imgur.com/VU9AB.png" src="http://i.imgur.com/VU9AB.png" />
+</div>
+</div>
+<div class="section" id="tab-completion-and-documentation">
+<h1><a class="toc-backref" href="#id10">Tab Completion and Documentation</a></h1>
+<p>Vim has many different code completion options. We are going to use the SuperTab plugin to check the context of the code you are working on and choose the best for the situation. We've already enabled the SuperTab plugin in the bundle/ folder, so we just have to configure it to be context sensitive and to enable omni code completion in your ~/.vimrc:</p>
+<pre class="literal-block">
+au FileType python set omnifunc=pythoncomplete#Complete
+let g:SuperTabDefaultCompletionType = &quot;context&quot;
+</pre>
+<p>Now we just enable the menu and pydoc preview to get the most useful information out of the code completion:</p>
+<pre class="literal-block">
+set completeopt=menuone,longest,preview
+</pre>
+<img alt="http://i.imgur.com/g4lxP.png" src="http://i.imgur.com/g4lxP.png" />
+<p>We also enabled the pydoc plugin at the beginning with all the submodules; that gives us the ability to hit &lt;leader&gt;pw  when our cursor is on a module and have a new window open with the whole documentation page for it.</p>
+</div>
+<div class="section" id="code-navigation">
+<h1><a class="toc-backref" href="#id11">Code Navigation</a></h1>
+<div class="section" id="buffers">
+<h2><a class="toc-backref" href="#id12">Buffers</a></h2>
+<p>The most important part about navigating code within vim, is to completely understand how to use buffers. There is no reason to use tabs.  Open files with :e &lt;filename&gt; to place in a buffer.  We already installed the minibufexpl plugin, so you will already visually see every buffer opened. You can also get a list of them doing :buffers.</p>
+<p>You can switch between the buffers using b&lt;number&gt;, such as :b1 for the first buffer. You can also use its name to match, so you can type :b mod&lt;tab&gt;  to autocomplete opening the models.py buffer. You need to make sure you are using the minibufexpl from my github since it has patches that make it much better to work with.</p>
+<p>To close a buffer you use :bd or :bw.</p>
+</div>
+<div class="section" id="fuzzy-text-file-search">
+<h2><a class="toc-backref" href="#id13">Fuzzy Text File Search</a></h2>
+<p>To make finding and opening files within your project even easier, we are going to use the command-t plugin.  It does have some parts that need to be compiled, so its not already installed by adding it as a submodule.  Go to your ~/.vim/bundle/command-t  folder and run 'rake make'.  Yes you need ruby installed. By default, command-t is bound to &lt;leader&gt;t.  This will use fuzzy text matching to find any file in your project.</p>
+<p>It also supports searching only through opened buffers, instead of files using &lt;leader&gt;b.</p>
+<img alt="http://i.imgur.com/hUcSl.png" src="http://i.imgur.com/hUcSl.png" />
+</div>
+<div class="section" id="file-browser">
+<h2><a class="toc-backref" href="#id14">File Browser</a></h2>
+<p>NERD Tree is a project file browser. I must admit I used this heavily back when I was migrating from Visual Studio and used to the Solution Explorer, but I rarely use it anymore. Command-T is usually all you'll need.  It is useful when you are getting to know a new codebase for the first time though.  Lets bind a shortcut key for opening it:</p>
+<pre class="literal-block">
+map &lt;leader&gt;n :NERDTreeToggle&lt;CR&gt;
+</pre>
+<img alt="http://i.imgur.com/R4ZzQ.png" src="http://i.imgur.com/R4ZzQ.png" />
+</div>
+<div class="section" id="refactoring-and-go-to-definition">
+<h2><a class="toc-backref" href="#id15">Refactoring and Go to definition</a></h2>
+<p>Ropevim is also a great tool that will allow you to navigate around your code. It supports automatically inserting import statements, goto definition, refactoring, and code completion. You'll really want to read up on everything it does, but the two big things I use it for is to jump to function or class definitions quickly and to rename things (including all their references).</p>
+<p>For instance, if you are using django and you place your cursor over the class models.Model you reference and then called :RopeGotoDefintion, it would jump you straight to the django library to that class definition. We already have it installed in our bundles, so we bind it to a key to use it:</p>
+<pre class="literal-block">
+map &lt;leader&gt;j :RopeGotoDefinition&lt;CR&gt;
+map &lt;leader&gt;r :RopeRename&lt;CR&gt;
+</pre>
+</div>
+<div class="section" id="searching">
+<h2><a class="toc-backref" href="#id16">Searching</a></h2>
+<p>The final tool that really speeds up navigating your code is the Ack plugin. Ack is similar to grep, but much better in my opinion. You can fuzzy text search for anything in your code (variable name, class, method, etc) and it'll give you a list of files and line numbers where they are defined so you can quickly cycle through them. Just bind the searching to a key:</p>
+<pre class="literal-block">
+nmap &lt;leader&gt;a &lt;Esc&gt;:Ack!
+</pre>
+<p>We use ! at the end of it so it doesn't open the first result automatically.</p>
+</div>
+</div>
+<div class="section" id="integration-with-git">
+<h1><a class="toc-backref" href="#id17">Integration with Git</a></h1>
+<p>We installed 2 plugins, git.vim and fugitive, that give us all the integration we need. Git.vim will provide us syntax highlighting for git configuration files; fugitive provides a great interface for interacting with git including getting diffs, status updates, committing, and moving files.</p>
+<p>Fugitive also allows you to view what branch you are working in directly from vim. Add this to your statusline in ~/.vimrc:</p>
+<pre class="literal-block">
+%{fugitive#statusline()}
+</pre>
+<p>The big commands you need to know:</p>
+<ul class="simple">
+<li><strong>Gblame</strong>: This allows you to view a line by line comparison of who the last person to touch that line of code is.</li>
+<li><strong>Gwrite</strong>: This will stage your file for commit, basically doing git add &lt;filename&gt;</li>
+<li><strong>Gread</strong>: This will basically run a git checkout &lt;filename&gt;</li>
+<li><strong>Gcommit</strong>: This will just run git commit. Since its in a vim buffer, you can use keyword completion (Ctrl-N), like test_all&lt;Ctrl-N&gt; to find the method name in your buffer and complete it for the commit message. You can also use + and - on the filenames in the message to stage/unstage them for the commit.</li>
+</ul>
+<img alt="http://i.imgur.com/NuRRj.png" src="http://i.imgur.com/NuRRj.png" />
+</div>
+<div class="section" id="test-integration">
+<h1><a class="toc-backref" href="#id18">Test Integration</a></h1>
+<div class="section" id="django-nose">
+<h2><a class="toc-backref" href="#id19">django nose</a></h2>
+<p>Test runner integration really depends on the testing library you are using and what type of tests you are running but we included a great generic plugin called MakeGreen that executes off of vim's makeprg variable. So for instance, if you are using django with django-nose you could define a shortcut key in your ~/.vimrc like this:</p>
+<pre class="literal-block">
+map &lt;leader&gt;dt :set makeprg=python\ manage.py\ test\|:call MakeGreen()&lt;CR&gt;
+</pre>
+<p>This will just give you a green bar at the bottom of vim if your test passed or a red bar with the message of the failed test if it doesn't. Very simple.</p>
+</div>
+<div class="section" id="py-test">
+<h2><a class="toc-backref" href="#id20">py.test</a></h2>
+<p>I also included the py.test vim plugin for those who prefer it. This plugin has a lot more functionality including executing individual tests by class, file, or method. You can also cycle through the individual assertion errors. I have the following bindings:</p>
+<pre class="literal-block">
+&quot; Execute the tests
+nmap &lt;silent&gt;&lt;Leader&gt;tf &lt;Esc&gt;:Pytest file&lt;CR&gt;
+nmap &lt;silent&gt;&lt;Leader&gt;tc &lt;Esc&gt;:Pytest class&lt;CR&gt;
+nmap &lt;silent&gt;&lt;Leader&gt;tm &lt;Esc&gt;:Pytest method&lt;CR&gt;
+&quot; cycle through test errors
+nmap &lt;silent&gt;&lt;Leader&gt;tn &lt;Esc&gt;:Pytest next&lt;CR&gt;
+nmap &lt;silent&gt;&lt;Leader&gt;tp &lt;Esc&gt;:Pytest previous&lt;CR&gt;
+nmap &lt;silent&gt;&lt;Leader&gt;te &lt;Esc&gt;:Pytest error&lt;CR&gt;
+</pre>
+<img alt="http://i.imgur.com/RAE7v.png" src="http://i.imgur.com/RAE7v.png" />
+</div>
+</div>
+<div class="section" id="virtualenv">
+<h1><a class="toc-backref" href="#id21">Virtualenv</a></h1>
+<p>Vim doesn't realize that you are in a virtualenv so it wont give you code completion for libraries only installed there. Add the following script to your ~/.vimrc to fix it:</p>
+<pre class="literal-block">
+&quot; Add the virtualenv's site-packages to vim path
+py &lt;&lt; EOF
+import os.path
+import sys
+import vim
+if 'VIRTUAL_ENV' in os.environ:
+    project_base_dir = os.environ['VIRTUAL_ENV']
+    sys.path.insert(0, project_base_dir)
+    activate_this = os.path.join(project_base_dir, 'bin/activate_this.py')
+    execfile(activate_this, dict(__file__=activate_this))
+EOF
+</pre>
+</div>
+<div class="section" id="django">
+<h1><a class="toc-backref" href="#id22">Django</a></h1>
+<p>The only true django tweak I make is before I open vim I'll export the DJANGO_SETTINGS_MODULE environment so that I get code completion for django modules as well:</p>
+<pre class="literal-block">
+export DJANGO_SETTINGS_MODULE=project.settings
+</pre>
+</div>
+<div class="section" id="random-tips">
+<h1><a class="toc-backref" href="#id23">Random Tips</a></h1>
+<p>If you want to find a new color scheme just go to <a class="reference external" href="http://code.google.com/p/vimcolorschemetest/">http://code.google.com/p/vimcolorschemetest/</a> to preview a large selection.</p>
+<!-- This data file has been placed in the public domain. -->
+<!-- Derived from the Unicode character mappings available from
+<http://www.w3.org/2003/entities/xml/>.
+Processed by unicode2rstsubs.py, part of Docutils:
+<http://docutils.sourceforge.net>. -->
+<p>© John Anderson &lt;<a class="reference external" href="mailto:sontek&#64;gmail.com">sontek&#64;gmail.com</a>&gt; 2011</p>
+</div>
+
+  </div>
+
+</div>
+
+  </section>
+  <script type="text/javascript">
+
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-9376946-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+  </script>
+</body>
+</html>

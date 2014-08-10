@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en-US"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en-US"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en-US"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en-US"> <!--<![endif]-->
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Why Google Went Offline Today and a Bit about How the Internet Works | CloudFlare Blog</title>
+<link rel="shortcut icon" href="/theme/images/favicon.ico"/>
+<link rel="apple-touch-icon-precomposed" sizes="57x57" href="/theme/images/apple-touch-icon-57x57-precomposed.png"/>
+<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/theme/images/apple-touch-icon-72x72-precomposed.png"/>
+<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/theme/images/apple-touch-icon-114x114-precomposed.png"/>
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/theme/images/apple-touch-icon-144x144-precomposed.png"/>
+<link href="http://blog.cloudflare.com/rss.xml" type="application/rss+xml" rel="alternate" title="CloudFlare Blog RSS Feed"/>
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans%3A300italic%2C400italic%2C600italic%2C700italic%2C800italic%2C400%2C300%2C600%2C700%2C800&#038;" type="text/css" media="all"/>
+<link rel="stylesheet" type="text/css" href="/theme/css/blog.css?v=1.5"/>
+<!--[if lt IE 9]><link rel="stylesheet" type="text/css" href="/theme/css/ie.css" /><![endif]-->
+<link rel="canonical" href="http://blog.cloudflare.com/why-google-went-offline-today-and-a-bit-about"/>
+<link rel="stylesheet" href="/theme/css/codemirror.min.css?v1.0"/>
+<script type="text/javascript" src="/theme/js/modernizr.js"></script>
+<script>(function(G,o,O,g,l){G.GoogleAnalyticsObject=O;G[O]||(G[O]=function(){(G[O].q=G[O].q||[]).push(arguments)});G[O].l=+new Date;g=o.createElement('script'),l=o.scripts[0];g.src='//www.google-analytics.com/analytics.js';l.parentNode.insertBefore(g,l)}(this,document,'ga'));ga('create','UA-10218544-12', 'none');ga('send','pageview')</script>
+</head>
+<body>
+<header id="header" class="header">
+<div class="wrapper">
+<a href="https://www.cloudflare.com" class="logo logo-header">CloudFlare</a>
+<nav id="main-menu" class="header-navigation navigation" role="navigation">
+<ul class="menu menu-header">
+<li><a href="/">Blog home</a></li>
+<li><a href="https://www.cloudflare.com/overview" tabindex="1">How it works</a></li>
+<li><a href="https://www.cloudflare.com/support" tabindex="9">Support</a></li>
+<li><a href="https://www.cloudflare.com/login" tabindex="10">Login</a></li>
+<li><a href="https://www.cloudflare.com/sign-up" class="btn btn-success" tabindex="11">Sign up</a></li>
+</ul>
+</nav> 
+</div> 
+</header><div class="wrapper reverse-sidebar">
+<div class="primary-content">
+<article class="post">
+<header>
+<h1>Why Google Went Offline Today and a Bit about How the Internet Works</h1>
+<div class="meta">
+<span class="meta-date">Published on November 06, 2012 09:09AM</span>
+by <a class="meta-author" href="http://blog.cloudflare.com/author/tom-paseka">Tom Paseka</a>. </div>
+<div class="social">
+<div class="g-plus" data-action="share" data-annotation="bubble"></div>
+<script type="IN/Share" data-counter="right"></script>
+<div class="fb-like" data-send="false" data-layout="button_count" data-width="90" data-show-faces="false"></div>
+<a href="https://twitter.com/share" class="twitter-share-button" data-via="cloudflare">Tweet</a>
+</div>
+</header>
+<div class="post-content">
+ 
+<p>Today, Google's services experienced a limited outage for about 27
+minutes over some portions of the Internet. The reason this happened
+dives into the deep, dark corners of networking. I'm a network engineer
+at CloudFlare and I played a small part in helping ensure Google came
+back online. Here's a bit about what happened.</p>
+<p>At around 6:24pm PST / 02:24 UTC (5 Nov. 2012 PST / 6 Nov. 2012 UTC),
+CloudFlare employees noticed that Google's services were offline. We use
+Google Apps for things like email so when we can't reach their servers
+the office notices quickly. I'm on the Network Engineering team so I
+jumped online to figure out if the problem was local to us or global.</p>
+<h2>Troubleshooting</h2>
+<p>I quickly realised that we were unable to resolve all of Googles
+services — or even reach 8.8.8.8, Googles public DNS server — so I
+started troubleshooting DNS.</p>
+<pre><code>$ dig +trace google.com
+</code></pre>
+<p>Here's the response I got when I tried to reach any of Google.com's name
+servers:</p>
+<pre><code>google.com.                172800        IN        NS        ns2.google.com.google.com.                172800        IN        NS        ns1.google.com.google.com.                172800        IN        NS        ns3.google.com.google.com.                172800        IN        NS        ns4.google.com.;; Received 164 bytes from 192.12.94.30#53(e.gtld-servers.net) in 152 ms;; connection timed out; no servers could be reached
+</code></pre>
+<p>The fact that no servers could be reached means something was wrong.
+Specifically, it meant that from our office network we were unable to
+reach any of Googles DNS servers. </p>
+<p>I started to look at the network layer, see if that's where the problems
+lay.</p>
+<pre><code>PING 216.239.32.10 (216.239.32.10): 56 data bytesRequest timeout for icmp_seq 092 bytes from 1-1-15.edge2-eqx-sin.moratelindo.co.id (202.43.176.217): Time to live exceeded
+</code></pre>
+<p>That was curious. Normally, we shouldn't be seeing an Indonesian ISP
+(Moratel) in the path to Google. I jumped on one of CloudFlare's routers
+to check what was going on. Meanwhile, others reports from around the
+globe on Twitter suggested we weren't the only ones seeing the problem.</p>
+<h2>Internet Routing</h2>
+<p>To understand what went wrong you need to understand a bit about how
+networking on the Internet works. The Internet is a collection of
+networks, known as "Autonomous Systems" (AS). Each network has a unique
+number to identify it known as AS number. CloudFlare's AS number is
+13335, Google's is 15169. The networks are connected together by what is
+known as Border Gateway Protocol (BGP). BGP is the glue of the Internet
+— announcing what IP addresses belong to each network and establishing
+the routes from one AS to another. An Internet "route" is exactly what
+it sounds like: a path from the IP address on one AS to an IP address on
+another AS.</p>
+<p>BGP is largely a trust-based system. Networks trust each other to say
+which IP addresses and other networks are behind them. When you send a
+packet or make a request across the network, your ISP connects to its
+upstream providers or peers and finds the shortest path from your ISP to
+the destination network.</p>
+<p>Unfortunately, if a network starts to send out an announcement of a
+particular IP address or network behind it, when in fact it is not, if
+that network is trusted by its upstreams and peers then packets can end
+up misrouted. That is what was happening here.</p>
+<p>I looked at the BGP Routes for a Google IP Address. The route traversed
+Moratel (23947), an Indonesian ISP. Given that I'm looking at the
+routing from California and Google is operating Data Centre's not far
+from our office, packets should never be routed via Indonesia. The most
+likely cause was that Moratel was announcing a network that wasn't
+actually behind them.</p>
+<p>The BGP Route I saw at the time was:</p>
+<pre><code>tom@edge01.sfo01&gt; show route 216.239.34.10                          inet.0: 422168 destinations, 422168 routes (422154 active, 0 holddown, 14 hidden)+ = Active Route, - = Last Active, * = Both216.239.34.0/24    *[BGP/170] 00:15:47, MED 18, localpref 100                      AS path: 4436 3491 23947 15169 I                    &gt; to 69.22.153.1 via ge-1/0/9.0
+</code></pre>
+<p>Looking at other routes, for example to Google's Public DNS, it was also
+stuck routing down the same (incorrect) path:</p>
+<pre><code>tom@edge01.sfo01&gt; show route 8.8.8.8 inet.0: 422196 destinations, 422196 routes (422182 active, 0 holddown, 14 hidden)+ = Active Route, - = Last Active, * = Both8.8.8.0/24         *[BGP/170] 00:27:02, MED 18, localpref 100                      AS path: 4436 3491 23947 15169 I                    &gt; to 69.22.153.1 via ge-1/0/9.0
+</code></pre>
+<h2>Route Leakage</h2>
+<p><img alt="Why Google Went Offline Today and a Bit about How the Internet
+Works" src="/static/images/fingersyouhaveusedtodial.png.scaled500.png" title="Why Google Went Offline Today and a Bit about How the Internet Works"/><span style="font-size: xx-small;">(Image
+Credit: The Simpsons)</span></p>
+<p>Situations like this are referred to in the industry as "route leakage",
+as the route has "leaked" past normal paths. This isn't an unprecedented
+event. Google previously suffered a <a href="http://www.renesys.com/blog/2008/02/pakistan-hijacks-youtube-1.shtml">similar
+outage</a>
+when Pakistan was allegedly trying to censor a video on YouTube and the
+National ISP of Pakistan null routed the service's IP addresses.
+Unfortunately, they leaked the null route externally. Pakistan Telecom's
+upstream provider, PCCW, trusted what Pakistan Telecom's was sending
+them and the routes spread across the Internet. The effect was YouTube
+was knocked offline for around 2 hours.</p>
+<p>The case today was similar. Someone at Moratel likely "fat fingered" an
+Internet route. PCCW, who was Moratel's upstream provider, trusted the
+routes Moratel was sending to them. And, quickly, the bad routes spread.
+It is unlikely this was malicious, but rather a misconfiguaration or an
+error evidencing some of the failings in the BGP Trust model.</p>
+<h2>The Fix</h2>
+<p>The solution was to get Moratel to stop announcing the routes they
+shouldn't be. A large part of being a network engineer, especially
+working at a large network like CloudFlare's, is having relationships
+with other network engineers around the world. When I figured out the
+problem, I contacted a colleague at Moratel to let him know what was
+going on. He was able to fix the problem at around 2:50 UTC / 6:50pm
+PST. Around 3 minutes later, routing returned to normal and Google's
+services came back online.</p>
+<p>Looking at peering maps, I'd estimate the outage impacted around 3–5% of
+the Internet's population. The heaviest impact will have been felt in
+Hong Kong, where PCCW is the incumbent provider. If you were in the area
+and unable to reach Google's services around that time, now you know
+why.</p>
+<h2>Building a Better Internet</h2>
+<p>This all is a reminder about how the Internet is a system built on
+trust. Today's incident shows that, even if you're as big as Google,
+factors outside of your direct control can impact the ability of your
+customers to get to your site so it's important to have a network
+engineering team that is watching routes and managing your connectivity
+around the clock. CloudFlare works every day to ensure our customers get
+the optimal possible routes. We look out for all the websites on our
+network to ensure that their traffic is always delivered as fast as
+possible. Just another day in our ongoing efforts to
+<a href="https://twitter.com/search?q=%23savetheweb">#savetheweb</a>.</p>
+<p><strong>Update:</strong>Tuesday, November 6 11:00am PST</p>
+<p>Moratel says the issue was caused by an unexpected hardware failure,
+causing this abnormal condition. This was not a malicious attempt.
+Moratel immediately shutdown the BGP peering with Google after contact
+was made while the hardware failure was being looked into.</p>
+<hr/>
+<p>Thanks for reading all the way to the end. If you enjoyed this post,
+take a second to <a href="http://www.cloudflare.com/overview">learn more about
+CloudFlare</a> or <a href="http://crunchies2012.techcrunch.com/nominate/?MTpDbG91ZEZsYXJl">nominate us for the
+2012 Crunchie Award for Best Technical
+Innovation</a>.</p>
+ 
+</div>
+<footer>
+<small>Tagged with <a href="/tag/bgp">bgp</a>, <a href="/tag/google">google</a>, <a href="/tag/network">network</a>, <a href="/tag/outage">outage</a>, <a href="/tag/savetheweb">savetheweb</a></small>
+<div class="section compact clearfix">
+<a href="http://blog.cloudflare.com/cloudflares-global-reach" title="CloudFlare's Global Reach" class="btn pull-left">&laquo; Previous Post</a>
+<a href="http://blog.cloudflare.com/cloudflare-london-meetup" title="CloudFlare London Meetup" class="btn pull-right">Next Post &raquo;</a>
+</div>
+</footer><aside class="section learn-more">
+<h5>Want to learn more about CloudFlare?</h5>
+ 
+<p><a href="https://www.cloudflare.com" class="btn btn-success">Learn more</a></p>
+</aside><aside class="section comments">
+<h3>Comments</h3>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+	var disqus_shortname = 'cloudflare';
+	(function(){var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</aside>
+</article>
+</div>
+<div class="sidebar">
+<div class="widget">
+<h4 class="widget-title">CloudFlare blog</h4>
+<p>CloudFlare provides performance and security for any website. Hundreds of thousands of websites use CloudFlare. To learn more, please visit our website.</p>
+<p>Plans range from:</p>
+<ul>
+<li>Free</li>
+<li>Pro ($20/month)</li>
+<li>Business ($200/month)</li>
+<li>Enterprise (average $5,000 per month)</li>
+</ul>
+<p>There is no hardware or software. CloudFlare works at the DNS level. It takes only 5 minutes to sign up.</p>
+<p>Under attack? Call to speak with our Enterprise Sales team:</p>
+<p>
+1 (888) 99-FLARE (US)<br/>
++44 (0)20 3514 6970 (UK)<br/>
++1 (650) 319-8930 (International)
+</p>
+</div>
+<div class="widget">
+<h4 class="widget-title">CloudFlare features</h4>
+<ul class="menu menu-sidebar">
+<li><a href="https://www.cloudflare.com/overview">Overview</a></li>
+<li><a href="https://www.cloudflare.com/features-cdn">CDN</a></li>
+<li><a href="https://www.cloudflare.com/dns">DNS</a></li>
+<li><a href="https://www.cloudflare.com/features-security">Security</a></li>
+<li><a href="https://www.cloudflare.com/ddos">DDoS</a></li>
+<li><a href="https://www.cloudflare.com/waf">WAF</a></li>
+<li><a href="https://www.cloudflare.com/features-optimizer">Optimizer</a></li>
+<li><a href="https://www.cloudflare.com/features-analytics">Analytics</a></li>
+<li><a href="https://www.cloudflare.com/features-apps">Apps</a></li>
+<li><a href="https://www.cloudflare.com/network-map">Network map</a></li>
+<li><a href="https://www.cloudflare.com/system-status">System status</a></li>
+</ul>
+</div>
+<div id="mc_embed_signup" class="widget">
+<form action="http://cloudflare.us5.list-manage1.com/subscribe/post?u=d80d4d74266c0c044b0bcd7ca&amp;id=8dc0bf9dea" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+<input type="email" value="" name="EMAIL" class="width-full required email" id="mce-EMAIL" placeholder="Enter your email address"/>
+<div id="mce-responses" class="clearfix">
+<div class="response" id="mce-error-response" style="display:none"></div>
+<div class="response" id="mce-success-response" style="display:none"></div>
+</div>
+<div class="clearfix">
+<button type="submit" name="subscribe" id="mc-embedded-subscribe" class="btn btn-primary width-full">Sign up for email updates</button>
+</div>
+</form>
+</div>
+<div class="widget">
+<a href="http://blog.cloudflare.com/rss.xml" class="btn btn-secondary btn-block">Subscribe via RSS</a>
+</div>
+</div></div>
+<footer id="footer" class="footer">
+<div class="wrapper">
+<nav class="navigation footer-nav">
+<ul role="navigation">
+<li id="cf_nav_menu-2" class="footer-column widget_cf_nav_menu">
+<h6 class="widget-title">What We Do</h6>
+<div class="menu-what-we-do-container">
+<ul class="menu menu-footer">
+<li><a href="https://www.cloudflare.com/plans">Plans</a></li>
+<li><a href="https://www.cloudflare.com/overview">Features</a></li>
+<li><a href="https://www.cloudflare.com/apps">Apps</a></li>
+<li><a href="https://www.cloudflare.com/network-map">Network</a></li>
+</ul>
+</div>
+</li>
+<li id="cf_nav_menu-3" class="footer-column widget_cf_nav_menu">
+<h6 class="widget-title">Community</h6>
+<div class="menu-community-container">
+<ul class="menu menu-footer">
+<li><a href="https://www.cloudflare.com/case-studies">Case Studies</a></li>
+<li class="active"><a href="/">Blog</a></li>
+<li><a href="https://www.cloudflare.com/hosting-partners">Partners</a></li>
+<li><a href="https://developers.cloudflare.com/">Developers</a></li>
+</ul>
+</div>
+</li>
+<li id="cf_nav_menu-4" class="footer-column widget_cf_nav_menu">
+<h6 class="widget-title">Support</h6>
+<div class="menu-support-container">
+<ul class="menu menu-footer">
+<li><a href="https://www.cloudflare.com/support">Help Center</a></li>
+<li><a href="https://www.cloudflare.com/system-status">System Status</a></li>
+<li><a href="https://www.cloudflare.com/contact">Contact Us</a></li>
+</ul>
+</div>
+</li>
+<li id="cf_nav_menu-5" class="footer-column widget_cf_nav_menu">
+<h6 class="widget-title">About Us</h6>
+<div class="menu-about-us-container">
+<ul class="menu menu-footer">
+<li><a href="https://www.cloudflare.com/people">Team</a></li>
+<li><a href="https://www.cloudflare.com/join-our-team">Careers</a></li>
+<li><a href="https://www.cloudflare.com/press-center">Press</a></li>
+<li><a href="https://www.cloudflare.com/terms">Legal</a></li>
+</ul>
+</div>
+</li>
+<li id="cf_nav_menu-6" class="footer-column widget_cf_nav_menu">
+<h6 class="widget-title">Connect</h6>
+<div class="menu-connect-container">
+<ul class="menu menu-footer">
+<li><a href="http://twitter.com/cloudflare">Twitter</a></li><li><a href="https://www.facebook.com/CloudFlare">Facebook</a></li><li><a href="https://plus.google.com/+cloudflare/posts">Google+</a></li> <li><a href="http://blog.cloudflare.com/rss.xml">RSS</a></li>
+</ul>
+</div>
+</li>
+</ul>
+</nav>
+</div> 
+</footer>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+<div id="fb-root"></div>
+<script>(function(d, s, id){var js, fjs = d.getElementsByTagName(s)[0];if (d.getElementById(id)) return;js = d.createElement(s); js.id = id;js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=507282169286135";fjs.parentNode.insertBefore(js, fjs);}(document, 'script', 'facebook-jssdk'));</script>
+<script src="//platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script>
+<script type="text/javascript">(function() {var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;po.src = 'https://apis.google.com/js/plusone.js';var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);})();</script>
+<script src="/theme/js/codemirror.min.js"></script>
+<script>(function(d,c,t){var n=d.querySelectorAll('pre>code'),l=n.length,i,f=function(n){var p=n.parentNode,m=n.className;p.className="cm-s-default";c.runMode(n.textContent||n.firstChild.nodeValue,m,p);};for(i=0;i<l;++i){f.call(t,n[i])}}(document,CodeMirror,this));</script>
+</body>
+</html>

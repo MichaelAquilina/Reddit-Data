@@ -1,0 +1,299 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Python command line oneliners</title>
+    <meta name="description" content="">
+    <meta name="author" content="Mikhail Kashkin">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/themes/twitter/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/themes/twitter/css/style.css?body=1" rel="stylesheet" type="text/css" media="all">
+    <link rel="shortcut icon" href="/assets/favicon.png">
+    <!-- Le fav and touch icons -->
+   <link href="http://feeds.feedburner.com/app-engine" rel="alternate" title="your title" type="application/atom+xml" />
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Vurt.ru blog</a>
+          <ul class="nav">
+            
+            
+            
+
+
+  
+    
+      
+      	
+      	<li><a href="/pages.html">Страницы</a></li>
+      	
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/contacts.html">Контакты</a></li>
+      	
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/about/index.html">Обо мне</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/tags.html">Теги</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/services.html">Услуги</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/archive.html">Архив</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+
+
+
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Python command line oneliners</h1>
+  
+
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>There is list of pretty useful python small command line oneliners available out of the box. That means if you already have installed python on your system (most Linux, *BSD, including OSX) then you can use it even if you are not python developer.</p>
+
+<p>I love most way to create fake SMTP server:</p>
+
+<pre><code>$ python -m smtpd -n -c DebuggingServer localhost:25
+</code></pre>
+
+<p>If you develop using something else, but need to send emails and want to debug or <em>just need something</em> you can add to your <code>Makefile</code> this lines:</p>
+
+<pre><code>mail:
+    python -m smtpd -n -c DebuggingServer localhost:20025
+</code></pre>
+
+<p>And run <code>make mail</code>, voila you have running SMTP daemon on 20025 port. Easy!</p>
+
+<p><strong>Make JSON beautiful</strong>? Next oneliner:</p>
+
+<pre><code>$ echo '{"foo": "lorem", "bar": "ipsum"}' | python -mjson.tool
+</code></pre>
+
+<p>You can only wish more if you like to see it in color. Hope you noticed pipe support.</p>
+
+<p><strong>Full set of available HTTP services</strong>.</p>
+
+<pre><code>$ python -m SimpleHTTPServer
+$ python -m CGIHTTPServer
+</code></pre>
+
+<p>Wanna use different port?</p>
+
+<pre><code>$ python -m SimpleHTTPServer 8080
+$ python -m CGIHTTPServer 9080
+</code></pre>
+
+<p>It serve all files from local folder and below.</p>
+
+<p><strong>XMLRPC</strong> is not very popular this days, but you still able to debug remote servers:</p>
+
+<pre><code>$ python -c 'import xmlrpclib; print xmlrpclib.Server("http://host:8080").methodName(param,param2)'
+</code></pre>
+
+<p>Real life example? Search on PyPI:</p>
+
+<pre><code>$ python -c 'import xmlrpclib; print xmlrpclib.Server("http://pypi.python.org/pypi").package_releases("Flask")'
+['0.9']
+$ python -c 'import xmlrpclib; print xmlrpclib.Server("http://pypi.python.org/pypi").search({"name":"hopak"})'
+[{'_pypi_ordering': 12, 'version': '0.1.0', 'name': 'Flask-Hopak', 'summary': 'Admin interface for Flask that uses Hopak models'}, {'_pypi_ordering': 12, 'version': '0.4.2', 'name': 'hopak', 'summary': 'hopak framework base package'}]
+</code></pre>
+
+<p>More python specific <strong>timeit</strong> module, it allows to measure speed of small code snippets:</p>
+
+<pre><code>$ python -m timeit '"-".join(str(n) for n in range(100))' 
+10000 loops, best of 3: 33.2 usec per loop
+$ python -m timeit '"-".join([str(n) for n in range(100)])'
+10000 loops, best of 3: 28.2 usec per loop
+</code></pre>
+
+<p>Even is possible to make a little setup using <code>-s</code> parameter:</p>
+
+<pre><code>$ python -m timeit -s "import json" "json.dumps({'a':'a'})" 
+100000 loops, best of 3: 5.98 usec per loop
+</code></pre>
+
+<h3>More</h3>
+
+<p>Probably listed here is more common for me. But if you like to discover more, then simple scan standard python library for <code>if __name__ == '__main__'</code> substring and check results:</p>
+
+<pre><code>$ grep -r  "if __name__ == '__main__'" /path/to/python/libaray/
+</code></pre>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+      
+        <li class="prev"><a href="/2013/01/driver-in-the-night" title="Люди ночью на дороге">&larr; Previous</a></li>
+      
+        <li><a href="/archive.html">Archive</a></li>
+      
+        <li class="next"><a href="/2013/06/sqlite-autoincrement-in-flask-sqlalchemy" title="SQLite auto increment in Flask SQLAlchemy">Next &rarr;</a></li>
+      
+      </ul>
+    </div>
+    <hr>
+    
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    
+    var disqus_shortname = 'vurtru'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+  </div>
+  
+  <div class="span4">
+    <h4>Support</h4>
+    <div>
+      <p>If you like my posts, please support me on Gittip</p>
+      <iframe style="border: 0; margin: 0; padding: 0;"
+        src="https://www.gittip.com/xen/widget.html"
+        width="48pt" height="22pt"></iframe>
+    </div>
+    <h4>Published</h4>
+    <div class="date"><span>20 February 2013</span></div>
+
+  
+    <h4>In tags we trust</h4>
+    <ul class="tag_box">
+    
+    
+
+
+  
+     
+    	<li><a href="/tags.html#python-ref">python <span>4</span></a></li>
+     
+    	<li><a href="/tags.html#runglish-ref">runglish <span>1</span></a></li>
+     
+    	<li><a href="/tags.html#cli-ref">cli <span>3</span></a></li>
+    
+  
+
+
+
+    </ul>
+    
+  </div>
+</div>
+
+
+      </div>
+
+      <footer>
+        <p>&copy; Mikhail Kashkin<a href="https://plus.google.com/101944487355503578795?rel=author"></a> 2009-2013</p>
+        <p><a href="http://feeds.feedburner.com/app-engine"><img src="http://feeds.feedburner.com/~fc/app-engine?bg=99CCFF&amp;fg=444444&amp;anim=0" height="26" width="88" style="border:0; border-radius: 0; padding:0; background: transparent" alt="" /></a></p>
+      </footer>
+
+    </div> <!-- /container -->
+  <a href="http://github.com/xen"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" /></a>
+
+    
+
+
+  <script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-283470-33']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+  </body>
+</html>
+

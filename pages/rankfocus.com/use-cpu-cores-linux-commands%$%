@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<!--[if IE 7]>
+<html class="ie ie7" lang="en-US" prefix="og: http://ogp.me/ns#">
+<![endif]-->
+<!--[if IE 8]>
+<html class="ie ie8" lang="en-US" prefix="og: http://ogp.me/ns#">
+<![endif]-->
+<!--[if !(IE 7) | !(IE 8)  ]><!-->
+<html lang="en-US" prefix="og: http://ogp.me/ns#">
+<!--<![endif]-->
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Use multiple CPU Cores with your Linux commands -- awk, sed, bzip2, grep, wc, etc. | RankFocus - Systems and Data</title>
+	<link rel="profile" href="http://gmpg.org/xfn/11">
+	<link rel="pingback" href="http://www.rankfocus.com/xmlrpc.php">
+	<!--[if lt IE 9]>
+	<script src="http://www.rankfocus.com/wp-content/themes/twentythirteen/js/html5.js"></script>
+	<![endif]-->
+	
+<!-- This site is optimized with the Yoast WordPress SEO plugin v1.4.24 - http://yoast.com/wordpress/seo/ -->
+<link rel="canonical" href="http://www.rankfocus.com/use-cpu-cores-linux-commands/" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Use multiple CPU Cores with your Linux commands -- awk, sed, bzip2, grep, wc, etc. - RankFocus - Systems and Data" />
+<meta property="og:description" content="Here&#8217;s a  common problem: You ever want to add up a very large list (hundreds of megabytes) or grep through it, or other kind of operation that is embarrassingly parallel? Data scientists, I am talking to you. You probably  have about four cores or more, but our tried and true tools like grep, bzip2, wc, awk, sed and so forth &hellip;" />
+<meta property="og:url" content="http://www.rankfocus.com/use-cpu-cores-linux-commands/" />
+<meta property="og:site_name" content="RankFocus - Systems and Data" />
+<meta property="article:author" content="admin" />
+<meta property="article:section" content="Uncategorized" />
+<meta property="article:published_time" content="2013-10-17T18:02:41+00:00" />
+<meta property="article:modified_time" content="2013-11-06T12:49:47+00:00" />
+<!-- / Yoast WordPress SEO plugin. -->
+
+<link rel="alternate" type="application/rss+xml" title="RankFocus - Systems and Data &raquo; Feed" href="http://www.rankfocus.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="RankFocus - Systems and Data &raquo; Comments Feed" href="http://www.rankfocus.com/comments/feed/" />
+
+            <script type="text/javascript">//<![CDATA[
+            // Google Analytics for WordPress by Yoast v4.3.4 | http://yoast.com/wordpress/google-analytics/
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-9156361-1']);
+				            _gaq.push(['_trackPageview']);
+            (function () {
+                var ga = document.createElement('script');
+                ga.type = 'text/javascript';
+                ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ga, s);
+            })();
+            //]]></script>
+			<link rel="alternate" type="application/rss+xml" title="RankFocus - Systems and Data &raquo; Use multiple CPU Cores with your Linux commands &#8212; awk, sed, bzip2, grep, wc, etc. Comments Feed" href="http://www.rankfocus.com/use-cpu-cores-linux-commands/feed/" />
+<link rel='stylesheet' id='twentythirteen-fonts-css'  href='//fonts.googleapis.com/css?family=Source+Sans+Pro%3A300%2C400%2C700%2C300italic%2C400italic%2C700italic%7CBitter%3A400%2C700&#038;subset=latin%2Clatin-ext' type='text/css' media='all' />
+<link rel='stylesheet' id='genericons-css'  href='http://www.rankfocus.com/wp-content/themes/twentythirteen/fonts/genericons.css?ver=2.09' type='text/css' media='all' />
+<link rel='stylesheet' id='twentythirteen-style-css'  href='http://www.rankfocus.com/wp-content/themes/twentythirteen/style.css?ver=2013-07-18' type='text/css' media='all' />
+<!--[if lt IE 9]>
+<link rel='stylesheet' id='twentythirteen-ie-css'  href='http://www.rankfocus.com/wp-content/themes/twentythirteen/css/ie.css?ver=2013-07-18' type='text/css' media='all' />
+<![endif]-->
+<script type='text/javascript' src='http://www.rankfocus.com/wp-includes/js/jquery/jquery.js?ver=1.11.0'></script>
+<script type='text/javascript' src='http://www.rankfocus.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=1.2.1'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://www.rankfocus.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://www.rankfocus.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress 3.9.1" />
+<link rel='shortlink' href='http://www.rankfocus.com/?p=16' />
+<link rel="stylesheet" type="text/css" href="http://www.rankfocus.com/wp-content/plugins/wp-code-highlight/css/wp-code-highlight.css" media="screen" />
+	<style type="text/css">.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>
+	<style type="text/css" id="twentythirteen-header-css">
+			.site-header {
+			background: url(http://www.rankfocus.com/wp-content/themes/twentythirteen/images/headers/circle.png) no-repeat scroll top;
+			background-size: 1600px auto;
+		}
+		</style>
+	</head>
+
+<body class="single single-post postid-16 single-format-standard single-author">
+	<div id="page" class="hfeed site">
+		<header id="masthead" class="site-header" role="banner">
+			<a class="home-link" href="http://www.rankfocus.com/" title="RankFocus &#8211; Systems and Data" rel="home">
+				<h1 class="site-title">RankFocus &#8211; Systems and Data</h1>
+				<h2 class="site-description">Big data and small steps</h2>
+			</a>
+
+			<div id="navbar" class="navbar">
+				<nav id="site-navigation" class="navigation main-navigation" role="navigation">
+					<h3 class="menu-toggle">Menu</h3>
+					<a class="screen-reader-text skip-link" href="#content" title="Skip to content">Skip to content</a>
+					<div class="nav-menu"></div>
+					<form role="search" method="get" class="search-form" action="http://www.rankfocus.com/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search &hellip;" value="" name="s" title="Search for:" />
+				</label>
+				<input type="submit" class="search-submit" value="Search" />
+			</form>				</nav><!-- #site-navigation -->
+			</div><!-- #navbar -->
+		</header><!-- #masthead -->
+
+		<div id="main" class="site-main">
+
+	<div id="primary" class="content-area">
+		<div id="content" class="site-content" role="main">
+
+						
+				
+<article id="post-16" class="post-16 post type-post status-publish format-standard hentry category-uncategorized">
+	<header class="entry-header">
+		
+				<h1 class="entry-title">Use multiple CPU Cores with your Linux commands &#8212; awk, sed, bzip2, grep, wc, etc.</h1>
+		
+		<div class="entry-meta">
+			<span class="date"><a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/" title="Permalink to Use multiple CPU Cores with your Linux commands &#8212; awk, sed, bzip2, grep, wc, etc." rel="bookmark"><time class="entry-date" datetime="2013-10-17T18:02:41+00:00">2013/10/17</time></a></span><span class="categories-links"><a href="http://www.rankfocus.com/category/uncategorized/" title="View all posts in Uncategorized" rel="category tag">Uncategorized</a></span><span class="author vcard"><a class="url fn n" href="http://www.rankfocus.com/author/admin/" title="View all posts by Aris Vlasakakis" rel="author">Aris Vlasakakis</a></span>					</div><!-- .entry-meta -->
+	</header><!-- .entry-header -->
+
+		<div class="entry-content">
+		<p>Here&#8217;s a  common problem: You ever want to add up a very large list (hundreds of megabytes) or grep through it, or other kind of operation that is embarrassingly parallel? Data scientists, I am talking to you. You probably  have about four cores or more, but our tried and true tools like <strong>grep</strong>, <strong>bzip2</strong>, <strong>wc</strong>, <strong>awk</strong>, <strong>sed</strong> and so forth are singly-threaded and will just use one CPU core. To paraphrase Cartman, &#8220;How do I reach these cores&#8221;? Let&#8217;s use all of our CPU cores on our Linux box by using <a title="GNU Parallel" href="https://www.gnu.org/software/parallel/" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.gnu.org']);" target="_blank">GNU Parallel</a> and doing a little in-machine map-reduce magic by using all of our cores and using the little-known parameter <strong>&#8211;pipes </strong>(otherwise known as <strong>&#8211;spreadstdin</strong>). Your pleasure is proportional to the number of CPUs, I promise.   <strong>BZIP2</strong> So, bzip2 is better compression than gzip, but it&#8217;s so slow! Put down the razor, we have the technology to solve this. Instead of this:</p>
+<pre class="wp-code-highlight prettyprint">cat bigfile.bin | bzip2 --best &gt; compressedfile.bz2</pre>
+<p>Do this:</p>
+<pre class="wp-code-highlight prettyprint">cat bigfile.bin | parallel --pipe --recend &#039;&#039; -k bzip2 --best &gt; compressedfile.bz2</pre>
+<p>Especially with bzip2, GNU parallel is dramatically faster on multiple core machines. Give it a whirl and you will be sold.     <strong>GREP</strong> If you have an enormous text file, rather than this:</p>
+<pre class="wp-code-highlight prettyprint">grep pattern bigfile.txt</pre>
+<p>do this:</p>
+<pre class="wp-code-highlight prettyprint">cat bigfile.txt | parallel  --pipe grep &#039;pattern&#039;</pre>
+<p>or this:</p>
+<pre class="wp-code-highlight prettyprint">cat bigfile.txt | parallel --block 10M --pipe grep &#039;pattern&#039;</pre>
+<p>These second command shows you using <strong>&#8211;block</strong> with 10 MB of data from your file &#8212; you might play with this parameter to find our how many input record lines you want per CPU core. I gave a previous example of how to use grep with a <a title="Using GNU Parallel to roll-your-own Map Reduce!" href="http://www.rankfocus.com/hello-world/" >large number of files</a>, rather than just a single large file. <strong>AWK</strong> Here&#8217;s an example of using awk to add up the numbers in a very large file. Rather than this:</p>
+<pre class="wp-code-highlight prettyprint">cat rands20M.txt | awk &#039;{s+=$1} END {print s}&#039;</pre>
+<p>do this!</p>
+<pre class="wp-code-highlight prettyprint">cat rands20M.txt | parallel --pipe awk \&#039;{s+=\$1} END {print s}\&#039; | awk &#039;{s+=$1} END {print s}&#039;</pre>
+<p>This is more involved: the <strong>&#8211;pipe</strong> option in parallel spreads out the output to multiple chunks for the awk call, giving a bunch of sub-totals. These sub totals go into the second pipe with the identical awk call, which gives the final total. The first awk call has three backslashes in there due to the need to escape the awk call for GNU parallel. <strong>WC</strong> Want to create a super-parallel count of lines in a file? Instead of this:</p>
+<pre class="wp-code-highlight prettyprint">wc -l bigfile.txt</pre>
+<p>Do this:</p>
+<pre class="wp-code-highlight prettyprint">cat bigfile.txt | parallel  --pipe wc -l | awk &#039;{s+=$1} END {print s}&#039;</pre>
+<p>This is pretty neat: What is happening here is during the parallel call, we are &#8216;mapping&#8217; a bunch of calls to wc -l , generating sub-totals, and finally adding them up with the final pipe pointing to awk. <strong>SED</strong> Feel like using sed to do a huge number of replacements in a huge file? Instead of this:</p>
+<pre class="wp-code-highlight prettyprint">sed s^old^new^g bigfile.txt</pre>
+<p>Do this:</p>
+<pre class="wp-code-highlight prettyprint">cat bigfile.txt | parallel --pipe sed s^old^new^g</pre>
+<p>&#8230;and then pipe it into your favorite file to store the output.</p>
+<p>Enjoy!</p>
+<p>&#8211;Aris</p>
+			</div><!-- .entry-content -->
+	
+	<footer class="entry-meta">
+		
+			</footer><!-- .entry-meta -->
+</article><!-- #post -->
+					<nav class="navigation post-navigation" role="navigation">
+		<h1 class="screen-reader-text">Post navigation</h1>
+		<div class="nav-links">
+
+			<a href="http://www.rankfocus.com/lustre-file-system-hangs-server-during-really-fast-io/" rel="prev"><span class="meta-nav">&larr;</span> Lustre file system hangs server during really fast I/O?</a>			<a href="http://www.rankfocus.com/automagically-compress-file-remotely-downloading-scprsync/" rel="next">Automagically GZip a file remotely before downloading it with SCP! <span class="meta-nav">&rarr;</span></a>
+		</div><!-- .nav-links -->
+	</nav><!-- .navigation -->
+					
+<div id="comments" class="comments-area">
+
+			<h2 class="comments-title">
+			36 thoughts on &ldquo;<span>Use multiple CPU Cores with your Linux commands &#8212; awk, sed, bzip2, grep, wc, etc.</span>&rdquo;		</h2>
+
+		<ol class="comment-list">
+					<li id="comment-288" class="pingback even thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://www.wmxuan.net/archives/561" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://www.wmxuan.net']);"  rel='external nofollow' class='url'>如何利用多核CPU来加速你的Linux命令 — awk, sed, bzip2 等 — 唯美轩</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-290" class="pingback odd alt thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://www.huhaoit.com/?p=149" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://www.huhaoit.com']);"  rel='external nofollow' class='url'>如何利用多核CPU来加速你的Linux命令 — awk, sed, bzip2, grep, wc等 | huhao&#039;s Blog</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-291" class="comment even thread-even depth-1 parent">
+			<article id="div-comment-291" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://1.gravatar.com/avatar/7d2a262ac45bee5f7828dff7888bb2a2?s=74&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Jack</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-291">
+							<time datetime="2013-10-30T02:40:52+00:00">
+								2013/10/30 at 02:40							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>&#8220;These second command shows you using –block with 10 million lines&#8221; actually it&#8217;s ~10MB of data block instead of 10 million lines.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=291#respond' onclick='return addComment.moveForm("div-comment-291", "291", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-293" class="comment byuser comment-author-admin bypostauthor odd alt depth-2 parent">
+			<article id="div-comment-293" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/a9dbe20bae17a29323764bf520519d25?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Aris Vlasakakis</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-293">
+							<time datetime="2013-10-30T06:10:57+00:00">
+								2013/10/30 at 06:10							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Jack, thank you for the catch! I updated the article.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=293#respond' onclick='return addComment.moveForm("div-comment-293", "293", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-306" class="comment even depth-3 parent">
+			<article id="div-comment-306" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/8b773821981fe30fd3b474ce15bff647?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Colin vH</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-306">
+							<time datetime="2013-10-30T17:02:48+00:00">
+								2013/10/30 at 17:02							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>You may want to warn that this breaks grep&#8217;s semantics, as each grep process is not guaranteed to be working with whole lines.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=306#respond' onclick='return addComment.moveForm("div-comment-306", "306", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-315" class="comment byuser comment-author-admin bypostauthor odd alt depth-4">
+			<article id="div-comment-315" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/a9dbe20bae17a29323764bf520519d25?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Aris Vlasakakis</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-315">
+							<time datetime="2013-10-30T21:41:07+00:00">
+								2013/10/30 at 21:41							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Thank you for the thought &#8211; but from my testing, this use case works well. If you use the grep -A (after) or -B (before) features, it probably will break semantics if you have a boundary problem. But&#8230;for straightforward grep filtering this should work. By default GNU Parallel cuts records on &#8216;\n&#8217; newlines. Do you have an example where grep gets broken?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=315#respond' onclick='return addComment.moveForm("div-comment-315", "315", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-295" class="pingback even thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://www.lsychina.com/use_parallel_quicken_linux_commands_running_with_cpu_cores.html" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://www.lsychina.com']);"  rel='external nofollow' class='url'>Parallel操纵多核CPU加速Linux命令执行 | yang仔博客 | 诗由心生</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-297" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-297" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/4efc20fa22046a3507dc16d5f9bebdaf?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn"><a href="http://jupiter909.com" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://jupiter909.com']);"  rel='external nofollow' class='url'>Joop</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-297">
+							<time datetime="2013-10-30T10:57:47+00:00">
+								2013/10/30 at 10:57							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Hi there, you might just want to include in this article that people can use pbzip2 and pigz, they are the multicore versions of bzip2 and gzip.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=297#respond' onclick='return addComment.moveForm("div-comment-297", "297", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-298" class="comment even thread-odd thread-alt depth-1">
+			<article id="div-comment-298" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/0734a807d11551b122441302a3f73bd4?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn"><a href="http://www.brunokim.com.br" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://www.brunokim.com.br']);"  rel='external nofollow' class='url'>Bruno Kim</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-298">
+							<time datetime="2013-10-30T12:59:00+00:00">
+								2013/10/30 at 12:59							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Parallel is awesome! Just a note for Ubuntu fellows, if you don&#8217;t have parallel installed it will recommend the package moreutils. However, this comes with a different tool  with different syntax, and will seem to fail silently. You should look for the package parallel when installing.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=298#respond' onclick='return addComment.moveForm("div-comment-298", "298", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-299" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-299" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/423a1a4f867f2773f553579fa721552c?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Twirrim</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-299">
+							<time datetime="2013-10-30T13:34:23+00:00">
+								2013/10/30 at 13:34							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>For bzip2 and gzip there are multithreaded implementations already available, pbzip2 and pigz which appear in most major repositories. Definitely worth looking at, they make a terrific difference.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=299#respond' onclick='return addComment.moveForm("div-comment-299", "299", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-302" class="comment even thread-odd thread-alt depth-1 parent">
+			<article id="div-comment-302" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/07eb11995a862fa3e2bb1a6c4f3c5def?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn"><a href="http://www.jakeva.com" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://www.jakeva.com']);"  rel='external nofollow' class='url'>Jake Van Alstyne</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-302">
+							<time datetime="2013-10-30T15:02:51+00:00">
+								2013/10/30 at 15:02							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Great article, I&#8217;ve been using GNU parallel for a few years on different things, notably to speed up cracking my locked bitcoin wallet </p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=302#respond' onclick='return addComment.moveForm("div-comment-302", "302", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-319" class="comment byuser comment-author-admin bypostauthor odd alt depth-2">
+			<article id="div-comment-319" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/a9dbe20bae17a29323764bf520519d25?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Aris Vlasakakis</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-319">
+							<time datetime="2013-10-30T22:15:54+00:00">
+								2013/10/30 at 22:15							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>How are you doing this?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=319#respond' onclick='return addComment.moveForm("div-comment-319", "319", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-303" class="comment even thread-even depth-1 parent">
+			<article id="div-comment-303" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/cf2337133635711e981fd9dc1656c29a?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Andrew Carlson</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-303">
+							<time datetime="2013-10-30T15:09:30+00:00">
+								2013/10/30 at 15:09							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>I tried this with bzip2, and was impressed with the results &#8211; until I went to decompress the file.  The file is damaged, and will not uncompress.  I would test this if you are going to use it.  The line I used was:</p>
+<p>time cat dds.sql | parallel &#8211;pipe &#8211;recend &#8221; -k bzip2 &#8211;best &gt; ddsp.sql.bz2</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=303#respond' onclick='return addComment.moveForm("div-comment-303", "303", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-318" class="comment byuser comment-author-admin bypostauthor odd alt depth-2">
+			<article id="div-comment-318" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/a9dbe20bae17a29323764bf520519d25?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Aris Vlasakakis</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-318">
+							<time datetime="2013-10-30T22:15:43+00:00">
+								2013/10/30 at 22:15							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>You have a weird character error, you copied-and-pasted from the website and it somehow got mangled. You want it to say &#8211;recend &#8221; (two single quotes). I have tested this many times.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=318#respond' onclick='return addComment.moveForm("div-comment-318", "318", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-305" class="comment even thread-odd thread-alt depth-1 parent">
+			<article id="div-comment-305" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://1.gravatar.com/avatar/b240aaab5e1897421d7a1933d0c510f4?s=74&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn"><a href="http://www.gwern.net" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://www.gwern.net']);"  rel='external nofollow' class='url'>gwern</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-305">
+							<time datetime="2013-10-30T16:17:36+00:00">
+								2013/10/30 at 16:17							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>The code snippets are being mangled by escaping.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=305#respond' onclick='return addComment.moveForm("div-comment-305", "305", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-314" class="comment byuser comment-author-admin bypostauthor odd alt depth-2">
+			<article id="div-comment-314" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/a9dbe20bae17a29323764bf520519d25?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Aris Vlasakakis</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-314">
+							<time datetime="2013-10-30T21:38:26+00:00">
+								2013/10/30 at 21:38							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Thank you &#8211; an unexpected problem from a plug-in I am using to highlight my code.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=314#respond' onclick='return addComment.moveForm("div-comment-314", "314", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-307" class="comment even thread-even depth-1">
+			<article id="div-comment-307" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/62fb53202ae5dd05827f27b6801524e6?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Abel</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-307">
+							<time datetime="2013-10-30T17:31:08+00:00">
+								2013/10/30 at 17:31							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>You could just save your self a step and install PBZip2 and PIGz<br />
+<a href="http://compression.ca/pbzip2/" onclick="javascript:_gaq.push(['_trackEvent','outbound-comment','http://compression.ca']);" rel="nofollow">http://compression.ca/pbzip2/</a><br />
+<a href="http://zlib.net/pigz/" onclick="javascript:_gaq.push(['_trackEvent','outbound-comment','http://zlib.net']);" rel="nofollow">http://zlib.net/pigz/</a></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=307#respond' onclick='return addComment.moveForm("div-comment-307", "307", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-308" class="comment odd alt thread-odd thread-alt depth-1">
+			<article id="div-comment-308" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/a43f71d53c4fda7752fa2cd7ed89398f?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn"><a href="http://sathkumara.com" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://sathkumara.com']);"  rel='external nofollow' class='url'>Charitha S.</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-308">
+							<time datetime="2013-10-30T18:02:04+00:00">
+								2013/10/30 at 18:02							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Cool article. Some of your code in the pre-formatted code blocks show html &gt; instead of &gt;</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=308#respond' onclick='return addComment.moveForm("div-comment-308", "308", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-309" class="comment even thread-even depth-1">
+			<article id="div-comment-309" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/216c1db53d752f87dd8176a6ba0c2190?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Keith Thompson</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-309">
+							<time datetime="2013-10-30T18:18:40+00:00">
+								2013/10/30 at 18:18							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Your greater-than characters are showing up as ampersand-g-t-semicolon (at least in Chrome on Debian).</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=309#respond' onclick='return addComment.moveForm("div-comment-309", "309", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-311" class="comment odd alt thread-odd thread-alt depth-1 parent">
+			<article id="div-comment-311" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://1.gravatar.com/avatar/baa615b6f6d95f163ba87cb36362c9c4?s=74&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn"><a href="http://codelahoma.com" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://codelahoma.com']);"  rel='external nofollow' class='url'>Rod Knowlton</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-311">
+							<time datetime="2013-10-30T19:38:41+00:00">
+								2013/10/30 at 19:38							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Great stuff. </p>
+<p>One suggestion: You could really tidy things up if you put that awk summing snippet into its own file, or even bash function. That&#8217;d also eliminate the need for awkward escaping.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=311#respond' onclick='return addComment.moveForm("div-comment-311", "311", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-317" class="comment byuser comment-author-admin bypostauthor even depth-2">
+			<article id="div-comment-317" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/a9dbe20bae17a29323764bf520519d25?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Aris Vlasakakis</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-317">
+							<time datetime="2013-10-30T22:14:29+00:00">
+								2013/10/30 at 22:14							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Good idea. I am used to doing a little escaping when necessary to keep things very simple.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=317#respond' onclick='return addComment.moveForm("div-comment-317", "317", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-313" class="comment odd alt thread-even depth-1 parent">
+			<article id="div-comment-313" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/8e0fe695d8be1d9a1696fc1c8daf0533?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Joseph</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-313">
+							<time datetime="2013-10-30T20:40:42+00:00">
+								2013/10/30 at 20:40							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>I don&#8217;t think it&#8217;s valid to create a single file from the parallel bzips. Bzip uses a huffman encoding. Lets say byte a comes before byte b in the compressed file. Byte b will depend on a. When you run the compression in parallel like that, you can no longer guarantee that property. As a result, decompressing the file with a different number of splits or with different split locations will fail.</p>
+<p>The only way this could work is if each bzip writes it&#8217;s own header and end of stream footers for each split and bzip understands what to do when it sees multiple bzip headers and footers.</p>
+<p>The valid way to do this would be to have separate output files instead of a single one.</p>
+<p>Secondly, the command you provided does not work:<br />
+cat index.html | parallel &#8211;pipe &#8211;recend &#8221; -k bzip2 &#8211;best &gt; compressed.2.bzi<br />
+parallel: invalid option &#8212; &#8216;-&#8217;</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=313#respond' onclick='return addComment.moveForm("div-comment-313", "313", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-316" class="comment byuser comment-author-admin bypostauthor even depth-2 parent">
+			<article id="div-comment-316" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/a9dbe20bae17a29323764bf520519d25?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Aris Vlasakakis</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-316">
+							<time datetime="2013-10-30T22:12:15+00:00">
+								2013/10/30 at 22:12							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Thanks! It appears my double hyphens (&#8211;) are somehow converted to single hyphens or m-dashes or something on YOUR rendering. The command I provided does work &#8211; I just verified it. I don&#8217;t know why you had that weird double-to-single hyphen conversion happen. It is not happening on Google Chrome for me. It could have to do with a code highlight plug-in I am using&#8230;.</p>
+<p>Secondly &#8211; your point on Huffman encoding could stand, but at least in the implementation of bzip2 on Ubuntu 12.04, bzip2 1.0.6, I have generated random data up to 1GB in size, performed the parallel compression I describe, and then decompress and compare with the original. It all works fine. If you could generate an example that fails I would appreciate it, since I don&#8217;t know about the internals of Huffman encoding! Your analysis could stand, but my experiments show that the method works for large files.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=316#respond' onclick='return addComment.moveForm("div-comment-316", "316", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-328" class="comment odd alt depth-3">
+			<article id="div-comment-328" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/6d5f02ddd25121e6f624e9aba4fec81d?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn"><a href="http://parazoid.net" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://parazoid.net']);"  rel='external nofollow' class='url'>Ben Stoutenbugrh</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-328">
+							<time datetime="2013-10-31T05:22:13+00:00">
+								2013/10/31 at 05:22							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Seconded that it works for me, but I need to test on files larger than 12 MB. </p>
+<p>However due to the parallel nature it should be noted that the encoding will not be as efficient and compressed files will be slightly larger than it would if bzip2 was used by itself.  Probably not a world of difference but I would be interested to see how different the sizes would be given a 1 GB file.  The difference in compression of a 12 MB file is ~50 KB.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=328#respond' onclick='return addComment.moveForm("div-comment-328", "328", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-339" class="comment even depth-2">
+			<article id="div-comment-339" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/8e0fe695d8be1d9a1696fc1c8daf0533?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Joseph</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-339">
+							<time datetime="2013-10-31T15:11:18+00:00">
+								2013/10/31 at 15:11							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>bzip2 can handle a single file with mulitple bz2 headers:<br />
+<a href="http://www.reddit.com/r/programming/comments/1pixp1/use_multiple_cpu_cores_with_your_linux_commands/cd37cs7" onclick="javascript:_gaq.push(['_trackEvent','outbound-comment','http://www.reddit.com']);" rel="nofollow">http://www.reddit.com/r/programming/comments/1pixp1/use_multiple_cpu_cores_with_your_linux_commands/cd37cs7</a></p>
+<p>So now one problem to consider is that the compression is local to the parellel chunks. It&#8217;s not doing compression on the entire file, but instead on chunks of the file. This can result in larger files.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=339#respond' onclick='return addComment.moveForm("div-comment-339", "339", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-327" class="comment odd alt thread-odd thread-alt depth-1">
+			<article id="div-comment-327" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://1.gravatar.com/avatar/9ac4d60cc7b5a94a8205aa6e01b43374?s=74&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Cecília Nunes</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-327">
+							<time datetime="2013-10-31T04:53:56+00:00">
+								2013/10/31 at 04:53							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>He&#8217;all</p>
+<p>Tested parallel on a dataset with ~8M lines ans ~18G. Results surprised me for the wrong reasons:</p>
+<p>time cat dataset.csv | parallel  &#8211;pipe wc -l | awk &#8216;{ sum += $1 }; END { print sum }&#8217;<br />
+8087816</p>
+<p>real	1m10.816s<br />
+user	0m37.240s<br />
+sys	1m29.492s</p>
+<p>time wc -l dataset.csv<br />
+8087816 dataset.csv</p>
+<p>real	0m2.158s<br />
+user	0m0.564s<br />
+sys	0m1.584s</p>
+<p>(8 CPU and 32G RAM)<br />
+Why is it taking so long?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=327#respond' onclick='return addComment.moveForm("div-comment-327", "327", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-329" class="comment even thread-even depth-1 parent">
+			<article id="div-comment-329" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://1.gravatar.com/avatar/d42def31b1881aac9ed5c54300f50411?s=74&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Justin Walrath</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-329">
+							<time datetime="2013-10-31T06:34:13+00:00">
+								2013/10/31 at 06:34							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>With regards to the parallel grep, does this effectively handle when a pattern spans multiple blocks?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=329#respond' onclick='return addComment.moveForm("div-comment-329", "329", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-335" class="comment byuser comment-author-admin bypostauthor odd alt depth-2">
+			<article id="div-comment-335" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/a9dbe20bae17a29323764bf520519d25?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Aris Vlasakakis</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-335">
+							<time datetime="2013-10-31T11:38:55+00:00">
+								2013/10/31 at 11:38							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>No, without adding a lot of complex logic.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=335#respond' onclick='return addComment.moveForm("div-comment-335", "335", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-332" class="comment even thread-odd thread-alt depth-1 parent">
+			<article id="div-comment-332" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://1.gravatar.com/avatar/505e87e63feab96107ec631d16f193b4?s=74&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">David Phillip Oster</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-332">
+							<time datetime="2013-10-31T08:36:17+00:00">
+								2013/10/31 at 08:36							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Note: This article only makes sense if you have SSD. If you have a traditional, rotating platter disk, the disk i/o time so dominates the runtime that having an effectively faster CPU just can&#8217;t make any difference.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=332#respond' onclick='return addComment.moveForm("div-comment-332", "332", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-336" class="comment byuser comment-author-admin bypostauthor odd alt depth-2">
+			<article id="div-comment-336" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/a9dbe20bae17a29323764bf520519d25?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Aris Vlasakakis</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-336">
+							<time datetime="2013-10-31T11:43:40+00:00">
+								2013/10/31 at 11:43							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>This article is trying to demonstrate some basics of using multiple cores for various tasks &#8211; so take the lessons and expound on them. I do use SSDs, so your point makes sense &#8211; but depending on the types of computations you DO, it may be much more computationally expensive than a stupid little &#8216;wc&#8217; of course. </p>
+<p>Teach a man to fish here&#8230;.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=336#respond' onclick='return addComment.moveForm("div-comment-336", "336", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-344" class="comment even depth-2">
+			<article id="div-comment-344" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://1.gravatar.com/avatar/9ac4d60cc7b5a94a8205aa6e01b43374?s=74&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Cecília Nunes</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-344">
+							<time datetime="2013-11-01T04:56:00+00:00">
+								2013/11/01 at 04:56							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Thanks for the insight. Indeed my machine has HDD storage.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=344#respond' onclick='return addComment.moveForm("div-comment-344", "344", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-338" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-338" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://1.gravatar.com/avatar/1a119e166b419859ff46b09ec53aa95c?s=74&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Pol</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-338">
+							<time datetime="2013-10-31T13:58:21+00:00">
+								2013/10/31 at 13:58							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>The other thing you can do to show comparative performance is to insert &#8216;pv&#8217; into the piped commands.  (pipeviewer).  So you could change the first couple to:</p>
+<p>cat bigfile.bin | pv | bzip2 &#8211;best &gt; compressedfile.bz2</p>
+<p>and </p>
+<p>cat bigfile.bin | pv | parallel &#8211;pipe &#8211;recend &#8221; -k bzip2 &#8211;best &gt; compressedfile.bz2</p>
+<p>So you can see the speedup directly in the MiB/s. <img src="http://www.rankfocus.com/wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley" /> </p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=338#respond' onclick='return addComment.moveForm("div-comment-338", "338", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-341" class="pingback even thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://petewarden.com/2013/11/01/five-short-links-55/" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://petewarden.com']);"  rel='external nofollow' class='url'>Five short links &laquo; Pete Warden&#039;s blog</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-342" class="comment odd alt thread-even depth-1 parent">
+			<article id="div-comment-342" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/63d6c7653fdc7f78d813ef4b22a0ad86?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Chris Barts</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-342">
+							<time datetime="2013-10-31T22:54:10+00:00">
+								2013/10/31 at 22:54							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Why are you using cat all the time for single files? cat only makes sense to concatenate multiple files.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=342#respond' onclick='return addComment.moveForm("div-comment-342", "342", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-353" class="comment byuser comment-author-admin bypostauthor even depth-2">
+			<article id="div-comment-353" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/a9dbe20bae17a29323764bf520519d25?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn">Aris Vlasakakis</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-353">
+							<time datetime="2013-11-01T12:35:35+00:00">
+								2013/11/01 at 12:35							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Read up on how GNU Parallel takes input from stdin &#8211; piping in is an easy way to do it, otherwise you can append arguments via :::</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=353#respond' onclick='return addComment.moveForm("div-comment-353", "353", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-568" class="comment odd alt thread-odd thread-alt depth-1">
+			<article id="div-comment-568" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/21fd741b2807d9657c6c4d25a5a35301?s=74&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D74&amp;r=G' class='avatar avatar-74 photo' height='74' width='74' />						<b class="fn"><a href="http://java67.blogspot.co.uk" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://java67.blogspot.co.uk']);"  rel='external nofollow' class='url'>Guru</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-568">
+							<time datetime="2013-11-28T20:52:21+00:00">
+								2013/11/28 at 20:52							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Didn&#8217;t know that <a href="http://javarevisited.blogspot.in/2011/06/10-examples-of-grep-command-in-unix-and.html" onclick="javascript:_gaq.push(['_trackEvent','outbound-comment','http://javarevisited.blogspot.in']);" rel="nofollow">grep</a> is singly threaded command, indeed in today&#8217;s world, if you are not using gnu parallel then your are missing something.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/use-cpu-cores-linux-commands/?replytocom=568#respond' onclick='return addComment.moveForm("div-comment-568", "568", "respond", "16")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		</ol><!-- .comment-list -->
+
+		
+		
+	
+									<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/use-cpu-cores-linux-commands/#respond" style="display:none;">Cancel reply</a></small></h3>
+									<form action="http://www.rankfocus.com/wp-comments-post.php" method="post" id="commentform" class="comment-form" novalidate>
+																			<p class="comment-notes">Your email address will not be published. Required fields are marked <span class="required">*</span></p>							<p class="comment-form-author"><label for="author">Name <span class="required">*</span></label> <input id="author" name="author" type="text" value="" size="30" aria-required='true' /></p>
+<p class="comment-form-email"><label for="email">Email <span class="required">*</span></label> <input id="email" name="email" type="email" value="" size="30" aria-required='true' /></p>
+<p class="comment-form-url"><label for="url">Website</label> <input id="url" name="url" type="url" value="" size="30" /></p>
+												<p class="comment-form-comment"><label for="comment">Comment</label> <textarea id="comment" name="comment" cols="45" rows="8" aria-required="true"></textarea></p>						<p class="form-allowed-tags">You may use these <abbr title="HyperText Markup Language">HTML</abbr> tags and attributes:  <code>&lt;a href=&quot;&quot; title=&quot;&quot;&gt; &lt;abbr title=&quot;&quot;&gt; &lt;acronym title=&quot;&quot;&gt; &lt;b&gt; &lt;blockquote cite=&quot;&quot;&gt; &lt;cite&gt; &lt;code&gt; &lt;del datetime=&quot;&quot;&gt; &lt;em&gt; &lt;i&gt; &lt;q cite=&quot;&quot;&gt; &lt;strike&gt; &lt;strong&gt; </code></p>						<p class="form-submit">
+							<input name="submit" type="submit" id="submit" value="Post Comment" />
+							<input type='hidden' name='comment_post_ID' value='16' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+						</p>
+						<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="bffa164cc6" /></p><script type='text/javascript' src='http://www.rankfocus.com/wp-content/plugins/akismet/_inc/form.js?ver=3.0.0'></script>
+<p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="217"/></p>					</form>
+							</div><!-- #respond -->
+			        <script type="text/javascript">
+            jQuery(document).ready(function () {
+                jQuery('#commentform').submit(function () {
+                    _gaq.push(
+                            ['_setAccount', 'UA-9156361-1'],
+                            ['_trackEvent', 'comment', 'submit']
+                    );
+                });
+            });
+        </script>
+		
+</div><!-- #comments -->
+			
+		</div><!-- #content -->
+	</div><!-- #primary -->
+
+	<!--WP Code Highlight_start-->
+	<script type="text/javascript">
+		window.onload = function(){prettyPrint();};
+	</script>
+	<script type="text/javascript" src="http://www.rankfocus.com/wp-content/plugins/wp-code-highlight/js/wp-code-highlight.js"></script>
+	<!--WP Code Highlight_end-->
+
+		</div><!-- #main -->
+		<footer id="colophon" class="site-footer" role="contentinfo">
+				<div id="secondary" class="sidebar-container" role="complementary">
+		<div class="widget-area">
+			<aside id="search-2" class="widget widget_search"><form role="search" method="get" class="search-form" action="http://www.rankfocus.com/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search &hellip;" value="" name="s" title="Search for:" />
+				</label>
+				<input type="submit" class="search-submit" value="Search" />
+			</form></aside>		<aside id="recent-posts-2" class="widget widget_recent_entries">		<h3 class="widget-title">Recent Posts</h3>		<ul>
+					<li>
+				<a href="http://www.rankfocus.com/run-berkeley-sparks-pyspark-using-docker-couple-minutes/">Run Berkeley Spark&#8217;s PySpark using Docker in a couple minutes</a>
+						</li>
+					<li>
+				<a href="http://www.rankfocus.com/spark-summit-2013-san-francisco/">Spark Summit 2013 in San Francisco!</a>
+						</li>
+					<li>
+				<a href="http://www.rankfocus.com/automagically-compress-file-remotely-downloading-scprsync/">Automagically GZip a file remotely before downloading it with SCP!</a>
+						</li>
+					<li>
+				<a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/">Use multiple CPU Cores with your Linux commands &#8212; awk, sed, bzip2, grep, wc, etc.</a>
+						</li>
+					<li>
+				<a href="http://www.rankfocus.com/lustre-file-system-hangs-server-during-really-fast-io/">Lustre file system hangs server during really fast I/O?</a>
+						</li>
+				</ul>
+		</aside><aside id="recent-comments-2" class="widget widget_recent_comments"><h3 class="widget-title">Recent Comments</h3><ul id="recentcomments"><li class="recentcomments"><a href="http://vskulkarni.wordpress.com" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://vskulkarni.wordpress.com']);"  rel='external nofollow' class='url'>Vaibhav Kulkarni</a> on <a href="http://www.rankfocus.com/hello-world/#comment-1116">Using GNU Parallel to roll-your-own Map Reduce!</a></li><li class="recentcomments"><a href="http://java67.blogspot.co.uk" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://java67.blogspot.co.uk']);"  rel='external nofollow' class='url'>Guru</a> on <a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-568">Use multiple CPU Cores with your Linux commands &#8212; awk, sed, bzip2, grep, wc, etc.</a></li><li class="recentcomments">Aris Vlasakakis on <a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-353">Use multiple CPU Cores with your Linux commands &#8212; awk, sed, bzip2, grep, wc, etc.</a></li><li class="recentcomments">Cecília Nunes on <a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-344">Use multiple CPU Cores with your Linux commands &#8212; awk, sed, bzip2, grep, wc, etc.</a></li><li class="recentcomments">Chris Barts on <a href="http://www.rankfocus.com/use-cpu-cores-linux-commands/#comment-342">Use multiple CPU Cores with your Linux commands &#8212; awk, sed, bzip2, grep, wc, etc.</a></li></ul></aside><aside id="archives-2" class="widget widget_archive"><h3 class="widget-title">Archives</h3>		<ul>
+	<li><a href='http://www.rankfocus.com/2014/01/'>January 2014</a></li>
+	<li><a href='http://www.rankfocus.com/2013/12/'>December 2013</a></li>
+	<li><a href='http://www.rankfocus.com/2013/11/'>November 2013</a></li>
+	<li><a href='http://www.rankfocus.com/2013/10/'>October 2013</a></li>
+	<li><a href='http://www.rankfocus.com/2013/09/'>September 2013</a></li>
+	<li><a href='http://www.rankfocus.com/2013/08/'>August 2013</a></li>
+		</ul>
+</aside><aside id="categories-2" class="widget widget_categories"><h3 class="widget-title">Categories</h3>		<ul>
+	<li class="cat-item cat-item-2"><a href="http://www.rankfocus.com/category/linux/" title="View all posts filed under Linux">Linux</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="http://www.rankfocus.com/category/uncategorized/" title="View all posts filed under Uncategorized">Uncategorized</a>
+</li>
+		</ul>
+</aside><aside id="meta-2" class="widget widget_meta"><h3 class="widget-title">Meta</h3>			<ul>
+						<li><a rel="nofollow" href="http://www.rankfocus.com/wp-login.php">Log in</a></li>
+			<li><a href="http://www.rankfocus.com/feed/" title="Syndicate this site using RSS 2.0">Entries <abbr title="Really Simple Syndication">RSS</abbr></a></li>
+			<li><a href="http://www.rankfocus.com/comments/feed/" title="The latest comments to all posts in RSS">Comments <abbr title="Really Simple Syndication">RSS</abbr></a></li>
+<li><a href="https://wordpress.org/" title="Powered by WordPress, state-of-the-art semantic personal publishing platform.">WordPress.org</a></li>			</ul>
+</aside>		</div><!-- .widget-area -->
+	</div><!-- #secondary -->
+
+			<div class="site-info">
+								<a href="http://wordpress.org/" title="Semantic Personal Publishing Platform">Proudly powered by WordPress</a>
+			</div><!-- .site-info -->
+		</footer><!-- #colophon -->
+	</div><!-- #page -->
+
+	<script type='text/javascript' src='http://www.rankfocus.com/wp-includes/js/comment-reply.min.js?ver=3.9.1'></script>
+<script type='text/javascript' src='http://www.rankfocus.com/wp-includes/js/masonry.min.js?ver=3.1.2'></script>
+<script type='text/javascript' src='http://www.rankfocus.com/wp-includes/js/jquery/jquery.masonry.min.js?ver=3.1.2'></script>
+<script type='text/javascript' src='http://www.rankfocus.com/wp-content/themes/twentythirteen/js/functions.js?ver=2014-03-18'></script>
+</body>
+</html>

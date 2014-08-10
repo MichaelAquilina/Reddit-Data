@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><link rel="stylesheet" href="/static/all.css" <link rel="stylesheet" href="/static/pygments-manni.css" type="text/css" /><title>Be Pythonic</title></head>
+<body class="standard-agent"><div class="body"><div class="headerbox">
+         <div class="linksbox">
+         <a href="/article">articles</a> | <a href="/sign_in?return_to=/article/be_pythonic/">sign in</a> | <a href="/register">register</a>
+         </div>
+        <a class="toptext" href="/"><b>cafepy.com</b></a>
+        </div><div class="mainbody"><div class="article"><h1 class="article-title">Be Pythonic</h1><div class="article-info">Shalabh Chaturvedi, 06:59AM on 13 Mar, 2012</div><div class="article-content"><p>This article is intended for new users of Python.</p>
+<p>When going from one language to another, some things have to be <em>unlearned</em> (see <a href="http://education.calumet.purdue.edu/vockell/EdPsyBook/Edpsy6/edpsy6_transfer.htm">Transfer of Learning</a>). What you know from other languages may not be always useful in Python. This page contains some idioms used in Python that I particularly like, and I hope others find useful in their quest for Pythonicity.</p>
+<h1>You need counters rarely, and iterators only occasionally</h1>
+<p>Wrong:</p>
+<pre class="codehilite"><code class="language-python">i = 0
+while i&lt;10:
+     do_something(i)
+     i += 1</code></pre>
+
+
+<p>Pythonic:</p>
+<pre class="codehilite"><code class="language-python">for i in xrange(10):
+    do_something(i)</code></pre>
+
+
+<p>The following example indexes a list.</p>
+<p>Wrong:</p>
+<pre class="codehilite"><code class="language-python">i = 0
+while i&lt;len(lst):
+    do_something(lst[i])
+    i += 1</code></pre>
+
+
+<p>Pythonic:</p>
+<pre class="codehilite"><code class="language-python">for item in lst:
+    do_something(item)</code></pre>
+
+
+<p>An iterator variable is useful when you want to maintain looping state between two 'runs':</p>
+<pre class="codehilite"><code class="language-python">itr_lst = iter(lst)
+
+for item in itr_lst:
+    do_something(item)
+    if is_some_condition(item):
+        break
+
+for item in itr_lst:    # continues where previous loop left off
+    do_something_else(item)</code></pre>
+
+
+<h1>You may not need that <code>for</code> loop</h1>
+<p>Python provides many higher level facilities to operate on sequences, such as <code>zip()</code>, <code>max()</code>, <code>min()</code>, <a href="http://docs.python.org/tutorial/datastructures.html#list-comprehensions">list comprehensions</a>, <a href="http://docs.python.org/reference/expressions.html#generator-expressions">generator expressions</a> and so on. See <a href="http://docs.python.org/library/functions.html">Built-in Functions</a> for these functions and more. </p>
+<p>Keep data in tuples, lists and dictionaries, and operate on entire collections for that fuzzy Pythonic feeling.  For example, here is some code that reads a CSV file (with first row being the field names), converts each line into a dictionary record, and calculates the sum on the 'quantity' column:</p>
+<pre class="codehilite"><code class="language-python">f = open('filename.csv')                    # f is an iterator
+field_names = f.next().split(',')         # get the first item from the iterator using next()
+records = [dict(zip(field_names, line.split(',')))  for line in f]  # this will pull remaining lines
+print sum(int(record['quantity'])  for record in records)</code></pre>
+
+
+<p>Though a little naive (you should be using the <a href="http://docs.python.org/library/csv.html"><code>csv</code></a> module anyway, which is part of the <a href="">Python Standard Library</a>), this example demonstrates some useful features. Using <code>zip()</code> with <code>dict()</code> you can combine a tuple of field names with a tuple of values and make a dictionary - combine with list comprehensions you can do this to an entire list in one go.</p>
+<h1>Tuples are not read-only lists</h1>
+<p>Tuples usually indicate a <em>heterogenous</em> collection, for example <code>(first_name, last_name)</code> or <code>(ip_address, port)</code>. Note that the <em>type</em> may be same (as in <code>first_name</code> and <code>last_name</code> may both be strings), but the real world meaning is usually different. You can think of a tuple as a row in a relational database - in fact the database row is even called a tuple in formal descriptions of the relational model.  By contrast, a list of names is always a list, even though a particular function may not change it, that does not make it a tuple.</p>
+<p>Tuple unpacking is a useful technique to extract values from a tuple. For example:</p>
+<pre class="codehilite"><code class="language-python">for (ip_address, port) in all_connections:
+    if port&lt;2000:
+        print 'Connected to %s on %s' % (ip_address, port)</code></pre>
+
+
+<p>Reading this code tells you that <code>all_connections</code> is a list (or iterable) contaning tuples of the form <code>(ip_address, port)</code>. This is much clearer than using <code>for item in all_connections</code> and then poking inside <code>item</code> using <code>item[0]</code> or similar techniques.</p>
+<p>Unpacking is also useful while returning multiple values from a function:</p>
+<pre class="codehilite"><code class="language-python">name, ext = os.path.splitext(filename)    # split a file name into first part and extension</code></pre>
+
+
+<h1>Classes are not for grouping utility functions</h1>
+<p>C# and Java can have code only within classes, and end up with many <em>utility</em> classes containing only static methods. A common example is a math functions such as <code>sin()</code>. In Python you just use a module with the top level functions.</p>
+<h1>Say no to getter and setter methods</h1>
+<p>Yes, <em>encapsulation</em> is important. No, getters and setters are not the only way to implement encapsulation. In Python, you can use a <a href="http://docs.python.org/library/functions.html#property"><code>property</code></a> to replace a member variable and completely change the implementation mechanism, with <em>no change</em> to any calling code.</p>
+<h1>Functions are objects</h1>
+<p>A function is a object that happens to be callable. This example sorts a list of dictionaries based on the value of 'price' key in the dictionaries:</p>
+<pre class="codehilite"><code class="language-python">#  define a function that returns useful data from within an object
+def get_price(ob):
+    return ob['price']
+
+lst.sort(key=get_price)   # sort a list using the ['price'] value of objects in the list</code></pre>
+
+
+<p>In the above case, you can also avoid defining the simple <code>get_price()</code> function and instead just generate the function using <a href="http://docs.python.org/library/operator.html#operator.itemgetter"><code>operator.itemgetter('price')</code></a>.</p>
+<p>You can also use <code>sorted(lst, key=get_price)</code> to return a new list instead of modifying the list in-place.</p>
+<h1>Related Links</h1>
+<ul>
+<li><a href="http://dirtsimple.org/2004/12/python-is-not-java.html">Python is not Java</a></li>
+<li><a href="http://faassen.n--tree.net/blog/view/weblog/2005/08/06/0">What is Pythonic</a></li>
+</ul>
+<p>This article originally appeared at http://shalabh.infogami.com/Be_Pythonic2</p></div></div><div class="comments"><a class="label" name="comments"><h2>Comments</h2></a><div class="comment"><div class="comment-date">25 Oct, 2011</div><div class="comment-title">Anonymous*:</div><div class="comment-body"><p>The last example is not pythonic. It should be</p>
+<p>import operator
+L.sort(key = operator.itemgetter('price'))</p></div></div><div class="comment"><div class="comment-date">25 Oct, 2011</div><div class="comment-title">Anonymous*:</div><div class="comment-body"><p>The last example is not pythonic. It should be</p>
+<pre class="codehilite"><code>L.sort(key=lambda x: x['price'])</code></pre></div></div><div class="comment"><div class="comment-date">26 Oct, 2011</div><div class="comment-title">Anonymous*:</div><div class="comment-body"><p>@Anonymous (2)</p>
+<p>Actually, try this:</p>
+<p>from operator import itemgetter
+L.sort(key=itemgetter('price'))</p></div></div><div class="comment"><div class="comment-date">14 Nov, 2011</div><div class="comment-title">Shalabh Chaturvedi:</div><div class="comment-body"><p>Yes, <code>itemgetter()</code> can also be used in the last example to avoid defining the function. But the point I am making (specially for newcomers to Python not familiar with functions-as-objects) is that functions can be passed around easily. I don't want have too many concepts in one example to confuse the reader. </p>
+<p>The same applies to <code>labmda</code> (also - it is not considered Python by a large portion of Python developers :).</p></div></div><div class="form"><div class="form-title">Post Comment</div><div class="widget"><a href="/sign_in?return_to=/article/be_pythonic/">Sign In</a> or provide:</div>
+<form action="post_comment" method="post" class="qp">
+<div class="qpform">
+<input type="hidden" name="_form_id" value="f76cbb7885921b99" />
+
+<div id="name" class="StringWidget widget">
+<div class="title">Name<span class="required" title="This field is required.">*</span></div>
+<div class="content">
+<input type="text" name="name" value="Anonymous" size="40" />
+<div class="close"></div></div></div>
+
+<div id="email" class="StringWidget widget">
+<div class="title">Email<span class="required" title="This field is required.">*</span></div>
+<div class="content">
+<input type="text" name="email" size="40" />
+<div class="hint">Not disclosed</div>
+<div class="close"></div></div></div>
+
+<div id="recaptcha" class="RecaptchaWidget widget">
+<div class="title">Human Test<span class="required" title="This field is required.">*</span></div>
+<div class="content">
+<script>var RecaptchaOptions = {theme : 'clean'};</script><script type="text/javascript" src="http://www.google.com/recaptcha/api/challenge?k=6LePYQkAAAAAABVWjryRhDXluz8Q2PXluZlyJMIP"></script>
+
+<noscript>
+  <iframe src="http://www.google.com/recaptcha/api/noscript?k=6LePYQkAAAAAABVWjryRhDXluz8Q2PXluZlyJMIP" height="300" width="500" frameborder="0"></iframe><br />
+  <textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
+  <input type='hidden' name='recaptcha_response_field' value='manual_challenge' />
+</noscript>
+
+<div class="close"></div></div></div>
+
+<div id="comment" class="TextWidget widget">
+<div class="title">Comment<span class="required" title="This field is required.">*</span></div>
+<div class="content">
+<textarea rows="10" cols="60" name="comment"></textarea>
+<div class="hint"><a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown</a> formatting</div>
+<div class="close"></div></div></div>
+<div class="submit">
+
+<div id="preview" class="SubmitWidget widget">
+<div class="content">
+<input type="submit" name="preview" value="Preview" />
+<div class="close"></div></div></div>
+
+<div id="post" class="SubmitWidget widget">
+<div class="content">
+<input type="submit" name="post" value="Post" />
+<div class="close"></div></div></div>
+<div class="close"></div></div>
+
+<div class="close"></div></div></form>
+</div></div><div class="cb"></div></div><div class="cb"></div><div class="powered-by"><a href="https://www.mems-exchange.org/software/DurusWorks/">powered by durusworks</a></div><script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+        _uacct = "UA-1250519-1";
+        urchinTracker();
+        </script></body></html>

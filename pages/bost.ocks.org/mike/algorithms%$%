@@ -1,0 +1,3705 @@
+<!DOCTYPE html>
+<html class="ocks-org do-not-copy">
+<meta charset="utf-8">
+<title>Visualizing Algorithms</title>
+<style>
+
+@import url(../style.css?aea6f0a);
+
+.slide {
+  margin: 2em 0 2em 0;
+}
+
+.slide iframe {
+  background: #fff;
+  border: solid 1px #ddd;
+}
+
+.animation {
+  position: relative;
+  cursor: pointer;
+}
+
+.animation--playing button {
+  opacity: 0;
+}
+
+.animation button {
+  cursor: pointer;
+  position: absolute;
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: solid 1px #ccc;
+  color: #333;
+  background: #fff;
+  bottom: 20px;
+  left: 20px;
+}
+
+.animation:not(.animation--playing) button {
+  transition: opacity 250ms linear;
+  transition-delay: 2s;
+}
+
+.animation:hover button {
+  border-color: #000;
+  color: #000;
+  box-shadow: 0 2px 4px rgba(0,0,0,.2);
+}
+
+.animation button:focus {
+  outline: none;
+}
+
+.animation--playing button,
+.animation:active button {
+  box-shadow: inset 0 0 4px rgba(0,0,0,.2) !important;
+}
+
+</style>
+
+<header>
+  <aside>June 26, 2014</aside>
+  <a href="../" rel="author">Mike Bostock</a>
+</header>
+
+<h1>Visualizing Algorithms</h1>
+
+<blockquote>
+  <q>The power of the unaided mind is highly overrated… <!-- Without external aids, memory, thought, and reasoning are all constrained. But human intelligence is highly flexible and adaptive, superb at inventing procedures and objects that overcome its own limits. --> The real powers come from devising external aids that enhance cognitive abilities. <!-- How have we increased memory, thought, and reasoning? By the invention of external aids: It is things that make us smart. --></q>
+  —<a href="http://www.jnd.org/books/things-that-make-us-smart-defending-human-attributes-in-the-age-of-the-machine.html">Donald Norman</a>
+</blockquote>
+
+<p>Algorithms are a fascinating use case for visualization. To visualize an algorithm, we don’t merely fit data to a chart; there is no primary dataset. Instead there are logical rules that describe behavior. This may be why algorithm visualizations are so unusual, as designers experiment with novel forms to better communicate. This is reason enough to study them.
+
+<p>But algorithms are also a reminder that visualization is more than a tool for finding patterns in data. Visualization leverages the human visual system to <a href="http://www.dougengelbart.org/pubs/augment-3906.html">augment human intellect</a>: we can use it to better understand these important abstract processes, and perhaps other things, too.
+
+<aside style="margin-top:-7em;">This is an adaption of my talk at <a href="http://eyeofestival.com/">Eyeo 2014</a>. A video of the talk will be available soon. <!-- A <a href="https://vimeo.com/channels/544709/69448223">video of the talk</a> is available on Vimeo. --> (Thanks, Eyeo folks!)</aside>
+
+<script src="d3.min.js"></script>
+<script>
+
+function uniformRandomSampler(width, height, numSamplesMax) {
+  var numSamples = 0;
+  return function() {
+    if (++numSamples > numSamplesMax) return;
+    return [Math.random() * width, Math.random() * height];
+  };
+}
+
+function bestCandidateSampler(width, height, numCandidates, numSamplesMax) {
+  var numSamples = 0;
+
+  var quadtree = d3.geom.quadtree()
+      .extent([[0, 0], [width, height]])
+      ([[Math.random() * width, Math.random() * height]]);
+
+  return function() {
+    if (++numSamples > numSamplesMax) return;
+    var bestCandidate, bestDistance = 0;
+    for (var i = 0; i < numCandidates; ++i) {
+      var c = [Math.random() * width, Math.random() * height],
+          d = distance(quadtree.find(c[0], c[1]), c);
+      if (d > bestDistance) {
+        bestDistance = d;
+        bestCandidate = c;
+      }
+    }
+    quadtree.add(bestCandidate);
+    return bestCandidate;
+  };
+
+  function distance(a, b) {
+    var dx = a[0] - b[0],
+        dy = a[1] - b[1];
+    return dx * dx + dy * dy;
+  }
+}
+
+// Based on http://www.jasondavies.com/poisson-disc/
+function poissonDiscSampler(width, height, radius) {
+  var k = 30, // maximum number of samples before rejection
+      radius2 = radius * radius,
+      R = 3 * radius2,
+      cellSize = radius * Math.SQRT1_2,
+      gridWidth = Math.ceil(width / cellSize),
+      gridHeight = Math.ceil(height / cellSize),
+      grid = new Array(gridWidth * gridHeight),
+      queue = [],
+      queueSize = 0,
+      sampleSize = 0;
+
+  return function() {
+    if (!sampleSize) return sample(Math.random() * width, Math.random() * height);
+
+    // Pick a random existing sample and remove it from the queue.
+    while (queueSize) {
+      var i = Math.random() * queueSize | 0,
+          s = queue[i];
+
+      // Make a new candidate between [radius, 2 * radius] from the existing sample.
+      for (var j = 0; j < k; ++j) {
+        var a = 2 * Math.PI * Math.random(),
+            r = Math.sqrt(Math.random() * R + radius2),
+            x = s[0] + r * Math.cos(a),
+            y = s[1] + r * Math.sin(a);
+
+        // Reject candidates that are outside the allowed extent,
+        // or closer than 2 * radius to any existing sample.
+        if (0 <= x && x < width && 0 <= y && y < height && far(x, y)) return sample(x, y);
+      }
+
+      queue[i] = queue[--queueSize];
+      queue.length = queueSize;
+    }
+  };
+
+  function far(x, y) {
+    var i = x / cellSize | 0,
+        j = y / cellSize | 0,
+        i0 = Math.max(i - 2, 0),
+        j0 = Math.max(j - 2, 0),
+        i1 = Math.min(i + 3, gridWidth),
+        j1 = Math.min(j + 3, gridHeight);
+
+    for (j = j0; j < j1; ++j) {
+      var o = j * gridWidth;
+      for (i = i0; i < i1; ++i) {
+        if (s = grid[o + i]) {
+          var s,
+              dx = s[0] - x,
+              dy = s[1] - y;
+          if (dx * dx + dy * dy < radius2) return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  function sample(x, y) {
+    var s = [x, y];
+    queue.push(s);
+    grid[gridWidth * (y / cellSize | 0) + (x / cellSize | 0)] = s;
+    ++sampleSize;
+    ++queueSize;
+    return s;
+  }
+}
+
+function minHeap(compare) {
+  var heap = {},
+      array = [],
+      size = 0;
+
+  heap.empty = function() {
+    return !size;
+  };
+
+  heap.push = function(value) {
+    up(array[size] = value, size++);
+    return size;
+  };
+
+  heap.pop = function() {
+    if (size <= 0) return;
+    var removed = array[0], value;
+    if (--size > 0) value = array[size], down(array[0] = value, 0);
+    return removed;
+  };
+
+  function up(value, i) {
+    while (i > 0) {
+      var j = ((i + 1) >> 1) - 1,
+          parent = array[j];
+      if (compare(value, parent) >= 0) break;
+      array[i] = parent;
+      array[i = j] = value;
+    }
+  }
+
+  function down(value, i) {
+    while (true) {
+      var r = (i + 1) << 1,
+          l = r - 1,
+          j = i,
+          child = array[j];
+      if (l < size && compare(array[l], child) < 0) child = array[j = l];
+      if (r < size && compare(array[r], child) < 0) child = array[j = r];
+      if (j === i) break;
+      array[i] = child;
+      array[i = j] = value;
+    }
+  }
+
+  return heap;
+}
+
+// queue
+!function(){function n(n){function e(){for(;i=a<c.length&&n>p;){var u=a++,e=c[u],o=t.call(e,1);o.push(l(u)),++p,e[0].apply(null,o)}}function l(n){return function(u,t){--p,null==s&&(null!=u?(s=u,a=d=0/0,o()):(c[n]=t,--d?i||e():o()))}}function o(){null!=s?m(s):f?m(s,c):m.apply(null,[s].concat(c))}var r,i,f,c=[],a=0,p=0,d=0,s=null,m=u;return n||(n=1/0),r={defer:function(){return s||(c.push(arguments),++d,e()),r},await:function(n){return m=n,f=!1,d||o(),r},awaitAll:function(n){return m=n,f=!0,d||o(),r}}}function u(){}var t=[].slice;n.version="1.0.7","function"==typeof define&&define.amd?define(function(){return n}):"object"==typeof module&&module.exports?module.exports=n:this.queue=n}();
+
+// cubehelix
+!function(){function t(t){return function(e,i){e=d3.hsl(e),i=d3.hsl(i);var r=(e.h+120)*a,h=(i.h+120)*a-r,s=e.s,l=i.s-s,o=e.l,u=i.l-o;return isNaN(l)&&(l=0,s=isNaN(s)?i.s:s),isNaN(h)&&(h=0,r=isNaN(r)?i.h:r),function(a){var e=r+h*a,i=Math.pow(o+u*a,t),c=(s+l*a)*i*(1-i);return"#"+n(i+c*(-.14861*Math.cos(e)+1.78277*Math.sin(e)))+n(i+c*(-.29227*Math.cos(e)-.90649*Math.sin(e)))+n(i+c*1.97294*Math.cos(e))}}}function n(t){var n=(t=0>=t?0:t>=1?255:0|255*t).toString(16);return 16>t?"0"+n:n}var a=Math.PI/180;d3.scale.cubehelix=function(){return d3.scale.linear().range([d3.hsl(300,.5,0),d3.hsl(-240,.5,1)]).interpolate(d3.interpolateCubehelix)},d3.interpolateCubehelix=t(1),d3.interpolateCubehelix.gamma=t}();
+
+(function() {
+  var color = d3.scale.cubehelix()
+      .domain([0, 180, 360])
+      .range([
+        d3.hsl(-100, 0.75, 0.35),
+        d3.hsl(  80, 1.50, 0.80),
+        d3.hsl( 260, 0.75, 0.35)
+      ]);
+
+  floodColor = function(distance) {
+    return color(distance % 360);
+  };
+})();
+
+(function() {
+  var count = 0,
+      overshoot = 300;
+
+  function whenBoundsVisible(computeBounds, callback) {
+    var id = ".visible-" + ++count,
+        self = d3.select(window),
+        bounds;
+
+    if (document.readyState === "loading") self.on("load" + id, loaded);
+    else loaded();
+
+    function loaded() {
+      self
+          .on("resize" + id, resized)
+          .on("scroll" + id, scrolled)
+          .each(resized);
+    }
+
+    function resized() {
+      bounds = computeBounds();
+      if (bounds[1] < bounds[0]) bounds.reverse();
+      scrolled();
+    }
+
+    function scrolled() {
+      if (bounds[0] <= pageYOffset && pageYOffset <= bounds[1]) {
+        callback(null);
+        self.on(id, null);
+      }
+    }
+  }
+
+  beforeVisible = function(element, callback) {
+    return whenBoundsVisible(function() {
+      var rect = element.getBoundingClientRect();
+      return [
+        rect.top + pageYOffset - innerHeight - overshoot,
+        rect.bottom + pageYOffset + overshoot
+      ];
+    }, callback);
+  };
+
+  whenFullyVisible = function(element, callback) {
+    return whenBoundsVisible(function() {
+      var rect = element.getBoundingClientRect();
+      return [
+        rect.bottom + pageYOffset - innerHeight,
+        rect.top + pageYOffset
+      ];
+    }, callback);
+  };
+})();
+
+</script>
+
+<h2><a href="#sampling" name="sampling">#</a>Sampling</h2>
+
+<p>Before I can explain the first algorithm, I first need to explain the problem it addresses.
+
+<p style="height:360px;width:100%;overflow:hidden;"><img src="starry-night-detail.jpg" style="width:960px;">
+
+<aside>Van Gogh’s <i><a href="http://en.wikipedia.org/wiki/The_Starry_Night">The Starry Night</a></i></aside>
+
+<p>Light — electromagnetic radiation — the light emanating from this screen, traveling through the air, focused by your lens and projected onto the retina — is a continuous signal. To be perceived, we must reduce light to discrete impulses by measuring its intensity and frequency distribution at different points in space.
+
+<p>This reduction process is called <i>sampling</i>, and it is essential to vision. You can think of it as a painter applying discrete strokes of color to form an image (particularly in <a href="http://en.wikipedia.org/wiki/Pointillism">Pointillism</a> or <a href="http://en.wikipedia.org/wiki/Divisionism">Divisionism</a>). Sampling is further a core concern of computer graphics; for example, to rasterize a 3D scene by raytracing, we must determine where to shoot rays. Even resizing an image requires sampling.
+
+<p>Sampling is made difficult by competing goals. On the one hand, samples should be evenly distributed so there are no gaps. But we must also avoid repeating, regular patterns, which cause <a href="http://en.wikipedia.org/wiki/Aliasing">aliasing</a>. This is why you shouldn’t wear a finely-striped shirt on camera: the stripes resonate with the grid of pixels in the camera’s sensor and cause <a href="http://en.wikipedia.org/wiki/Moiré_pattern">Moiré patterns</a>.
+
+<p style="height:360px;width:100%;overflow:hidden;"><img src="retinal-cone-mosaic.jpg" style="width:960px;">
+
+<aside>Photo: <a href="http://www.retinalmicroscopy.com/mosaics.html">retinalmicroscopy.com</a><p>This micrograph is of the human retina’s periphery. The larger <i>cone</i> cells detect color, while the smaller <i>rod</i> cells improve low-light vision.</aside>
+
+<p>The human retina has a beautiful solution to sampling in its placement of photoreceptor cells. The cells cover the retina densely and evenly (with the exception of the <a href="http://en.wikipedia.org/wiki/Blind_spot_(vision)">blind spot</a> over the optic nerve), and yet the cells’ relative positions are irregular. This is called a Poisson-disc distribution because it maintains a minimum distance between cells, avoiding occlusion and thus wasted photoreceptors.
+
+<p>Unfortunately, creating a Poisson-disc distribution is hard. (More on that in a bit.) So here’s a simple approximation known as Mitchell’s best-candidate algorithm.
+
+<p class="animation" id="best-candidate-sampling"><script>(function() {
+
+var margin = 3,
+    width = 960 - margin - margin,
+    height = 360 - margin - margin;
+
+var numSamplesPerFrame = 10,
+    numSamples = 2000,
+    numCandidates = 10,
+    timerActive = 0;
+
+var p = d3.select("#best-candidate-sampling")
+    .on("click", click);
+
+var svg = p.append("svg")
+    .attr("width", width + margin + margin)
+    .attr("height", height + margin + margin)
+  .append("g")
+    .attr("transform", "translate(" + margin + "," + margin + ")");
+
+p.append("button")
+    .text("▶ Play");
+
+whenFullyVisible(p.node(), click);
+
+function click() {
+  var sample = bestCandidateSampler(width, height, numCandidates, numSamples),
+      timer = ++timerActive;
+
+  svg.selectAll("circle").remove();
+  p.classed("animation--playing", true);
+
+  d3.timer(function() {
+    if (timerActive !== timer) return true;
+    for (var i = 0; i < numSamplesPerFrame; ++i) {
+      var s = sample();
+      if (!s) return p.classed("animation--playing", false), true;
+
+      svg.append("circle")
+          .attr("cx", s[0])
+          .attr("cy", s[1])
+          .attr("r", 1e-6)
+        .transition()
+          .attr("r", 2);
+    }
+  });
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/981b42034400e48ac637">Best-candidate</a></aside>
+
+<p>You can see from these dots that best-candidate sampling produces a pleasing random distribution. It’s not without flaws: there are too many samples in some areas (oversampling), and not enough in other areas (undersampling). But it’s reasonably good, and just as important, easy to implement.
+
+<p>Here’s how it works:
+
+<style>
+
+#best-candidate-explainer svg {
+  border: solid 1px #ccc;
+}
+
+#best-candidate-explainer .candidate .point {
+  fill: #ccc;
+  transition: fill 250ms linear;
+}
+
+#best-candidate-explainer .candidate .search {
+  fill: none;
+  stroke: #ccc;
+  transition: stroke 250ms linear, stroke-width 250ms linear;
+}
+
+#best-candidate-explainer .candidate--best .point {
+  fill: #f00;
+}
+
+#best-candidate-explainer .candidate--best .search {
+  stroke: #f00;
+  stroke-width: 1.5px;
+}
+
+</style>
+<p class="animation" id="best-candidate-explainer"><script>(function() {
+
+var width = 960,
+    height = 500;
+
+var numCandidates = 10,
+    numSamplesMax = 1000;
+
+var p = d3.select("#best-candidate-explainer")
+    .on("click", click);
+
+var svg = p.append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var gCandidate = svg.append("g")
+    .attr("class", "candidate");
+
+var gPoint = svg.append("g")
+    .attr("class", "point");
+
+p.append("button")
+    .text("▶ Play");
+
+beforeVisible(p.node(), click);
+
+function click() {
+  var numSamples = 1;
+
+  var quadtree = d3.geom.quadtree()
+      .extent([[0, 0], [width, height]])
+      ([[Math.random() * width, Math.random() * height]]);
+
+  gCandidate.selectAll("*")
+      .interrupt()
+      .remove();
+
+  gPoint.selectAll("*")
+      .interrupt()
+      .remove();
+
+  gPoint.append("circle")
+      .attr("r", 3.5)
+      .attr("cx", quadtree.point[0])
+      .attr("cy", quadtree.point[1]);
+
+  p
+      .classed("animation--playing", true);
+
+  (function nextPoint() {
+    var i = 0,
+        maxDistance = -Infinity,
+        bestCandidate = null;
+
+    (function nextCandidate() {
+      if (++i > numCandidates) {
+        gCandidate.selectAll("*").transition()
+            .style("opacity", 0)
+            .remove();
+
+        gPoint.append("circle")
+            .attr("r", 3.5)
+            .attr("cx", bestCandidate.__data__[0])
+            .attr("cy", bestCandidate.__data__[1]);
+
+        quadtree.add(bestCandidate.__data__);
+
+        if (++numSamples < numSamplesMax) beforeVisible(p.node(), nextPoint);
+        else p.classed("animation--playing", false);
+
+        return;
+      }
+
+      var x = Math.random() * width,
+          y = Math.random() * height,
+          closest = quadtree.find(x, y),
+          dx = closest[0] - x,
+          dy = closest[1] - y,
+          distance = Math.sqrt(dx * dx + dy * dy);
+
+      var g = gCandidate.insert("g", "*")
+          .datum([x, y])
+          .attr("class", "candidate--current");
+
+      g.append("circle")
+          .attr("class", "search")
+          .attr("r", 3.5)
+          .attr("cx", x)
+          .attr("cy", y);
+
+      g.append("line")
+          .attr("class", "search")
+          .attr("x1", x)
+          .attr("y1", y)
+          .attr("x2", x)
+          .attr("y2", y);
+
+      g.append("circle")
+          .attr("class", "point")
+          .attr("r", 3.5)
+          .attr("cx", x)
+          .attr("cy", y);
+
+      var t = g.transition()
+          .duration(750)
+          .each("end", function() {
+            if (distance > maxDistance) {
+              d3.select(bestCandidate).attr("class", null);
+              d3.select(this.parentNode.appendChild(this)).attr("class", "candidate--best");
+              bestCandidate = this;
+              maxDistance = distance;
+            } else {
+              d3.select(this).attr("class", null);
+            }
+            nextCandidate();
+          });
+
+      t.select("circle.search")
+          .attr("r", distance);
+
+      t.select("line.search")
+          .attr("x2", closest[0])
+          .attr("y2", closest[1]);
+    })();
+  })();
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/d7bf3bd67d00ed79695b">Best-candidate</a></aside>
+
+<p>For each new sample, the best-candidate algorithm generates a fixed number of candidates, shown in gray. (Here, that number is 10.) Each candidate is chosen uniformly from the sampling area.
+
+<p>The <i>best candidate</i>, shown in red, is the one that is farthest away from all previous samples, shown in black. The distance from each candidate to the closest sample is shown by the associated line and circle: notice that there are no other samples inside the gray or red circles. After all candidates are created and distances measured, the best candidate becomes the new sample, and the remaining candidates are discarded.
+
+<p>Now here’s the code:
+
+<pre><code class="javascript">function sample() {
+  var bestCandidate, bestDistance = 0;
+  for (var i = 0; i < numCandidates; ++i) {
+    var c = [Math.random() * width, Math.random() * height],
+        d = distance(findClosest(samples, c), c);
+    if (d > bestDistance) {
+      bestDistance = d;
+      bestCandidate = c;
+    }
+  }
+  return bestCandidate;
+}</code></pre>
+
+<p>As I explained the algorithm above, I will let the code stand on its own. (And the purpose of this essay is to let you study code through visualization, besides.) But I will clarify a few details:
+
+<p>The external <code>numCandidates</code> defines the number of candidates to create per sample. This parameter lets you trade-off speed with quality. The lower the number of candidates, the faster it runs. Conversely, the higher the number of candidates, the better the sampling quality.
+
+<p>The <code>distance</code> function is simple geometry:
+
+<pre><code>function distance(a, b) {
+  var dx = a[0] - b[0],
+      dy = a[1] - b[1];
+  return Math.sqrt(dx * dx + dy * dy);
+}</code></pre>
+
+<aside style="margin-top:-6em;">You can omit the <code>sqrt</code> here, if you want, since it’s a monotonic function and doesn’t change the determination of the best candidate.</aside>
+
+<p>The <code>findClosest</code> function returns the closest sample to the current candidate. This can be done by brute force, iterating over every existing sample. Or you can accelerate the search, say by <a href="http://bl.ocks.org/mbostock/9078690">using a quadtree</a>. Brute force is simple to implement but very slow (quadratic time, in <a href="http://en.wikipedia.org/wiki/Big_O_notation">O-notation</a>). The accelerated approach is much faster, but more work to implement.
+
+<p>Speaking of trade-offs: when deciding whether to use an algorithm, we evaluate it not in a vacuum but against other approaches. And as a practical matter it is useful to weigh the complexity of implementation — how long it takes to implement, how difficult it is to maintain — against its performance and quality.
+
+<p>The simplest alternative is uniform random sampling:
+
+<pre><code class="javascript">function sample() {
+  return [random() * width, random() * height];
+}</code></pre>
+
+<p>It looks like this:
+
+<p class="animation" id="uniform-random-sampling"><script>(function() {
+
+var margin = 3,
+    width = 960 - margin - margin,
+    height = 360 - margin - margin;
+
+var numSamplesPerFrame = 10,
+    numSamples = 2000,
+    timerActive = 0;
+
+var p = d3.select("#uniform-random-sampling")
+    .on("click", click);
+
+var svg = p.append("svg")
+    .attr("width", width + margin + margin)
+    .attr("height", height + margin + margin)
+  .append("g")
+    .attr("transform", "translate(" + margin + "," + margin + ")");
+
+p.append("button")
+    .text("▶ Play");
+
+whenFullyVisible(p.node(), click);
+
+function click() {
+  var sample = uniformRandomSampler(width, height, numSamples),
+      timer = ++timerActive;
+
+  svg.selectAll("circle").remove();
+  p.classed("animation--playing", true);
+
+  d3.timer(function() {
+    if (timerActive !== timer) return true;
+    for (var i = 0; i < numSamplesPerFrame; ++i) {
+      var s = sample();
+      if (!s) return p.classed("animation--playing", false), true;
+
+      svg.append("circle")
+          .attr("cx", s[0])
+          .attr("cy", s[1])
+          .attr("r", 1e-6)
+        .transition()
+          .attr("r", 2);
+    }
+  });
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/fe3f75700e70416e37cd">Uniform random</a></aside>
+
+<p>Uniform random is pretty terrible. There is both severe under- and oversampling: many samples are densely-packed, even overlapping, leading to large empty areas. (Uniform random sampling also represents the lower bound of quality for the best-candidate algorithm, as when the number of candidates per sample is set to one.)
+
+<p>Dots patterns are one way of showing sample pattern quality, but not the only way. For example, we can attempt to simulate vision under different sampling strategies by coloring an image according to the color of the closest sample. This is, in effect, a <a href="http://en.wikipedia.org/wiki/Voronoi_diagram">Voronoi diagram</a> of the samples where each cell is colored by the associated sample.
+
+<p>What does <i>The Starry Night</i> look like through 6,667 uniform random samples?
+
+<p><img class="starry-night" src="uniform-random-starry-night.jpg" style="width:960px;height:360px;">
+
+<aside><a href="http://bl.ocks.org/mbostock/0c44b0dc4e79af5a0a6e">Uniform random</a><p>Hold down the mouse to compare to the original.</aside>
+
+<p>The lackluster quality of this approach is again apparent. The cells vary widely in size, as expected from the uneven sample distribution. Detail has been lost because densely-packed samples (small cells) are underutilized. Meanwhile, sparse samples (large cells) introduce noise by exaggerating rare colors, such as the pink star in the bottom-left.
+
+<p>Now observe best-candidate sampling:
+
+<p><img class="starry-night" src="best-candidate-starry-night.jpg" style="width:960px;height:360px;">
+
+<aside><a href="http://bl.ocks.org/mbostock/42b6096fe66e978a3b77">Best-candidate</a><p>Hold down the mouse to compare to the original.</aside>
+
+<p>Much better! Cells are more consistently sized, though still randomly placed. Despite the quantity of samples (6,667) remaining constant, there is substantially more detail and less noise thanks to their even distribution. If you squint, you can almost make out the original brush strokes.
+
+<p>We can use Voronoi diagrams to study sample distributions more directly by coloring each cell according to its area. Darker cells are larger, indicating sparse sampling; lighter cells are smaller, indicating dense sampling. The optimal pattern has nearly-uniform color while retaining irregular sample positions. (A <a href="http://bl.ocks.org/mbostock/3048450">histogram</a> showing cell area distribution would also be nice, but the Voronoi has the advantage that it shows sample position simultaneously.)
+
+<p>Here are the same 6,667 uniform random samples:
+
+<p><img src="uniform-random-voronoi.jpg" style="width:960px;height:360px;">
+
+<aside><a href="http://bl.ocks.org/mbostock/f5df08e573d5e4be4d7f">Uniform random</a></aside>
+
+<p>The black spots — large gaps between samples — would be localized deficiencies in vision due to undersampling. The same number of best-candidate samples exhibits much less variation in cell area, and thus more consistent coloration:
+
+<p><img src="best-candidate-voronoi.jpg" style="width:960px;height:360px;">
+
+<aside><a href="http://bl.ocks.org/mbostock/b17e0b2aa8b2d50de465">Best-candidate</a></aside>
+
+<p>Can we do better than best-candidate? Yes! Not only can we produce a <i>better</i> sample distribution with a different algorithm, but this algorithm is <i>faster</i> (linear time). It’s at least as easy to implement as best-candidate. And this algorithm even scales to arbitrary dimensions.
+
+<p>This wonder is called Bridson’s algorithm for Poisson-disc sampling, and it looks like this:
+
+<p class="animation" id="poisson-disc-sampling"><script>(function() {
+
+var margin = 3,
+    width = 960 - margin - margin,
+    height = 360 - margin - margin;
+
+var numSamplesPerFrame = 10,
+    sampleRadius = 10.29,
+    timerActive = 0;
+
+var p = d3.select("#poisson-disc-sampling")
+    .on("click", click);
+
+var svg = p.append("svg")
+    .attr("width", width + margin + margin)
+    .attr("height", height + margin + margin)
+  .append("g")
+    .attr("transform", "translate(" + margin + "," + margin + ")");
+
+p.append("button")
+    .text("▶ Play");
+
+whenFullyVisible(p.node(), click);
+
+function click() {
+  var sample = poissonDiscSampler(width, height, sampleRadius),
+      timer = ++timerActive;
+
+  svg.selectAll("circle").remove();
+  p.classed("animation--playing", true);
+
+  d3.timer(function() {
+    if (timerActive !== timer) return true;
+    for (var i = 0; i < numSamplesPerFrame; ++i) {
+      var s = sample();
+      if (!s) return p.classed("animation--playing", false), true;
+
+      svg.append("circle")
+          .attr("cx", s[0])
+          .attr("cy", s[1])
+          .attr("r", 1e-6)
+        .transition()
+          .attr("r", 2);
+    }
+  });
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/19168c663618b7f07158">Poisson-disc</a></aside>
+
+<p>This algorithm functions visibly differently than the other two: it builds incrementally from existing samples, rather than scattering new samples randomly throughout the sample area. This gives its progression a quasi-biological appearance, like cells dividing in a petri dish. Notice, too, that no samples are too close to each other; this is the minimum-distance constraint that defines a Poisson-disc distribution, enforced by the algorithm.
+
+<p>Here’s how it works:
+
+<style>
+
+#poisson-disc-explainer svg {
+  border: solid 1px #ccc;
+}
+
+#poisson-disc-explainer .grid {
+  stroke: #777;
+  stroke-opacity: .35;
+}
+
+#poisson-disc-explainer .exclusion {
+  fill: #ddd;
+}
+
+#poisson-disc-explainer .candidate-connection,
+#poisson-disc-explainer .candidate {
+  fill: #fff;
+  stroke: #000;
+}
+
+#poisson-disc-explainer .candidate-annulus {
+  fill: #000;
+  fill-opacity: .25;
+  stroke: #000;
+}
+
+#poisson-disc-explainer .sample {
+  fill: #000;
+}
+
+#poisson-disc-explainer .sample--active {
+  fill: #f00;
+  stroke: #f00;
+  stroke-width: 2px;
+}
+
+</style>
+<p class="animation" id="poisson-disc-explainer"><script>(function() {
+
+var width = 960,
+    height = 480;
+
+var duration = 500;
+
+var k = 30, // maximum number of samples before rejection
+    radius = width / Math.SQRT1_2 / 20, // 100,
+    radius2 = radius * radius,
+    R = 3 * radius2,
+    cellSize = radius * Math.SQRT1_2,
+    gridWidth = Math.ceil(width / cellSize),
+    gridHeight = Math.ceil(height / cellSize),
+    grid,
+    queue,
+    queueSize;
+
+var arcEmptyAnnulus = d3.svg.arc()
+    .innerRadius(radius)
+    .outerRadius(radius)
+    .startAngle(0)
+    .endAngle(2 * Math.PI)();
+
+var arcAnnulus = d3.svg.arc()
+    .innerRadius(radius)
+    .outerRadius(radius * 2)
+    .startAngle(0)
+    .endAngle(2 * Math.PI)();
+
+var p = d3.select("#poisson-disc-explainer")
+    .on("click", click);
+
+var svg = p.append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var gExclusion = svg.append("g")
+    .attr("class", "exclusion");
+
+svg.append("path")
+    .attr("class", "grid")
+    .attr("transform", "translate(.5,.5)")
+    .attr("d", d3.range(cellSize, width, cellSize)
+        .map(function(x) { return "M" + Math.round(x) + ",0V" + height; })
+        .join("")
+      + d3.range(cellSize, height, cellSize)
+        .map(function(y) { return "M0," + Math.round(y) + "H" + width; })
+        .join(""));
+
+var searchAnnulus = svg.append("path")
+    .attr("class", "candidate-annulus");
+
+var gConnection = svg.append("g")
+    .attr("class", "candidate-connection");
+
+var gSample = svg.append("g")
+    .attr("class", "sample");
+
+var gCandidate = svg.append("g")
+    .attr("class", "candidate");
+
+p.append("button")
+    .text("▶ Play");
+
+function far(x, y) {
+  var i = x / cellSize | 0,
+      j = y / cellSize | 0,
+      i0 = Math.max(i - 2, 0),
+      j0 = Math.max(j - 2, 0),
+      i1 = Math.min(i + 3, gridWidth),
+      j1 = Math.min(j + 3, gridHeight);
+
+  for (j = j0; j < j1; ++j) {
+    var o = j * gridWidth;
+    for (i = i0; i < i1; ++i) {
+      if (s = grid[o + i]) {
+        var s,
+            dx = s[0] - x,
+            dy = s[1] - y;
+        if (dx * dx + dy * dy < radius2) {
+          gConnection.append("line")
+              .attr("x1", x)
+              .attr("y1", y)
+              .attr("x2", x)
+              .attr("y2", y)
+            .transition()
+              .duration(duration / 4)
+              .attr("x2", s[0])
+              .attr("y2", s[1]);
+
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+function sample(x, y) {
+  var s = [x, y];
+
+  gExclusion.append("circle")
+      .attr("r", 1e-6)
+      .attr("cx", x)
+      .attr("cy", y)
+    .transition()
+      .duration(duration)
+      .attr("r", radius);
+
+  gSample.append("circle")
+      .datum(s)
+      .attr("class", "sample--active")
+      .attr("r", 1e-6)
+      .attr("cx", x)
+      .attr("cy", y)
+    .transition()
+      .duration(duration)
+      .attr("r", 3);
+
+  queue.push(s);
+  grid[gridWidth * (y / cellSize | 0) + (x / cellSize | 0)] = s;
+  ++queueSize;
+  return s;
+}
+
+beforeVisible(p.node(), click);
+
+function cancel(g) {
+  g
+      .interrupt()
+    .selectAll("*")
+      .interrupt()
+      .remove();
+}
+
+function click() {
+  grid = new Array(gridWidth * gridHeight);
+  queue = [];
+  queueSize = 0;
+
+  searchAnnulus.interrupt();
+
+  gExclusion.call(cancel);
+  gConnection.call(cancel);
+  gSample.call(cancel);
+  gCandidate.call(cancel);
+
+  p
+      .classed("animation--playing", true);
+
+  sample(Math.random() * width, Math.random() * height);
+
+  (function selectActive() {
+    var i = Math.random() * queueSize | 0,
+        s = queue[i],
+        j = 0;
+
+    gCandidate
+        .style("opacity", null);
+
+    gConnection
+        .style("opacity", null);
+
+    searchAnnulus
+        .style("opacity", null)
+        .style("stroke-opacity", 0)
+        .attr("transform", "translate(" + s + ")")
+        .attr("d", arcEmptyAnnulus)
+      .transition()
+        .duration(duration)
+        .attr("d", arcAnnulus)
+        .style("stroke-opacity", 1)
+        .each("end", generateCandidate);
+
+    var sampleActive = gSample.selectAll("circle")
+      .filter(function(d) { return d === s; });
+
+    function generateCandidate() {
+      if (++j > k) return rejectActive();
+
+      var a = 2 * Math.PI * Math.random(),
+          r = Math.sqrt(Math.random() * R + radius2),
+          x = s[0] + r * Math.cos(a),
+          y = s[1] + r * Math.sin(a);
+
+      // Reject candidates that are outside the allowed extent.
+      if (0 > x || x >= width || 0 > y || y >= height) return generateCandidate();
+
+      // If this is an acceptable candidate, create a new sample;
+      // otherwise, generate a new candidate.
+      gCandidate.append("circle")
+          .attr("r", 1e-6)
+          .attr("cx", x)
+          .attr("cy", y)
+        .transition()
+          .duration(duration / 4)
+          .attr("r", 3.75)
+          .each("end", far(x, y) ? acceptCandidate : generateCandidate);
+
+      function acceptCandidate() {
+        sample(x, y);
+        nextActive();
+      }
+    }
+
+    function rejectActive() {
+      queue[i] = queue[--queueSize];
+      queue.length = queueSize;
+
+      sampleActive
+          .classed("sample--active", false);
+
+      nextActive();
+    }
+
+    function nextActive() {
+      gCandidate.transition()
+          .duration(duration)
+          .style("opacity", 0)
+        .selectAll("circle")
+          .remove();
+
+      gConnection.transition()
+          .duration(duration)
+          .style("opacity", 0)
+        .selectAll("line")
+          .remove();
+
+      searchAnnulus.transition()
+          .duration(duration)
+          .style("opacity", 0)
+          .each("end", queueSize
+              ? function() { beforeVisible(p.node(), selectActive); }
+              : function() { p.classed("animation--playing", false); });
+    }
+  })();
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/dbb02448b0f93e4c82c3">Poisson-disc</a></aside>
+
+<p>Red dots represent “active” samples. At each iteration, one is selected randomly from the set of all active samples. Then, some number of candidate samples (shown as hollow black dots) are randomly generated within an annulus surrounding the selected sample. The annulus extends from radius <i>r</i> to <i>2r</i>, where <i>r</i> is the minimum-allowable distance between samples.
+
+<p>Candidate samples within distance <i>r</i> from an existing sample are rejected; this “exclusion zone” is shown in gray, along with a black line connecting the rejected candidate to the nearby existing sample. A grid accelerates the distance check for each candidate. The grid size <i>r</i>/√2 ensures each cell can contain at most one sample, and only a fixed number of neighboring cells need to be checked.
+
+<p>If a candidate is acceptable, it is added as a new sample, and a new active sample is randomly selected. If none of the candidates are acceptable, the selected active sample is marked as inactive (changing from red to black). When no samples remain active, the algorithm terminates.
+
+<p>The area-as-color Voronoi diagram shows Poisson-disc sampling’s improvement over best-candidate, with no dark-blue or light-yellow cells:
+
+<p><img src="poisson-disc-voronoi.jpg" style="width:960px;height:360px;">
+
+<aside><a href="http://bl.ocks.org/mbostock/b22c4c16a6ce605f3c56">Poisson-disc</a></aside>
+
+<p><i>The Starry Night</i> under Poisson-disc sampling retains the greatest amount of detail and the least noise. It is reminscent of a beautiful Roman mosaic:
+
+<p><img class="starry-night" src="poisson-disc-starry-night.jpg" style="width:960px;height:360px;">
+
+<aside><a href="http://bl.ocks.org/mbostock/22fd67be72552774736d">Poisson-disc</a><p>Hold down the mouse to compare to the original.</aside>
+
+<p>Now that you’ve seen a few examples, let’s briefly consider why to visualize algorithms.
+
+<p><i>Entertaining</i> - I find watching algorithms endlessly fascinating, even mesmerizing. Particularly so when randomness is involved. And while this may seem a weak justification, don’t underestimate the value of joy! Further, while these visualizations can be engaging even without understanding the underlying algorithm, grasping the importance of the algorithm can give a deeper appreciation.
+
+<p><i>Teaching</i> - Did you find the code or the animation more helpful? What about <a href="http://en.wikipedia.org/wiki/Pseudocode">pseudocode</a> — that euphemism for code that won’t compile? While formal description has its place in unambiguous documentation, visualization can make intuitive understanding more accessible.
+
+<p><i>Debugging</i> - Have you ever implemented an algorithm based on formal description? It can be hard! Being able to see what your code is doing can boost productivity. Visualization does not supplant the need for tests, but tests are useful primarily for detecting failure and not explaining it. Visualization can also discover unexpected behavior in your implementation, even when the output looks correct. (See Bret Victor’s <a href="http://worrydream.com/LearnableProgramming/">Learnable Programming</a> and <a href="http://www.youtube.com/watch?v=PUv66718DII">Inventing on Principle</a> for excellent related work.)
+
+<p><i>Learning</i> - Even if you just want to learn for yourself, visualization can be a great way to gain deep understanding. Teaching is one of the most effective ways of learning, and implementing a visualization is like teaching yourself. I find it easier to remember an algorithm intuitively, having seen it, than to memorize code where I am bound to forget small but essential details.
+
+<script>(function() {
+
+d3.selectAll(".starry-night")
+    .datum(function() { return this.src; })
+    .on("mousedown", function() { this.src = "starry-night-detail.jpg"; })
+    .on("mouseup", function(d) { this.src = d; })
+    .on("dragend", function(d) { this.src = d; });
+
+})()</script>
+
+<h2><a href="#shuffling" name="shuffling">#</a>Shuffling</h2>
+
+<p>Shuffling is the process of rearranging an array of elements randomly. For example, you might shuffle a deck of cards before dealing a poker game. A good shuffling algorithm is unbiased, where every ordering is equally likely.
+
+<p>The Fisher–Yates shuffle is an optimal shuffling algorithm. Not only is it unbiased, but it runs in linear time, uses constant space, and is easy to implement.
+
+<pre><code class="javascript">function shuffle(array) {
+  var n = array.length, t, i;
+  while (n) {
+    i = Math.random() * n-- | 0; // 0 ≤ i < n
+    t = array[n];
+    array[n] = array[i];
+    array[i] = t;
+  }
+  return array;
+}</code></pre>
+
+<p>Above is the code, and below is a visual explanation:
+
+<style>
+
+.shuffle .line {
+  stroke: #aaa;
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  transition: all 500ms linear;
+}
+
+.shuffle .line--active {
+  stroke: #f00;
+  stroke-width: 3px;
+}
+
+.shuffle .line--inactive {
+  stroke: #000;
+}
+
+</style>
+<p id="fisher-yates-shuffle" class="animation shuffle"><script>(function() {
+
+var n = 120,
+    array = d3.range(n).map(function(d, i) { return {value: d, index: i}; });
+
+var margin = {top: 60, right: 60, bottom: 60, left: 60},
+    width = 960 - margin.left - margin.right,
+    height = 180 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal()
+    .domain(d3.range(n))
+    .rangePoints([0, width]);
+
+var a = d3.scale.linear()
+    .domain([0, n - 1])
+    .range([-45, 45]);
+
+var p = d3.select("#fisher-yates-shuffle")
+    .on("click", click);
+
+var svg = p.append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var line = svg.append("g")
+  .selectAll("line")
+    .data(array)
+  .enter().append("line")
+    .attr("class", "line line--inactive")
+    .attr("transform", transform)
+    .attr("y2", -height);
+
+p.append("button")
+    .text("▶ Play");
+
+whenFullyVisible(p.node(), click);
+
+function click() {
+  var swaps = shuffle(array.slice()).reverse(),
+      swapped = array.slice();
+
+  p
+      .classed("animation--playing", true);
+
+  line
+      .each(function(d, i) { d.index = i; })
+      .attr("transform", transform)
+      .attr("class", "line")
+      .interrupt();
+
+  (function nextTransition() {
+    var swap = swaps.pop(),
+        i = swap[0],
+        j = swap[1],
+        t;
+
+    t = swapped[i];
+    swapped[i] = swapped[j];
+    swapped[j] = t;
+    swapped[i].index = i;
+    swapped[j].index = j;
+
+    d3.selectAll([line[0][swapped[j].value], line[0][swapped[i].value]])
+        .attr("class", "line line--active")
+        .each(function() { this.parentNode.appendChild(this); })
+      .transition()
+        .duration(750)
+        .attr("transform", transform)
+        .each("end", function(d, i) {
+          d3.select(this).attr("class", i || swap[0] === swap[1] ? "line line--inactive" : "line");
+          if (i || swap[0] === swap[1]) {
+            if (swaps.length) nextTransition();
+            else p.classed("animation--playing", false);
+          }
+        });
+  })();
+}
+
+function transform(d) {
+  return "translate(" + x(d.index) + "," + height + ")rotate(" + a(d.value) + ")";
+}
+
+function shuffle(array) {
+  var swaps = [],
+      m = array.length,
+      t,
+      i;
+
+  while (m) {
+    i = Math.floor(Math.random() * m--);
+    t = array[m];
+    array[m] = array[i];
+    array[i] = t;
+    swaps.push([m, i]);
+  }
+
+  return swaps;
+}
+
+})()</script>
+
+<aside>For a more detailed explanation of this algorithm, see my post on the <a href="http://bost.ocks.org/mike/shuffle/">Fisher–Yates shuffle</a>.</aside>
+
+<p>Each line represents a number. Small numbers lean left and large numbers lean right. (Note that you can shuffle an array of anything — not just numbers — but this visual encoding is useful for showing the order of elements. It is inspired by <a href="http://www.cs.princeton.edu/~rs/">Robert Sedgwick</a>’s sorting visualizations in <i>Algorithms in C</i>.)
+
+<p>The algorithm splits the array into two parts: the right side of the array (in black) is the shuffled section, while the left side of the array (in gray) contains elements remaining to be shuffled. At each step it picks a random element from the left and moves it to the right, thereby expanding the shuffled section by one. The original order on the left does not need to be preserved, so to make room for the new element in the shuffled section, the algorithm can simply swap the element into place. Eventually all elements are shuffled, and the algorithm terminates.
+
+<p>If Fisher–Yates is a good algorithm, what does a bad algorithm look like? Here’s one:
+
+<pre><code class="javascript">// DON’T DO THIS!
+function shuffle(array) {
+  return array.sort(function(a, b) {
+    return Math.random() - .5; // ಠ_ಠ
+  });
+}</code></pre>
+
+<p>This approach uses sorting to shuffle by specifying a random comparator function. A comparator defines the order of elements. It takes arguments <i>a</i> and <i>b</i> — two elements from the array to compare — and returns a value less than zero if <i>a</i> is less than <i>b</i>, a value greater than zero if <i>a</i> is greater than <i>b</i>, or zero if <i>a</i> and <i>b</i> are equal. The comparator is invoked repeatedly during sorting.
+
+<aside>If you don’t specify a comparator to array.sort, elements are ordered <a href="http://en.wikipedia.org/wiki/Lexicographical_order">lexicographically</a>.</aside>
+
+<p>Here the comparator returns a random number between -.5 and +.5. The assumption is that this defines a random order, so sorting will jumble the elements randomly and perform a good shuffle.
+
+<p>Unfortunately, this assumption is flawed. A random pairwise order (for any two elements) does not establish a random order for a set of elements. A comparator must obey <i>transitivity</i>: if <i>a</i> > <i>b</i> and <i>b</i> > <i>c</i>, then <i>a</i> > <i>c</i>. But the random comparator returns a random value, violating transitivity and causing the behavior of array.sort to be undefined! You might get lucky, or you might not.
+
+<p>How bad is it? We can try to answer this question by visualizing the output:
+
+<p id="random-comparator-shuffle" class="animation shuffle" style="-webkit-user-select:none;"><script>(function() {
+
+var n = 120;
+
+var margin = {top: 60, right: 60, bottom: 60, left: 60},
+    width = 960 - margin.left - margin.right,
+    height = 180 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal()
+    .domain(d3.range(n))
+    .rangePoints([0, width]);
+
+var a = d3.scale.linear()
+    .domain([0, n - 1])
+    .range([-45, 45]);
+
+var p = d3.select("#random-comparator-shuffle")
+    .on("click", click);
+
+var svg = p.append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var line = svg.append("g")
+  .selectAll("line")
+    .data(d3.range(n))
+  .enter().append("line")
+    .attr("class", "line line--inactive")
+    .attr("transform", transform)
+    .attr("y2", -height);
+
+p.append("button")
+    .text("▶ Play");
+
+beforeVisible(p.node(), click);
+
+function click() {
+  p
+      .classed("animation--playing", true);
+
+  line
+      .data(shuffle(d3.range(n)), function(d) { return d; })
+      .interrupt()
+    .transition()
+      .attr("transform", transform)
+      .each("end", function(d, i) { if (!i) p.classed("animation--playing", false); });
+}
+
+function transform(d, i) {
+  return "translate(" + x(i) + "," + height + ")rotate(" + a(d) + ")";
+}
+
+// DON’T DO THIS!
+function shuffle(array) {
+  return array.sort(function() {
+    return Math.random() - .5; // ಠ_ಠ
+  });
+}
+
+})()</script>
+
+<aside>Another reason this algorithm is bad is that sorting takes <i>O(n lg n)</i> time, making it significantly slower than Fisher–Yates which takes <i>O(n)</i>. But speed is less damning than bias.</aside>
+
+<p>This may look random, so you might be tempted to conclude that random comparator shuffle is adequate, and dismiss concerns of bias as pedantic. But looks can be misleading! There are many things that appear random to the human eye but are substantially non-random.
+
+<p>This deception demonstrates that visualization is not a magic wand. Showing a single run of the algorithm does not effectively assess the quality of its randomness. We must instead carefully design a visualization that addresses the specific question at hand: what is the algorithm’s bias?
+
+<p>To show bias, we must first define it. One definition is based on the probability that an array element at index <i>i</i> prior to shuffling will be at index <i>j</i> after shuffling. If the algorithm is unbiased, every element has equal probability of ending up at every index, and thus the probability for all <i>i</i> and <i>j</i> is the same: <i>1/n</i>, where <i>n</i> is the number of elements.
+
+<p>Computing these probabilities analytically is difficult, since it depends on knowing the exact sorting algorithm used. But computing them empirically is easy: we simply shuffle thousands of times and count the number of occurrences of element <i>i</i> at index <i>j</i>. An effective display for this matrix of probabilities is a matrix diagram:
+
+<style>
+
+.shuffle-bias text {
+  font: 10px sans-serif;
+  fill: #000;
+}
+
+.shuffle-bias .row text {
+  text-anchor: end;
+}
+
+.shuffle-bias .column text {
+  text-anchor: start;
+}
+
+</style>
+<p id="random-comparator-chrome-shuffle-bias" class="shuffle-bias"><script>(function() {
+
+var margin = {top: 20, right: 0, bottom: 0, left: 20},
+    width = 720,
+    height = 720;
+
+var n = 60,
+    m = 10000;
+
+var x = d3.scale.ordinal()
+    .domain(d3.range(n))
+    .rangeRoundBands([0, width]);
+
+var z = d3.scale.log()
+    .domain([m / n / 4, m / n, m / n * 4])
+    .interpolate(d3.interpolateCubehelix)
+    .range([d3.hsl(-40, 1, .2), d3.hsl(60, 1, .9), d3.hsl(160, 1, .2)])
+    .clamp(true);
+
+var p = d3.select("#random-comparator-chrome-shuffle-bias");
+
+var svg = p.append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .style("margin-left", -margin.left + "px")
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+queue(1)
+    .defer(beforeVisible, p.node())
+    .defer(d3.json, "random-comparator-chrome-shuffle-bias.json")
+    .await(ready);
+
+function ready(error, _, matrix) {
+  if (error) return console.error(error);
+
+  var row = svg.selectAll(".row")
+      .data(matrix)
+    .enter().append("g")
+      .attr("class", "row")
+      .attr("transform", function(d, i) { return "translate(0," + x(i) + ")"; });
+
+  row.selectAll(".cell")
+      .data(function(d) { return d; })
+    .enter().append("rect")
+      .style("shape-rendering", "crispEdges")
+      .attr("class", "cell")
+      .attr("x", function(d, i) { return x(i); })
+      .attr("width", x.rangeBand())
+      .attr("height", x.rangeBand())
+      .style("fill", z);
+
+  row.append("line")
+      .attr("x2", width);
+
+  row.append("text")
+      .attr("x", x(0) - 6)
+      .attr("y", x.rangeBand() / 2)
+      .attr("dy", ".32em")
+      .text(function(d, i) { return i; });
+
+  var column = svg.selectAll(".column")
+      .data(matrix)
+    .enter().append("g")
+      .attr("class", "column")
+      .attr("transform", function(d, i) { return "translate(" + x(i) + ",0)"; });
+
+  column.append("line")
+      .attr("x1", -width);
+
+  column.append("text")
+      .attr("x", 6 - x(0))
+      .attr("y", x.rangeBand() / 2)
+      .attr("dy", ".32em")
+      .attr("transform", "rotate(-90)")
+      .text(function(d, i) { return i; });
+}
+
+})()</script>
+
+<aside style="margin-top:-200px;">
+  <b>SHUFFLE BIAS</b>
+  <br><i>column</i> = index before shuffle
+  <br><i>row</i> = index after shuffle
+  <br><i>green</i> = positive bias
+  <br><i>red</i> = negative bias
+</aside>
+
+<p>The column (horizontal position) of the matrix represents the index of the element prior to shuffling, while the row (vertical position) represents the index of the element after shuffling. Color encodes probability: green cells indicate <i>positive bias</i>, where the element occurs more frequently than we would expect for an unbiased algorithm; likewise red cells indicate <i>negative bias</i>, where it occurs less frequently than expected.
+
+<p>Random comparator shuffle in Chrome, shown above, is surprisingly mediocre. Parts of the array are only weakly biased. However, it exhibits a strong positive bias below the diagonal, which indicates a tendency to push elements from index <i>i</i> to <i>i+1</i> or <i>i+2</i>. There is also strange behavior for the first, middle and last row, which might be a consequence of Chrome using median-of-three quicksort.
+
+<p>The unbiased Fisher–Yates algorithm looks like this:
+
+<p id="fisher-yates-shuffle-bias" class="shuffle-bias"><script>(function() {
+
+var margin = {top: 20, right: 0, bottom: 0, left: 20},
+    width = 720,
+    height = 720;
+
+var n = 60,
+    m = 10000;
+
+var x = d3.scale.ordinal()
+    .domain(d3.range(n))
+    .rangeRoundBands([0, width]);
+
+var z = d3.scale.log()
+    .domain([m / n / 4, m / n, m / n * 4])
+    .interpolate(d3.interpolateCubehelix)
+    .range([d3.hsl(-40, 1, .2), d3.hsl(60, 1, .9), d3.hsl(160, 1, .2)])
+    .clamp(true);
+
+var p = d3.select("#fisher-yates-shuffle-bias");
+
+var svg = p.append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .style("margin-left", -margin.left + "px")
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+beforeVisible(p.node(), function() {
+  var matrix = d3.range(n).map(function() {
+    return d3.range(n).map(function() {
+      return 0;
+    });
+  });
+
+  d3.range(m).forEach(function() {
+    var array = d3.range(n);
+    d3.shuffle(array);
+    array.forEach(function(i, j) {
+      ++matrix[i][j];
+    });
+  });
+
+  var row = svg.selectAll(".row")
+      .data(matrix)
+    .enter().append("g")
+      .attr("class", "row")
+      .attr("transform", function(d, i) { return "translate(0," + x(i) + ")"; });
+
+  row.selectAll(".cell")
+      .data(function(d) { return d; })
+    .enter().append("rect")
+      .style("shape-rendering", "crispEdges")
+      .attr("class", "cell")
+      .attr("x", function(d, i) { return x(i); })
+      .attr("width", x.rangeBand())
+      .attr("height", x.rangeBand())
+      .style("fill", z);
+
+  row.append("line")
+      .attr("x2", width);
+
+  row.append("text")
+      .attr("x", x(0) - 6)
+      .attr("y", x.rangeBand() / 2)
+      .attr("dy", ".32em")
+      .text(function(d, i) { return i; });
+
+  var column = svg.selectAll(".column")
+      .data(matrix)
+    .enter().append("g")
+      .attr("class", "column")
+      .attr("transform", function(d, i) { return "translate(" + x(i) + ",0)"; });
+
+  column.append("line")
+      .attr("x1", -width);
+
+  column.append("text")
+      .attr("x", 6 - x(0))
+      .attr("y", x.rangeBand() / 2)
+      .attr("dy", ".32em")
+      .attr("transform", "rotate(-90)")
+      .text(function(d, i) { return i; });
+});
+
+})()</script>
+
+<p>No patterns are visible in this matrix, other than a small amount of noise due to empirical measurement. (That noise could be reduced if desired by taking additional measurements.)
+
+<p>The behavior of random comparator shuffle is heavily dependent on your browser. Different browsers use different sorting algorithms, and different sorting algorithms behave very differently with (broken) random comparators. Here’s random comparator shuffle on Firefox:
+
+<p id="random-comparator-firefox-shuffle-bias" class="shuffle-bias"><script>(function() {
+
+var margin = {top: 20, right: 0, bottom: 0, left: 20},
+    width = 720,
+    height = 720;
+
+var n = 60,
+    m = 10000;
+
+var x = d3.scale.ordinal()
+    .domain(d3.range(n))
+    .rangeRoundBands([0, width]);
+
+var z = d3.scale.log()
+    .domain([m / n / 4, m / n, m / n * 4])
+    .interpolate(d3.interpolateCubehelix)
+    .range([d3.hsl(-40, 1, .2), d3.hsl(60, 1, .9), d3.hsl(160, 1, .2)])
+    .clamp(true);
+
+var p = d3.select("#random-comparator-firefox-shuffle-bias");
+
+var svg = p.append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .style("margin-left", -margin.left + "px")
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+queue(1)
+    .defer(beforeVisible, p.node())
+    .defer(d3.json, "random-comparator-firefox-shuffle-bias.json")
+    .await(ready);
+
+function ready(error, _, matrix) {
+  if (error) return console.error(error);
+
+  var row = svg.selectAll(".row")
+      .data(matrix)
+    .enter().append("g")
+      .attr("class", "row")
+      .attr("transform", function(d, i) { return "translate(0," + x(i) + ")"; });
+
+  row.selectAll(".cell")
+      .data(function(d) { return d; })
+    .enter().append("rect")
+      .style("shape-rendering", "crispEdges")
+      .attr("class", "cell")
+      .attr("x", function(d, i) { return x(i); })
+      .attr("width", x.rangeBand())
+      .attr("height", x.rangeBand())
+      .style("fill", z);
+
+  row.append("line")
+      .attr("x2", width);
+
+  row.append("text")
+      .attr("x", x(0) - 6)
+      .attr("y", x.rangeBand() / 2)
+      .attr("dy", ".32em")
+      .text(function(d, i) { return i; });
+
+  var column = svg.selectAll(".column")
+      .data(matrix)
+    .enter().append("g")
+      .attr("class", "column")
+      .attr("transform", function(d, i) { return "translate(" + x(i) + ",0)"; });
+
+  column.append("line")
+      .attr("x1", -width);
+
+  column.append("text")
+      .attr("x", 6 - x(0))
+      .attr("y", x.rangeBand() / 2)
+      .attr("dy", ".32em")
+      .attr("transform", "rotate(-90)")
+      .text(function(d, i) { return i; });
+}
+
+})()</script>
+
+<aside style="margin-top:-120px;">For an interactive version of these matrix diagrams to test alternative shuffling strategies, see <a href="http://bost.ocks.org/mike/shuffle/compare.html">Will It Shuffle?</a></aside>
+
+<p>This is egregiously biased! The resulting array is often barely shuffled, as shown by the strong green diagonal in this matrix. This does not mean that Chrome’s sort is somehow “better” than Firefox’s; it simply means you should never use random comparator shuffle. Random comparators are fundamentally broken.
+
+<h2><a href="#sorting" name="sorting">#</a>Sorting</h2>
+
+<p>Sorting is the inverse of shuffling: it creates order from disorder, rather than <i>vice versa</i>. This makes sorting a harder problem with diverse solutions designed for different trade-offs and constraints.
+
+<p>One of the most well-known sorting algorithms is quicksort.
+
+<p id="quicksort" class="animation shuffle"><script>(function() {
+
+var n = 120,
+    array = d3.shuffle(d3.range(n));
+
+var margin = {top: 60, right: 60, bottom: 60, left: 60},
+    width = 960 - margin.left - margin.right,
+    height = 180 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal()
+    .domain(d3.range(n))
+    .rangePoints([0, width]);
+
+var a = d3.scale.linear()
+    .domain([0, n - 1])
+    .range([-45, 45]);
+
+var p = d3.select("#quicksort")
+    .on("click", click);
+
+var svg = p.append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var gLine = svg.append("g")
+    .attr("class", "line");
+
+gLine.selectAll("line")
+    .data(array)
+  .enter().append("line")
+    .attr("class", "line--inactive")
+    .attr("transform", transform)
+    .attr("y2", -height);
+
+p.append("button")
+    .text("▶ Play");
+
+whenFullyVisible(p.node(), click);
+
+function click() {
+  var actions = quicksort(array.slice()).reverse();
+
+  var line = gLine.selectAll("line")
+      .attr("transform", transform)
+      .attr("class", "line--inactive")
+      .interrupt();
+
+  var transition = svg.transition()
+      .duration(150)
+      .each("start", function start() {
+        var action = actions.pop();
+        switch (action.type) {
+          case "swap": {
+            var i = action[0],
+                j = action[1],
+                li = line[0][i],
+                lj = line[0][j];
+            line[0][i] = lj;
+            line[0][j] = li;
+            transition.each(function() { line.transition().attr("transform", transform); });
+            break;
+          }
+          case "partition": {
+            line.attr("class", function(d, i) {
+              return i === action.pivot ? "line--active"
+                  : action.left <= i && i < action.right ? "line--inactive"
+                  : null;
+            });
+            break;
+          }
+        }
+        if (actions.length) transition = transition.transition().each("start", start);
+        else transition.each("end", function() { line.attr("class", "line--inactive"); });
+      });
+}
+
+function transform(d, i) {
+  return "translate(" + x(i) + "," + height + ")rotate(" + a(d) + ")";
+}
+
+function quicksort(array) {
+  var actions = [];
+
+  function partition(left, right, pivot) {
+    var v = array[pivot];
+    swap(pivot, --right);
+    for (var i = left; i < right; ++i) if (array[i] < v) swap(i, left++);
+    swap(left, right);
+    return left;
+  }
+
+  function swap(i, j) {
+    if (i === j) return;
+    var t = array[i];
+    array[i] = array[j];
+    array[j] = t;
+    actions.push({type: "swap", "0": i, "1": j});
+  }
+
+  function recurse(left, right) {
+    if (left < right - 1) {
+      var pivot = (left + right) >> 1;
+      actions.push({type: "partition", "left": left, "pivot": pivot, "right": right});
+      pivot = partition(left, right, pivot);
+      recurse(left, pivot);
+      recurse(pivot + 1, right);
+    }
+  }
+
+  recurse(0, array.length);
+  return actions;
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/e1e1e7e2c360bec054ba">Quicksort</a></aside>
+
+<p>Quicksort first partitions the array into two parts by picking a pivot. The left part contains all elements less than the pivot, while the right part contains all elements greater than the pivot. After the array is partitioned, quicksort recurses into the left and right parts. When a part contains only a single element, recursion stops.
+
+<p>The partition operation makes a single pass over the active part of the array. Similar to how the Fisher–Yates shuffle incrementally builds the shuffled section by swapping elements, the partition operation builds the lesser (left) and greater (right) parts of the subarray incrementally. As each element is visited, if it is less than the pivot it is swapped into the lesser part; if it is greater than the pivot the partition operation moves on to the next element.
+
+<p>Here’s the code:
+
+<pre><code class="javascript">function quicksort(array, left, right) {
+  if (left < right - 1) {
+    var pivot = left + right >> 1;
+    pivot = partition(array, left, right, pivot);
+    quicksort(array, left, pivot);
+    quicksort(array, pivot + 1, right);
+  }
+}
+
+function partition(array, left, right, pivot) {
+  var pivotValue = array[pivot];
+  swap(array, pivot, --right);
+  for (var i = left; i < right; ++i) {
+    if (array[i] < pivotValue) {
+      swap(array, i, left++);
+    }
+  }
+  swap(array, left, right);
+  return left;
+}</code></pre>
+
+<p>There are many variations of quicksort. The one shown above is one of the simplest — and slowest. This variation is useful for teaching, but in practice more elaborate implementations are used for better performance.
+
+<p>A common improvement is “median-of-three” pivot selection, where the median of the first, middle and last elements is used as the pivot. This tends to choose a pivot closer to the true median, resulting in similarly-sized left and right parts and shallower recursion. Another optimization is switching from quicksort to <a href="http://en.wikipedia.org/wiki/Insertion_sort">insertion sort</a> for small parts of the array, which can be faster due to the overhead of function calls.
+
+<aside>A particularly clever variation is Yaroslavskiy’s dual-pivot quicksort, which partitions the array into three parts rather than two. This is the default sorting algorithm in Java and Dart.</aside>
+
+<p>The sort and shuffle animations above have the nice property that time is mapped to time: we can simply watch how the algorithm proceeds. But while intuitive, animation can be frustrating to watch, especially if we want to focus on an occasional weirdness in the algorithm’s behavior. Animations also rely heavily on our memory to observe patterns in behavior. While animations are improved by controls to pause and scrub time, static displays that show everything at once can be even more effective. The eye scans faster than the hand.
+
+<p>A simple way of turning an animation into a static display is to pick key frames from the animation and display those sequentially, like a comic strip. If we then remove redundant information across key frames, we use space more efficiently. A denser display may require more study to understand, but is faster to scan since the eye travels less.
+
+<p>Below, each row shows the state of the array prior to recursion. The first row is the initial state of the array, the second row is the array after the first partition operation, the third row is after the first partition’s left and right parts are again partitioned, <i>etc.</i> In effect, this is breadth-first quicksort, where the partition operation on both left and right proceeds in parallel.
+
+<style>
+
+.sort-static svg {
+  float: left;
+  margin-bottom: -10px;
+}
+
+.sort-static svg:last-of-type {
+  margin-bottom: 10px;
+}
+
+.sort-static:after {
+  content: "";
+  clear: left;
+  display: block;
+}
+
+</style>
+<p id="quicksort-static" class="sort-static shuffle"><script>(function() {
+
+var n = 120,
+    array = [7,39,3,77,57,118,27,8,85,14,18,51,71,97,73,116,10,105,94,56,112,6,101,54,42,103,78,98,26,90,19,31,80,81,5,92,79,66,64,49,0,52,63,37,69,34,104,33,44,93,21,15,55,88,38,1,59,23,32,11,4,60,53,45,36,61,17,107,43,62,29,76,25,13,41,91,119,28,22,40,117,30,47,74,86,75,100,9,20,83,96,84,115,70,95,72,110,46,58,48,24,12,109,87,65,114,99,102,106,108,2,82,113,111,67,35,50,68,16,89], // d3.shuffle(d3.range(n)),
+    levels = quicksort(array.slice());
+
+var margin = {top: 10, right: 30, bottom: 10, left: 30},
+    width = 960 - margin.left - margin.right,
+    height = 60 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal()
+    .domain(d3.range(n))
+    .rangePoints([0, width]);
+
+var a = d3.scale.linear()
+    .domain([0, n - 1])
+    .range([-45, 45]);
+
+var p = d3.select("#quicksort-static");
+
+var svg = p.selectAll("svg")
+    .data(levels)
+  .enter().append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+beforeVisible(p.node(), function() {
+  svg.append("g")
+      .attr("class", "line")
+    .selectAll("line")
+      .data(function(d) { return d; })
+    .enter().append("line")
+      .attr("transform", function(d, i) { return "translate(" + x(i) + "," + height + ")rotate(" + a(d == null ? i : d) + ")"; })
+      .attr("class", function(d, i) { return d == null ? null : i in this.parentNode.__data__.pivots ? "line--active" : "line--inactive"; })
+      .attr("y2", -height);
+});
+
+function quicksort(array) {
+  var levels = [];
+
+  function partition(left, right, pivot) {
+    var v = array[pivot];
+    swap(pivot, --right);
+    for (var i = left; i < right; ++i) if (array[i] <= v) swap(i, left++);
+    swap(left, right);
+    return left;
+  }
+
+  function swap(i, j) {
+    var t = array[i];
+    array[i] = array[j];
+    array[j] = t;
+  }
+
+  function recurse(left, right, depth) {
+    var pivot = (left + right) >> 1;
+
+    if (!levels[depth]) levels[depth] = new Array(array.length), levels[depth].pivots = {};
+    for (var i = left; i < right; ++i) levels[depth][i] = array[i];
+    levels[depth].pivots[pivot] = 1;
+
+    pivot = partition(left, right, pivot);
+    if (left < pivot - 1) recurse(left, pivot, depth + 1);
+    if (pivot + 1 < right - 1) recurse(pivot + 1, right, depth + 1);
+  }
+
+  if (array.length > 1) recurse(0, array.length, 0);
+  return levels;
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/eb3bf12a9d02d78480c2">Quicksort</a></aside>
+
+<p>As before, the pivots for each partition operation are highlighted in red. Notice that the pivots turn gray at the next level of recursion: after the partition operation completes, the associated pivot is in its final, sorted position. The total depth of the display — the maximum depth of recursion — gives a sense of how efficiently quicksort performed. It depends heavily on input and pivot choice.
+
+<p>Another static display of quicksort, less dense but perhaps easier to read, represents each element as a colored thread and shows each sequential swap. (This form is inspired by <a href="http://corte.si/posts/code/visualisingsorting/">Aldo Cortesi</a>’s sorting visualizations.) Smaller values are lighter, and larger values are darker.
+
+<style>
+
+#quicksort-quilt .line {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 6px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#quicksort-quilt .line-halo {
+  stroke-linecap: butt;
+  stroke-width: 8px;
+}
+
+</style>
+<p id="quicksort-quilt"><script>(function() {
+
+var n = 90,
+    array = [10,89,72,53,61,31,27,11,21,77,65,84,82,63,49,76,67,28,26,57,85,75,45,51,36,44,20,81,7,13,41,9,3,71,74,64,86,23,39,4,79,78,8,59,29,55,19,16,60,32,87,37,30,12,42,83,50,35,69,5,15,22,56,25,6,34,38,58,33,68,24,17,80,48,70,46,0,40,1,43,54,52,14,66,47,62,2,18,73,88], // d3.shuffle(d3.range(n))
+    swaps = quicksort(array.slice()),
+    elements = array.map(function(v, i) { return {value: v, indexes: [{time: 0, index: i}]}; });
+
+var color = d3.scale.cubehelix()
+    .domain([0, n - 1])
+    .range([d3.hsl(140, .5, .90), d3.hsl(240, .8, .35)]);
+
+swaps.forEach(function(s, t) {
+  var i = s[0], j = s[1];
+  elements[i].indexes.push({time: t + 1, index: j});
+  elements[j].indexes.push({time: t + 1, index: i});
+  t = elements[i], elements[i] = elements[j], elements[j] = t;
+});
+
+elements.forEach(function(e) {
+  e.indexes.push({time: swaps.length + 1, index: e.indexes[e.indexes.length - 1].index});
+});
+
+var margin = {top: 5, right: 5, bottom: 5, left: 5},
+    rowHeight = 20,
+    strokeWidth = 6,
+    width = 720,
+    height = (swaps.length + .5) * rowHeight;
+
+var x = d3.scale.ordinal()
+    .domain(d3.range(n))
+    .rangePoints([0, width]);
+
+var lineStraight = d3.svg.line()
+    .interpolate(interpolateLineStraight)
+    .x(function(d) { return x(d.index); })
+    .y(function(d) { return rowHeight * d.time; });
+
+var lineSwap = d3.svg.line()
+    .interpolate(interpolateLineSwap)
+    .x(function(d) { return x(d.index); })
+    .y(function(d) { return rowHeight * d.time; });
+
+var p = d3.select("#quicksort-quilt");
+
+var svg = p.append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+beforeVisible(p.node(), function() {
+  svg.append("g")
+      .attr("class", "line line--straight")
+    .selectAll("path")
+      .data(elements)
+    .enter().append("path")
+      .style("stroke", function(d) { return color(d.value); })
+      .attr("d", function(d) { return lineStraight(d.indexes); });
+
+  svg.append("g")
+      .attr("class", "line line--swap")
+    .selectAll("path")
+      .data(d3.merge(elements
+        .map(function(e) {
+          var swaps = d3.pairs(e.indexes).slice(0, -1);
+          swaps.forEach(function(s) { s.value = e.value; });
+          return swaps;
+        })))
+    .enter().append("path")
+      .style("stroke", function(d) { return color(d.value); })
+      .attr("d", function(d) { return lineSwap(d); })
+    .select(function() { return this.parentNode.insertBefore(this.cloneNode(false), this); })
+      .attr("class", "line-halo")
+      .style("stroke", null)
+      .style("stroke-dasharray", function() {
+        var l = this.getTotalLength();
+        return "0," + strokeWidth / 2 + "," + (l - strokeWidth) + "," + strokeWidth / 2;
+      });
+});
+
+
+function interpolateLineStraight(points) {
+  var p0 = points[0],
+      x0 = p0[0],
+      y0 = p0[1],
+      path = [p0];
+  for (var i = 1, n = points.length, p1, x1, y1; i < n; ++i) {
+    p1 = points[i];
+    x1 = p1[0];
+    y1 = p1[1];
+    path.push("V", y1 - rowHeight / 2, "M", p1);
+    x0 = x1;
+    y0 = y1;
+  }
+  return path.join("");
+}
+
+function interpolateLineSwap(points) {
+  var p0 = points[0],
+      x0 = p0[0],
+      y0 = p0[1],
+      path = [p0];
+  for (var i = 1, n = points.length, p1, x1, y1; i < n; ++i) {
+    p1 = points[i];
+    x1 = p1[0];
+    y1 = p1[1];
+    path.push("M", x0, ",", y1 - rowHeight / 2, "L", p1);
+    x0 = x1;
+    y0 = y1;
+  }
+  return path.join("");
+}
+
+function quicksort(array) {
+  var swaps = [];
+
+  function partition(left, right, pivot) {
+    var v = array[pivot];
+    swap(pivot, --right);
+    for (var i = left; i < right; ++i) if (array[i] <= v) swap(i, left++);
+    swap(left, right);
+    return left;
+  }
+
+  function swap(i, j) {
+    if (i === j) return;
+    var t = array[i];
+    array[i] = array[j];
+    array[j] = t;
+    swaps.push([i, j]);
+  }
+
+  function recurse(left, right) {
+    if (left < right - 1) {
+      var pivot = partition(left, right, (left + right) >> 1);
+      recurse(left, pivot);
+      recurse(pivot + 1, right);
+    }
+  }
+
+  recurse(0, array.length);
+  return swaps;
+}
+
+})()</script>
+
+<aside style="margin-top:-5050px;">At the start of each partition, the pivot is moved to the end (the right) of the active subarray.<p>Partitioning then proceeds from left to right. At each step, a new element is added either of the set of <i>lesser</i> values (in which case a swap occurs) or to the set of <i>greater</i> values (in which case no swap occurs).<p>When a swap occurs, the left-most value greater than the pivot is moved to the right, so as to make room on the left for the new lesser value. Thus, notice that in all swap operations, only values <i>darker</i> than the pivot move right, and only values <i>lighter</i> than the pivot move left.</aside>
+
+<aside style="margin-top:-4100px;">When the partition operation has visited all elements in the array, the pivot is placed in its final position between the two parts. Then, the algorithm recurses into the left part, followed by the right part (far below).</aside>
+
+<aside style="margin-top:-1200px;">This visualization doesn’t show the state of the stack, so it can appear to jump around arbitrarily due to the nature of recursion. Still, you can typically see when a partition operation finishes due to the characteristic movement of the pivot to the end of the active subarray.</aside>
+
+<aside style="margin-top:-60px;"><a href="http://bl.ocks.org/mbostock/6dcc9a177065881b1bc4">Quicksort</a></aside>
+
+<p>You’ve now seen three different visual representations of the same algorithm: an animation, a dense static display, and a sparse static display. Each form has strengths and weaknesses. Animations are fun to watch, but static visualizations allow close inspection without being rushed. Sparse displays may likely easier to understand, but dense displays show the “macro” view of the algorithm’s behavior in addition to its details.
+
+<p>Before we move on, let’s contrast quicksort with another well-known sorting algorithm: mergesort.
+
+<pre><code class="javascript">function mergesort(array) {
+  var n = array.length, a0 = array, a1 = new Array(n);
+  for (var m = 1; m < n; m <<= 1) {
+    for (var i = 0; i < n; i += m << 1) {
+      var left = i,
+          right = Math.min(i + m, n),
+          end = Math.min(i + (m << 1), n);
+      merge(a0, a1, left, right, end);
+    }
+    array = a0, a0 = a1, a1 = array;
+  }
+}
+
+function merge(a0, a1, left, right, end) {
+  for (var i0 = left, i1 = right; left < end; ++left) {
+    if (i0 < right && (i1 >= end || a0[i0] <= a0[i1])) {
+      a1[left] = a0[i0++];
+    } else {
+      a1[left] = a0[i1++];
+    }
+  }
+}</code></pre>
+
+<p>Again, above is the code and below is an animation:
+
+<p id="mergesort" class="animation shuffle"><script>(function() {
+
+var n = 120,
+    array = d3.shuffle(d3.range(n));
+
+var margin = {top: 60, right: 60, bottom: 60, left: 60},
+    width = 960 - margin.left - margin.right,
+    height = 180 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal()
+    .domain(d3.range(n))
+    .rangePoints([0, width]);
+
+var a = d3.scale.linear()
+    .domain([0, n - 1])
+    .range([-45, 45]);
+
+var p = d3.select("#mergesort")
+    .on("click", click);
+
+var svg = p.append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height * 2 + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + (margin.top + height) + ")");
+
+var gLine = svg.append("g")
+    .attr("class", "line");
+
+gLine.selectAll("line")
+    .data(array.map(function(v, i) {
+      return {
+        value: v,
+        index: i,
+        array: 0
+      };
+    }))
+  .enter().append("line")
+    .attr("class", "line--inactive")
+    .attr("transform", transform)
+    .attr("y2", -height);
+
+p.append("button")
+    .text("▶ Play");
+
+whenFullyVisible(p.node(), click);
+
+function click() {
+  var line = gLine.selectAll("line")
+      .each(function(d, i) { d.array = 0; d.index = i; })
+      .attr("class", "line--inactive")
+      .attr("transform", transform)
+      .interrupt();
+
+  var line0 = line[0],
+      line1 = new Array(n);
+
+  var actions = mergesort(array.slice()).reverse();
+
+  (function nextTransition() {
+    var action = actions.pop();
+    switch (action.type) {
+      case "copy": {
+        var i = action[0],
+            j = action[1],
+            e = line1[j] = line0[i],
+            d = e.__data__;
+        d.index = j;
+        d.array = (d.array + 1) & 1;
+        d3.select(e).transition()
+            .duration(75)
+            .attr("transform", transform)
+            .each("end", actions.length ? nextTransition : null);
+        break;
+      }
+      case "swap": {
+        var t = line0;
+        line0 = line1;
+        line1 = t;
+        if (actions.length) nextTransition();
+        break;
+      }
+    }
+  })();
+}
+
+function transform(d) {
+  return "translate(" + x(d.index) + "," + ((1 - d.array * 1.5) * height) + ")rotate(" + a(d.value) + ")";
+}
+
+function mergesort(array) {
+  var actions = [],
+      n = array.length,
+      array0 = array,
+      array1 = new Array(n);
+
+  for (var m = 1; m < n; m <<= 1) {
+    for (var i = 0; i < n; i += (m << 1)) {
+      merge(i, Math.min(i + m, n), Math.min(i + (m << 1), n));
+    }
+    actions.push({type: "swap"});
+    array = array0, array0 = array1, array1 = array;
+  }
+
+  function merge(left, right, end) {
+    for (var i0 = left, i1 = right, j = left; j < end; ++j) {
+      if (i0 < right && (i1 >= end || array0[i0] <= array0[i1])) {
+        array1[j] = array0[i0];
+        actions.push({type: "copy", "0": i0++, "1": j});
+      } else {
+        array1[j] = array0[i1];
+        actions.push({type: "copy", "0": i1++, "1": j});
+      }
+    }
+  }
+
+  return actions;
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/39566aca95eb03ddd526">Mergesort</a></aside>
+
+<p>As you’ve likely surmised from either the code or the animation, mergesort takes a very different approach to sorting than quicksort. Unlike quicksort, which operates in-place by performing swaps, mergesort requires an extra copy of the array. This extra space is used to merge sorted subarrays, combining the elements from pairs of subarrays while preserving order. Since mergesort performs copies instead of swaps, we must modify the animation accordingly (or risk misleading readers).
+
+<p>Mergesort works from the bottom-up. Initially, it merges subarrays of size one, since these are trivially sorted. Each adjacent subarray — at first, just a pair of elements — is merged into a sorted subarray of size two using the extra array. Then, each adjacent sorted subarray of size two is merged into a sorted subarray of size four. After each pass over the whole array, mergesort doubles the size of the sorted subarrays: eight, sixteen, and so on. Eventually, this doubling merges the entire array and the algorithm terminates.
+
+<p>Because mergesort performs repeated passes over the array rather than recursing like quicksort, and because each pass doubles the size of sorted subarrays regardless of input, it is easier to design a static display. We simply show the state of the array after each pass.
+
+<p id="mergesort-static" class="sort-static shuffle"><script>(function() {
+
+var n = 120,
+    array = d3.shuffle(d3.range(n)),
+    arrays = mergesort(array.slice());
+
+var margin = {top: 10, right: 30, bottom: 10, left: 30},
+    width = 960 - margin.left - margin.right,
+    height = 60 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal()
+    .domain(d3.range(n))
+    .rangePoints([0, width]);
+
+var a = d3.scale.linear()
+    .domain([0, n - 1])
+    .range([-45, 45]);
+
+var p = d3.select("#mergesort-static");
+
+var svg = p.selectAll("svg")
+    .data(arrays)
+  .enter().append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+beforeVisible(p.node(), function() {
+  svg.append("g")
+      .attr("class", "line")
+    .selectAll("line")
+      .data(function(d) { return d; })
+    .enter().append("line")
+      .attr("class", "line--inactive")
+      .attr("transform", function(d, i) { return "translate(" + x(i) + "," + height + ")rotate(" + a(d) + ")"; })
+      .attr("y2", -height);
+});
+
+function mergesort(array) {
+  var arrays = [array.slice()],
+      n = array.length,
+      array0 = array,
+      array1 = new Array(n);
+
+  for (var m = 1; m < n; m <<= 1) {
+    for (var i = 0; i < n; i += (m << 1)) {
+      merge(i, Math.min(i + m, n), Math.min(i + (m << 1), n));
+    }
+    arrays.push(array1.slice());
+    array = array0, array0 = array1, array1 = array;
+  }
+
+  function merge(left, right, end) {
+    for (var i0 = left, i1 = right, j = left; j < end; ++j) {
+      array1[j] = array0[i0 < right && (i1 >= end || array0[i0] <= array0[i1]) ? i0++ : i1++];
+    }
+  }
+
+  return arrays;
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/1b5450d525babd28425f">Mergesort</a></aside>
+
+<p>Let’s again take a moment to consider what we’ve seen. The goal here is to study the behavior of an algorithm rather than a specific dataset. Yet there is still data, necessarily — the data is derived from the execution of the algorithm. And this means we can use the <i>type</i> of derived data to classify algorithm visualizations.
+
+<p><i>Level 0 / black box</i> - The simplest class just shows the output. This does not explain the algorithm’s operation, but it can still verify correctness. And by treating the algorithm as a black box, you can more easily compare outputs of different algorithms. Black box visualizations can also be combined with deeper analysis of output, such as the shuffle bias matrix diagram shown above.
+
+<p><i>Level 1 / gray box</i> - Many algorithms (though not all) build up output incrementally. By visualizing the intermediate output as it develops, we start to see how the algorithm works. This explains more without introducing new abstraction, since the intermediate and final output share the same structure. Yet this type of visualization can raise more questions than it answers, since it offers no explanation as to why the algorithm does what it does.
+
+<p><i>Level 2 / white box</i> - To answer “why” questions, white box visualizations expose the internal state of the algorithm in addition to its intermediate output. This type has the greatest potential to explain, but also the highest burden on the reader, as the meaning and purpose of internal state must be clearly described. There is a risk that the additional complexity will overwhelm the reader; layering information may make the graphic more accessible. Lastly, since internal state is highly-dependent on the specific algorithm, this type of visualization is often unsuitable for comparing algorithms.
+
+<p>There’s also the practical matter of implementating algorithm visualizations. Typically you can’t just run code as-is; you must instrument it to capture state for visualization. (View source on this page for examples.) You may even need to interleave execution with visualization, which is particularly challenging for recursive algorithms that capture state on the stack. Language parsers such as <a href="http://esprima.org/">Esprima</a> may facilitate algorithm visualization through code instrumentation, cleanly separating execution code from visualization code.
+
+<h2><a href="#maze-generation" name="maze-generation">#</a>Maze Generation</h2>
+
+<p>The last problem we’ll look at is maze generation. All algorithms in this section generate a <a href="http://en.wikipedia.org/wiki/Spanning_tree">spanning tree</a> of a two-dimensional rectangular grid. This means there are no loops and there is a unique path from the root in the bottom-left corner to every other cell in the maze.
+
+<p>I apologize for the esoteric subject — I don’t know enough to say why these algorithms are useful beyond simple games, and possibly something about electrical networks. But even so, they are fascinating from a visualization perspective because they solve the same, highly-constrained problem in wildly-different ways.
+
+<p>And they’re just fun to watch.
+
+<style>
+
+.maze canvas {
+  background: #000;
+}
+
+</style>
+<p id="random-traversal" class="animation maze"><script>(function() {
+
+var width = 960,
+    height = 500;
+
+var N = 1 << 0,
+    S = 1 << 1,
+    W = 1 << 2,
+    E = 1 << 3;
+
+var cellSize = 6,
+    cellSpacing = 6,
+    cellWidth = Math.floor((width - cellSpacing) / (cellSize + cellSpacing)),
+    cellHeight = Math.floor((height - cellSpacing) / (cellSize + cellSpacing)),
+    cells,
+    frontier,
+    active = 0;
+
+var p = d3.select("#random-traversal")
+    .on("click", click);
+
+var canvas = p.append("canvas")
+    .attr("width", width)
+    .attr("height", height);
+
+p.append("button")
+    .text("▶ Play");
+
+whenFullyVisible(p.node(), click);
+
+var context = canvas.node().getContext("2d");
+
+context.translate(
+  Math.round((width - cellWidth * cellSize - (cellWidth + 1) * cellSpacing) / 2),
+  Math.round((height - cellHeight * cellSize - (cellHeight + 1) * cellSpacing) / 2)
+);
+
+function click() {
+  var id = ++active;
+
+  context.clearRect(0, 0, width, height);
+  context.fillStyle = "white";
+  p.classed("animation--playing", true);
+
+  cells = new Array(cellWidth * cellHeight); // each cell’s edge bits
+  frontier = [];
+
+  // Add a random cell and two initial edges.
+  var start = (cellHeight - 1) * cellWidth;
+  cells[start] = 0;
+  fillCell(start);
+  frontier.push({index: start, direction: N});
+  frontier.push({index: start, direction: E});
+
+  // Explore the frontier until the tree spans the graph.
+  d3.timer(function() {
+    if (id !== active) return true;
+    var done, k = 0;
+    while (++k < 10 && !(done = exploreFrontier()));
+    return done && p.classed("animation--playing", false);
+  });
+}
+
+function exploreFrontier() {
+  if ((edge = popRandom(frontier)) == null) return true;
+
+  var edge,
+      i0 = edge.index,
+      d0 = edge.direction,
+      i1 = i0 + (d0 === N ? -cellWidth : d0 === S ? cellWidth : d0 === W ? -1 : +1),
+      x0 = i0 % cellWidth,
+      y0 = i0 / cellWidth | 0,
+      x1,
+      y1,
+      d1,
+      open = cells[i1] == null; // opposite not yet part of the maze
+
+  context.fillStyle = open ? "white" : "black";
+  if (d0 === N) fillSouth(i1), x1 = x0, y1 = y0 - 1, d1 = S;
+  else if (d0 === S) fillSouth(i0), x1 = x0, y1 = y0 + 1, d1 = N;
+  else if (d0 === W) fillEast(i1), x1 = x0 - 1, y1 = y0, d1 = E;
+  else fillEast(i0), x1 = x0 + 1, y1 = y0, d1 = W;
+
+  if (open) {
+    fillCell(i1);
+    cells[i0] |= d0, cells[i1] |= d1;
+    context.fillStyle = "red";
+    if (y1 > 0 && cells[i1 - cellWidth] == null) fillSouth(i1 - cellWidth), frontier.push({index: i1, direction: N});
+    if (y1 < cellHeight - 1 && cells[i1 + cellWidth] == null) fillSouth(i1), frontier.push({index: i1, direction: S});
+    if (x1 > 0 && cells[i1 - 1] == null) fillEast(i1 - 1), frontier.push({index: i1, direction: W});
+    if (x1 < cellWidth - 1 && cells[i1 + 1] == null) fillEast(i1), frontier.push({index: i1, direction: E});
+  }
+}
+
+function fillCell(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect(i * cellSize + (i + 1) * cellSpacing, j * cellSize + (j + 1) * cellSpacing, cellSize, cellSize);
+}
+
+function fillEast(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect((i + 1) * (cellSize + cellSpacing), j * cellSize + (j + 1) * cellSpacing, cellSpacing, cellSize);
+}
+
+function fillSouth(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect(i * cellSize + (i + 1) * cellSpacing, (j + 1) * (cellSize + cellSpacing), cellSize, cellSpacing);
+}
+
+function popRandom(array) {
+  if (!array.length) return;
+  var n = array.length, i = Math.random() * n | 0, t;
+  t = array[i], array[i] = array[n - 1], array[n - 1] = t;
+  return array.pop();
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/70a28267db0354261476">Random traversal</a></aside>
+
+<p>The random traversal algorithm initializes the first cell of the maze in the bottom-left corner. The algorithm then tracks all possible ways by which the maze could be extended (shown in red). At each step, one of these possible extensions is picked randomly, and the maze is extended as long as this does not reconnect it with another part of the maze.
+
+<p>Like Bridon’s Poisson-disc sampling algorithm, random traversal maintains a frontier and randomly selects from that frontier to expand. Both algorithms thus appear to grow organically, like a fungus.
+
+<p>Randomized depth-first traversal follows a very different pattern:
+
+<p id="randomized-depth-first-traversal" class="animation maze"><script>(function() {
+
+var width = 960,
+    height = 500;
+
+var N = 1 << 0,
+    S = 1 << 1,
+    W = 1 << 2,
+    E = 1 << 3;
+
+var cellSize = 6,
+    cellSpacing = 6,
+    cellWidth = Math.floor((width - cellSpacing) / (cellSize + cellSpacing)),
+    cellHeight = Math.floor((height - cellSpacing) / (cellSize + cellSpacing)),
+    cells,
+    frontier,
+    active = 0;
+
+var p = d3.select("#randomized-depth-first-traversal")
+    .on("click", click);
+
+var canvas = p.append("canvas")
+    .attr("width", width)
+    .attr("height", height);
+
+p.append("button")
+    .text("▶ Play");
+
+whenFullyVisible(p.node(), click);
+
+var context = canvas.node().getContext("2d");
+
+context.translate(
+  Math.round((width - cellWidth * cellSize - (cellWidth + 1) * cellSpacing) / 2),
+  Math.round((height - cellHeight * cellSize - (cellHeight + 1) * cellSpacing) / 2)
+);
+
+function click() {
+  var id = ++active;
+
+  context.clearRect(0, 0, width, height);
+  context.fillStyle = "white";
+  p.classed("animation--playing", true);
+
+  cells = new Array(cellWidth * cellHeight); // each cell’s edge bits
+  frontier = [];
+
+  // Add a random cell and two initial edges.
+  var start = (cellHeight - 1) * cellWidth;
+  cells[start] = 0;
+  fillCell(start);
+  frontier.push({index: start, direction: N});
+  frontier.push({index: start, direction: E});
+
+  // Explore the frontier until the tree spans the graph.
+  d3.timer(function() {
+    if (id !== active) return true;
+    var done, k = 0;
+    while (++k < 10 && !(done = exploreFrontier()));
+    return done && p.classed("animation--playing", false);
+  });
+}
+
+function exploreFrontier() {
+  if ((edge = frontier.pop()) == null) return true;
+
+  var edge,
+      i0 = edge.index,
+      d0 = edge.direction,
+      i1 = i0 + (d0 === N ? -cellWidth : d0 === S ? cellWidth : d0 === W ? -1 : +1),
+      x0 = i0 % cellWidth,
+      y0 = i0 / cellWidth | 0,
+      x1,
+      y1,
+      d1,
+      open = cells[i1] == null; // opposite not yet part of the maze
+
+  context.fillStyle = open ? "white" : "black";
+  if (d0 === N) fillSouth(i1), x1 = x0, y1 = y0 - 1, d1 = S;
+  else if (d0 === S) fillSouth(i0), x1 = x0, y1 = y0 + 1, d1 = N;
+  else if (d0 === W) fillEast(i1), x1 = x0 - 1, y1 = y0, d1 = E;
+  else fillEast(i0), x1 = x0 + 1, y1 = y0, d1 = W;
+
+  if (open) {
+    fillCell(i1);
+    cells[i0] |= d0, cells[i1] |= d1;
+    context.fillStyle = "red";
+
+    var m = 0;
+    if (y1 > 0 && cells[i1 - cellWidth] == null) fillSouth(i1 - cellWidth), frontier.push({index: i1, direction: N}), ++m;
+    if (y1 < cellHeight - 1 && cells[i1 + cellWidth] == null) fillSouth(i1), frontier.push({index: i1, direction: S}), ++m;
+    if (x1 > 0 && cells[i1 - 1] == null) fillEast(i1 - 1), frontier.push({index: i1, direction: W}), ++m;
+    if (x1 < cellWidth - 1 && cells[i1 + 1] == null) fillEast(i1), frontier.push({index: i1, direction: E}), ++m;
+    shuffle(frontier, frontier.length - m, frontier.length);
+  }
+}
+
+function fillCell(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect(i * cellSize + (i + 1) * cellSpacing, j * cellSize + (j + 1) * cellSpacing, cellSize, cellSize);
+}
+
+function fillEast(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect((i + 1) * (cellSize + cellSpacing), j * cellSize + (j + 1) * cellSpacing, cellSpacing, cellSize);
+}
+
+function fillSouth(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect(i * cellSize + (i + 1) * cellSpacing, (j + 1) * (cellSize + cellSpacing), cellSize, cellSpacing);
+}
+
+function shuffle(array, i0, i1) {
+  var m = i1 - i0, t, i, j;
+  while (m) {
+    i = Math.random() * m-- | 0;
+    t = array[m + i0], array[m + i0] = array[i + i0], array[i + i0] = t;
+  }
+  return array;
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/1ef3b1fb9eb35ca8ffff">Randomized depth-first traversal</a></aside>
+
+<p>Rather than picking a new random passage each time, this algorithm always extends the deepest passage — the one with the longest path back to the root — in a random direction. Thus, randomized depth-first traversal only branches when the current path dead-ends into an earlier part of the maze. To continue, it backtracks until it can start a new branch. This snake-like exploration leads to mazes with significantly fewer branches and much longer, winding passages.
+
+<p>Prim’s algorithm constructs a <a href="http://en.wikipedia.org/wiki/Minimum_spanning_tree">minimum spanning tree</a>, a spanning tree of a graph with weighted edges with the lowest total weight. This algorithm can be used to construct a random spanning tree by initializing edge weights randomly:
+
+<p id="randomized-prims" class="animation maze"><script>(function() {
+
+var width = 960,
+    height = 500;
+
+var N = 1 << 0,
+    S = 1 << 1,
+    W = 1 << 2,
+    E = 1 << 3;
+
+var cellSize = 6,
+    cellSpacing = 6,
+    cellWidth = Math.floor((width - cellSpacing) / (cellSize + cellSpacing)),
+    cellHeight = Math.floor((height - cellSpacing) / (cellSize + cellSpacing)),
+    cells,
+    frontier,
+    active = 0;
+
+var p = d3.select("#randomized-prims")
+    .on("click", click);
+
+var canvas = p.append("canvas")
+    .attr("width", width)
+    .attr("height", height);
+
+p.append("button")
+    .text("▶ Play");
+
+whenFullyVisible(p.node(), click);
+
+var context = canvas.node().getContext("2d");
+
+context.translate(
+  Math.round((width - cellWidth * cellSize - (cellWidth + 1) * cellSpacing) / 2),
+  Math.round((height - cellHeight * cellSize - (cellHeight + 1) * cellSpacing) / 2)
+);
+
+function click() {
+  var id = ++active;
+
+  context.clearRect(0, 0, width, height);
+  context.fillStyle = "white";
+  p.classed("animation--playing", true);
+
+  cells = new Array(cellWidth * cellHeight); // each cell’s edge bits
+  frontier = minHeap(function(a, b) { return a.weight - b.weight; });
+
+  // Add a random cell and two initial edges.
+  var start = (cellHeight - 1) * cellWidth;
+  cells[start] = 0;
+  fillCell(start);
+  frontier.push({index: start, direction: N, weight: Math.random()});
+  frontier.push({index: start, direction: E, weight: Math.random()});
+
+  // Explore the frontier until the tree spans the graph.
+  d3.timer(function() {
+    if (id !== active) return true;
+    var done, k = 0;
+    while (++k < 10 && !(done = exploreFrontier()));
+    return done && p.classed("animation--playing", false);
+  });
+}
+
+function exploreFrontier() {
+  if ((edge = frontier.pop()) == null) return true;
+
+  var edge,
+      i0 = edge.index,
+      d0 = edge.direction,
+      i1 = i0 + (d0 === N ? -cellWidth : d0 === S ? cellWidth : d0 === W ? -1 : +1),
+      x0 = i0 % cellWidth,
+      y0 = i0 / cellWidth | 0,
+      x1,
+      y1,
+      d1,
+      open = cells[i1] == null; // opposite not yet part of the maze
+
+  context.fillStyle = open ? "white" : "black";
+  if (d0 === N) fillSouth(i1), x1 = x0, y1 = y0 - 1, d1 = S;
+  else if (d0 === S) fillSouth(i0), x1 = x0, y1 = y0 + 1, d1 = N;
+  else if (d0 === W) fillEast(i1), x1 = x0 - 1, y1 = y0, d1 = E;
+  else fillEast(i0), x1 = x0 + 1, y1 = y0, d1 = W;
+
+  if (open) {
+    fillCell(i1);
+    cells[i0] |= d0, cells[i1] |= d1;
+    context.fillStyle = "red";
+    if (y1 > 0 && cells[i1 - cellWidth] == null) fillSouth(i1 - cellWidth), frontier.push({index: i1, direction: N, weight: Math.random()});
+    if (y1 < cellHeight - 1 && cells[i1 + cellWidth] == null) fillSouth(i1), frontier.push({index: i1, direction: S, weight: Math.random()});
+    if (x1 > 0 && cells[i1 - 1] == null) fillEast(i1 - 1), frontier.push({index: i1, direction: W, weight: Math.random()});
+    if (x1 < cellWidth - 1 && cells[i1 + 1] == null) fillEast(i1), frontier.push({index: i1, direction: E, weight: Math.random()});
+  }
+}
+
+function fillCell(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect(i * cellSize + (i + 1) * cellSpacing, j * cellSize + (j + 1) * cellSpacing, cellSize, cellSize);
+}
+
+function fillEast(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect((i + 1) * (cellSize + cellSpacing), j * cellSize + (j + 1) * cellSpacing, cellSpacing, cellSize);
+}
+
+function fillSouth(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect(i * cellSize + (i + 1) * cellSpacing, (j + 1) * (cellSize + cellSpacing), cellSize, cellSpacing);
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/11159599">Randomized Prim’s</a></aside>
+
+<p>At each step, Prim’s algorithm extends the maze using the lowest-weighted edge (potential direction) connected to the existing maze. If this edge would form a loop, it is discarded and the next-lowest-weighted edge is considered.
+
+<p>Prim’s algorithm is commonly implemented using a <a href="http://en.wikipedia.org/wiki/Heap_(data_structure)">heap</a>, which is an efficient data structure for prioritizing elements. When a new cell is added to the maze, connected edges (shown in red) are added to the heap. Despite edges being added in arbitrary order, the heap allows the lowest-weighted edge to be quickly removed.
+
+<p>Lastly, a most unusual specimen:
+
+<p id="wilsons" class="animation maze"><script>(function() {
+
+var width = 960,
+    height = 500;
+
+var N = 1 << 0,
+    S = 1 << 1,
+    W = 1 << 2,
+    E = 1 << 3;
+
+var cellSize = 6,
+    cellSpacing = 6,
+    cellWidth = Math.floor((width - cellSpacing) / (cellSize + cellSpacing)),
+    cellHeight = Math.floor((height - cellSpacing) / (cellSize + cellSpacing)),
+    cells,
+    remaining,
+    previous,
+    i0,
+    x0,
+    y0,
+    active = 0;
+
+var p = d3.select("#wilsons")
+    .on("click", click);
+
+var canvas = p.append("canvas")
+    .attr("width", width)
+    .attr("height", height);
+
+p.append("button")
+    .text("▶ Play");
+
+whenFullyVisible(p.node(), click);
+
+var context = canvas.node().getContext("2d");
+
+context.translate(
+  Math.round((width - cellWidth * cellSize - (cellWidth + 1) * cellSpacing) / 2),
+  Math.round((height - cellHeight * cellSize - (cellHeight + 1) * cellSpacing) / 2)
+);
+
+function click() {
+  var id = ++active;
+
+  context.clearRect(0, 0, width, height);
+  context.fillStyle = "white";
+  p.classed("animation--playing", true);
+
+  cells = new Array(cellWidth * cellHeight); // each cell’s edge bits
+  remaining = new Array(cellWidth * cellHeight); // cell indexes to visit
+  previous = new Array(cellWidth * cellHeight); // current random walk path
+  i0 = undefined, x0 = undefined, y0 = undefined; // end of current random walk
+
+  for (var j = 0, q = 0; j < cellHeight; ++j) {
+    for (var i = cellWidth - 1; i >= 0; --i, ++q) {
+      remaining[q] = j * cellWidth + i;
+    }
+  }
+
+  // Add a random cell and two initial edges.
+  var start = remaining.pop();
+  cells[start] = 0;
+  fillCell(start);
+
+  // Explore the frontier until the tree spans the graph.
+  context.fillStyle = "red";
+  d3.timer(function() {
+    if (id !== active) return true;
+    var done, k = 0;
+    while (++k < 10 && !(done = loopErasedRandomWalk()));
+    return done && p.classed("animation--playing", false);
+  });
+}
+
+function loopErasedRandomWalk() {
+  var i1;
+
+  // Pick a location that’s not yet in the maze (if any).
+  if (i0 == null) {
+    do if ((i0 = remaining.pop()) == null) return true;
+    while (cells[i0] >= 0);
+    previous[i0] = i0;
+    fillCell(i0);
+    x0 = i0 % cellWidth;
+    y0 = i0 / cellWidth | 0;
+    return;
+  }
+
+  // Perform a random walk starting at this location,
+  // by picking a legal random direction.
+  while (true) {
+    i1 = Math.random() * 4 | 0;
+    if (i1 === 0) { if (y0 <= 0) continue; --y0, i1 = i0 - cellWidth; }
+    else if (i1 === 1) { if (y0 >= cellHeight - 1) continue; ++y0, i1 = i0 + cellWidth; }
+    else if (i1 === 2) { if (x0 <= 0) continue; --x0, i1 = i0 - 1; }
+    else { if (x0 >= cellWidth - 1) continue; ++x0, i1 = i0 + 1; }
+    break;
+  }
+
+  // If this new cell was visited previously during this walk,
+  // erase the loop, rewinding the path to its earlier state.
+  if (previous[i1] >= 0) eraseWalk(i0, i1);
+
+  // Otherwise, just add it to the walk.
+  else {
+    previous[i1] = i0;
+    fillCell(i1);
+    if (i1 === i0 - 1) fillEast(i1);
+    else if (i1 === i0 + 1) fillEast(i0);
+    else if (i1 === i0 - cellWidth) fillSouth(i1);
+    else fillSouth(i0);
+  }
+
+  // If this cell is part of the maze, we’re done walking.
+  if (cells[i1] >= 0) {
+
+    // Add the random walk to the maze by backtracking to the starting cell.
+    // Also erase this walk’s history to not interfere with subsequent walks.
+    context.save();
+    context.fillStyle = "#fff";
+    fillCell(i1);
+    while ((i0 = previous[i1]) !== i1) {
+      fillCell(i0);
+      if (i1 === i0 + 1) cells[i0] |= E, cells[i1] |= W, fillEast(i0);
+      else if (i1 === i0 - 1) cells[i0] |= W, cells[i1] |= E, fillEast(i1);
+      else if (i1 === i0 + cellWidth) cells[i0] |= S, cells[i1] |= N, fillSouth(i0);
+      else cells[i0] |= N, cells[i1] |= S, fillSouth(i1);
+      previous[i1] = NaN;
+      i1 = i0;
+    }
+    context.restore();
+
+    previous[i1] = NaN;
+    i0 = null;
+  } else {
+    i0 = i1;
+  }
+}
+
+function eraseWalk(i0, i2) {
+  var i1;
+  context.save();
+  context.globalCompositeOperation = "destination-out";
+  do {
+    i1 = previous[i0];
+    if (i1 === i0 - 1) fillEast(i1);
+    else if (i1 === i0 + 1) fillEast(i0);
+    else if (i1 === i0 - cellWidth) fillSouth(i1);
+    else fillSouth(i0);
+    fillCell(i0);
+    previous[i0] = NaN;
+    i0 = i1;
+  } while (i1 !== i2);
+  context.restore();
+}
+
+function fillCell(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect(i * cellSize + (i + 1) * cellSpacing, j * cellSize + (j + 1) * cellSpacing, cellSize, cellSize);
+}
+
+function fillEast(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect((i + 1) * (cellSize + cellSpacing), j * cellSize + (j + 1) * cellSpacing, cellSpacing, cellSize);
+}
+
+function fillSouth(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect(i * cellSize + (i + 1) * cellSpacing, (j + 1) * (cellSize + cellSpacing), cellSize, cellSpacing);
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/11357811">Wilson’s</a></aside>
+
+<p>Wilson’s algorithm uses <a href="http://en.wikipedia.org/wiki/Loop-erased_random_walk">loop-erased random walks</a> to generate a uniform spanning tree — an unbiased sample of all possible spanning trees. The other maze generation algorithms we have seen lack this beautiful mathematical property.
+
+<p>The algorithm initializes the maze with an arbitrary starting cell. Then, a new cell is added to the maze, initiating a random walk (shown in red). The random walk continues until it reconnects with the existing maze (shown in white). However, if the random walk intersects itself, the resulting loop is erased before the random walk continues.
+
+<p>Initially, the algorithm can be frustratingly slow to watch, as early random walks are unlikely to reconnect with the small existing maze. As the maze grows, random walks become more likely to collide with the maze and the algorithm accelerates dramatically.
+
+<p>These four maze generation algorithms work very differently. And yet, when the animations end, the resulting mazes are difficult to distinguish from each other. The animations are useful for showing how the algorithm works, but fail to reveal the resulting tree structure.
+
+<p>A way to show structure, rather than process, is to flood the maze with color:
+
+<p id="random-traversal-color-maze" class="animation maze"><script>(function() {
+
+var width = 960,
+    height = 500;
+
+var N = 1 << 0,
+    S = 1 << 1,
+    W = 1 << 2,
+    E = 1 << 3;
+
+var cellSize = 6,
+    cellSpacing = 6,
+    cellWidth = Math.floor((width - cellSpacing) / (cellSize + cellSpacing)),
+    cellHeight = Math.floor((height - cellSpacing) / (cellSize + cellSpacing)),
+    cells,
+    distance,
+    visited,
+    frontier,
+    active = 0;
+
+var p = d3.select("#random-traversal-color-maze");
+
+var canvas = p.append("canvas")
+    .attr("width", width)
+    .attr("height", height);
+
+p.append("button")
+    .text("▶ Play");
+
+var context = canvas.node().getContext("2d");
+
+context.translate(
+  Math.round((width - cellWidth * cellSize - (cellWidth + 1) * cellSpacing) / 2),
+  Math.round((height - cellHeight * cellSize - (cellHeight + 1) * cellSpacing) / 2)
+);
+
+beforeVisible(p.node(), function() {
+  var worker = new Worker("generate-random-traversal.js");
+  worker.postMessage({width: cellWidth, height: cellHeight});
+  worker.addEventListener("message", function(event) {
+    worker.terminate();
+    cells = event.data;
+    draw();
+    p.on("click", click);
+    whenFullyVisible(p.node(), click);
+  });
+});
+
+function draw() {
+  context.clearRect(0, 0, width, height);
+  context.fillStyle = "#fff";
+  for (var y = 0, i = 0; y < cellHeight; ++y) {
+    for (var x = 0; x < cellWidth; ++x, ++i) {
+      fillCell(i);
+      if (cells[i] & S) fillSouth(i);
+      if (cells[i] & E) fillEast(i);
+    }
+  }
+}
+
+function click() {
+  var id = ++active;
+
+  p.classed("animation--playing", true);
+
+  distance = 0;
+  visited = new Array(cellWidth * cellHeight);
+  frontier = [(cellHeight - 1) * cellWidth];
+
+  draw();
+
+  d3.timer(function() {
+    if (id !== active) return true;
+    if (!(n0 = frontier.length)) return p.classed("animation--playing", false);
+
+    context.fillStyle = floodColor(distance++ * 2);
+
+    if (distance & 1) {
+      for (var i = 0; i < n0; ++i) {
+        fillCell(frontier[i]);
+      }
+    } else {
+      var frontier1 = [],
+          i0,
+          i1,
+          n0;
+
+      for (var i = 0; i < n0; ++i) {
+        i0 = frontier[i];
+        if (cells[i0] & E && !visited[i1 = i0 + 1]) visited[i1] = true, fillEast(i0), frontier1.push(i1);
+        if (cells[i0] & W && !visited[i1 = i0 - 1]) visited[i1] = true, fillEast(i1), frontier1.push(i1);
+        if (cells[i0] & S && !visited[i1 = i0 + cellWidth]) visited[i1] = true, fillSouth(i0), frontier1.push(i1);
+        if (cells[i0] & N && !visited[i1 = i0 - cellWidth]) visited[i1] = true, fillSouth(i1), frontier1.push(i1);
+      }
+
+      frontier = frontier1;
+    }
+  });
+}
+
+function fillCell(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect(i * cellSize + (i + 1) * cellSpacing, j * cellSize + (j + 1) * cellSpacing, cellSize, cellSize);
+}
+
+function fillEast(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect((i + 1) * (cellSize + cellSpacing), j * cellSize + (j + 1) * cellSpacing, cellSpacing, cellSize);
+}
+
+function fillSouth(index) {
+  var i = index % cellWidth, j = index / cellWidth | 0;
+  context.fillRect(i * cellSize + (i + 1) * cellSpacing, (j + 1) * (cellSize + cellSpacing), cellSize, cellSpacing);
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/11167589">Random traversal</a></aside>
+
+<p>Color encodes tree depth — the length of the path back to the root in the bottom-left corner. The color scale cycles as you get deeper into the tree; this is occasionally misleading when a deep path circles back adjacent to a shallow one, but the higher contrast allows better differentiation of local structure. (This is not a convential rainbow color scale, which is nominally <a href="http://eagereyes.org/basics/rainbow-color-map">considered harmful</a>, but a <a href="http://bl.ocks.org/mbostock/310c99e53880faec2434">cubehelix rainbow</a> with improved perceptual properties.)
+
+<p>We can further emphasize the structure of the maze by subtracting the walls, reducing visual noise. Below, each pixel represents a path through the maze. As above, paths are colored by depth and color floods deeper into the maze over time.
+
+<p id="random-traversal-color-flood" class="animation"><script>(function() {
+
+var width = 960,
+    height = 360;
+
+var N = 1 << 0,
+    S = 1 << 1,
+    W = 1 << 2,
+    E = 1 << 3;
+
+var cells,
+    active = 0;
+
+var p = d3.select("#random-traversal-color-flood");
+
+var canvas = p.append("canvas")
+    .attr("width", width)
+    .attr("height", height);
+
+p.append("button")
+    .text("▶ Play");
+
+var context = canvas.node().getContext("2d");
+
+whenFullyVisible(p.node(), function() {
+  var worker = new Worker("generate-random-traversal.js");
+  worker.postMessage({width: width, height: height});
+  worker.addEventListener("message", function(event) {
+    worker.terminate();
+    cells = event.data;
+    p.on("click", click);
+    click();
+  });
+});
+
+function click() {
+  var id = ++active;
+
+  context.clearRect(0, 0, width, height);
+  p.classed("animation--playing", true);
+
+  var distance = 0,
+      visited = new Array(width * height),
+      frontier = [(height - 1) * width],
+      image = context.createImageData(width, height);
+
+  function flood() {
+    var frontier1 = [],
+        i0,
+        n0 = frontier.length,
+        i1,
+        color = d3.rgb(floodColor(distance++));
+
+    for (var i = 0; i < n0; ++i) {
+      i0 = frontier[i] << 2;
+      image.data[i0 + 0] = color.r;
+      image.data[i0 + 1] = color.g;
+      image.data[i0 + 2] = color.b;
+      image.data[i0 + 3] = 255;
+    }
+
+    for (var i = 0; i < n0; ++i) {
+      i0 = frontier[i];
+      if (cells[i0] & E && !visited[i1 = i0 + 1]) visited[i1] = true, frontier1.push(i1);
+      if (cells[i0] & W && !visited[i1 = i0 - 1]) visited[i1] = true, frontier1.push(i1);
+      if (cells[i0] & S && !visited[i1 = i0 + width]) visited[i1] = true, frontier1.push(i1);
+      if (cells[i0] & N && !visited[i1 = i0 - width]) visited[i1] = true, frontier1.push(i1);
+    }
+
+    frontier = frontier1;
+    return !frontier1.length;
+  }
+
+  d3.timer(function() {
+    if (id !== active) return true;
+    for (var i = 0, done; i < 1 && !(done = flood()); ++i);
+    context.putImageData(image, 0, 0);
+    return done && p.classed("animation--playing", false);
+  });
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/11337835">Random traversal</a></aside>
+
+<p>Concentric circles of color, like a tie-dye shirt, reveal that random traversal produces many branching paths. Yet the shape of each path is not particularly interesting, as it tends to go in a straight line back to the root. Because random traversal extends the maze by picking randomly from the frontier, paths are never given much freedom to meander — they end up colliding with the growing frontier and terminate due to the restriction on loops.
+
+<p>Randomized depth-first traversal, on the other hand, is <i>all</i> about the meander:
+
+<p id="randomized-depth-first-traversal-color-flood" class="animation"><script>(function() {
+
+var width = 960,
+    height = 360;
+
+var N = 1 << 0,
+    S = 1 << 1,
+    W = 1 << 2,
+    E = 1 << 3;
+
+var cells,
+    active = 0;
+
+var p = d3.select("#randomized-depth-first-traversal-color-flood");
+
+var canvas = p.append("canvas")
+    .attr("width", width)
+    .attr("height", height);
+
+p.append("button")
+    .text("▶ Play");
+
+var context = canvas.node().getContext("2d");
+
+whenFullyVisible(p.node(), function() {
+  var worker = new Worker("generate-randomized-depth-first-traversal.js");
+  worker.postMessage({width: width, height: height});
+  worker.addEventListener("message", function(event) {
+    worker.terminate();
+    cells = event.data;
+    p.on("click", click);
+    click();
+  });
+});
+
+function click() {
+  var id = ++active;
+
+  context.clearRect(0, 0, width, height);
+  p.classed("animation--playing", true);
+
+  var distance = 0,
+      visited = new Array(width * height),
+      frontier = [(height - 1) * width],
+      image = context.createImageData(width, height);
+
+  function flood() {
+    var frontier1 = [],
+        i0,
+        n0 = frontier.length,
+        i1,
+        color = d3.rgb(floodColor(distance++));
+
+    for (var i = 0; i < n0; ++i) {
+      i0 = frontier[i] << 2;
+      image.data[i0 + 0] = color.r;
+      image.data[i0 + 1] = color.g;
+      image.data[i0 + 2] = color.b;
+      image.data[i0 + 3] = 255;
+    }
+
+    for (var i = 0; i < n0; ++i) {
+      i0 = frontier[i];
+      if (cells[i0] & E && !visited[i1 = i0 + 1]) visited[i1] = true, frontier1.push(i1);
+      if (cells[i0] & W && !visited[i1 = i0 - 1]) visited[i1] = true, frontier1.push(i1);
+      if (cells[i0] & S && !visited[i1 = i0 + width]) visited[i1] = true, frontier1.push(i1);
+      if (cells[i0] & N && !visited[i1 = i0 - width]) visited[i1] = true, frontier1.push(i1);
+    }
+
+    frontier = frontier1;
+    return !frontier1.length;
+  }
+
+  d3.timer(function() {
+    if (id !== active) return true;
+    for (var i = 0, done; i < 50 && !(done = flood()); ++i);
+    context.putImageData(image, 0, 0);
+    return done && p.classed("animation--playing", false);
+  });
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/949c772b81296f8e4188">Randomized depth-first traversal</a></aside>
+
+<p>This animation proceeds at fifty times the speed of the previous one. This speed-up is necessary because randomized depth-first traversal mazes are much, much deeper than random traversal mazes due to limited branching. You can see that typically there is only one, and rarely more than a few, active branches at any particular depth.
+
+<p>Now Prim’s algorithm on a random graph:
+
+<p id="randomized-prims-color-flood" class="animation"><script>(function() {
+
+var width = 960,
+    height = 360;
+
+var N = 1 << 0,
+    S = 1 << 1,
+    W = 1 << 2,
+    E = 1 << 3;
+
+var cells,
+    active = 0;
+
+var p = d3.select("#randomized-prims-color-flood");
+
+var canvas = p.append("canvas")
+    .attr("width", width)
+    .attr("height", height);
+
+p.append("button")
+    .text("▶ Play");
+
+var context = canvas.node().getContext("2d");
+
+whenFullyVisible(p.node(), function() {
+  var worker = new Worker("generate-randomized-prims.js");
+  worker.postMessage({width: width, height: height});
+  worker.addEventListener("message", function(event) {
+    worker.terminate();
+    cells = event.data;
+    p.on("click", click);
+    click();
+  });
+});
+
+function click() {
+  var id = ++active;
+
+  context.clearRect(0, 0, width, height);
+  p.classed("animation--playing", true);
+
+  var distance = 0,
+      visited = new Array(width * height),
+      frontier = [(height - 1) * width],
+      image = context.createImageData(width, height);
+
+  function flood() {
+    var frontier1 = [],
+        i0,
+        n0 = frontier.length,
+        i1,
+        color = d3.rgb(floodColor(distance++));
+
+    for (var i = 0; i < n0; ++i) {
+      i0 = frontier[i] << 2;
+      image.data[i0 + 0] = color.r;
+      image.data[i0 + 1] = color.g;
+      image.data[i0 + 2] = color.b;
+      image.data[i0 + 3] = 255;
+    }
+
+    for (var i = 0; i < n0; ++i) {
+      i0 = frontier[i];
+      if (cells[i0] & E && !visited[i1 = i0 + 1]) visited[i1] = true, frontier1.push(i1);
+      if (cells[i0] & W && !visited[i1 = i0 - 1]) visited[i1] = true, frontier1.push(i1);
+      if (cells[i0] & S && !visited[i1 = i0 + width]) visited[i1] = true, frontier1.push(i1);
+      if (cells[i0] & N && !visited[i1 = i0 - width]) visited[i1] = true, frontier1.push(i1);
+    }
+
+    frontier = frontier1;
+    return !frontier1.length;
+  }
+
+  d3.timer(function() {
+    if (id !== active) return true;
+    for (var i = 0, done; i < 3 && !(done = flood()); ++i);
+    context.putImageData(image, 0, 0);
+    return done && p.classed("animation--playing", false);
+  });
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/11377353">Randomized Prim’s</a></aside>
+
+<p>This is more interesting! The simultaneously-expanding florets of color reveal substantial branching, and there is more complex global structure than random traversal.
+
+<p>Wilson’s algorithm, despite operating very differently, seems to produce very similar results:
+
+<p id="wilsons-color-flood" class="animation"><script>(function() {
+
+var width = 960,
+    height = 360;
+
+var N = 1 << 0,
+    S = 1 << 1,
+    W = 1 << 2,
+    E = 1 << 3;
+
+var cells,
+    active = 0;
+
+var p = d3.select("#wilsons-color-flood");
+
+var canvas = p.append("canvas")
+    .attr("width", width)
+    .attr("height", height);
+
+p.append("button")
+    .text("▶ Play");
+
+var context = canvas.node().getContext("2d");
+
+whenFullyVisible(p.node(), function() {
+  var worker = new Worker("generate-wilsons.js");
+  worker.postMessage({width: width, height: height});
+  worker.addEventListener("message", function(event) {
+    worker.terminate();
+    cells = event.data;
+    p.on("click", click);
+    click();
+  });
+});
+
+function click() {
+  var id = ++active;
+
+  context.clearRect(0, 0, width, height);
+  p.classed("animation--playing", true);
+
+  var distance = 0,
+      visited = new Array(width * height),
+      frontier = [(height - 1) * width],
+      image = context.createImageData(width, height);
+
+  function flood() {
+    var frontier1 = [],
+        i0,
+        n0 = frontier.length,
+        i1,
+        color = d3.rgb(floodColor(distance++));
+
+    for (var i = 0; i < n0; ++i) {
+      i0 = frontier[i] << 2;
+      image.data[i0 + 0] = color.r;
+      image.data[i0 + 1] = color.g;
+      image.data[i0 + 2] = color.b;
+      image.data[i0 + 3] = 255;
+    }
+
+    for (var i = 0; i < n0; ++i) {
+      i0 = frontier[i];
+      if (cells[i0] & E && !visited[i1 = i0 + 1]) visited[i1] = true, frontier1.push(i1);
+      if (cells[i0] & W && !visited[i1 = i0 - 1]) visited[i1] = true, frontier1.push(i1);
+      if (cells[i0] & S && !visited[i1 = i0 + width]) visited[i1] = true, frontier1.push(i1);
+      if (cells[i0] & N && !visited[i1 = i0 - width]) visited[i1] = true, frontier1.push(i1);
+    }
+
+    frontier = frontier1;
+    return !frontier1.length;
+  }
+
+  d3.timer(function() {
+    if (id !== active) return true;
+    for (var i = 0, done; i < 3 && !(done = flood()); ++i);
+    context.putImageData(image, 0, 0);
+    return done && p.classed("animation--playing", false);
+  });
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/11363008">Wilson’s</a></aside>
+
+<p>Just because they <i>look</i> the same does not mean they <i>are</i>. Despite appearances, Prim’s algorithm on a randomly-weighted graph does not produce a uniform spanning tree (as far as I know — proving this is outside my area of expertise). Visualization can sometimes mislead due to human error. An earlier version of the Prim’s color flood had a bug where the color scale rotated twice as fast as intended; this suggested that Prim’s and Wilson’s algorithms produced very different trees, when in fact they appear much more similar than different.
+
+<p>Since these mazes are spanning trees, we can also use specialized tree visualizations to show structure. To illustrate the duality between maze and tree, here the passages (shown in white) of a maze generated by Wilson’s algorithm are gradually transformed into a <a href="http://bl.ocks.org/mbostock/4339184">tidy tree layout</a>. As with the other animations, it proceeds by depth, starting with the root and descending to the leaves:
+
+<p id="wilsons-tree" class="animation maze"><script>(function() {
+
+var N = 1 << 0,
+    S = 1 << 1,
+    W = 1 << 2,
+    E = 1 << 3;
+
+var outerWidth = 960,
+    outerHeight = 500,
+    cellSize = 6,
+    cellSpacing = 6,
+    cellWidth = Math.floor((outerWidth - cellSpacing) / (cellSize + cellSpacing)),
+    cellHeight = Math.floor((outerHeight - cellSpacing) / (cellSize + cellSpacing)),
+    margin = {left: Math.floor((outerWidth - cellWidth * cellSize - (cellWidth + 1) * cellSpacing) / 2) + cellSpacing + cellSize / 2 + .5, top: Math.floor((outerHeight - cellHeight * cellSize - (cellHeight + 1) * cellSpacing) / 2) + cellSpacing + cellSize / 2 + .5},
+    width = outerWidth - 2 * margin.left,
+    height = outerHeight - 2 * margin.top;
+
+var root,
+    nodes,
+    links;
+
+var active = 0;
+
+var tree = d3.layout.tree()
+    .size([height, width]);
+
+var p = d3.select("#wilsons-tree");
+
+var canvas = p.append("canvas")
+    .attr("width", outerWidth)
+    .attr("height", outerHeight);
+
+var context = canvas.node().getContext("2d");
+
+context.translate(margin.left, margin.top);
+context.strokeStyle = "#fff";
+context.lineWidth = 2.5;
+
+p.append("button")
+    .text("▶ Play");
+
+beforeVisible(p.node(), function() {
+  p.on("click", click);
+
+  root = generateTree(cellWidth, cellHeight); // each cell’s edge bits
+  nodes = tree.nodes(root);
+  links = tree.links(nodes);
+
+  d3.select("#wilsons-tree-depth")
+      .text(d3.format(",.0d")(d3.max(nodes, function(d) { return d.depth; })));
+
+  nodes.forEach(function(d) {
+    var i = d.index;
+    d.y0 = (cellWidth - i % cellWidth - 1) * (cellSize + cellSpacing);
+    d.x0 = (i / cellWidth | 0) * (cellSize + cellSpacing);
+  });
+
+  links.sort(function(a, b) {
+    return b.source.depth - a.source.depth;
+  });
+
+  context.beginPath();
+  links.forEach(function(d) {
+    context.moveTo(d.source.y0, d.source.x0);
+    context.lineTo(d.target.y0, d.target.x0);
+  });
+  context.stroke();
+
+  whenFullyVisible(p.node(), click);
+});
+
+function click() {
+  var id = ++active;
+
+  nodes.forEach(function(d) {
+    d[0] = d.y0;
+    d[1] = d.x0;
+  });
+
+  var node = d3.selectAll(nodes);
+
+  p
+      .classed("animation--playing", true);
+
+  node // prevent scheduled transitions
+      .interrupt()
+      .transition();
+
+  node.transition()
+      .duration(2500)
+      .delay(function() { return this.depth * 50; })
+      .ease("quad-in-out")
+      .tween("position", function() {
+        var d = this,
+            y0 = d.y0,
+            x0 = d.x0,
+            dx = d.x - x0,
+            dy = d.y - y0;
+        return function(t) {
+          d[0] = y0 + t * dy;
+          d[1] = x0 + t * dx;
+        };
+      });
+
+  d3.timer(function() {
+    if (id !== active) return true;
+    context.clearRect(-1, -1, outerWidth + 1, outerHeight + 1);
+    context.beginPath();
+    links.forEach(function(d) {
+      context.moveTo(d.source[0], d.source[1]);
+      context.lineTo(d.target[0], d.target[1]);
+    });
+    context.stroke();
+    return !links[0].target.__transition__ && p.classed("animation--playing", false);
+  });
+}
+
+function generateTree(width, height) {
+  var cells = generateMaze(width, height), // each cell’s edge bits
+      visited = d3.range(width * height).map(function() { return false; }),
+      root = {index: cells.length - 1, children: []},
+      frontier = [root],
+      parent,
+      child,
+      childIndex,
+      cell;
+
+  while ((parent = frontier.pop()) != null) {
+    cell = cells[parent.index];
+    if (cell & E && !visited[childIndex = parent.index + 1]) visited[childIndex] = true, child = {index: childIndex, children: []}, parent.children.push(child), frontier.push(child);
+    if (cell & W && !visited[childIndex = parent.index - 1]) visited[childIndex] = true, child = {index: childIndex, children: []}, parent.children.push(child), frontier.push(child);
+    if (cell & S && !visited[childIndex = parent.index + width]) visited[childIndex] = true, child = {index: childIndex, children: []}, parent.children.push(child), frontier.push(child);
+    if (cell & N && !visited[childIndex = parent.index - width]) visited[childIndex] = true, child = {index: childIndex, children: []}, parent.children.push(child), frontier.push(child);
+  }
+
+  return root;
+}
+
+function generateMaze(width, height) {
+  var cells = new Array(width * height), // each cell’s edge bits
+      remaining = d3.range(width * height), // cell indexes to visit
+      previous = new Array(width * height); // current random walk
+
+  // Add the starting cell.
+  var start = remaining.pop();
+  cells[start] = 0;
+
+  // While there are remaining cells,
+  // add a loop-erased random walk to the maze.
+  while (!loopErasedRandomWalk());
+
+  return cells;
+
+  function loopErasedRandomWalk() {
+    var i0,
+        i1,
+        x0,
+        y0;
+
+    // Pick a location that’s not yet in the maze (if any).
+    do if ((i0 = remaining.pop()) == null) return true;
+    while (cells[i0] >= 0);
+
+    // Perform a random walk starting at this location,
+    previous[i0] = i0;
+    while (true) {
+      x0 = i0 % width;
+      y0 = i0 / width | 0;
+
+      // picking a legal random direction at each step.
+      i1 = Math.random() * 4 | 0;
+      if (i1 === 0) { if (y0 <= 0) continue; --y0, i1 = i0 - width; }
+      else if (i1 === 1) { if (y0 >= height - 1) continue; ++y0, i1 = i0 + width; }
+      else if (i1 === 2) { if (x0 <= 0) continue; --x0, i1 = i0 - 1; }
+      else { if (x0 >= width - 1) continue; ++x0, i1 = i0 + 1; }
+
+      // If this new cell was visited previously during this walk,
+      // erase the loop, rewinding the path to its earlier state.
+      if (previous[i1] >= 0) eraseWalk(i0, i1);
+
+      // Otherwise, just add it to the walk.
+      else previous[i1] = i0;
+
+      // If this cell is part of the maze, we’re done walking.
+      if (cells[i1] >= 0) {
+
+        // Add the random walk to the maze by backtracking to the starting cell.
+        // Also erase this walk’s history to not interfere with subsequent walks.
+        while ((i0 = previous[i1]) !== i1) {
+          if (i1 === i0 + 1) cells[i0] |= E, cells[i1] |= W;
+          else if (i1 === i0 - 1) cells[i0] |= W, cells[i1] |= E;
+          else if (i1 === i0 + width) cells[i0] |= S, cells[i1] |= N;
+          else cells[i0] |= N, cells[i1] |= S;
+          previous[i1] = NaN;
+          i1 = i0;
+        }
+
+        previous[i1] = NaN;
+        return;
+      }
+
+      i0 = i1;
+    }
+  }
+
+  function eraseWalk(i0, i2) {
+    var i1;
+    do i1 = previous[i0], previous[i0] = NaN, i0 = i1; while (i1 !== i2);
+  }
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/061b3929ba0f3964d335">Wilson’s</a></aside>
+
+<p>For comparison, again we see how randomized depth-first traversal produces trees with long passages and little branching.
+
+<style>
+
+#randomized-depth-first-tree svg {
+  background: #000;
+}
+
+#randomized-depth-first-tree .link {
+  fill: none;
+  stroke: #fff;
+  stroke-linecap: round;
+  stroke-width: 2.5px;
+}
+
+</style>
+<p id="randomized-depth-first-tree"><script>(function() {
+
+var N = 1 << 0,
+    S = 1 << 1,
+    W = 1 << 2,
+    E = 1 << 3;
+
+var outerWidth = 960,
+    outerHeight = 500,
+    cellSize = 6,
+    cellSpacing = 6,
+    cellWidth = Math.floor((outerWidth - cellSpacing) / (cellSize + cellSpacing)),
+    cellHeight = Math.floor((outerHeight - cellSpacing) / (cellSize + cellSpacing)),
+    margin = {left: Math.floor((outerWidth - cellWidth * cellSize - (cellWidth + 1) * cellSpacing) / 2) + cellSpacing + cellSize / 2 + .5, top: Math.floor((outerHeight - cellHeight * cellSize - (cellHeight + 1) * cellSpacing) / 2) + cellSpacing + cellSize / 2 + .5},
+    width = outerWidth - 2 * margin.left,
+    height = outerHeight - 2 * margin.top;
+
+var tree = d3.layout.tree()
+    .size([height, width]);
+
+var p = d3.select("#randomized-depth-first-tree");
+
+var svg = p.append("svg")
+    .attr("width", outerWidth)
+    .attr("height", outerHeight)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+beforeVisible(p.node(), function() {
+  var root = generateTree(cellWidth, cellHeight),
+      nodes = tree.nodes(root),
+      links = tree.links(nodes);
+
+  d3.select("#randomized-depth-first-tree-depth")
+      .text(d3.format(",.0d")(d3.max(nodes, function(d) { return d.depth; })));
+
+  svg.selectAll(".link")
+      .data(links)
+    .enter().append("path")
+      .attr("class", "link")
+      .attr("d", function(d) { return "M" + d.source.y + "," + d.source.x + "L" + d.target.y + "," + d.target.x; });
+});
+
+function generateTree(width, height) {
+  var cells = generateMaze(width, height), // each cell’s edge bits
+      visited = d3.range(width * height).map(function() { return false; }),
+      root = {index: cells.length - 1, children: []},
+      frontier = [root],
+      parent,
+      child,
+      childIndex,
+      cell;
+
+  while ((parent = frontier.pop()) != null) {
+    cell = cells[parent.index];
+    if (cell & E && !visited[childIndex = parent.index + 1]) visited[childIndex] = true, child = {index: childIndex, children: []}, parent.children.push(child), frontier.push(child);
+    if (cell & W && !visited[childIndex = parent.index - 1]) visited[childIndex] = true, child = {index: childIndex, children: []}, parent.children.push(child), frontier.push(child);
+    if (cell & S && !visited[childIndex = parent.index + width]) visited[childIndex] = true, child = {index: childIndex, children: []}, parent.children.push(child), frontier.push(child);
+    if (cell & N && !visited[childIndex = parent.index - width]) visited[childIndex] = true, child = {index: childIndex, children: []}, parent.children.push(child), frontier.push(child);
+  }
+
+  return root;
+}
+
+function generateMaze(width, height) {
+  var cells = new Array(width * height), // each cell’s edge bits
+      frontier = [];
+
+  var start = (height - 1) * width;
+  cells[start] = 0;
+  frontier.push({index: start, direction: N});
+  frontier.push({index: start, direction: E});
+  shuffle(frontier, 0, 2);
+  while (!exploreFrontier());
+  return cells;
+
+  function exploreFrontier() {
+    if ((edge = frontier.pop()) == null) return true;
+
+    var edge,
+        i0 = edge.index,
+        d0 = edge.direction,
+        i1 = i0 + (d0 === N ? -width : d0 === S ? width : d0 === W ? -1 : +1),
+        x0 = i0 % width,
+        y0 = i0 / width | 0,
+        x1,
+        y1,
+        d1,
+        open = cells[i1] == null; // opposite not yet part of the maze
+
+    if (d0 === N) x1 = x0, y1 = y0 - 1, d1 = S;
+    else if (d0 === S) x1 = x0, y1 = y0 + 1, d1 = N;
+    else if (d0 === W) x1 = x0 - 1, y1 = y0, d1 = E;
+    else x1 = x0 + 1, y1 = y0, d1 = W;
+
+    if (open) {
+      cells[i0] |= d0, cells[i1] |= d1;
+
+      var m = 0;
+      if (y1 > 0 && cells[i1 - width] == null) frontier.push({index: i1, direction: N}), ++m;
+      if (y1 < height - 1 && cells[i1 + width] == null) frontier.push({index: i1, direction: S}), ++m;
+      if (x1 > 0 && cells[i1 - 1] == null) frontier.push({index: i1, direction: W}), ++m;
+      if (x1 < width - 1 && cells[i1 + 1] == null) frontier.push({index: i1, direction: E}), ++m;
+      shuffle(frontier, frontier.length - m, frontier.length);
+    }
+  }
+
+  function shuffle(array, i0, i1) {
+    var m = i1 - i0, t, i, j;
+    while (m) {
+      i = Math.random() * m-- | 0;
+      t = array[m + i0], array[m + i0] = array[i + i0], array[i + i0] = t;
+    }
+    return array;
+  }
+}
+
+})()</script>
+
+<aside><a href="http://bl.ocks.org/mbostock/c11d97ee1415d3ac4176">Randomized depth-first traversal</a></aside>
+
+<p>Both trees have the same number of nodes (3,239) and are scaled to fit in the same area (960×500 pixels). This hides an important difference: at this size, randomized depth-first traversal typically produces a tree two-to-five times deeper than Wilson’s algorithm. The tree depths above are <span id="wilsons-tree-depth">_</span> and <span id="randomized-depth-first-tree-depth">_</span>, respectively. In the larger 480,000-node mazes used for color flooding, randomized depth-first traversal produces a tree that is 10-20 times deeper!
+
+<h2><a href="#vision" name="vision">#</a>Using Vision to Think</h2>
+
+<p>This essay has focused on algorithms. Yet the techniques discussed here apply to a broader space of problems: mathematical formulas, dynamical systems, processes, <i>etc.</i> Basically, anywhere there is code that needs understanding.
+
+<p><a href="http://shancarter.com/">Shan Carter</a>, <a href="https://twitter.com/archietse">Archie Tse</a> and I recently built a new <a href="http://www.nytimes.com/interactive/2014/upshot/buy-rent-calculator.html">rent <i>vs.</i> buy calculator</a>; powering the calculator is a couple hundred lines of code to compute the total cost of renting or buying a home. It’s a simplistic model, but more complicated than fits in your head. The calculator takes about twenty input parameters (such as purchase price and mortgage rate) and considers opportunity costs on investments, inflation, marginal tax rates, and a variety of other factors.
+
+<p>The goal of the calculator is to help you decide whether you should buy or rent a home. If the total cost of buying is cheaper, you should buy. Otherwise, you should rent.
+
+<p>Except, it’s not that simple.
+
+<p>To output an accurate answer, the calculator needs accurate inputs. While some inputs are well-known (such as the length of your mortgage), others are difficult or impossible to predict. No one can say exactly how the stock market will perform, how much a <i>specific</i> home will appreciate or depreciate, or how the renting market will change over time.
+
+<a href="http://www.nytimes.com/interactive/2014/upshot/buy-rent-calculator.html" style="display:inline-block;position:relative;left:240px;float:right;text-align:right;font-family:'PT Sans',sans-serif;font-size:small;margin:20px 0 20px -220px;"><img src="buy-vs-rent.gif" style="border:solid 1px #ccc;background:#fff;padding:10px 10px 0 10px;width:375px;height:300px;"><br>Is It Better to Buy or Rent?</a>
+
+<p>We can make educated guesses at each variable — for example, looking at <a href="http://www.nytimes.com/interactive/2014/01/23/business/case-shiller-slider.html">Case–Shiller data</a>. But if the calculator is a black box, then readers can’t see how sensitive their answer is to small changes.
+
+<p>To fix this, we need to do more than output a single number. We need to show <i>how the underlying system works</i>. The new calculator therefore charts every variable and lets you quickly explore any variable’s effect by adjusting the associated slider.
+
+<p>The slope of the chart shows the associated variable’s importance: the greater the slope, the more the decision depends on that variable. Since variables interact with each other, changing a variable may change the slope of other charts.
+
+<p>This design lets you inspect many aspects of the system. For example, should you make a large down payment? Yes, if the down payment rate slopes down; or no, if the down payment rate slopes up, as with a higher investment return rate. This suggests that the optimal loan size depends on the difference between the opportunity cost on the down payment (money not invested) and the interest cost on the mortgage.
+
+<p>So, why visualize algorithms? Why visualize anything? To leverage the human visual system to improve understanding. Or more simply, to <a href="http://books.google.com/books/about/Readings_in_Information_Visualization.html?id=wdh2gqWfQmgC">use vision to think</a>.
+
+<h2><a href="#related-work" name="related-work">#</a>Related Work</h2>
+
+<p>I mentioned <a href="http://corte.si/">Aldo Cortesi</a>’s <a href="http://sortvis.org/visualisations.html">sorting visualizations</a> earlier. (I also like Cortesi’s visualizations of <a href="http://corte.si/posts/visualisation/malware/index.html">malware entropy</a>.) Others abound, including: <a href="http://sorting.at/">sorting.at</a>, <a href="http://www.sorting-algorithms.com/">sorting-algorithms.com</a>, and Aaron Dufour’s <a href="http://www.aarondufour.com/">Sorting Visualizer</a>, which lets you plug in your own algorithm. YouTube user andrut’s <a href="http://www.youtube.com/watch?v=t8g-iYGHpEA">audibilizations</a> are interesting. Robert Sedgwick has published several new editions of <i>Algorithms</i> since I took his class, and his <a href="http://algs4.cs.princeton.edu/23quicksort/">latest</a> uses traditional bars rather than angled lines.
+
+<p><a href="http://www.redblobgames.com/">Amit Patel</a> explores “visual and interactive ways of explaining math and computer algorithms.” The articles on <a href="http://www.redblobgames.com/articles/visibility/">2D visibility</a>, <a href="http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/">polygonal map generation</a> and <a href="http://www.redblobgames.com/pathfinding/tower-defense/">pathfinding</a> are particularly great. Nicky Case published another lovely explanation of <a href="http://ncase.me/sight-and-light/">2D visibility and shadow effects</a>. I am heavily-indebted to Jamis Buck for his curation of <a href="http://weblog.jamisbuck.org/2011/2/7/maze-generation-algorithm-recap">maze generation algorithms</a>. Christopher Wellons’ <a href="http://nullprogram.com/blog/2014/06/22/">GPU-based path finding implementation</a> uses <a href="https://en.wikipedia.org/wiki/Cellular_automaton">cellular automata</a> — another <a href="https://www.youtube.com/watch?v=KJe9H6qS82I">fascinating</a> <a href="https://pmneila.github.io/jsexp/grayscott/">subject</a>. David Mimno gave a talk on <a href="https://www.youtube.com/watch?v=-0Pe30Zz3a0">visualization for models and algorithms</a> at OpenVis 2014 that was an inspiration for this work. And like many, I have long been inspired by Bret Victor, especially <a href="http://vimeo.com/36579366">Inventing on Principle</a> and <a href="http://worrydream.com/LadderOfAbstraction/">Up and Down the Ladder of Abstraction</a>.
+
+<p><a href="http://www.jasondavies.com/">Jason Davies</a> has made numerous illustrations of mathematical concepts and algorithms. Some of my favorites are: <a href="http://www.jasondavies.com/lloyd/">Lloyd’s Relaxation</a>, <a href="http://www.jasondavies.com/bubbles/">Coalescing Soap Bubbles</a>, <a href="http://www.jasondavies.com/bml/">Biham-Middleton-Levine Traffic Model</a>, <a href="http://www.jasondavies.com/collatz-graph/">Collatz Graph</a>, <a href="http://www.jasondavies.com/maps/random-points/">Random Points on a Sphere</a>, <a href="http://www.jasondavies.com/bloomfilter/">Bloom Filters</a>, <a href="http://www.jasondavies.com/animated-bezier/">Animated Bézier Curves</a>, <a href="http://www.jasondavies.com/animated-trig/">Animated Trigonometry</a>, <a href="http://www.jasondavies.com/pythagoras-proof/">Proof of Pythagoras’ Theorem</a>, and <a href="http://www.jasondavies.com/morley-triangle/">Morley’s Trisector Theorem</a>. Pierre Guilleminot’s <a href="http://bl.ocks.org/jinroh/7524988">Fourier series</a> explanation is great, as are Lucas V. Barbosa’s <a href="http://en.wikipedia.org/wiki/File:Fourier_transform_time_and_frequency_domains.gif">Fourier transform time and frequency domains</a> and an explanation of <a href="http://vudlab.com/simpsons/">Simpson’s paradox</a> by Lewis Lehe & Victor Powell; also see Powell’s animations of the <a href="http://blog.vctr.me/posts/central-limit-theorem.html">central limit theorem</a> and <a href="http://setosa.io/conditional/">conditional probabilities</a>. <a href="http://acko.net/">Steven Wittens</a> makes mind-expanding visualizations of mathematical concepts in three dimensions, such as <a href="http://acko.net/blog/how-to-fold-a-julia-fractal/">Julia fractals</a>.
+
+<p>In my own work, I’ve used visualization to explain <a href="../topology/">topology inference</a> (including a <a href="../topology/debugger.html">visual debugger</a>), <a href="../selection/">D3’s selections</a> and the <a href="../shuffle/">Fisher–Yates shuffle</a>. There are more standalone visualizations on my <a href="http://bl.ocks.org/mbostock">bl.ocks</a>. If you have suggestions for interesting visualizations, or any other feedback, please contact me <a href="https://twitter.com/mbostock">on Twitter</a>.
+
+<p>Thank you for reading!
+
+<footer>
+  <aside>June 26, 2014</aside>
+  <a href="../" rel="author">Mike Bostock</a>
+</footer>
+
+<script>
+
+GoogleAnalyticsObject = "ga", ga = function() { ga.q.push(arguments); }, ga.q = [], ga.l = +new Date;
+ga("create", "UA-48272912-3", "ocks.org");
+ga("send", "pageview");
+
+</script>
+<script async src="../highlight.min.js"></script>
+<script async src="//www.google-analytics.com/analytics.js"></script>

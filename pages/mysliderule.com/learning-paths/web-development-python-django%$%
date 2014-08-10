@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<!-- Stylesheets -->
+	<!-- build:css(.) /css/final.css -->
+	<link href="/css/normalize.css" media="screen, projection"  rel="stylesheet" type="text/css" />
+	<link href="/css/screen.css" media="screen, projection" rel="stylesheet" type="text/css" />
+	<!-- endbuild -->
+	<!-- google fonts -->
+
+
+	<link href='http://fonts.googleapis.com/css?family=Karla:400,400italic,700,700italic' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,400italic,600italic' rel='stylesheet' type='text/css'>
+
+	<!--[if IE]>
+	    <link href="css/ie.css" media="screen, projection" rel="stylesheet" type="text/css" />
+	<![endif]-->
+
+	  <!-- Scripts -->
+	<!--[if lt IE 9]>
+		<script src="js/libs/html5shiv.js"></script>
+	<![endif]-->
+	<!--<script src="/js/libs/jquery2.1.0.min.js"></script>-->
+	<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+	<script src="/js/libs/modernizr.js"></script>
+	<script src="/js/libs/history.js"></script>
+	<script src="/js/libs/mustache.js"></script>
+	<script src="/js/libs/jquery.raty.min.js"></script>
+	<script src="/js/libs/jquery.url.js"></script>
+	<script src="/js/libs/modal.js"></script>
+
+    <title>Web Development With Python &amp; Django | SlideRule</title>
+    <meta name="description" content="Learn Web Development With Python. A detailed overview of front-end and back-end technologies, as well as essential developer tools for troubleshooting, performance optimization and collaboration."></title>
+
+
+    <SCRIPT TYPE="text/javascript">
+
+	    var name = "";
+	    var username = "";
+	    var is_social = "";
+	    var image="";
+	    var header_user_id=0;
+	    var csrftoken_api="";
+				$(document).ready(function(){
+
+					$.get('/learned/token/',{ "_": $.now() }, function(data) {
+						csrftoken_api=data.token;
+						$('input[name="csrfmiddlewaretoken"]').val(csrftoken_api);
+					})
+					$.get('/learned/user/',{ "_": $.now() }, function(data) {
+
+						  if(data.code==500) {
+						  	//$('.non_login_state').remove();
+						  	$(document).trigger('login-check-completed');
+						  }
+						  else {
+						  	$('.non_login_state').remove();
+						  	name = data.firstname;
+						  	username = data.username;
+						  	is_social = data.social;
+						  	header_user_id = data.id;
+
+						  	$('.user-id-'+data.id).show();
+						  	if($('.user-id-'+data.id).length){
+						  		$('.write_review_action').html('<i class="sricon-write"></i> Edit Review').addClass('edit_review_link').removeAttr('href');
+						  		$('.user-id-'+data.id).closest('.review').before('<a id="edit_link_position"></a>');
+						  	}
+						  	var userData = {
+						  		user_name : data.firstname,
+						  		pic_url :data.picture,
+						  	}
+							/*$('.user-id-'+header_user_id).show();
+						  	if (data.picture != "") {
+						  		image=window.location.origin+"/"+data.picture;
+						  	};*/
+
+						  	var template = $('#template_user_info').html();
+							var html_block = Mustache.to_html(template, userData);
+						  	$('#secondary_nav_list').append(html_block);
+						  	$(document).trigger('login-check-completed');
+						  	//hide user name on mobile
+						  	$(document).trigger('check_mobile_login');
+						  	
+						  }
+					});
+				});
+	</SCRIPT>
+
+
+<!-- Googe Analytics Tracking Code -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43924544-1', 'mysliderule.com');
+  ga('send', 'pageview');
+
+</script>
+<!-- Googe Analytics Tracking Code -->
+
+
+
+</head>
+<body>
+	<script type="text/javascript">
+		(function(window,undefined){
+		    // Bind to StateChange Event
+		    History.Adapter.bind(window,'statechange',function(){ // Note: We are using statechange instead of popstate
+		        var State = History.getState(); // Note: We are using History.getState() instead of event.state
+			});
+		    // Change our States
+		})(window);
+	</script>
+
+	<div class="bg"></div>
+		<header role="banner">
+			<div class="container" style="background: #fff;">
+				<div class="nav_containers">
+					<a href="/" class="logo">SlideRule</a>
+					<nav class="primary">
+							<ul>
+							<li class="">
+								<div class="top_search_container">
+									<div class="">
+										<form name="input" action="/search" method="post" >
+											<input type="search" name="keyword" value="" placeholder="search for courses" autocomplete="off" id="navbar_search_box"/>
+											<button class="btn simple" style="outline:none;"><i class="sricon-magnifier"></i></button>
+											<input id="tokeninsert" type="hidden" name="csrfmiddlewaretoken"
+											value="qg8QGUWq9vRnlSfHbGRCWwiSWfWwFtsI" />
+										</form>
+									</div>
+								</div>
+							</li>
+						</ul>
+
+						<!-- <ul>
+							<li class="">
+								<div class="top_search_container">
+									<div class="">
+										<form name="input" action="/search" method="post" >
+											<input type="search" name="keyword" value="" placeholder="Find online courses, e.g. Python, ..." autocomplete="off" id="navbar_search_box"/>
+											<button class="btn simple" style="outline:none;"><i class="sricon-magnifier"></i></button>
+											<input id="tokeninsert" type="hidden" name="csrfmiddlewaretoken"
+											value="qg8QGUWq9vRnlSfHbGRCWwiSWfWwFtsI" />
+										</form>
+									</div>
+								</div>
+							</li>
+						</ul> -->
+					</nav>
+					<nav class="secondary">
+						<ul id="secondary_nav_list">
+						<!--	<li><span class="label">Courses</span></li> -->
+							<li class="nav_item">
+								<a class="nav_link top_header_drop" href="#" id="available_subjects" data-toggle="dropdown">Subjects
+									<span class="arrow"></span>
+								</a>
+								<div aria-labelledby="available_subjects" class="dropdown">
+									<div class="container multi_cols">
+										<ul id="h-subj-col1" class="h-sortedlist"></ul>
+        								<ul id="h-subj-col2" class="h-sortedlist"></ul>
+        								<ul id="h-subj-col3" class="h-sortedlist"></ul>
+        								<ul id="h-subj-col4" class="h-sortedlist"></ul>
+									</div>
+								</div>
+							</li>
+							<li class="nav_item">
+								<a class="nav_link top_header_drop" id="available_providers" data-toggle="dropdown" href="#">Providers
+									<span class="arrow"></span>
+								</a>
+								<div id="" aria-labelledby="available_providers" class="dropdown">
+									<div class="container multi_cols">
+										<ul id="h-prov-col1" class="f-sortedlist"></ul>
+							            <ul id="h-prov-col2" class="f-sortedlist"></ul>
+							            <ul id="h-prov-col3" class="f-sortedlist"></ul>
+							            <ul id="h-prov-col4" class="f-sortedlist"></ul>
+									</div>
+								</div>
+							</li>
+							<li class="nav_item">
+								<a class="nav_link top_header_drop" href="#" id="available_subjects" data-toggle="dropdown">Universities
+									<span class="arrow"></span>
+								</a>
+								<div aria-labelledby="available_subjects" class="dropdown">
+									<div class="container multi_cols">
+										<ul id="h-univ-col1" class=""></ul>
+        								<ul id="h-univ-col2" class=""></ul>
+        								<ul id="h-univ-col3" class=""></ul>
+        								<ul id="h-univ-col4" class="university_last_column"></ul>
+									</div>
+								</div>
+							</li>
+							<!-- <li class="nav_item">
+								<a class="nav_link top_header_drop" href="#" id="available_subjects" data-toggle="dropdown">Universities
+									<span class="arrow"></span>
+								</a>
+								<div aria-labelledby="available_subjects" class="dropdown">
+									<div class="container multi_cols">
+										<ul id="h-univ-col1" class=""></ul>
+        								<ul id="h-univ-col2" class=""></ul>
+        								<ul id="h-univ-col3" class=""></ul>
+        								<ul><li>See more university</li></ul>
+									</div>
+								</div>
+							</li> -->
+							<li class="nav_item"><a class="lp nav_link" href="/learning-paths">Learning Paths</a></li>
+							<!-- <li class="nav_item"><a class="blog nav_link" href="http://www.mysliderule.com/blog">Blog</a></li>
+
+
+							<li class="nav_item non_login_state">
+								<a href="#" class="btn nav_link" id="signup_btn" data-target="#sign_in" data-toggle="modal">Sign Up</a>
+							</li> -->
+							<li class="nav_item non_login_state"><a href="#" data-target="#login" id="login_btn" data-toggle="modal" class="login nav_link">LOG IN</a></li>
+						</ul>
+					</nav>
+				</div>
+			</div>
+		</header>
+
+
+
+
+
+<script type="text/javascript">
+	$(function(){
+
+		var csrftoken = getCookie('csrftoken');
+
+		$('input[name="csrfmiddlewaretoken"]').val(csrftoken);
+
+		$('.sign_up_form').attr('action','/learned/accounts/signup/?next='+(encodeURIComponent(window.location.pathname+window.location.search)));
+
+		$('.sign_in_form').attr('action','/learned/accounts/login/?next='+(encodeURIComponent(window.location.pathname+window.location.search)));
+
+		$('.fb_sign_in').attr('href','/learned/accounts/facebook/login/?process=login&next='+(encodeURIComponent(window.location.pathname+window.location.search)));
+
+
+		if(window.mobilecheck()){
+			var path = (encodeURIComponent(window.location.pathname+window.location.search));
+    		//window.location.assign('/signIn-review?next='+path);
+    		$('#login_btn').removeAttr('data-toggle').attr('href', '/signIn?next='+path);
+    		$('#signup_btn').removeAttr('data-toggle').attr('href', '/signUp?next='+path);
+		}
+
+
+	});
+
+
+	function getCookie(name) {
+	    var cookieValue = null;
+	    if (document.cookie && document.cookie != '') {
+	        var cookies = document.cookie.split(';');
+	        for (var i = 0; i < cookies.length; i++) {
+	            var cookie = jQuery.trim(cookies[i]);
+	            // Does this cookie string begin with the name we want?
+	            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+	                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+	                break;
+	            }
+	        }
+	    }
+	    return cookieValue;
+	}
+
+
+	</script>
+
+<div id="template-subjects-available" style="display:none">
+      <li><a href="/Subject/{{subject}}">{{subject}}</a></li>
+</div>
+
+<div id="template-providers-available" style="display:none">
+      <li><a href="/{{provider}}">{{provider}}</a></li>
+</div>
+<div id="template-university-available" style="display:none">
+      <li><a href="/University/{{university}}">{{university}}</a></li>
+</div>
+
+
+<div class="modal fade" id="sign_in" aria-hidden="true" aria-labelledby="signin" role="dialog" tabindex="-1">
+		<div class="modal-dialog">
+			<div class="modal_header">
+				<a href="#" data-dismiss="modal" aria-hidden="true" class="close">&times;</a>
+				<div class="marketing">
+					<h2 id="sign_up_title">Everything you want to learn, online. Sign up to track your learning and save your favorites. </h2>
+				</div>
+			</div>
+			<div class="modal_content">
+				<div class="left_col unit">
+					<div class="social_login">
+
+						<a href="#" class="btn fb fb_sign_in">SIGN UP WITH Facebook</a>
+						<!-- <a href="#" class="btn google">Sign-Up using Google</a>
+						<a href="#" class="btn linkedin">Sign-Up using LinkedIn</a> -->
+						<p>Recommended. We will never post anything without your permission</p>
+					</div>
+
+				</div>
+				<div class="right_col lastunit">
+					<form method="POST" class="stacked sign_up_form" id="" action="/learned/accounts/signup/">
+						<input id="signup_csrf" type='hidden' name='csrfmiddlewaretoken' value='qg8QGUWq9vRnlSfHbGRCWwiSWfWwFtsI' />
+		            	<h5>Sign up with Email</h5>
+						<div class="control">
+		                	<label class="label">Email address</label>
+		                	<input type="text" name="email" placeholder="albert@einstein.com" type="text">
+		                </div>
+		                <div class="control">
+		                	<label class="label">Password</label>
+		                	<input type="password" name="password1" placeholder="Minimum 6 characters" type="password">
+		                </div>
+		                <input id="id_confirmation_key" name="confirmation_key" type="hidden" />
+		                <div class="form_submit block">
+		                    <input type="submit" value="JOIN SLIDERULE" class="btn signup block">
+		                </div>
+		                <div class="control">
+							<p class="help_text">Already a Member? <a data-dismiss="modal" data-target="#login" data-toggle="modal" href="#">Log in</a></p>
+		                </div>
+		            </form>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="login" aria-hidden="true" aria-labelledby="login" role="dialog" tabindex="-1">
+		<div class="modal-dialog">
+			<div class="modal_header">
+				<h3><strong id="dialog_title">Log Into SlideRule</strong></h3>
+				<a href="#" data-dismiss="modal" aria-hidden="true" class="close">&times;</a>
+			</div>
+			<div class="modal_content">
+				<div class="left_col unit">
+		            <div class="social_login">
+		            	<a href="#" class="btn fb fb_sign_in" id="">Login using Facebook</a>
+		            	<!-- <a href="#" class="btn google">Sign-Up using Google</a>
+		            	<a href="#" class="btn linkedin">Sign-Up using LinkedIn</a> -->
+		            </div>
+				</div>
+				<div class="right_col lastunit">
+					<form method="POST" class="stacked signin_form sign_in_form" id="" action="/accounts/login/?">
+						<input id="signin_csrf" type='hidden' name='csrfmiddlewaretoken' value='qg8QGUWq9vRnlSfHbGRCWwiSWfWwFtsI' />
+		            	<h5> Log In with Email </h5>
+						<div class="control">
+		                	<label class="label">Email address</label>
+		                	<input type="text" name="login" placeholder="albert@einstein.com" type="text">
+		                </div>
+		                <div class="control">
+		                	<label class="label">Password</label>
+		                	<input type="password" name="password" placeholder="password" type="password" >
+		                </div>
+		                <div class="control">
+			               	<label for="" class="checkbox login-checkbox">
+			                	<input name="remember" type="checkbox"/>
+								Remember Me
+			                </label>
+			            </div>
+		                <div class="form_submit cf">
+		                    <input type="submit" value="Log in" class="btn signup block">
+							<p class="help_text fright">
+								<a href="/accounts/password/reset/">Forgot Password?</a>
+							</p>
+		                </div>
+		                <div class="control">
+							<p class="help_text">Need an account? <a data-dismiss="modal" data-target="#sign_in" data-toggle="modal" href="#">Sign Up</a></p>
+		                </div>
+		            </form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<script id="template_user_info" type="text/html">
+	<li class="nav_item">
+
+		{{#pic_url}}
+		<a href="/profile" class="avatar"><img src="{{pic_url}}" alt="" width="40px" height="40px">
+		{{/pic_url}}
+		{{^pic_url}}
+		<a href="/profile" class="avatar"><img src="/images/mascot.png" alt="">
+		{{/pic_url}}
+		<span class="name user_name">{{user_name}}</span>
+		</a>
+	</li>
+	<li class="nav_item">
+		<a class="nav_link" href="/learned/accounts/logout/">Sign Out</a>
+	</li>
+</script>
+
+
+<head>
+<link rel="stylesheet" href="/css/screen.css" media="screen, projection"/>
+</head>
+
+
+
+<article class="lp_banner">
+		<div class="container">
+			<img class="banner" src="http://www.mysliderule.com/images/lp/web_development_full.57934ab5.jpg" alt="" />
+			<div class="lp_banner_text size2of6" style="height: 350px;">
+				<header>
+					<h1 class="intro">Web Development using Python &amp; Django</h1>	
+				</header>
+				<div class="lp_deets">
+					<div class="lp_meta">
+						<i class="sricon-files"></i> 20 Resources
+					</div>
+					<div class="lp_meta">
+						<i class="sricon-time"></i> 86+ Hours
+					</div>
+					<div class="clear_float"></div>
+					<a href="/learning-paths/web-development-python-django/learn/" class="btn large learning_path_btn">START LEARNING NOW</a>
+				</div>
+			</div>
+		</div>
+	</article>
+	<section class="lp_list_item">
+		<div class="container">
+			<div class="lp_intro unit">
+            
+				<h3><strong>Introduction</strong></h3>
+				<p class="medium">The internet cuts across all walks of life. There are, of course, very successful companies like Google, Facebook and Twitter whose products are entirely web-based. But even traditional businesses need a strong web presence -- as Marc Andreessen put it, "software is eating the world". No surprise then that skilled web developers are in great demand!</p>
+            
+            
+            
+            
+            
+				<h3><strong>What will I learn</strong></h3>
+				<p class="medium">This Path has an overview of front-end and back-end technologies, as well as essential developer tools for troubleshooting, performance optimization and collaboration. Specifically, it covers the basics of Web internals, HTML, CSS, Javascript Python, Django, MySQL, Chrome Developer Tools and Git for version control. At the end of this course, you should be able to build a web application from scratch.
+The challenge with learning web development is that it is not one beast, but many! Being a good web developer requires you to understand the many different components of a web application and how they interact with each other. Numerous alternatives for each of the components exist, e.g. you can use any of perl, python, PHP, ruby as the back end language or MySQL, MongoDB, PostgreSQL, NoSQL for databases. The goal of this learning path is not to train you in the best technologies (in fact, what&rsquo;s best is rather subjective depending on the application), but to pick one set that is powerful, yet simple to learn and gives you a flavour of how the various components interact. In each section, I'll try to explain why I chose a particular tool or technology!</p>
+            
+
+            
+				<h3><strong>Who is this for</strong></h3>
+				<p class="medium">This Path is designed for beginners and assumes no prior experience in web programming, but will get you building your own web apps by the end. Each topic has modules to teach you the basics. Feel free to skip or speed parts that you are already familiar with.</p>
+            
+				
+			</div>
+			<div class="size2of6 lastunit">				
+				<div class="author_profile">
+                    
+					<div class="author_details">
+					<span class="author_n"><span class="strong">Author</span></span>
+					<img src="https://graph.facebook.com/619014413/picture" alt="Parul Gupta" width="72px"/>
+					<span class="author_desig"><span class="author_name"><a rel="author" href="https://plus.google.com/+ParulGupta8ue">Parul Gupta</a><br>Founder, SlideRule</span><br>Parul has been building software and doing cool research in a variety of areas like wireless networks, cloud computing and big data analytics for a decade. When she started SlideRule, she taught herself Web-Development using online resources. She’s been named by MIT Technology Review India as a Top Innovator under 35.</span>
+                    </div>
+                    
+				</div>
+			</div>
+			<div class="social_stat">
+				<p></p>
+				<div class="stat upper"><span class="number strong">1,307</span> <span class="light">Learners</span></div>
+				<div class="face_wall">
+					<img src="/images/lp/learners/pic_1.png" alt="" />
+					<img src="/images/lp/learners/pic_2.png" alt="" />
+					<img src="/images/lp/learners/pic_3.png" alt="" />
+					<img src="/images/lp/learners/pic_4.png" alt="" />
+					<img src="/images/lp/learners/pic_5.png" alt="" />
+					<img src="/images/lp/learners/pic_6.png" alt="" />
+					<img src="/images/lp/learners/pic_7.png" alt="" />
+					<img src="/images/lp/learners/pic_8.png" alt="" />
+					<img src="/images/lp/learners/pic_9.png" alt="" />
+					<img src="/images/lp/learners/pic_10.png" alt="" />
+				</div>
+				<p></p>
+				<a href="/learning-paths/web-development-python-django/learn/" class="btn large learning_path_btn">START LEARNING NOW</a>
+			</div>	
+			<div class="clear_float"></div>
+
+		</div>
+		
+	</section>
+	<div class="cta_bar cf">
+		<div class="container">
+			<div class="call_to_action" style="background: url('http://www.mysliderule.com/images/lp/screenshots/learnpath_screenshot.jpg');">
+				<a href="/learning-paths/web-development-python-django/learn/" class="btn center block emer large learning_path_btn">START LEARNING NOW</a>		
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			if(window.location.pathname == "/learning-paths/data-analysis/"){
+				$('.social_stat .upper').hide();
+				$('.social_stat .face_wall').hide();
+			}
+		});
+	</script>
+
+	<!-- <div class="modal fade custom_login_dialog" id="login" aria-hidden="true" aria-labelledby="login" role="dialog" tabindex="-1">
+	    <div class="modal-dialog">
+	        <div class="modal_header">
+	            <h3><strong>Sign In to access Learning Path</strong></h3>
+	            <a href="#" data-dismiss="modal" aria-hidden="true" class="close">&times;</a>
+	        </div>
+	        <div class="modal_content">
+	            <div class="left_col unit">
+	                <form method="POST" class="stacked signin_form" id="" action="/learned/accounts/login/?next=%2F/learning-paths%2Fweb-development-python-django%2Flearn%2F">
+	                    <input id="signin_csrf" type='hidden' name='csrfmiddlewaretoken' value='3vOOGdU9UXlNOO7q92pqlRYd7801kONH' />
+	                    <h5>Login with Email</h5>
+	                    <div class="control">
+	                        <label class="label">Email address</label>
+	                        <input type="text" name="login" placeholder="albert@einstein.com" type="text">
+	                    </div>
+	                    <div class="control">
+	                        <label class="label">Password</label>
+	                        <input type="password" name="password" placeholder="password" type="password" >
+	                    </div>
+	                    <div class="control">
+	                        <label for="" class="checkbox">
+	                            <input name="remember" type="checkbox"/>
+	                            Remember Me
+	                        </label>
+	                    </div>
+	                    <div class="form_submit cf">
+	                        <input type="submit" value="Log in" class="btn signup block">
+	                        <p class="help_text fright">
+	                            <a href="/accounts/password/reset/">Forgot Password?</a>
+	                        </p>
+	                    </div>
+	                    <div class="control">
+	                        <p class="help_text">Need an account? <a data-dismiss="modal" data-target="#sign_in" data-toggle="modal" href="#">Sign Up</a></p>
+	                    </div>
+	                </form>
+	                
+	            </div>
+	            <div class="right_col lastunit">
+	                <div class="social_login">
+	                    <h5>Quick Sign-In with Social Network</h5>
+	                    <a href="/learned/accounts/facebook/login/?process=login&amp;next=%2Flearning-paths%2F%2Flearn%2F" class="btn fb" id="">Sign-In using Facebook</a>
+	                </div>
+	            </div>
+	        </div>
+	    </div>  
+	</div>
+
+	<script type="text/javascript">
+
+		$(document).on('login-check-completed',function(){
+			if(window.mobilecheck()){
+				$('.learning_path_btn').attr('href', '/learning-paths/web-development-python-django/learn/');
+			}else{
+				if(!name){
+					$('.learning_path_btn').click(function(event) {
+						/* Act on the event */
+						event.preventDefault();
+						$(".custom_login_dialog").modal();
+					});
+				}else{
+					$('.learning_path_btn').attr('href', '/learning-paths//learn/');
+				}
+			}
+
+		})
+
+	</script> -->
+
+
+
+
+
+
+	<footer role="contentinfo">
+			<nav>
+				<div class="container">
+					<ul class="horizontal">
+						<li><a href="/about">About</a></li>
+						<li><a href="http://www.mysliderule.com/blog">Blog</a></li>
+						<li><a href="/contact">Contact</a></li>
+						<li><a href="/suggest">Suggest Courses</a></li>
+						<li><a href="/privacy">Privacy Policy</a></li>
+						<li><a href="/terms">Terms Of Service</a></li>
+					</ul>
+					<div class="social_network">
+						<a href="https://www.facebook.com/pages/Slide-Rule/147834515407652" class="fb" target="_blank" >Facebook</a>
+						<a href="https://twitter.com/mysliderule" class="tweet" target="_blank" >Twitter</a>
+						<a href="https://plus.google.com/+Mysliderule" class="google" target="_blank" >G+</a>
+					</div>
+				</div>
+			</nav>
+			<div class="container">
+				<div class="course_list multi_cols">
+					<h4>Subjects</h4>
+					<ul id="f-subj-col1" class="f-sortedlist"></ul>
+		            <ul id="f-subj-col2" class="f-sortedlist"></ul>
+		            <ul id="f-subj-col3" class="f-sortedlist"></ul>
+		            <ul id="f-subj-col4" class="f-sortedlist"></ul>
+				</div>
+				<div class="provider_list multi_cols">
+					<h4>Providers</h4>
+					<ul id="f-prov-col1" class="f-sortedlist"></ul>
+		            <ul id="f-prov-col2" class="f-sortedlist"></ul>
+		            <ul id="f-prov-col3" class="f-sortedlist"></ul>
+		            <ul id="f-prov-col4" class="f-sortedlist"></ul>
+				</div>
+			</div>
+			
+			
+	</footer>
+
+
+
+
+	<script type="text/javascript">
+
+
+	//$.fn.raty.defaults.readOnly = true;
+		$('.star').raty({
+		  readOnly: true,
+		  cancel   : false,
+		  width    :114,
+		  cancelOff: '/js/img/cancel-off.png',
+		  cancelOn : '/js/img/cancel-on.png',
+		  half     : false,
+		  size     : 12,
+		  starHalf : '/js/img/star-half.png',
+		  starOff  : '/js/img/star-off.png',
+		  starOn   : '/js/img/star-on.png',
+		  number: function() {
+		    return $(this).attr('data-number');
+		  }
+		});
+	</script>
+
+	<!-- build:js(.) /js/final.js -->
+    	<script src="/js/main.js"></script>
+    <!-- endbuild -->
+
+<!-- Kissmetrics tracking code -->
+<script type="text/javascript">var _kmq = _kmq || [];
+// var _kmk = _kmk || '17d184f0ee0501862076dd9c21692be7b7b9f25a';
+// function _kms(u){
+//   setTimeout(function(){
+//     var d = document, f = d.getElementsByTagName('script')[0],
+//     s = d.createElement('script');
+//     s.type = 'text/javascript'; s.async = true; s.src = u;
+//     f.parentNode.insertBefore(s, f);
+//   }, 1);
+// }
+// _kms('//i.kissmetrics.com/i.js');
+// _kms('//doug1izaerwt3.cloudfront.net/' + _kmk + '.1.js');
+</script>
+
+<!-- Crazyegg tracking code -->
+<script type="text/javascript">
+setTimeout(function(){var a=document.createElement("script");
+var b=document.getElementsByTagName("script")[0];
+a.src=document.location.protocol+"//dnn506yrbagrg.cloudfront.net/pages/scripts/0018/6590.js?"+Math.floor(new Date().getTime()/3600000);
+a.async=true;a.type="text/javascript";b.parentNode.insertBefore(a,b)}, 1);
+</script>
+<!--WEB ENGAGE PLUGIN SCRIPT-->
+<!--
+<script id="_webengage_script_tag" type="text/javascript">
+  var _weq = _weq || {};
+  _weq['webengage.licenseCode'] = '14507c8b0';
+  _weq['webengage.widgetVersion'] = "4.0";
+
+  (function(d){
+    var _we = d.createElement('script');
+    _we.type = 'text/javascript';
+    _we.async = true;
+    _we.src = (d.location.protocol == 'https:' ? "//ssl.widgets.webengage.com" : "//cdn.widgets.webengage.com") +
+              "/js/widget/webengage-min-v-3.0.js";
+    var _sNode = d.getElementById('_webengage_script_tag');
+    _sNode.parentNode.insertBefore(_we, _sNode);
+  })(document);
+</script>-->
+<script type="text/javascript">
+  
+    $(document).ready(function () {
+     
+        //load the default subjects in nav
+        fetchJSON('/learned/courses/homepage_info', api_course_data);
+
+        function api_course_data(data) {
+         	data.universities.push({ university: "university" });
+			var subjTemplate = $('#template-subjects-available').html();
+			var provTemplate = $('#template-providers-available').html();
+			var univTemplate = $('#template-university-available').html();
+			
+			createNavigationList(data.subjects,subjTemplate,"#h-subj-col",4);
+			createNavigationList(data.providers,provTemplate,"#h-prov-col",4);
+			createNavigationList(data.subjects,subjTemplate,"#f-subj-col",4);
+			createNavigationList(data.providers,provTemplate,"#f-prov-col",4);
+			createNavigationList(data.universities,univTemplate,"#h-univ-col",4);
+
+			$('.university_last_column li:last a')
+				.html('Show All Universities')
+				.attr({
+					id: 'show_all_university_link',
+					href: '/University'
+				});
+			
+			$('#total_no_courses').text(data.num_courses);
+
+			
+        }
+
+        function generatePattern(column ,totalitems){
+        	
+        	var min_items = Math.ceil(totalitems/column);
+        	var rem = (min_items*column) - totalitems;
+        	var pattern = new Array();
+        	
+        	for(var i = column-1; i >= 0; i--){
+        		pattern[i] = min_items;
+        		if(rem !== 0){
+        			pattern[i] = min_items - rem;
+        			rem = 0;
+        		}
+        	}
+        	return pattern;
+        }
+        function createNavigationList(data,template,htmlRefrence,column){
+        	var total = data.length;
+        	var html = "";
+        	var j = 0 ;
+        	var k = 1 ;
+        	var pattern = generatePattern(column ,total);
+        	var l = pattern[0]-1;
+        	for(var i=0; i<total; i++){
+        		 html += Mustache.to_html(template, data[i]);
+        		 if(i == l){
+        		 	$(htmlRefrence+k).prepend(html);
+        		 	j++;
+        		 	k++;
+        		 	l += pattern[j];
+        		 	html = "";
+        		 }
+        	}
+        }
+
+    });
+</script>
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	$('body').click(function(event) {
+		/* Act on the event */
+		
+		$(".nav_item").removeClass('open');
+	});
+	
+	$('.top_header_drop').on('click',function(event){
+	
+		event.stopPropagation();
+		var self = $(this);
+		var parent = self.closest('.nav_item');
+		$(".top_filters .filter").removeClass('open');
+		if (self.hasClass('nav_link')){
+			event.preventDefault();
+		}
+		if(parent.hasClass('open')){
+			parent.removeClass('open');
+		}else{
+			$('.nav_item').removeClass('open');
+			parent.addClass('open');
+		}
+	});
+});
+
+</script>
+</body>
+</html>
+
+
+

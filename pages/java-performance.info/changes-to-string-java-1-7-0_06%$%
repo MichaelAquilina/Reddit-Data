@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<!--[if IE 7]>
+<html class="ie ie7" lang="en-US" prefix="og: http://ogp.me/ns#">
+<![endif]-->
+<!--[if IE 8]>
+<html class="ie ie8" lang="en-US" prefix="og: http://ogp.me/ns#">
+<![endif]-->
+<!--[if !(IE 7) | !(IE 8)  ]><!-->
+<html lang="en-US" prefix="og: http://ogp.me/ns#">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>Changes to String in Java 7u6 - Java Performance Tuning Guide</title>
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="pingback" href="http://java-performance.info/xmlrpc.php" />
+<!--[if lt IE 9]>
+<script src="http://d1k2jhzcfaebet.cloudfront.net/wp-content/themes/twentytwelve/js/html5.js" type="text/javascript"></script>
+<![endif]-->
+
+<!-- This site is optimized with the Yoast WordPress SEO plugin v1.5.3.3 - https://yoast.com/wordpress/plugins/seo/ -->
+<meta name="description" content="String has a different set of fields since Java 7u6: it now consumes 8 bytes less than before, but its substring method now runs in linear time."/>
+<link rel="canonical" href="http://java-performance.info/changes-to-string-java-1-7-0_06/" />
+<link rel="author" href="https://plus.google.com/112202724001660929418/"/>
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Changes to String in Java 7u6 - Java Performance Tuning Guide" />
+<meta property="og:description" content="String has a different set of fields since Java 7u6: it now consumes 8 bytes less than before, but its substring method now runs in linear time." />
+<meta property="og:url" content="http://java-performance.info/changes-to-string-java-1-7-0_06/" />
+<meta property="og:site_name" content="Java Performance Tuning Guide" />
+<meta property="article:tag" content="cpu optimization" />
+<meta property="article:tag" content="hashcode" />
+<meta property="article:tag" content="memory optimization" />
+<meta property="article:tag" content="string" />
+<meta property="article:tag" content="substring" />
+<meta property="article:section" content="Advanced" />
+<meta property="article:section" content="CPU optimization" />
+<meta property="article:section" content="Memory optimization" />
+<meta property="article:published_time" content="2012-12-09T15:52:20+00:00" />
+<meta property="article:modified_time" content="2014-01-09T22:35:18+00:00" />
+<meta property="og:updated_time" content="2014-01-09T22:35:18+00:00" />
+<!-- / Yoast WordPress SEO plugin. -->
+
+<link rel="alternate" type="application/rss+xml" title="Java Performance Tuning Guide &raquo; Feed" href="http://java-performance.info/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Java Performance Tuning Guide &raquo; Comments Feed" href="http://java-performance.info/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Java Performance Tuning Guide &raquo; Changes to String internal representation made in Java 1.7.0_06 Comments Feed" href="http://java-performance.info/changes-to-string-java-1-7-0_06/feed/" />
+<link rel='stylesheet' id='bwp-syntax-css'  href='http://java-performance.info/wp-content/plugins/better-wordpress-syntax-based-on-geshi/css/bwp-syntax.css?ver=3.9.1' type='text/css' media='all' />
+<link rel='stylesheet' id='twentytwelve-fonts-css'  href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700&#038;subset=latin,latin-ext' type='text/css' media='all' />
+<link rel='stylesheet' id='twentytwelve-style-css'  href='http://d1k2jhzcfaebet.cloudfront.net/wp-content/themes/twentytwelve/style.css?ver=3.9.1' type='text/css' media='all' />
+<!--[if lt IE 9]>
+<link rel='stylesheet' id='twentytwelve-ie-css'  href='http://d1k2jhzcfaebet.cloudfront.net/wp-content/themes/twentytwelve/css/ie.css?ver=20121010' type='text/css' media='all' />
+<![endif]-->
+<script type='text/javascript' src='http://d1k2jhzcfaebet.cloudfront.net/wp-includes/js/jquery/jquery.js?ver=1.11.0'></script>
+<script type='text/javascript' src='http://d1k2jhzcfaebet.cloudfront.net/wp-includes/js/jquery/jquery-migrate.min.js?ver=1.2.1'></script>
+<script type='text/javascript' src='http://java-performance.info/wp-content/plugins/better-wordpress-syntax-based-on-geshi/js/bwp-syntax.js?ver=3.9.1'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://java-performance.info/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://java-performance.info/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress 3.9.1" />
+<link rel='shortlink' href='http://java-performance.info/?p=296' />
+<link rel="canonical" href="http://java-performance.info/changes-to-string-java-1-7-0_06/"/>	<style type="text/css" id="twentytwelve-header-css">
+			.site-header h1 a,
+		.site-header h2 {
+			color: #444;
+		}
+		</style>
+	<!-- 
+			Plugin: Super Simple Google Analytics 
+	Plugin URL: Super Simple Google Analytics
+
+
+	-->
+
+<script type="text/javascript">
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-35728696-1']);
+	  _gaq.push(['_trackPageview']);
+	
+	  (function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+	</script></head>
+
+<body class="single single-post postid-296 single-format-standard custom-background custom-font-enabled single-author">
+<div id="page" class="hfeed site">
+	<header id="masthead" class="site-header" role="banner">
+		<hgroup>
+			<h1 class="site-title"><a href="http://java-performance.info/" title="Java Performance Tuning Guide" rel="home">Java Performance Tuning Guide</a></h1>
+			<h2 class="site-description">Java performance tuning guide &#8211; various tips on improving performance of your Java code</h2>
+		</hgroup>
+
+		<nav id="site-navigation" class="main-navigation" role="navigation">
+			<h3 class="menu-toggle">Menu</h3>
+			<a class="assistive-text" href="#content" title="Skip to content">Skip to content</a>
+			<div class="nav-menu"><ul><li ><a href="http://java-performance.info/">Home</a></li></ul></div>
+		</nav><!-- #site-navigation -->
+
+			</header><!-- #masthead -->
+
+	<div id="main" class="wrapper">
+	<div id="primary" class="site-content">
+		<div id="content" role="main">
+
+			
+				
+	<article id="post-296" class="post-296 post type-post status-publish format-standard hentry category-advanced category-cpu-optimization-2 category-memory-optimization-2 tag-cpu-optimization tag-hashcode tag-memory-optimization tag-string tag-substring">
+				<header class="entry-header">
+									<h1 class="entry-title">Changes to String internal representation made in Java 1.7.0_06</h1>
+										<div class="comments-link">
+					<a href="http://java-performance.info/changes-to-string-java-1-7-0_06/#comments" rel="nofollow" title="Comment on Changes to String internal representation made in Java 1.7.0_06">3 Replies</a>				</div><!-- .comments-link -->
+					</header><!-- .entry-header -->
+
+				<div class="entry-content">
+			<p>by <a href="http://java-performance.info/author/Mike/">Mikhail Vorontsov</a></p>
+<p>
+    <strong>This post was updated on 19 Nov 2013 in order to reflect Java 8 changes.</strong>
+</p>
+<p>
+    <strong><br />
+        This post was updated on 28 Nov 2013 in order to reflect Java 7u40 changes (thanks to <a href="https://plus.google.com/u/0/116218963171040401082" rel="nofollow">Sunny Chan</a> and his colleagues for pointing my attention at this JDK update).<br />
+    </strong>
+</p>
+<h2>Sharing an underlying <code>char[]</code></h2>
+<p>
+    An original <code>String</code> implementation has 4 non static field: <code>char[] value</code> with string characters, <code>int offset</code> and <code>int count</code> with an index of the first character to use from <code>value</code> and a number of characters to use and <code>int hash</code> with a cached value of a <code>String</code> hash code. As you can see, in a very large number of cases a <code>String</code> will have <code>offset = 0</code> and <code>count = value.length</code>. The only exception to this rule were the strings created via <code>String.substring</code> calls and all API calls using this method internally (like <code>Pattern.split</code>).
+</p>
+<p>
+    <code>String.substring</code> created a <code>String</code>, which shared an internal <code>char[] value</code> with an original <code>String</code>, which allowed you:
+</p>
+<ol>
+<li>To save some memory by sharing character data</li>
+<li>To run <code>String.substring</code> in a constant time ( O(1) )</li>
+</ol>
+<p>
+    At the same time such feature was a source of a possible memory leak: if you extract a tiny substring from an original huge string and discard that original string, you will still have a live reference to the underlying huge <code>char[] value</code> taken from an original <code>String</code>. The only way to avoid it was to call a <code>new String( String )</code> constructor on such string &#8211; it made a copy of a required section of underlying <code>char[]</code>, thus unlinking your shorter string from its longer &#8220;parent&#8221;.
+</p>
+<p>
+    From Java 1.7.0_06 (as well as in current versions of Java 8 &#8211; Nov 13) <code>offset</code> and <code>count</code> fields were removed from a <code>String</code>. This means that you can&#8217;t share a part of an underlying <code>char[] value</code> anymore. Now you can forget about a memory leak described above and never ever use <code>new String(String)</code> constructor anymore. As a drawback, you now have to remember that <code>String.substring</code> has now a linear complexity instead of a constant one.
+</p>
+<p><span id="more-296"></span><br />
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-3141284854102964";
+/* All pages header 468 */
+google_ad_slot = "7361173531";
+google_ad_width = 468;
+google_ad_height = 60;
+//-->
+</script><br />
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script></p>
+<h2>Changes to hashing logic</h2>
+<p><strong>The rest of this article applies to Java 7u6+ only. This code was removed in Java 8.</strong></p>
+<p>
+    There is another change introduced to <code>String</code> class in the same update: a new hashing algorithm. Oracle suggests that a new algorithm gives a better distribution of hash codes, which should improve performance of several hash-based collections: <code>HashMap</code>, <code>Hashtable</code>, <code>HashSet</code>, <code>LinkedHashMap</code>, <code>LinkedHashSet</code>, <code>WeakHashMap</code> and <code>ConcurrentHashMap</code>. Unlike changes from the first part of this article, these changes are experimental and turned off by default.
+</p>
+<p>
+    As you may guess, these changes are only for <code>String</code> keys. If you want to turn them on, you&#8217;ll have to set a <code>jdk.map.althashing.threshold</code> system property to a non-negative value (it is equal to <code>-1</code> by default). This value will be a collection size threshold, after which a new hashing method will be used. A small remark here: hashing method will be changed on rehashing only (when there is no more free space). So, if a collection was rehashed last time at size = 160 and <code>jdk.map.althashing.threshold = 200</code>, then a method will only be changed when your collection will grow to size of 320 (approximately).
+</p>
+<p>
+    <code>String</code> now has a <code>hash32()</code> method, which result is cached in <code>int hash32</code> field. The biggest difference of this method is that the result of <code>hash32()</code> on the same string may be different on various JVM runs (actually, it will be different in most cases, because it uses a single <code>System.currentTimeMillis()</code> and two <code>System.nanoTime</code> calls for seed initialization). As a result, iteration order on some of your collections will be different each time you run your program.
+</p>
+<p>
+    Actually, I was a little surprised by this method. Why do we need it if an original <code>hashCode</code> method works very good? I decided to try a test program from <a href="http://java-performance.info/hashcode-method-performance-tuning/">hashCode method performance tuning</a> article in order to find out how many duplicate hash codes we will have with a <code>hash32</code> method.
+</p>
+<p>
+    <code>String.hash32()</code> method is not public, so I had to take a look at a <code>HashMap</code> implementation in order to find out how to call this method. The answer is <code>sun.misc.Hashing.stringHash32(String)</code>.
+</p>
+<p>
+    The same test on 1 million distinct keys has shown 304 duplicate hash values, compared to <strong>no</strong> duplicates while using <code>String.hashCode</code>. I think, we need to wait for further improvements or use case descriptions from Oracle.
+</p>
+<h2>New hashing may severely affect highly multithreaded code (Java 7u6 to Java 7u40 (exclusive))</h2>
+<p><strong><br />
+    This section applies to Java 7 versions between build 6 (inclusive) and build 40 (exclusive). This code was removed in Java 8. See the next section for Java 7u40+ information.<br />
+</strong></p>
+<p>
+    Oracle has made a bug in the implementation of hashing in the following classes: <code>HashMap</code>, <code>Hashtable</code>, <code>HashSet</code>, <code>LinkedHashMap</code>, <code>LinkedHashSet</code> and <code>WeakHashMap</code>. Only <code>ConcurrentHashMap</code> is not affected. The problem is that all non-concurrent classes now have the following field:
+</p>
+<blockquote>
+
+<div class="bwp-syntax-block clearfix">
+<div class="bwp-syntax-toolbar"><div class="bwp-syntax-control"><a href="javascript:;" class="bwp-syntax-source-switch" title="View Source Code"></a></div></div>
+<div class="bwp-syntax-wrapper clearfix bwp-syntax-simple"><table class="java"><tbody><tr class="li1"><td class="ln"><pre class="de1">1
+2
+3
+4
+5
+</pre></td><td class="de1"><pre class="de1"><span class="co3">/**</span>
+<span class="co3">&nbsp;* A randomizing value associated with this instance that is applied to</span>
+<span class="co3">&nbsp;* hash code of keys to make hash collisions harder to find.</span>
+<span class="co3">&nbsp;*/</span>
+<span class="kw1">transient</span> <span class="kw1">final</span> <span class="kw4">int</span> hashSeed <span class="sy0">=</span> sun.<span class="me1">misc</span>.<span class="me1">Hashing</span>.<span class="me1">randomHashSeed</span><span class="br0">&#40;</span><span class="kw1">this</span><span class="br0">&#41;</span><span class="sy0">;</span></pre></td></tr></tbody></table></div>
+<div class="bwp-syntax-source"><pre class="no-parse">/**
+ * A randomizing value associated with this instance that is applied to
+ * hash code of keys to make hash collisions harder to find.
+ */
+transient final int hashSeed = sun.misc.Hashing.randomHashSeed(this);</pre></div></div>
+
+</blockquote>
+<p>
+    This means that for every created map/set instance <code>sun.misc.Hashing.randomHashSeed</code> method will be called. <code>randomHashSeed</code>, in turn, calls <code>java.util.Random.nextInt</code> method. <code>Random</code> class is well known for its multithreaded unfriendliness: it contains <code>private final AtomicLong seed</code> field. Atomics behave well under low to medium contention, but work extremely bad under heavy contention.
+</p>
+<p>
+    As a result, many highly loaded web applications processing HTTP/JSON/XML requests may be affected by this bug, because nearly all known parsers use one of the affected classes for &#8220;name-value&#8221; representation. All these format parsers may create nested maps, which further increases the number of maps created per second.
+</p>
+<p>
+    How to solve this problem?
+</p>
+<p>
+    1. <code>ConcurrentHashMap</code> way: call <code>randomHashSeed</code> method only when <code>jdk.map.althashing.threshold</code> system property was defined. Unfortunately, it is available only for JDK core developers.
+</p>
+<blockquote>
+
+<div class="bwp-syntax-block clearfix">
+<div class="bwp-syntax-toolbar"><div class="bwp-syntax-control"><a href="javascript:;" class="bwp-syntax-source-switch" title="View Source Code"></a></div></div>
+<div class="bwp-syntax-wrapper clearfix bwp-syntax-simple"><table class="java"><tbody><tr class="li1"><td class="ln"><pre class="de1">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="de1"><pre class="de1"><span class="co3">/**</span>
+<span class="co3">&nbsp;* A randomizing value associated with this instance that is applied to</span>
+<span class="co3">&nbsp;* hash code of keys to make hash collisions harder to find.</span>
+<span class="co3">&nbsp;*/</span>
+<span class="kw1">private</span> <span class="kw1">transient</span> <span class="kw1">final</span> <span class="kw4">int</span> hashSeed <span class="sy0">=</span> randomHashSeed<span class="br0">&#40;</span><span class="kw1">this</span><span class="br0">&#41;</span><span class="sy0">;</span>
+&nbsp;
+<span class="kw1">private</span> <span class="kw1">static</span> <span class="kw4">int</span> randomHashSeed<span class="br0">&#40;</span>ConcurrentHashMap instance<span class="br0">&#41;</span> <span class="br0">&#123;</span>
+&nbsp; &nbsp; <span class="kw1">if</span> <span class="br0">&#40;</span>sun.<span class="me1">misc</span>.<span class="me1">VM</span>.<span class="me1">isBooted</span><span class="br0">&#40;</span><span class="br0">&#41;</span> <span class="sy0">&amp;&amp;</span> Holder.<span class="me1">ALTERNATIVE_HASHING</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="kw1">return</span> sun.<span class="me1">misc</span>.<span class="me1">Hashing</span>.<span class="me1">randomHashSeed</span><span class="br0">&#40;</span>instance<span class="br0">&#41;</span><span class="sy0">;</span>
+&nbsp; &nbsp; <span class="br0">&#125;</span>
+&nbsp;
+&nbsp; &nbsp; <span class="kw1">return</span> <span class="nu0">0</span><span class="sy0">;</span>
+<span class="br0">&#125;</span></pre></td></tr></tbody></table></div>
+<div class="bwp-syntax-source"><pre class="no-parse">/**
+ * A randomizing value associated with this instance that is applied to
+ * hash code of keys to make hash collisions harder to find.
+ */
+private transient final int hashSeed = randomHashSeed(this);
+
+private static int randomHashSeed(ConcurrentHashMap instance) {
+    if (sun.misc.VM.isBooted() &amp;&amp; Holder.ALTERNATIVE_HASHING) {
+        return sun.misc.Hashing.randomHashSeed(instance);
+    }
+
+    return 0;
+}</pre></div></div>
+
+</blockquote>
+<p>
+    2. Hacker way: fix <code>sun.misc.Hashing</code> class. Highly not recommended. If you still wish to go ahead, here is an idea: <code>java.util.Random</code> class is <strong>not</strong> final. You can use <code>java.util.concurrent.ThreadLocalRandom</code> added to Java 7 &#8211; it is a thread local subclass of <code>Random</code> using <code>ThreadLocal&lt;ThreadLocalRandom&gt;</code> (thanks to <a href="https://plus.google.com/u/0/109148277999114144772/posts" rel="nofollow">Benjamin Possolo</a> for pointing my attention to not mentioning this class in the original article). <a href="http://java-performance.info/java-util-random-java-util-concurrent-threadlocalrandom-multithreaded-environments/">Besides being just thread local, <code>ThreadLocalRandom</code> is CPU cache-aware: it adds 64 byte padding (cache line size) after seed in the every <code>ThreadLocalRandom</code> instance (in order to eliminate chances of 2 different seeds ending up in the single cache line)</a>.
+</p>
+<p>
+    Then you will have to update <code>sun.misc.Hashing.Holder.SEED_MAKER</code> field &#8211; set it to your extended <code>Random</code> class instance. Don&#8217;t worry that this field is private, static and final &#8211; <a href="http://java-performance.info/updating-final-and-static-final-fields/">reflection can help you</a>:
+</p>
+<blockquote>
+
+<div class="bwp-syntax-block clearfix">
+<div class="bwp-syntax-toolbar"><div class="bwp-syntax-control"><a href="javascript:;" class="bwp-syntax-source-switch" title="View Source Code"></a></div></div>
+<div class="bwp-syntax-wrapper clearfix bwp-syntax-simple"><table class="java"><tbody><tr class="li1"><td class="ln"><pre class="de1">1
+2
+3
+</pre></td><td class="de1"><pre class="de1"><span class="kw1">public</span> <span class="kw1">class</span> Hashing <span class="br0">&#123;</span>
+&nbsp; &nbsp; <span class="kw1">private</span> <span class="kw1">static</span> <span class="kw1">class</span> Holder <span class="br0">&#123;</span>
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="kw1">static</span> <span class="kw1">final</span> java.<span class="me1">util</span>.<span class="kw3">Random</span> SEED_MAKER<span class="sy0">;</span></pre></td></tr></tbody></table></div>
+<div class="bwp-syntax-source"><pre class="no-parse">public class Hashing {
+    private static class Holder {
+        static final java.util.Random SEED_MAKER;</pre></div></div>
+
+</blockquote>
+<h2>New hashing does not affect highly multithreaded code performance anymore &#8211; Java 7u40+</h2>
+<p>
+    Oracle has fixed the above mentioned problem in Java 7 update 40. Take a look at <a href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=8006593" rel="nofollow">this Java bug</a> for more information.
+</p>
+<p>
+    They have used way 1 from the previous section &#8211; calling <code>sun.misc.Hashing.randomHashSeed(this)</code> only if alternative hashing is turned on. Oracle fixed just 2 classes: <code>HashMap</code> and <code>Hashtable</code>, but it has indirectly fixed <code>HashSet</code>, <code>LinkedHashMap</code> and <code>LinkedHashSet</code>, because these 3 classes are built on top of <code>HashMap</code>. The only not fixed class is <code>WeakHashMap</code>, but I can not imagine a use case for actively creating instances of this class.
+</p>
+<h2>See also</h2>
+<p>
+    This article has caused a large discussion on Reddit recently. I would like to advice readers of this article to take a look at reddit user <a href="http://www.reddit.com/user/bondolo" rel="nofollow">bondolo</a> <a href="http://www.reddit.com/r/programming/comments/1qw73v/til_oracle_changed_the_internal_string/cdhb77f" rel="nofollow">comment regarding the reasons behind these changes</a>.
+</p>
+<p>
+    <a href="http://java-performance.info/string-intern-in-java-6-7-8/">String.intern in Java 6, 7 and 8 &#8211; string pooling</a>
+</p>
+<h2>Summary</h2>
+<ul>
+<li>
+        From Java 1.7.0_06 <code>String.substring</code> always creates a new underlying <code>char[] value</code> for every <code>String</code> it creates. This means that this method now has a linear complexity compared to previous constant complexity. The advantage of this change is a slightly smaller memory footprint of a <code>String</code> (8 bytes less than before) and a guarantee to avoid memory leaks caused by <code>String.substring</code> (see <a href="http://java-performance.info/string-packing-converting-characters-to-bytes/">String packing part 1: converting characters to bytes</a> for more details on Java object memory layout).
+    </li>
+<li>
+        <strong>Java 7u6+ functionality. Removed in Java 8.</strong> Starting from the same Java update, <code>String</code> class got a second hashing method called <code>hash32</code>. This method is currently not public and could be accessed without reflection only via <code>sun.misc.Hashing.stringHash32(String)</code> call. This method is used by 7 JDK hash-based collections if their size will exceed <code>jdk.map.althashing.threshold</code> system property. This is an experimental function and currently I don&#8217;t recommend using it in your code.
+    </li>
+<li>
+        <strong>Java 7u6 (inclusive) to Java 7u40 (exclusive) functionality. Not applicable to Java 8.</strong> All standard JDK non-concurrent maps and sets in all Java versions between Java 7u6 (inclusive) and Java 7u40 (exclusive) are affected by a performance bug caused by new hashing implementation. This bug affects only multithreaded applications creating heaps of maps per second. See this article for more details. <strong>This problem was fixed in Java 7u40.</strong>
+    </li>
+</ul>
+<div class="googlePlusOneButton"><g:plusone href="http://java-performance.info/changes-to-string-java-1-7-0_06/" size="standard"     ></g:plusone></div><br />					</div><!-- .entry-content -->
+		
+		<footer class="entry-meta">
+			This entry was posted in <a href="http://java-performance.info/category/advanced/" title="View all posts in Advanced"  rel="nofollow">Advanced</a>, <a href="http://java-performance.info/category/cpu-optimization-2/" title="View all posts in CPU optimization"  rel="nofollow">CPU optimization</a>, <a href="http://java-performance.info/category/memory-optimization-2/" title="View all posts in Memory optimization"  rel="nofollow">Memory optimization</a> and tagged <a href="http://java-performance.info/tag/cpu-optimization/" rel="tag nofollow">cpu optimization</a>, <a href="http://java-performance.info/tag/hashcode/" rel="tag nofollow">hashcode</a>, <a href="http://java-performance.info/tag/memory-optimization/" rel="tag nofollow">memory optimization</a>, <a href="http://java-performance.info/tag/string/" rel="tag nofollow">string</a>, <a href="http://java-performance.info/tag/substring/" rel="tag nofollow">substring</a> on <a href="http://java-performance.info/changes-to-string-java-1-7-0_06/" title="3:52 pm" rel="bookmark"><time class="entry-date" datetime="2012-12-09T15:52:20+00:00">December 9, 2012</time></a><span class="by-author"> by <span class="author vcard"><a class="url fn n" href="http://java-performance.info/author/Mike/" title="View all posts by admin" rel="author">admin</a></span></span>.								</footer><!-- .entry-meta -->
+	</article><!-- #post -->
+
+				<nav class="nav-single">
+					<h3 class="assistive-text">Post navigation</h3>
+					<span class="nav-previous"><a href="http://java-performance.info/hashcode-method-performance-tuning/" rel="prev"><span class="meta-nav">&larr;</span> hashCode method performance tuning</a></span>
+					<span class="nav-next"><a href="http://java-performance.info/string-packing-converting-strings-to-any-other-objects/" rel="next">String packing part 2: converting Strings to any other objects <span class="meta-nav">&rarr;</span></a></span>
+				</nav><!-- .nav-single -->
+
+				
+<div id="comments" class="comments-area">
+
+	
+			<h2 class="comments-title">
+			3 thoughts on &ldquo;<span>Changes to String internal representation made in Java 1.7.0_06</span>&rdquo;		</h2>
+
+		<ol class="commentlist">
+				<li class="pingback even thread-even depth-1" id="comment-154">
+		<p>Pingback: <a href='http://www.importnew.com/7550.html' rel='external nofollow' class='url'>åºæ¬ç±»åè½¬String - ImportNew</a> </p>
+	</li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-2105">
+		<p>Pingback: <a href='http://java-performance.info/java-performance-the-definitive-guide-by-scott-oaks/' rel='external nofollow' class='url'>Book review: Java Performance: The Definitive Guide by Scott OaksÂ Â  | Java Performance Tuning Guide</a> </p>
+	</li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-2137">
+		<p>Pingback: <a href='http://java-performance.info/string-intern-in-java-6-7-8/' rel='external nofollow' class='url'>String.intern in Java 6, 7 and 8 - string poolingÂ Â  | Java Performance Tuning Guide</a> </p>
+	</li><!-- #comment-## -->
+		</ol><!-- .commentlist -->
+
+		
+		
+	
+									<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/changes-to-string-java-1-7-0_06/#respond" style="display:none;">Cancel reply</a></small></h3>
+									<form action="http://java-performance.info/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+																			<p class="comment-notes">Your email address will not be published. Required fields are marked <span class="required">*</span></p>							<p class="comment-form-author"><label for="author">Name <span class="required">*</span></label> <input id="author" name="author" type="text" value="" size="30" aria-required='true' /></p>
+<p class="comment-form-email"><label for="email">Email <span class="required">*</span></label> <input id="email" name="email" type="text" value="" size="30" aria-required='true' /></p>
+												<p class="comment-form-comment"><label for="comment">Comment</label> <textarea id="comment" name="comment" cols="45" rows="8" aria-required="true"></textarea></p>						<p class="form-allowed-tags">You may use these <abbr title="HyperText Markup Language">HTML</abbr> tags and attributes:  <code>&lt;a href=&quot;&quot; title=&quot;&quot;&gt; &lt;abbr title=&quot;&quot;&gt; &lt;acronym title=&quot;&quot;&gt; &lt;b&gt; &lt;blockquote cite=&quot;&quot;&gt; &lt;cite&gt; &lt;code lang=&quot;&quot;&gt; &lt;del datetime=&quot;&quot;&gt; &lt;em&gt; &lt;i&gt; &lt;q cite=&quot;&quot;&gt; &lt;strike&gt; &lt;strong&gt; &lt;pre lang=&quot;&quot; extra=&quot;&quot;&gt; </code></p>						<p class="form-submit">
+							<input name="submit" type="submit" id="submit" value="Post Comment" />
+							<input type='hidden' name='comment_post_ID' value='296' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+						</p>
+											</form>
+							</div><!-- #respond -->
+			
+</div><!-- #comments .comments-area -->
+			
+		</div><!-- #content -->
+	</div><!-- #primary -->
+
+
+			<div id="secondary" class="widget-area" role="complementary">
+			<aside id="text-2" class="widget widget_text"><h3 class="widget-title">Summary</h3>			<div class="textwidget"><p><a href="http://java-performance.com" rel="nofollow" target="_blank">Java performance tuning guide summary</a> - all you could read on this website in one page.</p>
+</div>
+		</aside><aside id="text-11" class="widget widget_text"><h3 class="widget-title">Java performance books</h3>			<div class="textwidget"><p><iframe src="http://rcm-na.amazon-adsystem.com/e/cm?lt1=_blank&bc1=000000&IS2=1&bg1=FFFFFF&fc1=000000&lc1=0000FF&t=javaperfor07e-20&o=1&p=8&l=as4&m=amazon&f=ifr&ref=ss_til&asins=1449358454" style="width:120px;height:240px;" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe></p>
+<p><iframe src="http://rcm-na.amazon-adsystem.com/e/cm?lt1=_blank&bc1=000000&IS2=1&bg1=FFFFFF&fc1=000000&lc1=0000FF&t=javaperfor07e-20&o=1&p=8&l=as4&m=amazon&f=ifr&ref=ss_til&asins=0133390098" style="width:120px;height:240px;" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe></p>
+</div>
+		</aside><aside id="text-10" class="widget widget_text"><h3 class="widget-title">Google ads</h3>			<div class="textwidget"><script type="text/javascript"><!--
+google_ad_client = "ca-pub-3141284854102964";
+/* Sidebar ads */
+google_ad_slot = "1890049531";
+google_ad_width = 160;
+google_ad_height = 600;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script></div>
+		</aside><aside id="text-5" class="widget widget_text"><h3 class="widget-title">Most popular</h3>			<div class="textwidget"><ol>
+<li>
+<a href="http://java-performance.info/jmh/">Introduction to JMH</a>
+</li>
+<li>
+<a href="http://java-performance.info/changes-to-string-java-1-7-0_06/">Changes to String internal representation made in Java 1.7.0_06</a>
+</li>
+<li>
+<a href="http://java-performance.info/high-performance-money-class/">Implementing a high performance Money class</a>
+</li>
+<li>
+<a href="http://java-performance.info/primitive-types-collections-trove-library/">Trove library: using primitive collections for performance</a>
+</li>
+<li>
+<a href="http://java-performance.info/arraylist-performance/">java.util.ArrayList performance guide</a>
+</li>
+<li>
+<a href="http://java-performance.info/java-collections-overview/">Java collections overview</a>
+</li>
+</ol></div>
+		</aside><aside id="text-8" class="widget widget_text"><h3 class="widget-title">Google ads</h3>			<div class="textwidget"><script type="text/javascript"><!--
+google_ad_client = "ca-pub-3141284854102964";
+/* Sidebar ads */
+google_ad_slot = "1890049531";
+google_ad_width = 160;
+google_ad_height = 600;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script></div>
+		</aside><aside id="tag_cloud-2" class="widget widget_tag_cloud"><h3 class="widget-title">Tags</h3><div class="tagcloud"><a rel="nofollow" href='http://java-performance.info/tag/algorithms/' class='tag-link-90' title='2 topics' style='font-size: 10.1176470588pt;'>algorithms</a>
+<a rel="nofollow" href='http://java-performance.info/tag/array/' class='tag-link-69' title='3 topics' style='font-size: 11.5294117647pt;'>array</a>
+<a rel="nofollow" href='http://java-performance.info/tag/avoiding-worst-practices/' class='tag-link-14' title='4 topics' style='font-size: 12.7058823529pt;'>avoiding worst practices</a>
+<a rel="nofollow" href='http://java-performance.info/tag/bigdecimal/' class='tag-link-42' title='2 topics' style='font-size: 10.1176470588pt;'>BigDecimal</a>
+<a rel="nofollow" href='http://java-performance.info/tag/binary-serialization/' class='tag-link-29' title='2 topics' style='font-size: 10.1176470588pt;'>binary serialization</a>
+<a rel="nofollow" href='http://java-performance.info/tag/bitset/' class='tag-link-39' title='4 topics' style='font-size: 12.7058823529pt;'>bitset</a>
+<a rel="nofollow" href='http://java-performance.info/tag/book-review/' class='tag-link-91' title='4 topics' style='font-size: 12.7058823529pt;'>book review</a>
+<a rel="nofollow" href='http://java-performance.info/tag/boxing/' class='tag-link-17' title='2 topics' style='font-size: 10.1176470588pt;'>boxing</a>
+<a rel="nofollow" href='http://java-performance.info/tag/byte-buffer/' class='tag-link-35' title='3 topics' style='font-size: 11.5294117647pt;'>byte buffer</a>
+<a rel="nofollow" href='http://java-performance.info/tag/collections/' class='tag-link-3' title='12 topics' style='font-size: 17.5294117647pt;'>collections</a>
+<a rel="nofollow" href='http://java-performance.info/tag/cpu-optimization/' class='tag-link-4' title='30 topics' style='font-size: 22pt;'>cpu optimization</a>
+<a rel="nofollow" href='http://java-performance.info/tag/data-compression/' class='tag-link-16' title='9 topics' style='font-size: 16.2352941176pt;'>data compression</a>
+<a rel="nofollow" href='http://java-performance.info/tag/datatype-optimization/' class='tag-link-15' title='6 topics' style='font-size: 14.4705882353pt;'>datatype optimization</a>
+<a rel="nofollow" href='http://java-performance.info/tag/date/' class='tag-link-20' title='4 topics' style='font-size: 12.7058823529pt;'>date</a>
+<a rel="nofollow" href='http://java-performance.info/tag/dateformat/' class='tag-link-21' title='3 topics' style='font-size: 11.5294117647pt;'>dateformat</a>
+<a rel="nofollow" href='http://java-performance.info/tag/double/' class='tag-link-41' title='2 topics' style='font-size: 10.1176470588pt;'>double</a>
+<a rel="nofollow" href='http://java-performance.info/tag/exceptions/' class='tag-link-48' title='3 topics' style='font-size: 11.5294117647pt;'>exceptions</a>
+<a rel="nofollow" href='http://java-performance.info/tag/fix/' class='tag-link-43' title='2 topics' style='font-size: 10.1176470588pt;'>FIX</a>
+<a rel="nofollow" href='http://java-performance.info/tag/hashcode/' class='tag-link-50' title='2 topics' style='font-size: 10.1176470588pt;'>hashcode</a>
+<a rel="nofollow" href='http://java-performance.info/tag/hdd/' class='tag-link-77' title='2 topics' style='font-size: 10.1176470588pt;'>hdd</a>
+<a rel="nofollow" href='http://java-performance.info/tag/io/' class='tag-link-28' title='4 topics' style='font-size: 12.7058823529pt;'>io</a>
+<a rel="nofollow" href='http://java-performance.info/tag/iterators/' class='tag-link-19' title='1 topic' style='font-size: 8pt;'>iterators</a>
+<a rel="nofollow" href='http://java-performance.info/tag/java-7/' class='tag-link-107' title='4 topics' style='font-size: 12.7058823529pt;'>Java 7</a>
+<a rel="nofollow" href='http://java-performance.info/tag/java-8/' class='tag-link-108' title='8 topics' style='font-size: 15.6470588235pt;'>Java 8</a>
+<a rel="nofollow" href='http://java-performance.info/tag/java-dates/' class='tag-link-22' title='2 topics' style='font-size: 10.1176470588pt;'>java dates</a>
+<a rel="nofollow" href='http://java-performance.info/tag/java-regular-expressions/' class='tag-link-23' title='1 topic' style='font-size: 8pt;'>java regular expressions</a>
+<a rel="nofollow" href='http://java-performance.info/tag/jmh/' class='tag-link-139' title='2 topics' style='font-size: 10.1176470588pt;'>JMH</a>
+<a rel="nofollow" href='http://java-performance.info/tag/jni/' class='tag-link-36' title='2 topics' style='font-size: 10.1176470588pt;'>JNI</a>
+<a rel="nofollow" href='http://java-performance.info/tag/long-bitset/' class='tag-link-12' title='1 topic' style='font-size: 8pt;'>long bitset</a>
+<a rel="nofollow" href='http://java-performance.info/tag/map/' class='tag-link-64' title='2 topics' style='font-size: 10.1176470588pt;'>map</a>
+<a rel="nofollow" href='http://java-performance.info/tag/matcher/' class='tag-link-24' title='1 topic' style='font-size: 8pt;'>matcher</a>
+<a rel="nofollow" href='http://java-performance.info/tag/memory-layout/' class='tag-link-54' title='3 topics' style='font-size: 11.5294117647pt;'>memory layout</a>
+<a rel="nofollow" href='http://java-performance.info/tag/memory-optimization/' class='tag-link-6' title='22 topics' style='font-size: 20.4705882353pt;'>memory optimization</a>
+<a rel="nofollow" href='http://java-performance.info/tag/multithreading/' class='tag-link-109' title='2 topics' style='font-size: 10.1176470588pt;'>multithreading</a>
+<a rel="nofollow" href='http://java-performance.info/tag/parsing/' class='tag-link-44' title='2 topics' style='font-size: 10.1176470588pt;'>parsing</a>
+<a rel="nofollow" href='http://java-performance.info/tag/partitioned-bitset/' class='tag-link-13' title='1 topic' style='font-size: 8pt;'>partitioned bitset</a>
+<a rel="nofollow" href='http://java-performance.info/tag/pattern/' class='tag-link-25' title='1 topic' style='font-size: 8pt;'>pattern</a>
+<a rel="nofollow" href='http://java-performance.info/tag/primitive-collections/' class='tag-link-10' title='4 topics' style='font-size: 12.7058823529pt;'>primitive collections</a>
+<a rel="nofollow" href='http://java-performance.info/tag/ssd/' class='tag-link-76' title='2 topics' style='font-size: 10.1176470588pt;'>ssd</a>
+<a rel="nofollow" href='http://java-performance.info/tag/string/' class='tag-link-33' title='10 topics' style='font-size: 16.7058823529pt;'>string</a>
+<a rel="nofollow" href='http://java-performance.info/tag/string-concatenation/' class='tag-link-46' title='2 topics' style='font-size: 10.1176470588pt;'>string concatenation</a>
+<a rel="nofollow" href='http://java-performance.info/tag/string-pool/' class='tag-link-101' title='3 topics' style='font-size: 11.5294117647pt;'>string pool</a>
+<a rel="nofollow" href='http://java-performance.info/tag/sun-misc-unsafe/' class='tag-link-31' title='7 topics' style='font-size: 15.0588235294pt;'>sun.misc.Unsafe</a>
+<a rel="nofollow" href='http://java-performance.info/tag/trove/' class='tag-link-11' title='5 topics' style='font-size: 13.6470588235pt;'>trove</a>
+<a rel="nofollow" href='http://java-performance.info/tag/unboxing/' class='tag-link-18' title='1 topic' style='font-size: 8pt;'>unboxing</a></div>
+</aside>		</div><!-- #secondary -->
+		</div><!-- #main .wrapper -->
+	<footer id="colophon" role="contentinfo">
+		<div class="site-info">
+					</div><!-- .site-info -->
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<script type='text/javascript' src='http://d1k2jhzcfaebet.cloudfront.net/wp-includes/js/comment-reply.min.js?ver=3.9.1'></script>
+<script type='text/javascript' src='http://d1k2jhzcfaebet.cloudfront.net/wp-content/themes/twentytwelve/js/navigation.js?ver=1.0'></script>
+<script type="text/javascript">
+		  
+		  (function() {
+		    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+		    po.src = 'https://apis.google.com/js/plusone.js';
+		    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+		  })();
+		</script></body>
+</html>
+<!-- Performance optimized by W3 Total Cache. Learn more: http://www.w3-edge.com/wordpress-plugins/
+
+Page Caching using disk: enhanced
+Content Delivery Network via Amazon Web Services: CloudFront: d1k2jhzcfaebet.cloudfront.net
+
+ Served from: java-performance.info @ 2014-07-02 05:16:49 by W3 Total Cache -->

@@ -1,0 +1,2071 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en-US">
+<![endif]-->
+<!--[if (gt IE 6) | (!IE)]><!-->
+<html lang="en-US">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<title>AdBlock Plus&#8217;s effect on Firefox&#8217;s memory usage | Nicholas Nethercote</title>
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="http://blog.mozilla.org/nnethercote/wp-content/themes/coraline-dherman/style.css" />
+<link rel="pingback" href="http://blog.mozilla.org/nnethercote/xmlrpc.php" />
+<link rel="alternate" type="application/rss+xml" title="Nicholas Nethercote &raquo; Feed" href="http://blog.mozilla.org/nnethercote/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Nicholas Nethercote &raquo; Comments Feed" href="http://blog.mozilla.org/nnethercote/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Nicholas Nethercote &raquo; AdBlock Plus&#8217;s effect on Firefox&#8217;s memory usage Comments Feed" href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/feed/" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://blog.mozilla.org/nnethercote/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://blog.mozilla.org/nnethercote/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='A story about Brendan Eich' href='http://blog.mozilla.org/nnethercote/2014/04/07/a-story-about-brendan-eich/' />
+<link rel='next' title='Why do new MacBooks ship with the firewall off by default?' href='http://blog.mozilla.org/nnethercote/2014/06/03/why-do-new-macbooks-ship-with-the-firewall-off-by-default/' />
+<meta name="generator" content="WordPress 3.9.1" />
+<link rel='canonical' href='http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/' />
+<link rel='shortlink' href='http://blog.mozilla.org/nnethercote/?p=2876' />
+            <script type="text/javascript">
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-36116321-4']);
+            _gaq.push(['_trackPageview']);
+
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+            </script><link rel="stylesheet" type="text/css" href="http://blog.mozilla.org/nnethercote/wp-content/plugins/wp-recaptcha/recaptcha.css" /></head>
+
+<body class="single single-post postid-2876 single-format-standard two-column content-sidebar">
+<div id="container" class="hfeed">
+	<div id="header">
+		<div id="masthead" role="banner">
+						<div id="site-title">
+				<span>
+					<a href="http://blog.mozilla.org/nnethercote/" title="Nicholas Nethercote" rel="home">Nicholas Nethercote</a>
+				</span>
+			</div>
+			<div id="site-description">Notes on Firefox, MemShrink, JavaScript, and more</div>
+		</div><!-- #masthead -->
+
+		<div id="access" role="navigation">
+		  			<div class="skip-link screen-reader-text"><a href="#content" title="Skip to content">Skip to content</a></div>
+						<div class="menu"><ul><li ><a href="http://blog.mozilla.org/nnethercote/">Home</a></li><li class="page_item page-item-2"><a href="http://blog.mozilla.org/nnethercote/about/">About</a></li></ul></div>
+		</div><!-- #access -->
+
+		<div id="branding">
+						<a href="http://blog.mozilla.org/nnethercote/">
+									<img src="http://blog.mozilla.org/nnethercote/wp-content/themes/coraline-dherman/images/headers/water-drops.jpg" width="990" height="260" alt="" />
+							</a>
+					</div><!-- #branding -->
+	</div><!-- #header -->
+
+	<div id="content-box">
+
+		<div id="content-container">
+			<div id="content" role="main">
+
+			
+				<div id="nav-above" class="navigation">
+					<div class="nav-previous"><a href="http://blog.mozilla.org/nnethercote/2014/04/07/a-story-about-brendan-eich/" rel="prev"><span class="meta-nav">&larr;</span> A story about Brendan Eich</a></div>
+					<div class="nav-next"><a href="http://blog.mozilla.org/nnethercote/2014/06/03/why-do-new-macbooks-ship-with-the-firewall-off-by-default/" rel="next">Why do new MacBooks ship with the firewall off by default? <span class="meta-nav">&rarr;</span></a></div>
+				</div><!-- #nav-above -->
+
+				<div id="post-2876" class="post-2876 post type-post status-publish format-standard hentry category-adblock-plus category-firefox category-memory-consumption">
+					<h1 class="entry-title">AdBlock Plus&#8217;s effect on Firefox&#8217;s memory usage</h1>
+
+					<div class="entry-meta">
+						<span class="meta-prep meta-prep-author">Posted on</span> <a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/" title="4:43 pm" rel="bookmark"><span class="entry-date">May 14, 2014</span></a> <span class="byline"><span class="meta-sep">by</span> <span class="author vcard"><a class="url fn n" href="http://blog.mozilla.org/nnethercote/author/nnethercotemozillacom/" title="View all posts by Nicholas Nethercote">Nicholas Nethercote</a></span></span><span class="comments-link"><span class="meta-sep">|</span> <a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/#comments" title="Comment on AdBlock Plus&#8217;s effect on Firefox&#8217;s memory usage">85 Comments</a></span>
+											</div><!-- .entry-meta -->
+
+					<div class="entry-content">
+						<p><strong>[Update: Wladimir Palant has posted a <a href="https://adblockplus.org/blog/on-the-adblock-plus-memory-consumption">response</a> on the AdBlock Plus blog. Also, a Chrome developer using the handle "Klathmon" has posted numerous good comments in the <a href="http://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/">Reddit discussion of this post</a>, explaining why ad-blockers are inherently CPU- and memory-intensive, and why integrating ad-blocking into a browser wouldn't necessarily help.]</strong></p>
+<p><a href="http://adblockplus.org/">AdBlock Plus</a> (ABP) is the most popular add-on for Firefox. <a href="https://addons.mozilla.org">AMO</a> says that it has almost 19 million users, which is almost triple the number of the second most popular add-on. I have happily used it myself for years &#8212; whenever I use a browser that doesn&#8217;t have an ad blocker installed I&#8217;m always horrified by the number of ads there are on the web.</p>
+<p>But we recently learned that ABP can greatly increase the amount of memory used by Firefox.</p>
+<p>First, <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1001426">there&#8217;s a constant overhead just from enabling ABP</a> of something like 60&#8211;70 MiB. (This is on 64-bit builds; on 32-bit builds the number is probably a bit smaller.) This appears to be mostly due to additional JavaScript memory usage, though there&#8217;s also some due to extra layout memory.</p>
+<p>Second, <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=988266">there&#8217;s an overhead of about 4 MiB per iframe</a>, which is mostly due to ABP injecting a giant stylesheet into every iframe. Many pages have multiple iframes, so this can add up quickly. For example, if I load <a href="http://techcrunch.com/">TechCrunch</a> and roll over the social buttons on every story (thus triggering the loading of lots of extra JS code), without ABP, Firefox uses about 194 MiB of physical memory. With ABP, that number more than doubles, to 417 MiB. This is despite the fact that ABP prevents some page elements (ads!) from being loaded.</p>
+<p>An even more extreme example is <a href="http://vimcolorschemetest.googlecode.com/svn/html/index-c.html">this page</a>, which contains over 400 iframes. Without ABP, Firefox uses about 370 MiB. With ABP, that number jumps to 1960 MiB. Unsurprisingly, the page also loads more slowly with ABP enabled.</p>
+<p>So, it&#8217;s clear that ABP greatly increases Firefox&#8217;s memory usage. Now, this isn&#8217;t all bad. Many people (including me!) will be happy with this trade-off &#8212; they will gladly use extra memory in order to block ads. But if you&#8217;re using a low-end machine without much memory, you might have different priorities.</p>
+<p>I hope that the ABP authors can work with us to reduce this overhead, though I&#8217;m not aware of any clear ideas on how to do so. In the meantime, it&#8217;s worth keeping these measurements in mind. In particular, if you hear people complaining about Firefox&#8217;s memory usage, one of the first questions to ask is whether they have ABP installed.</p>
+<p><strong>[A note about the comments: I have deleted 17 argumentative, repetitive, borderline-spam comments from a single commenter -- after giving him a warning via email -- and I will delete any further comments from him on this post. As a result, I also had to delete three replies to his comments from others, for which I apologize.]</strong></p>
+											</div><!-- .entry-content -->
+
+					<div class="entry-info">
+						This entry was posted in <a href="http://blog.mozilla.org/nnethercote/category/adblock-plus/" title="View all posts in AdBlock Plus" rel="category tag">AdBlock Plus</a>, <a href="http://blog.mozilla.org/nnethercote/category/firefox/" title="View all posts in Firefox" rel="category tag">Firefox</a>, <a href="http://blog.mozilla.org/nnethercote/category/memory-consumption/" title="View all posts in Memory consumption" rel="category tag">Memory consumption</a>. Bookmark the <a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/" title="Permalink to AdBlock Plus&#8217;s effect on Firefox&#8217;s memory usage" rel="bookmark">permalink</a>.											</div><!-- .entry-info -->
+				</div><!-- #post-## -->
+
+				<div id="nav-below" class="navigation">
+					<div class="nav-previous"><a href="http://blog.mozilla.org/nnethercote/2014/04/07/a-story-about-brendan-eich/" rel="prev"><span class="meta-nav">&larr;</span> A story about Brendan Eich</a></div>
+					<div class="nav-next"><a href="http://blog.mozilla.org/nnethercote/2014/06/03/why-do-new-macbooks-ship-with-the-firewall-off-by-default/" rel="next">Why do new MacBooks ship with the firewall off by default? <span class="meta-nav">&rarr;</span></a></div>
+				</div><!-- #nav-below -->
+
+				
+<div id="comments">
+	
+	
+			<h3 id="comments-title">85 Responses to <span>AdBlock Plus&#8217;s effect on Firefox&#8217;s memory usage</span></h3>
+
+		
+		<ol class="commentlist">
+				<li class="comment even thread-even depth-1" id="li-comment-11163">
+		<div id="comment-11163">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/7806629160a492b05d21fd738953a4cf?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='https://adblockplus.org/' rel='external nofollow' class='url'>Wladimir Palant</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11163">
+				May 14, 2014 at 5:33 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Concerning that stylesheet &#8211; we have two projects running that might end up reducing the number of filters eventually, but other than that I don&#8217;t think we can do much about it.</p>
+<p>Concerning the general memory usage (JS objects), <a href="https://issues.adblockplus.org/ticket/145" rel="nofollow">https://issues.adblockplus.org/ticket/145</a> should help here. This will allow us to use typed arrays for data storage which will be much more efficient.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor odd alt depth-2" id="li-comment-11165">
+		<div id="comment-11165">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11165">
+				May 14, 2014 at 6:40 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Thanks for the info!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even depth-2" id="li-comment-11166">
+		<div id="comment-11166">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/a817c014c96d4c5354042ee9dd3a0180?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">bastiaan</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11166">
+				May 14, 2014 at 7:10 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>What is the purpose of the style sheet, and why is it injected into every iframe, and why is it so big? <img src="http://blog.mozilla.org/nnethercote/wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley" /> </p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-3" id="li-comment-11167">
+		<div id="comment-11167">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6e325be78e65d09320e8c2a785f1019e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Anders</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11167">
+				May 14, 2014 at 7:31 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>and couldn&#8217;t FF share identical stylesheets (an optimization that probably won&#8217;t help much in normal websites)?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment even depth-4" id="li-comment-11168">
+		<div id="comment-11168">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/abb249055208c7af4d35568e422dfd63?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Guest</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11168">
+				May 14, 2014 at 7:53 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Nicholas,</p>
+<p>Indeed, FF could create a mechanism that would share identical stylesheets just for the addons, so they don&#8217;t bog the entire application.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-5" id="li-comment-11169">
+		<div id="comment-11169">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/1231dd25c2fce9325d24713406c52ebc?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Other Guest</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11169">
+				May 14, 2014 at 8:13 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Fx 31 includes support for CSS variables, so perhaps that can be leveraged into a solution.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor even depth-4" id="li-comment-11171">
+		<div id="comment-11171">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11171">
+				May 14, 2014 at 8:25 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=988266#c21" rel="nofollow">https://bugzilla.mozilla.org/show_bug.cgi?id=988266#c21</a> and the subsequent comment. It&#8217;s not as simple as that.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-5" id="li-comment-11180">
+		<div id="comment-11180">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/9827a6dd262732d2639417a251c9755e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Daniel Neely</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11180">
+				May 14, 2014 at 11:27 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>If the problem is custom sort orders preventing deduplication, what would the performance impact be from using a list that isn&#8217;t reordered for each iframe.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even depth-5" id="li-comment-11193">
+		<div id="comment-11193">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6e325be78e65d09320e8c2a785f1019e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Anders</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11193">
+				May 15, 2014 at 12:51 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Thanks for the link. There seems to be several ways of solving it, each with its trade-offs.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt depth-3" id="li-comment-11173">
+		<div id="comment-11173">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/7806629160a492b05d21fd738953a4cf?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='https://adblockplus.org/' rel='external nofollow' class='url'>Wladimir Palant</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11173">
+				May 14, 2014 at 10:35 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>The purpose of that stylesheet is to hide things that cannot be blocked &#8211; a feature called element hiding. As far as Adblock Plus is concerned, only one stylesheet is created and registered globally. There is one rule for each element hiding filter meaning roughly 20 thousands right now if you are using EasyList. The fact that Firefox internally creates a separate (and not exactly small) stylesheet for each frame is something I only learned with <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=988266" rel="nofollow">https://bugzilla.mozilla.org/show_bug.cgi?id=988266</a>.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment even depth-4" id="li-comment-11178">
+		<div id="comment-11178">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/f2f5f582ed9505b3d73b7e884a3916b0?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Fellow</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11178">
+				May 14, 2014 at 11:14 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>What about a feature to specify a list of domains to filter the element hiding rules? 99.99% of the element hiding rules are useless for me &#8212; I would much prefer to manually specify the sites I use frequently in exchange for reduced memory usage.</p>
+<p>I have been doing this manually so far[0], but it would be so much easier if this were integrated into ABP itself.</p>
+<p>[0]: <a href="https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11176" rel="nofollow">https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11176</a></p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt depth-4" id="li-comment-11200">
+		<div id="comment-11200">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/e4cb4a6f74a8298cb87835ede729afb1?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='https://github.com/gorhill/httpswitchboard' rel='external nofollow' class='url'>Raymond Hill</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11200">
+				May 15, 2014 at 2:06 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>&gt; As far as Adblock Plus is concerned, only one stylesheet is created and registered globally</p>
+<p>I am quite surprised at that statement. If I look at EasyList, it does appear that style directives are prefixed with a domain name. My assumption was that only the style directives for a specific domain are applied to that domain. If not, then my question is why not?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment even depth-5" id="li-comment-11287">
+		<div id="comment-11287">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/14736dee6a9ced78bb94808c3dee32c6?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">finalbob</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11287">
+				May 16, 2014 at 1:05 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>In easylist, there are quite a lot element hiding rule without specified domain provided. like ##div#ids which will be applied to all domains, hiding element &lt;div id=&quot;ids&quot;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt depth-2" id="li-comment-11207">
+		<div id="comment-11207">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/576e56f374266a21e1bddefac405df3a?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://andrew.ducker.org.uk' rel='external nofollow' class='url'>Andrew Ducker</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11207">
+				May 15, 2014 at 3:32 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Have you considered creating a stylesheet for each iframe which only contains what that iframe needs?</p>
+<p>It might take more CPU, but by the looks of things it&#8217;s not actually fully shared anyway, and it would mean less processing by FF itself as it works through the consequences of thousands of rules that do nothing&#8230;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11164">
+		<div id="comment-11164">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/e3eabbdcf1f3261976075dc813f223dc?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Omega</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11164">
+				May 14, 2014 at 6:06 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Small price to pay for zero annoyances.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-11170">
+		<div id="comment-11170">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/469a80d7b6610eaf11917ac4c482c65b?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">JulienW</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11170">
+				May 14, 2014 at 8:18 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>To give some alternatives to adblock:</p>
+<p>I use only Ghostery on this computer, and it seems to block ads just as well. I think we already worked with them to reduce their memory usage, right?</p>
+<p>With all Ghostery features enabled, I have some broken pages (for example, some pages directly call Google Analytics&#8217; main object and this fails because the object is not loaded).</p>
+<p>I also use Bluhell Firewall on another computer; this works nearly fine except some pages just stop loading sometimes. Reloading them make them work.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor even depth-2" id="li-comment-11172">
+		<div id="comment-11172">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11172">
+				May 14, 2014 at 8:28 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I&#8217;m very ambivalent about Ghostery, because of this: <a href="http://www.technologyreview.com/news/516156/a-popular-ad-blocker-also-helps-the-ad-industry/" rel="nofollow">http://www.technologyreview.com/news/516156/a-popular-ad-blocker-also-helps-the-ad-industry/</a></p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-3" id="li-comment-11175">
+		<div id="comment-11175">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/0f66dd34af2b65627ea82b031869f4a6?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">avih</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11175">
+				May 14, 2014 at 10:55 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>While it&#8217;s the first time I&#8217;m seeing this article, I can live with this (and I had this &#8220;Ghost-rank&#8221; option turned off).</p>
+<p>It&#8217;s not unexpected that the Ghostry guys want to make money, and as long as it doesn&#8217;t hurt the users&#8217; privacy, I think it&#8217;s actually quite smart to use users visits to collect which trackers are installed on which pages. The behavior can be altered by users (and I _think_ it&#8217;s opt-in but I don&#8217;t recall), it doesn&#8217;t include any user data when enabled according to their (repeated) declarations, it does have a lot of value for its clients, and users get a good product without needing to shell out money.</p>
+<p>So far, IMO it&#8217;s a win-win situation. I&#8217;m guessing that if Ghostry will change their act to be less user friendly, it would create enough buzz to make most involved users aware of it, letting them to decide how to handle it.</p>
+<p>But so far, so good IMO.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even depth-3" id="li-comment-11189">
+		<div id="comment-11189">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/80ecefa1b1ed4c866b53a82ac9e6ecd3?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://www.mobilegeeks.de' rel='external nofollow' class='url'>Sascha Pallenberg</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11189">
+				May 15, 2014 at 12:11 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>and this is exactly why you shouldn&#8217;t use Adblock Plus, which is basically an ad network in disguise. This isn&#8217;t about blocking ads but about filtering them. They just cashed in and got around $30 millions from players like Google and Amazon</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-4" id="li-comment-11196">
+		<div id="comment-11196">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/96d38a55aa5a723af46b68dfcea08631?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Noko</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11196">
+				May 15, 2014 at 1:30 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>That&#8217;s why Adblock Edge exists. Adblock Plus without the selling out.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11174">
+		<div id="comment-11174">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/beb21939f6a5a1e3b48faa2d5eed358a?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">DM</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11174">
+				May 14, 2014 at 10:44 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>The main problem with ABP&#8217;s the lists are just huge. You can get 99% of the benefit with just a handful of domain blocks.</p>
+<p>It could also attempt to partition data more effectively. You don&#8217;t need that entire stylesheet for every webpage. And you don&#8217;t even need to have all the rules in memory; you could use a bloom filter for the domains + a cache that only holds the rules for accessed ones.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-2" id="li-comment-11194">
+		<div id="comment-11194">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/9827a6dd262732d2639417a251c9755e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Daniel Neely</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11194">
+				May 15, 2014 at 1:10 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>A handful of rules will catch the worst if it, but there&#8217;s a long tail that will drive up your total size if you try to get everything.   My employer&#8217;s firewall blocks ABP from downloading easylist/etc, so I&#8217;ve been forced to create my own list from scratch.  Currently it&#8217;s 182 domain filters, 723 EHH rules, and 66 exceptions.  Although a number of the EHH rules are for non-ad related decrapification of various sites; but ad related rules are probably still the majority of entries there.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment even depth-3" id="li-comment-11210">
+		<div id="comment-11210">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/846f8cb81fc8b474a035ea92b3e2a90b?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://pedaldrivenprogramming.com' rel='external nofollow' class='url'>Austin Riba</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11210">
+				May 15, 2014 at 3:54 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Can&#8217;t you just download the list somewhere else and bring it in on a USB drive? Seems a little extreme.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-4" id="li-comment-11213">
+		<div id="comment-11213">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/a6c7462b9d3267fb952c0091844a1dd4?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">John Halcomb</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11213">
+				May 15, 2014 at 5:18 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Not knowing who his employer is, there are employers who have security policies that involve on-the-spot termination if you plug a USB stick into any machine on the premises. So your idea, while very valid, may not be an option where he works.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even depth-4" id="li-comment-11215">
+		<div id="comment-11215">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/b5692066c646c8bec0037651464abf4d?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Pat</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11215">
+				May 15, 2014 at 5:28 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Just email yourself the plain text list.</p>
+<p>therefore clearly not an exploit to the corporate filters.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt depth-2" id="li-comment-11225">
+		<div id="comment-11225">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/57d73112d008787f2cd2ed6cd02de3e8?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">JohnP</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11225">
+				May 15, 2014 at 7:45 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>IE has a rather basic but built-in adblocker that monitor trackers around the web and block it automatically base on re-occurrence rate. It&#8217;s a heuristic approach that I think is much better for efficiency.</p>
+<p>I hope ABP could do something like that instead of loading a 1+MB file of filter list.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-11176">
+		<div id="comment-11176">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/f2f5f582ed9505b3d73b7e884a3916b0?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Fellow</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11176">
+				May 14, 2014 at 10:56 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>To help with this, I build my own list from <a href="https://hg.adblockplus.org/easylist/" rel="nofollow">https://hg.adblockplus.org/easylist/</a>. I filter element hiding rules based on the sites I frequently visit, so I end up with a very small stylesheet. All blocking rules are still present, but the memory use is still considerably lower than with stock EasyList+EasyPrivacy.</p>
+<p>In addition, I also disable AdBlock on domains without ads (mozilla.org, for example).</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-11177">
+		<div id="comment-11177">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/3c707309992879537eac8eb25b325561?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://github.com/schizoduckie/DuckieTV' rel='external nofollow' class='url'>Duckie</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11177">
+				May 14, 2014 at 11:11 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Too bad these statistics are useless without telling us what the average memory  usage of a page is *with* ads enabled. I dare to say that that could be even more than the 4mb per frame plus the constant 70mb&#8230;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor even depth-2" id="li-comment-11179">
+		<div id="comment-11179">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11179">
+				May 14, 2014 at 11:22 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Read the post again. You clearly weren&#8217;t paying attention the first time.</p>
+<p>Every comparison was with and without ABP. For the TechCrunch comparison, I explicitly said &#8220;With ABP, that number more than doubles, to 417 MiB. This is despite the fact that ABP prevents some page elements (ads!) from being loaded.&#8221;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-11181">
+		<div id="comment-11181">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6c3d02f2ea576ac1d38a84f63b35f247?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Antwan</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11181">
+				May 14, 2014 at 11:28 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Question is : if the 400 iframes contain clumsy ads, will they use less than 2GB of memory ?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11182">
+		<div id="comment-11182">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/3eda6fcd3204ef285fa52176c28c4d3e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Frank</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11182">
+				May 14, 2014 at 11:29 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I know I wouldn&#8217;t use FF when there ABP wasn&#8217;t an option, so a big thank you to the ABP team! What if we turn the question around, how can Mozilla help ABP? Not a techie but could FF include a blocked domains feature ABP could tap into?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-11183">
+		<div id="comment-11183">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/123e674dcf54f6faf6d94e43c42e6bc4?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://xr09.github.io/' rel='external nofollow' class='url'>Manuel</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11183">
+				May 14, 2014 at 11:35 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I just have a local squid and a denied list with all <a href="http://pgl.yoyo.org/adservers/" rel="nofollow">these</a>.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment even depth-2" id="li-comment-11187">
+		<div id="comment-11187">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c5c0f31a49791b2c60bff303b40da89e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Niels Bohr</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11187">
+				May 14, 2014 at 11:58 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>It&#8217;s not just about blocking ads, 50% of all reasons to use ABP is to kill all these overlays that cool webdesigners are bombarding me with (fixed headers and/or footers for example).</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-3" id="li-comment-11234">
+		<div id="comment-11234">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d06c88451f2ec85653a919cf93d6cf97?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://pgl.yoyo.org/' rel='external nofollow' class='url'>pgl</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11234">
+				May 15, 2014 at 2:21 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>50% seems like it might be a little high, at least for most people. For myself, I&#8217;ve never used ABP for killing overlays &#8211; I just use Chrome Inspector and delete the elements.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11184">
+		<div id="comment-11184">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/cd18539cfd0d6023aa2082efdfa085c2?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">david</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11184">
+				May 14, 2014 at 11:38 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Suggestion: Let me automatically disable all rules with less than X hits after a few weeks. This should greatly reduce the number of rules that are useless for the sites I regularly visit. If the filtering results are getting worse over time, I can enable all rules again for a few weeks.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-2" id="li-comment-11188">
+		<div id="comment-11188">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c5c0f31a49791b2c60bff303b40da89e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Niels Bohr</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11188">
+				May 15, 2014 at 12:01 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Good idea.  But if I&#8217;m not mistaken, you can still count matches without applying them afterwards?  Therefore ABP could learn and adapt without manual intervention.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even depth-2" id="li-comment-11195">
+		<div id="comment-11195">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/9827a6dd262732d2639417a251c9755e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Daniel Neely</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11195">
+				May 15, 2014 at 1:14 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>ABP&#8217;s filter preferences does show the number of hits each rule has.  YOu can sort by that to find the un/minimally used rules/items.  From there you can do a mass select and use the space bar to clear all the rules you want to get rid of.</p>
+<p>Assuming rules turned off this way don&#8217;t contribute to the filter list this should help a lot.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-11185">
+		<div id="comment-11185">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/1bbe19c3b7c957d3ad183ee98781eec1?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Vanayad</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11185">
+				May 14, 2014 at 11:47 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Te same behaviour exists in chrome as well. Got the website you linked to over 2.4GB in Ram usage.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment even depth-2" id="li-comment-11186">
+		<div id="comment-11186">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/1bbe19c3b7c957d3ad183ee98781eec1?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Vanayad</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11186">
+				May 14, 2014 at 11:47 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>The*</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-11190">
+		<div id="comment-11190">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/f2cd2d68533b6dc75a9f8718caec6efb?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Gauthier</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11190">
+				May 15, 2014 at 12:30 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>One of the best tricks ive learned to help block ads when ABP isnt available is to load up the Windows host file with redirects for known ad servers. The file size is currently (2014) around 500kb, but usually does pretty well. There are also instructions on how to set it up. It is also just a text file no binaries or exe to run. <a href="http://winhelp2002.mvps.org/hosts.htm" rel="nofollow">http://winhelp2002.mvps.org/hosts.htm</a></p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment even depth-2" id="li-comment-11205">
+		<div id="comment-11205">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/f2830d72f086d2cdc8ac5b4f1333c3cd?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://segment6.blogspot.com' rel='external nofollow' class='url'>Rena Kunisaki</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11205">
+				May 15, 2014 at 3:11 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I&#8217;ve never been fond of the idea of having a giant hosts file. While I haven&#8217;t tested, I fear it&#8217;d impact performance to have  thousands of entries to look through for every domain lookup.</p>
+<p>Hopefully I&#8217;m wrong and OSes are smart enough to preload the hosts file into some type of tree structure for fast lookups.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-3" id="li-comment-11233">
+		<div id="comment-11233">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d06c88451f2ec85653a919cf93d6cf97?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://pgl.yoyo.org/' rel='external nofollow' class='url'>pgl</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11233">
+				May 15, 2014 at 1:13 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>The impact is actually a lot less than you&#8217;d think, although you&#8217;re right, it can be significant &#8211; the hosts file is checked for every single DNS resolution.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even depth-2" id="li-comment-11256">
+		<div id="comment-11256">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/ba6c4c5bc0fe8d1396b7e96e628fa879?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">nemo</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11256">
+				May 16, 2014 at 5:01 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Giant host file is inefficient.<br />
+Years ago, I looked at the machine of someone in the family, where, unlike me, there was no cookie whitelisting.<br />
+I was shocked at just how many cookies where in the cookie jar.<br />
+I sorted them by domain w/ awk | sort | uniq -c | sort -n  then took the offenders w/ the highest cookie counts and did something like:<br />
+.doubleclick.net:XX.XX.XX.XX:a:7776000<br />
++*.doubleclick.net:255.255.255.255:7776000</p>
+<p>In djbdns.</p>
+<p>The advantage this has over host file is the wildcarding, and of course that it works for all machines on the domain.<br />
+Did this years ago, and haven&#8217;t noticed any significant impact, apart from those times I actually try to click on a google ad and google sees fit to send it through doubleclick.  I just type in the name of the company myself instead.</p>
+<p>There are a number of DNS cachers out there to improve performance. Ubuntu even uses one by default, where you can add new rules to the default config.  You can even change it to bind to the external interface and point other machines in your home at it fairly trivially.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-3" id="li-comment-11294">
+		<div id="comment-11294">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/62979c947983fefcdd5445b0f37bd4e0?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://marahmarie.dreamwidth.org/' rel='external nofollow' class='url'>Marah Marie</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11294">
+				May 17, 2014 at 4:38 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>So instead of ABP someone could create a mildly altered set of ad domain cookies and it would do the same thing without the performance hit of ABP or Hosts files? So why isn&#8217;t someone making an add-on like this already?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even depth-3" id="li-comment-11295">
+		<div id="comment-11295">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/62979c947983fefcdd5445b0f37bd4e0?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://marahmarie.dreamwidth.org/' rel='external nofollow' class='url'>Marah Marie</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11295">
+				May 17, 2014 at 4:42 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Oh, I see; you&#8217;re altering DNS entries. On Ubuntu. It&#8217;s an interesting thought though, to think how to get away from Adblock altogether (which actually reminds me I read somewhere once that it&#8217;s not that hard to configure your own router to block ads).</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt depth-2" id="li-comment-11293">
+		<div id="comment-11293">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/62979c947983fefcdd5445b0f37bd4e0?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://marahmarie.dreamwidth.org/' rel='external nofollow' class='url'>Marah Marie</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11293">
+				May 17, 2014 at 4:35 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>It slows. Your entire. Computer. Down. Not just Firefox (that, too) or whatever your browser of choice is. Tried it so many times and given up so many times. Most recently I didn&#8217;t realize I was using jv16 PT to create an adblocking Hosts file &#8211; until my computer slowed to a crawl for several days, then it hit me what &#8220;Immunize&#8221; meant. Deleted entries in the Hosts file and bam!, right back up to normal computer speed again.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-11191">
+		<div id="comment-11191">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d25cf88d8e184f5fcf413b7d41f84525?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Ferdinand</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11191">
+				May 15, 2014 at 12:49 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>These are my numbers with a clean Firefox 29.1:<br />
+<a href="https://docs.google.com/spreadsheets/d/182Hq2EHHpbA6aGq8weaVGI5DCNV-52FhOQCN59FbYsE/edit?usp=sharing" rel="nofollow">https://docs.google.com/spreadsheets/d/182Hq2EHHpbA6aGq8weaVGI5DCNV-52FhOQCN59FbYsE/edit?usp=sharing</a></p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-2" id="li-comment-11192">
+		<div id="comment-11192">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d25cf88d8e184f5fcf413b7d41f84525?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Ferdinand</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11192">
+				May 15, 2014 at 12:51 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p><a href="https://docs.google.com/spreadsheets/d/182Hq2EHHpbA6aGq8weaVGI5DCNV-52FhOQCN59FbYsE/pubhtml" rel="nofollow">https://docs.google.com/spreadsheets/d/182Hq2EHHpbA6aGq8weaVGI5DCNV-52FhOQCN59FbYsE/pubhtml</a></p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor even depth-2" id="li-comment-11226">
+		<div id="comment-11226">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11226">
+				May 15, 2014 at 7:54 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Thanks for the data! That&#8217;s really useful.</p>
+<p>A couple of questions: what platform is this on? And which memory metric are you using? And what&#8217;s the difference between the &#8220;Adblock&#8221; and &#8220;enabled Adblock&#8221; columns?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-3" id="li-comment-11251">
+		<div id="comment-11251">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d25cf88d8e184f5fcf413b7d41f84525?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Ferdinand</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11251">
+				May 16, 2014 at 2:19 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Windows 7 64bit. I restart Firefox with the webpage in one tab. After a minute I look at the windows taskmanager and just take 64.000K as 64MB. I use two portable Firefox versions with one having adblock. Adblock enabled means that Adblock is active. So the Adblock column is just loading the extension but not using it to render the page.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11198">
+		<div id="comment-11198">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/1a906a45d06593f7046e0821787ea380?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">toni</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11198">
+				May 15, 2014 at 1:44 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>people still using addblock plus?<br />
+i liked it but whats behind realy not<br />
+As the EFF say on their prism-break site, the reason adblock plus is not recommended is because acceptable ads are on by default which goes against the purpose of the addon itself.<br />
+use addblock edge since then &#8211; dont know about performance</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-2" id="li-comment-11208">
+		<div id="comment-11208">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/64f1bb62d82df9624a0c21b569fb34fe?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Colby Russell</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11208">
+				May 15, 2014 at 3:36 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>The &#8220;purpose of the add-on itself&#8221; is to block invasive and annoying ads, to disincentivize ad networks from creating them and content creators from partnering with the ones that do create them, so no.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even depth-2" id="li-comment-11212">
+		<div id="comment-11212">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/541fcb670edb3d97152cfb7b9fa46a98?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Pier-Luc</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11212">
+				May 15, 2014 at 4:22 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Tested with<br />
+ &#8211; adblock plus<br />
+ &#8211; adblock edge<br />
+ &#8211; vanilla</p>
+<p>edge and plus have the same problem on the test page specified in the blog.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-3" id="li-comment-11216">
+		<div id="comment-11216">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/541fcb670edb3d97152cfb7b9fa46a98?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Pier-Luc</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11216">
+				May 15, 2014 at 5:43 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>&#8230; and firefox crashed 3 times since I installed it.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even depth-3" id="li-comment-11217">
+		<div id="comment-11217">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/9827a6dd262732d2639417a251c9755e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Daniel Neely</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11217">
+				May 15, 2014 at 5:46 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>AdBlock Edge is a fork of AdBlock Plus that has removed the enabled by default &#8220;good ads&#8221; whitelist in AdBlock Plus.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-11199">
+		<div id="comment-11199">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/763591652472dbf181d4f99410b578ed?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://zanesiursitoare.ro' rel='external nofollow' class='url'>Alex</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11199">
+				May 15, 2014 at 2:01 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Well it&#8217;s a big memory usage, what is causing that a memory loop or something ?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11202">
+		<div id="comment-11202">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/b229b6122770c2ca5679097d98ab3d87?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">tarzan</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11202">
+				May 15, 2014 at 2:13 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Same with Lastpass installed in Chrome. Without Lastpass it only uses 700 MB.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-11204">
+		<div id="comment-11204">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/2f5b3fa26595bc45871213860db4668f?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Anonymous</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11204">
+				May 15, 2014 at 2:26 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I use request policy (the 1.0 beta which supports blacklist mode in addition to whitelist mode) to block cross-domain requests. This easily gets rid of most ads (also social embeds and user trackers) without injecting a stylesheet into pages.</p>
+<p>It also means those cross-domain iframes don&#8217;t get created in the first place, which should actually reduce the memory footprint, although i haven&#8217;t verified that with measurements.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment even depth-2" id="li-comment-11236">
+		<div id="comment-11236">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/987b803df7c2ef83a999d09125e8f18a?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Jerry H</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11236">
+				May 15, 2014 at 3:55 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Can you expound on this &#8220;request policy&#8221;? I&#8217;ve never heard of it.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-3" id="li-comment-11306">
+		<div id="comment-11306">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/933285225d6a05a99fe35d72b38ff17e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Anonymous</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11306">
+				May 19, 2014 at 8:13 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>That&#8217;s its name: <a href="https://www.requestpolicy.com/1.0.html" rel="nofollow">https://www.requestpolicy.com/1.0.html</a></p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11206">
+		<div id="comment-11206">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/1f75e082dfef04495067d0bbbdebd102?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://www.techload.com.br' rel='external nofollow' class='url'>Criação</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11206">
+				May 15, 2014 at 3:19 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I also think this is a small price to pay if you have plenty of RAM, though it would be good if the plugin developers would come up with something that can mitigate this problem.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-11209">
+		<div id="comment-11209">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/a00f3aee56841e14ccabcf4710d8fd3e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://kun.io' rel='external nofollow' class='url'>William Riley-Land</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11209">
+				May 15, 2014 at 3:40 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>It would be nice if privoxy were easier to set up.  That at least quarantines any memory issues to another box.  I think it has a smaller memory footprint too.</p>
+<p>If someone offered remote privoxy service for $5/month, I&#8217;d probably sign up for it.</p>
+<p>That being said, I&#8217;ve felt AdBlock in Safari works without noticeable problems if you have 16GB RAM.  Not so much if you have 4GB.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11211">
+		<div id="comment-11211">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/0cff4493d3270edd31414b2dad1ee9a9?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://softwareprocess.es/' rel='external nofollow' class='url'>Abram Hindle</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11211">
+				May 15, 2014 at 4:01 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>At least on mobile we found that Adblock Plus did not harm energy consumption performance of Firefox, so while the memory aspects as certainly wasteful I do not think they have much effect on power use. </p>
+<p>Our paper is at:<br />
+<a href="http://webdocs.cs.ualberta.ca/~hindle1/2014/adblock-kent-paper.pdf" rel="nofollow">http://webdocs.cs.ualberta.ca/~hindle1/2014/adblock-kent-paper.pdf</a></p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-11219">
+		<div id="comment-11219">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/0fa0ca5c1a8600a05f120d958cf1b621?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Max</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11219">
+				May 15, 2014 at 6:27 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>If Adblock could work with multithreading may it would be faster at least</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11227">
+		<div id="comment-11227">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/b31a7bb2e719094b0f54e0f2f0d81e60?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Zing Balun</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11227">
+				May 15, 2014 at 8:13 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Add a Greasemonkey script that kills IFRAMEs and you should be golden.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-2" id="li-comment-11296">
+		<div id="comment-11296">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/62979c947983fefcdd5445b0f37bd4e0?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://marahmarie.dreamwidth.org/' rel='external nofollow' class='url'>Marah Marie</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11296">
+				May 17, 2014 at 4:57 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>GM scripts are generally slower to load than add-ons. Which is why I don&#8217;t use GM ad-blocking scripts (disclosure: I&#8217;m the author of a script that blocks some Google ads but I often see those same ads coming in, then flashing back out on page load). Seems the only workaround is to hide all the CSS until the DOMContentLoaded event fires (I&#8217;m actually going to try this soon in my own script since I never knew before now that there&#8217;s a workaround):</p>
+<p><a href="http://wiki.greasespot.net/DOMContentLoaded" rel="nofollow">http://wiki.greasespot.net/DOMContentLoaded</a></p>
+<p>But I&#8217;m thinking hiding all the CSS until a script loads might slow down the perception of how fast the page loads, either way&#8230;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-11228">
+		<div id="comment-11228">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/cbd524ad36c1aba52cd6d17cfb46b9c2?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://www.FitCoding.com' rel='external nofollow' class='url'>Ajk</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11228">
+				May 15, 2014 at 8:24 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Offtopic &#8211; but regardless of what the memory consumption. I think any hacker / coder / webmaster, should never use adblocking if they know how it harms revenue for a user&#8217;s site.</p>
+<p>IMO if you&#8217;re not seeing ads, you&#8217;re simply trying to cheat the system.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-2" id="li-comment-11229">
+		<div id="comment-11229">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/e226e4558107e3728d581e7c9dcb5c79?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Ben</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11229">
+				May 15, 2014 at 9:06 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>To be clear what you&#8217;re really saying is that I should be ashamed of myself for breaking your business model, which I am most certainly not.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even depth-2" id="li-comment-11230">
+		<div id="comment-11230">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/9827a6dd262732d2639417a251c9755e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Daniel Neely</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11230">
+				May 15, 2014 at 9:23 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>The internet advertising industry has long since lost their social license to operate.  As long as they continue to develop more and more obnoxious ways to obstruct our use of the net, they&#8217;ve no chance of recovering it and I&#8217;ll shed only tears of joy as I update my block set.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt depth-2" id="li-comment-11238">
+		<div id="comment-11238">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d65d19bcf830c45ae4927d577d5603ea?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">philmophlegm</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11238">
+				May 15, 2014 at 11:01 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Well said. So glad I&#8217;m not the only one thinking this. Using ad blockers is morally equivalent to software piracy. Good websites don&#8217;t just appear out of thin air &#8211; they&#8217;re written by people who in many cases want to be paid.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment even depth-3" id="li-comment-11288">
+		<div id="comment-11288">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/29ce365cf4f5f4f19144443ccb71d814?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">merfy</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11288">
+				May 17, 2014 at 2:32 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>So glad you made that analogy, because there&#8217;s absolutely nothing morally wrong with pirating something you wouldn&#8217;t&#8217;ve paid for anyway.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-11235">
+		<div id="comment-11235">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/b56fd072e64912c20eef9d3d97498ce6?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Mook</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11235">
+				May 15, 2014 at 2:23 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Glad to see that there seems to be some discussion in the bug about ways for Mozilla to help Adblock Plus fix the issue; unfortunately addons can only use the APIs that are available, so often sub-optimal options have been taken.</p>
+<p>Given the large-ish user base, sometimes I feel like Mozilla would be able to serve its users better by actually allocating people towards developing Adblock Plus (or a replacement) directly, in the way Honza does Firebug (plus the whole built-in devtools thing).  This, of course, would be difficult for the parts of the organization that need to interact with the advertisers; it would need to be described more as punishing the user-hostile ones (including in cases that affect privacy)&#8230;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-11239">
+		<div id="comment-11239">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/67420d30000007875427c5b34e098c26?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Wasi</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11239">
+				May 15, 2014 at 11:32 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I did a little check with the latest Chrome canary build.<br />
+I&#8217;ve been having huge problems with performance on chrome since a few chrome updates ago.</p>
+<p>Adblock plus does indeed use more memory:<br />
+190 mb vs 1 gb</p>
+<p>But my issue with ram consumption is second priority to performance.<br />
+The amount of cpu use caused by adblock is unacceptable.<br />
+Due to how chrome works now, after the update, will cause several tabs in the same process and even sometimes the whole browser to hang up for a few seconds.</p>
+<p>Based on how much google wants to block adblock extensions. I can&#8217;t help it to speculate if this was by design. To annoy users into disabling it. Giving adblock a bad reputation of causing performance issues.<br />
+Wouldn&#8217;t be the first time google/chrome have actively hindered extension developers.<br />
+Can anyone with more insight into the chrome code base comment on this?</p>
+<p>I had a theory that adblock was picked on:<br />
+I noticed other extensions that use the same techniques also cause ram and performance issues.<br />
+Such as Stylebot (without any css styles, clean install)<br />
+<a href="https://chrome.google.com/webstore/detail/stylebot/oiaejidbmkiecgbjeifoejpgmdaleoha" rel="nofollow">https://chrome.google.com/webstore/detail/stylebot/oiaejidbmkiecgbjeifoejpgmdaleoha</a><br />
+190 mb vs 780 mb</p>
+<p>My conclusion to this little test is that the browsers need to be fixed. Updated to support and improve performance for what popular extensions are doing.<br />
+Extensions can only use what the browser gives them. Which for at least chrome is nothing but breadcrumbs (unusable, severely limited,  unstable and broken api&#8217;s)</p>
+<p>Extensions such as adblock should not be blamed for what is out of their control.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor odd alt depth-2" id="li-comment-11264">
+		<div id="comment-11264">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11264">
+				May 16, 2014 at 10:20 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Check out the multiple comments from Klathmon (a Chrome developer) at Reddit:<br />
+<a href="http://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/" rel="nofollow">http://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/</a></p>
+<p>Klathmon basically says that ABP is inherently CPU/memory intensive, and doing that kind of ad-blocking directly in the browser wouldn&#8217;t help much. I&#8217;m no expert on this topic, but the comments sound quite plausible to me.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment even depth-3" id="li-comment-11301">
+		<div id="comment-11301">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/67420d30000007875427c5b34e098c26?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Wasi</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11301">
+				May 19, 2014 at 2:03 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I would take what he say with a grain of salt.</p>
+<p>Doing anything on a computer is cpu/memory intensive. Even just being turned on is &#8220;cpu/memory intensive&#8221;.<br />
+For example the chrome background updater always use 100% of one of my cores when it runs.<br />
+That syncing feature even have bandwidth concerns for those poor buggers that have an artificial capacity limit.</p>
+<p>In the end it is about balance eg performance vs features. That is not what Chrome is about. If chrome adds adblock feature that means there is a feature google can&#8217;t add that also takes up equal amount of cpu/memory time.</p>
+<p>This is one of the reasons I can guess chrome do not have adblocking or a more general thing built in.<br />
+Google wants those precious times-slots for themselves to do as they please with.</p>
+<p>In a twisted way it would also say: &#8220;Google supports you blocking our obnoxious time-wasting ads.&#8221;<br />
+At least that is how they will twist it as an excuse to not implement such a feature. One of the excuses anyway.</p>
+<p>Listening and acting on it in proper common sense way to feedback is blaspheme for companies.<br />
+&#8220;They are blocking our ads. They say they are in the way, too many and obnoxious. What should we do? Add more ads!!!&#8221;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-11240">
+		<div id="comment-11240">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/67420d30000007875427c5b34e098c26?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Wasi</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11240">
+				May 16, 2014 at 12:01 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Forgot to mention what test page I used:<br />
+<a href="http://vimcolorschemetest.googlecode.com/svn/html/index-c.html" rel="nofollow">http://vimcolorschemetest.googlecode.com/svn/html/index-c.html</a></p>
+<p>Off topic rant:<br />
+How come it is always the extension that gets the blame?<br />
+If you want to point the finger and play the blame game then you should point the finger at the browsers.</p>
+<p>Both mozilla and google have statistics of which extensions are popular and could have easily adapted and optimized both the browser and the extension api for better performance for them.<br />
+Perhaps even implemented the extensions features directly into the browser.<br />
+*hint hint*</p>
+<p>Firefox with adblocking feature built in. I can see the news articles already.<br />
+But based on the recent ceo mess I don&#8217;t think Mozilla got the balls to do such a thing. In fact what is the word for the opposite of balls? That is what mozilla is.<br />
+And that was just from some angry whiners.<br />
+What would mozilla do if scary multi-million dollar advertisement companies started to whine and throw a tantrum? Implement ads directly into the browser? Oh right&#8230; The homepage / startpage ads.<br />
+Hypocrisy.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-11249">
+		<div id="comment-11249">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/66c01e8fb638c9bbad1c7eeb8118163b?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://geekjourn.blogspot.in/' rel='external nofollow' class='url'>Vishwas S</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11249">
+				May 16, 2014 at 1:18 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>So Adblock just replied to your post.</p>
+<p><a href="https://adblockplus.org/blog/on-the-adblock-plus-memory-consumption" rel="nofollow">https://adblockplus.org/blog/on-the-adblock-plus-memory-consumption</a></p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor odd alt depth-2" id="li-comment-11267">
+		<div id="comment-11267">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11267">
+				May 16, 2014 at 10:36 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Thanks! I&#8217;ve updated my post with a link to the response.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11250">
+		<div id="comment-11250">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/44d6bf3db68dbf117bd4afb4091728c9?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Rorto</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11250">
+				May 16, 2014 at 2:14 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Try privoxy and this for easy set up :<br />
+<a href="https://github.com/skroll/privoxy-adblock" rel="nofollow">https://github.com/skroll/privoxy-adblock</a></p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-11253">
+		<div id="comment-11253">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/a1228c1dabccab3c970584600f1b0a0e?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='https://twitter.com/mcgroarty' rel='external nofollow' class='url'>McGroarty</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11253">
+				May 16, 2014 at 2:29 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I&#8217;m not ambivalent. Ghostery explains this collection (&#8220;Ghost Rank&#8221;) when installed, and it&#8217;s disabled by default. If people blow through the options without changing the defaults then they don&#8217;t opt in. I&#8217;d be ambivalent about Ghostery if they changed it to opt-out.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11263">
+		<div id="comment-11263">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/4d7e4e1db43f96c370c253d51d6e09d4?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">fffff</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11263">
+				May 16, 2014 at 8:32 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>If you&#8217;re like me and just want to disable popups and don&#8217;t care about actual ads, just set dom.popup_allowed_events to an empty space.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-11291">
+		<div id="comment-11291">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/7bd6545197f3e1effd6dcfd9300feed2?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://securemecca.com' rel='external nofollow' class='url'>Henry Hertz Hobbit</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11291">
+				May 17, 2014 at 9:35 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Another alternative to try is my PAC filter plus a blocking hosts file.  You will need to change the listener to 0.0.0.0 for Windows.  The problem is my priorities are much different than ABP:<br />
+1. Trackers<br />
+2. Malware<br />
+3. WebBugs (phish, redirectors, et al)<br />
+4. ads (a distant fourth but most are in hosts file, not PAC filter)<br />
+<a href="http://securemecca.com/" rel="nofollow">http://securemecca.com/</a><br />
+<a href="http://hostsfile.org/" rel="nofollow">http://hostsfile.org/</a><br />
+   There are no overlays and it is quite efficient but no listener for port 443 (https) requests.  I think the FanBoy people pulled the plug too soon.  Their filter sets were much less intensive.  400 frames?  Isn&#8217;t that an abuse? It is sure to be a killer for Droid and iPhone or people with minimal old single core CPUs.  Somebody creating something like that should be shot.<br />
+   But the short answer to your question is, can ABP be made more efficient?  Yes but only marginally  Use a less intensive filter set like FanBoy-AdBlock and Fanboy-Tracking.  The problem is, who is going to bring it back?<br />
+   But my backing up of my files onto an external USB hard disk drive makes your measely 400 MB sound trivial.  Use of free -m reveals 6210 used and and 5794 free on a 12 GB machine.  What is eating up most of that memory?  Disk caching.  Firefox is only using about 376 MB.  Closing the browser reclaims the memory.  I have no idea how to recover from that &#8220;cp -rup&#8221; or &#8220;diff -r &#8211;brief&#8221; except to reboot the machine.  It must do something to reclaim because I have never run out.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11299">
+		<div id="comment-11299">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/e4cb4a6f74a8298cb87835ede729afb1?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='https://github.com/gorhill/httpswitchboard' rel='external nofollow' class='url'>Raymond Hill</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11299">
+				May 18, 2014 at 5:24 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>@finalbob</p>
+<p>In EasyList, I see 13,500 such generic element hiding rules, not &#8220;roughly 20 thousands&#8221;. (Still a lot though).</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-11300">
+		<div id="comment-11300">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/7bd6545197f3e1effd6dcfd9300feed2?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://securemecca.com' rel='external nofollow' class='url'>Henry Hertz Hobbit</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11300">
+				May 18, 2014 at 7:53 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I think I cannot just walk off and leave it at that.  I am very good with lots of computer languages including C and LISP.  Recursion may be fine in an academic setting but when you get out into the real world the heavy load recursion puts on the stack and the CPU is something you usually avoid, especially in one million plus LOC. I have been able to unroll the recursion into iteration successfully almost all the time.<br />
+   Why do I mention this?  Because frames are the equivalent of recursion in the browser.  You are looking at just the memory but I can tell you that the increased CPU usage is tremendous.  While at this web-site Firefox is always near the top in top (Linux).  What happens when I leave this page?  Firefox drops down so low most of the time it isn&#8217;t even in top.  Why do you think hackers use a frame exploit?  It keeps your CPU busy while they slip you the mickey (the malware).<br />
+   Ergo, rather than criticize ABP make your page layouts so that if possible  they don&#8217;t use frames.  Don&#8217;t tell me it cannot be done.  Just like recursion being replaced by iteration once you understand how to do it, going without frames is possible.  If nothing else the exercise in trying to eliminate frames even if you don&#8217;t achieve it will develop your thinking skills.<br />
+   The PAC filter is NOT a plugin and it doesn&#8217;t have a layer in every frame.  It is just sort of there.  But pattern matching stops at a &#8220;#&#8221; or a &#8220;?&#8221; and it isn&#8217;t going to change.  I have enough FPs as it is.  Yes, it blocks most ubiquitous ad-servers but stops there.  Some people have elevated blocking ads to too high of a level.  I really am considering a rule for those<br />
+&#8220;11&#8243; folders at the domain level.  It is really nasty malware.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-11312">
+		<div id="comment-11312">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/bf26ca64c4f7f6337cd3bbda3a33f166?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">A. Dutch</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/comment-page-1/#comment-11312">
+				May 20, 2014 at 1:28 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>@ Nicholas Nethercote,</p>
+<p>&#8221; &#8216;Simply&#8217; reducing Firefox &amp; AdBlockplus memory usage with ±62% on the vimcolorschemetest -page&#8221;</p>
+<p>Your news has reached Holland as well, ;-), some guy (me) looked at the problem you mentioned, did cost me several days.<br />
+I can tell you I did not found out exactly which rules are exactly the biggest problem but I came at least nearby in a way.<br />
+Actually I did found out is there is a workaround, for people that don&#8217;t want to wait till the so called &#8216;bug&#8217; isssue is fixed by Mozilla or maybe the AdBlockplus team, maybe. You can find the posting with some of my &#8216;research results&#8217; here, on a Dutch security and privacy related issues website.<br />
+Just look at it. No link spamming, no commercial intentions, just some test results and conclusions.</p>
+<p><a href="https://www.security.nl/posting/388370/Firefox+AdBlockplus+Geheugen+gebruik" rel="nofollow">https://www.security.nl/posting/388370/Firefox+AdBlockplus+Geheugen+gebruik</a></p>
+<p>Yes, it&#8217;s in the Dutch language, but you&#8217;ll probably work out something with a translation service, I guess so. If that&#8217;s not working for you, I&#8217;ll be prepared tot consider translating it in English (some more extra work although).</p>
+<p>My mentioned memory usage statistics in the posting are a bit higher, probably because I did not disable some other addons like NoScript or Ghostery but you will get the &#8216;relative memory stats picture&#8217; anyway, I hope (wild guess ;-).<br />
+Generally spoken, if you don&#8217;t want to learn Dutch, you can work around the issue by better managing or looking at your activated Filter subscriptions. Main problem (I think) is the most &amp; mainly used Easylist filter with probably 42500 rules in it.<br />
+But, this filter contains at least 7 sub-filters, removing just one of those filters, the one named &#8220;Easylist General element hiding rules&#8221; (also the first one actually) will do the &#8216;memory usage collapse-hocus-spocus&#8217;. &#8216;Problemo&#8217; solved (± 62% lower)</p>
+<p>&#8220;Yeah, right; disabeling filter rules will give you more advertising!&#8221; You would say / think?<br />
+No, not that is not my experience yet. Acceptible results, but you have to try it yourself, best way.<br />
+Beside, just look at option G in the posting, a combination of different filters to compensate (a little, yes different purpose filters, i know) the deletion of about 14000 rules by adding some 10.000 other ones.</p>
+<p>Beside that, just using Noscript and usually blocking iFrames will help a lot too (I think, because a lot of advertising is using iFrame functionality. Which is also a security concern by the way).<br />
+Also a firewall with several hundred of advertising domains blocking rules will allmost make you even don&#8217;t need ABP anymore. <img src="http://blog.mozilla.org/nnethercote/wp-includes/images/smilies/icon_wink.gif" alt=";-)" class="wp-smiley" /> </p>
+<p>About the ABP moneymaking whitelist discussion, I actually don&#8217;t see any whitelisted advertising coming by during my daily browsing activities. So maybe some people are paying a lot of money to get on a whitelist, still I don&#8217;t see them anyway. &#8216;Sorry you guy&#8217;s, don&#8217;t hate advertising by the way, just don&#8217;t like bad advertising or distracting hocus pocus that is making it impossible for me to actually read content, the first motivation why I am visiting some webpage (not the ads).</p>
+<p>One more thing, the example of the googlecode page is extreme. Good for research but not really comparable with more regular daily pages.<br />
+Well at least in Europe, because there is a very huge difference between commercial European pages and American pages. You can usually see that by the amount of page trackers and the amount of connections you have to make make to a (very) lot of different domains.<br />
+The higer the advertising, tracking  and many connections &#8216;hocus pocus&#8217;, the higer the memory usage will be. But that&#8217;s probably not done (in the V.s.) to talk about that (What about good website behaviour? Tasteful advertising. Consider separate advertising pages, I&#8217;ll be prepared to look at it, after reading the main content on a page, for which is the first reason I am actually there. ;-).</p>
+<p>Anyway, as long as you have enough memory / ram there is actually no big issue. Nowadays computers will have at least 4 gb of ram or more.<br />
+And Mozilla is always moving foreward; just raise your Mozilla minimum OS requirements and drop some OS versions support and the problem is gone (like they do once in a while, people don&#8217;t forget these Mozilla decisions, but thats history for now an not the topic here. Not angry, just sad, once).</p>
+<p>So if you have actually a still supported Os by Mozilla, but not enough ram, you do not want to see (too much) advertisements, just consider managing you Filter subscribtions to lower ram usage to an acceptible level.<br />
+Or choose the right extra addons.<br />
+Or take some time to make a firewall advertising domains blocking rule set and you&#8217;ll be happy.</p>
+<p>Hopefully this answer did help a bit.</p>
+<p>Keep up the research work<br />
+Bye,<br />
+Some dutch guy</p>
+<p>(@ moderator / p.s, for me; you don&#8217;t have to place this answer, please consider to just make this answer is reaching Nicholas, so he can look at the posting-link with some extra information and see if it&#8217;s helpful in one way or another. That&#8217;s all, thanks in advance).</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+		</ol>
+
+		
+	
+			
+</div><!-- #comments -->
+			
+			</div><!-- #content -->
+		</div><!-- #content-container -->
+
+
+		
+		<div id="primary" class="widget-area" role="complementary">
+			<ul class="xoxo">
+
+			
+				<li id="search" class="widget-container widget_search">
+					<h3 class="widget-title">Search It!</h3>					
+					<form role="search" method="get" id="searchform" class="searchform" action="http://blog.mozilla.org/nnethercote/">
+				<div>
+					<label class="screen-reader-text" for="s">Search for:</label>
+					<input type="text" value="" name="s" id="s" />
+					<input type="submit" id="searchsubmit" value="Search" />
+				</div>
+			</form>				</li>
+
+				<li class="widget-container">
+					<h3 class="widget-title">Recent Entries</h3>
+						<ul>
+															<li><a href="http://blog.mozilla.org/nnethercote/2014/06/16/a-browser-benchmarking-manifesto/">A browser benchmarking manifesto</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/06/16/memshrinks-3rd-birthday/">MemShrink&#8217;s 3rd birthday</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/06/16/an-even-slimmer-pdf-js/">An even slimmer pdf.js</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/06/12/areweslimyet-com-data-is-now-exportable-and-diffable/">areweslimyet.com data is now exportable and diffable</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/06/03/why-do-new-macbooks-ship-with-the-firewall-off-by-default/">Why do new MacBooks ship with the firewall off by default?</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/">AdBlock Plus&#8217;s effect on Firefox&#8217;s memory usage</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/04/07/a-story-about-brendan-eich/">A story about Brendan Eich</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/03/31/generational-gc-has-landed/">Generational GC has landed</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/02/11/nuwa-has-landed/">Nuwa has landed</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/02/07/a-slimmer-and-faster-pdf-js/">A slimmer and faster pdf.js</a></li>
+														</ul>
+				</li>
+
+				<li class="widget-container">
+					<h3 class="widget-title">Links</h3>
+						<ul>
+													</ul>
+				</li>
+
+						</ul>
+		</div><!-- #primary .widget-area -->
+
+		
+			</div><!-- #content-box -->
+
+	<div id="footer" role="contentinfo">
+		
+
+		<div id="colophon">
+			Theme: Coraline by <a href="http://automattic.com/">Automattic</a> <span class="generator-link"><a href="http://wordpress.org/" title="A Semantic Personal Publishing Platform" rel="generator">Proudly powered by WordPress.</a></span>
+		</div><!-- #colophon -->
+	</div><!-- #footer -->
+
+</div><!-- #container -->
+
+<script type='text/javascript' src='http://blog.mozilla.org/nnethercote/wp-includes/js/comment-reply.min.js?ver=3.9.1'></script>
+</body>
+</html>

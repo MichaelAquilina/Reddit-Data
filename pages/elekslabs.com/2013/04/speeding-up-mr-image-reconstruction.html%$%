@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speeding up MR Image Reconstruction with GeneRalized Autocalibrating Partially Parallel Acquisitions (GRAPPA) | ELEKS Labs</title>
+    <link href="http://elekslabs.com/wp-content/themes/elekslabs/assets/css/normalize.css" rel="stylesheet">
+    <link href="http://elekslabs.com/wp-content/themes/elekslabs/style.css" rel="stylesheet">
+    <link href="http://elekslabs.com/wp-content/themes/elekslabs/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="http://elekslabs.com/wp-content/themes/elekslabs/assets/img/favicon.ico"/>
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="http://elekslabs.com/wp-content/themes/elekslabs/assets/img/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114"
+          href="http://elekslabs.com/wp-content/themes/elekslabs/assets/img/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72"
+          href="http://elekslabs.com/wp-content/themes/elekslabs/assets/img/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed"
+          href="http://elekslabs.com/wp-content/themes/elekslabs/assets/img/apple-touch-icon-57-precomposed.png">
+
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="http://elekslabs.com/wp-content/themes/elekslabs/assets/js/html5.js"></script>
+    <![endif]-->
+    <script>window.paceOptions = {restartOnRequestAfter: false, startOnPageLoad: false};</script>
+    <script src="http://elekslabs.com/wp-content/themes/elekslabs/assets/js/min/pace.js"></script>
+    <script src="http://elekslabs.com/wp-content/themes/elekslabs/assets/js/min/keyboard.js"></script>
+    
+<!--Plugin Global Hide Admin Tool Bar 1.6.1 Active - Tag 74be16979710d4c4e7c6647856088456-->
+
+<!-- This website is patched against a big problem not solved from WordPress 3.3+ to date -->
+
+
+            <script type="text/javascript">//<![CDATA[
+            // Google Analytics for WordPress by Yoast v4.3.5 | http://yoast.com/wordpress/google-analytics/
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-29424546-1']);
+				            _gaq.push(['_trackPageview']);
+            (function () {
+                var ga = document.createElement('script');
+                ga.type = 'text/javascript';
+                ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ga, s);
+            })();
+            //]]></script>
+			<link rel="alternate" type="application/rss+xml" title="ELEKS Labs &raquo; Speeding up MR Image Reconstruction with GeneRalized Autocalibrating Partially Parallel Acquisitions (GRAPPA) Comments Feed" href="http://elekslabs.com/2013/04/speeding-up-mr-image-reconstruction.html/feed" />
+<link rel='stylesheet' id='colorbox-theme6-css'  href='http://elekslabs.com/wp-content/plugins/jquery-colorbox/themes/theme6/colorbox.css?ver=4.6' type='text/css' media='screen' />
+<link rel='stylesheet' id='colorbox-css-css'  href='http://elekslabs.com/wp-content/plugins/jquery-colorbox/css/jquery-colorbox-zoom.css?ver=1.3.21' type='text/css' media='all' />
+<link rel='stylesheet' id='dialog-css'  href='http://elekslabs.com/wp-content/plugins/editable-comments/dialog/styles.css?ver=3.9.1' type='text/css' media='all' />
+<link rel='stylesheet' id='cab_style-css'  href='http://elekslabs.com/wp-content/plugins/custom-about-author/cab-style.css?ver=3.9.1' type='text/css' media='all' />
+<script type='text/javascript' src='http://code.jquery.com/jquery-1.9.0.min.js?ver=1.9.0'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var jQueryColorboxSettingsArray = {"jQueryColorboxVersion":"4.6","colorboxInline":"false","colorboxIframe":"false","colorboxGroupId":"","colorboxTitle":"","colorboxWidth":"false","colorboxHeight":"false","colorboxMaxWidth":"false","colorboxMaxHeight":"false","colorboxSlideshow":"false","colorboxSlideshowAuto":"false","colorboxScalePhotos":"false","colorboxPreloading":"false","colorboxOverlayClose":"true","colorboxLoop":"true","colorboxEscKey":"true","colorboxArrowKey":"true","colorboxScrolling":"true","colorboxOpacity":"0.60","colorboxTransition":"elastic","colorboxSpeed":"350","colorboxSlideshowSpeed":"2500","colorboxClose":"close","colorboxNext":"next","colorboxPrevious":"previous","colorboxSlideshowStart":"start slideshow","colorboxSlideshowStop":"stop slideshow","colorboxCurrent":"{current} of {total} images","colorboxXhrError":"This content failed to load.","colorboxImgError":"This image failed to load.","colorboxImageMaxWidth":"false","colorboxImageMaxHeight":"false","colorboxImageHeight":"false","colorboxImageWidth":"false","colorboxLinkHeight":"false","colorboxLinkWidth":"false","colorboxInitialHeight":"100","colorboxInitialWidth":"300","autoColorboxJavaScript":"","autoHideFlash":"","autoColorbox":"true","autoColorboxGalleries":"","addZoomOverlay":"true","useGoogleJQuery":"true","colorboxAddClassToLinks":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/jquery-colorbox/js/jquery.colorbox-min.js?ver=1.3.21'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/jquery-colorbox/js/jquery-colorbox-wrapper-min.js?ver=4.6'></script>
+<link rel='prev' title='ELEKS Open-source Projects Directory' href='http://elekslabs.com/2013/04/eleks-open-source-projects-directory.html' />
+<link rel='next' title='Parallelism in Testing – To Be or Not To Be?' href='http://elekslabs.com/2013/04/parallelism-in-testing-to-be-or-not-to.html' />
+
+<link rel='shortlink' href='http://elekslabs.com/?p=351' />
+		<script type="text/javascript">
+		var imgLoader = 'http://elekslabs.com/wp-content/plugins/editable-comments/dialog/loadingAnimation.gif';
+		jQuery(document).ready(function($){   
+			$('a.editable-deletecomment').click(function(event){
+				var conf = confirm('Confirm you want delete this comment ?');
+				if(!conf) event.preventDefault();
+			});
+		});		
+		</script>
+		<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/wordpress-social-login/assets/js/connect.js?ver=3.9.1'></script>
+<link rel='stylesheet' id='wsl_css-css'  href='http://elekslabs.com/wp-content/plugins/wordpress-social-login/assets/css/style.css?ver=3.9.1' type='text/css' media='all' />
+
+<!-- All in One SEO Pack 2.1.6 by Michael Torbert of Semper Fi Web Design[150,269] -->
+<meta name="description" content="This time we would like to share some details about realization of one of our projects in medical imaging. Currently one of the bottlenecks in MR image" />
+
+<meta name="keywords" content="cuda,healthcare,medical imaging,mri,performance optimization" />
+
+<link rel="canonical" href="http://elekslabs.com/2013/04/speeding-up-mr-image-reconstruction.html" />
+<!-- /all in one seo pack -->
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+    <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <script>var baseUrl = 'http://elekslabs.com/';</script>
+
+<link href="http://elekslabs.com/wp-content/themes/elekslabs/assets/toastr/toastr.min.css" rel="stylesheet">
+<script src="http://elekslabs.com/wp-content/themes/elekslabs/assets/toastr/toastr.min.js"></script>
+</head>
+<body>
+<div class="outer-wrap">
+    <div class="inner-wrap">
+        <div class="wrap_site"><nav>
+    <ul class="menu">
+        <li class="articles slides_controls active"><span title="Open Articles Tab" id="articles">Articles</span></li>
+        <li class="tags slides_controls "><span title="Open Tags Tab" id="tags">Tags</span></li>
+        <li class="search_container">
+            <span title="Open Search Tab" class="open_search search_controls">open search</span>
+
+            <form method="post" action="http://elekslabs.com/">
+                <input name="s" value="" autocomplete="off" id="esearch"
+                       placeholder="Search">
+            </form>
+            <span class="close_search search_controls">close search</span>
+        </li>
+        <li class="helper"></li>
+    </ul>
+
+    <div class="left_container active_articles">
+        <div class="nano has-scrollbar articles_container">
+            <div class="content">
+                <div style="display: none;" class="searchloading"><span class="anim-wrapper"><span
+                            class="animated"></span></span></div>
+                <ul style="display: none" class="articles">
+                                            <li >
+                            <a data-id="8750" href="http://elekslabs.com/2014/06/programming-on-a-keyboard-a-piano-keyboard.html"
+                               class="title wrap">Programming on a Keyboard&#8230; a Piano Keyboard</a>
+                            <a href="#" class="author">Yuriy Guts</a>
+                            <time
+                                datetime="2014-06-24">24 Jun 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="8737" href="http://elekslabs.com/2014/06/writing-a-resharper-plugin-auto-completion.html"
+                               class="title wrap">Writing a ReSharper Plugin: Auto-completion</a>
+                            <a href="#" class="author">Yuriy Zanichkovskyy</a>
+                            <time
+                                datetime="2014-06-18">18 Jun 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="8712" href="http://elekslabs.com/2014/05/writing-a-resharper-plugin-problem-analyzers.html"
+                               class="title wrap">Writing a ReSharper Plugin: Problem Analyzers</a>
+                            <a href="#" class="author">Yuriy Zanichkovskyy</a>
+                            <time
+                                datetime="2014-05-26">26 May 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="8689" href="http://elekslabs.com/2014/05/building-custom-apps-for-pebble.html"
+                               class="title wrap">Building Custom Apps for Pebble</a>
+                            <a href="#" class="author">Nick Savula</a>
+                            <time
+                                datetime="2014-05-21">21 May 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="8674" href="http://elekslabs.com/2014/05/creating-test-reports-for-android-with-spoon-and-emma.html"
+                               class="title wrap">Creating Test Reports for Android with Spoon and Emma</a>
+                            <a href="#" class="author">Oleksii Khorunzhyi</a>
+                            <time
+                                datetime="2014-05-19">19 May 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="8645" href="http://elekslabs.com/2014/05/how-azure-web-sites-sucked-in-production.html"
+                               class="title wrap">How Azure Web Sites Sucked in Production</a>
+                            <a href="#" class="author">Yuriy Guts</a>
+                            <time
+                                datetime="2014-05-15">15 May 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="8627" href="http://elekslabs.com/2014/05/centralized-logging-solutions-overview.html"
+                               class="title wrap">Centralized Logging Solutions Overview</a>
+                            <a href="#" class="author">Vitaliy Yuryev</a>
+                            <time
+                                datetime="2014-05-13">13 May 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="7341" href="http://elekslabs.com/2014/04/inside-appcelerator-titanium.html"
+                               class="title wrap">Inside Appcelerator Titanium</a>
+                            <a href="#" class="author">Nick Savula</a>
+                            <time
+                                datetime="2014-04-16">16 Apr 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="6181" href="http://elekslabs.com/2014/04/tesla-through-google-glass.html"
+                               class="title wrap">Embrace your #Tesla #throughglass</a>
+                            <a href="#" class="author">Ostap Andrusiv</a>
+                            <time
+                                datetime="2014-04-14">14 Apr 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="6471" href="http://elekslabs.com/2014/04/strong-unique-and-memorable-passwords-a-creative-approach.html"
+                               class="title wrap">Strong, Unique and Memorable Passwords: a Creative Approach</a>
+                            <a href="#" class="author">Yuriy Guts</a>
+                            <time
+                                datetime="2014-04-11">11 Apr 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="5632" href="http://elekslabs.com/2014/04/google-glass-in-warehouse-automation.html"
+                               class="title wrap">Google Glass in Warehouse Automation</a>
+                            <a href="#" class="author">Ostap Andrusiv</a>
+                            <time
+                                datetime="2014-04-10">10 Apr 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="31" href="http://elekslabs.com/2014/03/fakeiteasy-be-careful-when-wrapping.html"
+                               class="title wrap">FakeItEasy: Be Careful When Wrapping an Existing Object</a>
+                            <a href="#" class="author">Roman Turovskyy</a>
+                            <time
+                                datetime="2014-03-06">06 Mar 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="41" href="http://elekslabs.com/2014/02/why-google-glass-will-fail-and-why-this.html"
+                               class="title wrap">Why Google Glass Will Fail and Why This Won’t Stop Smart Glasses’ Success</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2014-02-21">21 Feb 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="51" href="http://elekslabs.com/2014/02/data-science-for-targeted-advertising.html"
+                               class="title wrap">Data Science for Targeted Advertising: How to Display Relevant Ads by Leveraging Past User Behavior</a>
+                            <a href="#" class="author">Vitaliy Yuryev</a>
+                            <time
+                                datetime="2014-02-10">10 Feb 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="61" href="http://elekslabs.com/2014/01/the-secret-ingredient-of-business.html"
+                               class="title wrap">The Secret Ingredient of Business Development</a>
+                            <a href="#" class="author">Ihor Nakonechnyy</a>
+                            <time
+                                datetime="2014-01-06">06 Jan 2014</time>
+                        </li>
+                                                <li >
+                            <a data-id="71" href="http://elekslabs.com/2013/12/byox-security-ux-responsibility.html"
+                               class="title wrap">BYOX, Security, UX, Responsibility</a>
+                            <a href="#" class="author">Markiyan Matsekh</a>
+                            <time
+                                datetime="2013-12-27">27 Dec 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="81" href="http://elekslabs.com/2013/12/solving-santa-claus-problem-using-ocaml.html"
+                               class="title wrap">Solving the Santa Claus Problem Using OCaml</a>
+                            <a href="#" class="author">Taras Kushnir</a>
+                            <time
+                                datetime="2013-12-18">18 Dec 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="91" href="http://elekslabs.com/2013/12/introduction-into-android-ndk.html"
+                               class="title wrap">Introduction to Android NDK</a>
+                            <a href="#" class="author">Viacheslav Titov</a>
+                            <time
+                                datetime="2013-12-16">16 Dec 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="101" href="http://elekslabs.com/2013/12/rrd-and-rrdtool-sar-graphs-using-pyrrd.html"
+                               class="title wrap">RRD and RRDtool, sar Graphs Using PyRRD</a>
+                            <a href="#" class="author">Oleksandr Lepetiukh</a>
+                            <time
+                                datetime="2013-12-13">13 Dec 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="111" href="http://elekslabs.com/2013/12/jsp-tag-library-with-scala-taglib.html"
+                               class="title wrap">JSP Tag Library with Scala (TagLib Resurrection User Guide)</a>
+                            <a href="#" class="author">Igor Khiblin</a>
+                            <time
+                                datetime="2013-12-10">10 Dec 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="121" href="http://elekslabs.com/2013/12/c-multithreading-support.html"
+                               class="title wrap">C++ Multithreading Support</a>
+                            <a href="#" class="author">Teodor Moroz</a>
+                            <time
+                                datetime="2013-12-05">05 Dec 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="131" href="http://elekslabs.com/2013/11/cloud-ocr-project-learn-to-develop-for.html"
+                               class="title wrap">Cloud OCR Project: Learn to Develop for Windows Azure Today</a>
+                            <a href="#" class="author">Yuriy Guts</a>
+                            <time
+                                datetime="2013-11-21">21 Nov 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="141" href="http://elekslabs.com/2013/11/js2js-why-so-serious.html"
+                               class="title wrap">js2js: Why So Serious?</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2013-11-13">13 Nov 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="151" href="http://elekslabs.com/2013/11/google-glass-consumer-device-in.html"
+                               class="title wrap">Google Glass: Consumer Device in Enterprise World</a>
+                            <a href="#" class="author">Markiyan Matsekh</a>
+                            <time
+                                datetime="2013-11-12">12 Nov 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="161" href="http://elekslabs.com/2013/11/aws-10-things-youre-probably-doing.html"
+                               class="title wrap">AWS: 10 Things You&#8217;re Probably Doing Wrong as an Architect</a>
+                            <a href="#" class="author">Yuriy Guts</a>
+                            <time
+                                datetime="2013-11-06">06 Nov 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="171" href="http://elekslabs.com/2013/11/getting-more-from-aws-spot-instances.html"
+                               class="title wrap">Getting More From AWS: the Spot Instances (via SDK for .NET)</a>
+                            <a href="#" class="author">Taras Kushnir</a>
+                            <time
+                                datetime="2013-11-04">04 Nov 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="181" href="http://elekslabs.com/2013/11/google-glass-development-without-glass.html"
+                               class="title wrap">Google Glass Development Without Glass</a>
+                            <a href="#" class="author">Ostap Andrusiv</a>
+                            <time
+                                datetime="2013-11-01">01 Nov 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="191" href="http://elekslabs.com/2013/10/writing-resharper-plugin-quick-fixes.html"
+                               class="title wrap">Writing a ReSharper Plugin: Quick Fixes</a>
+                            <a href="#" class="author">Yuriy Zanichkovskyy</a>
+                            <time
+                                datetime="2013-10-31">31 Oct 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="201" href="http://elekslabs.com/2013/10/localization-of-e-learnings-articulate.html"
+                               class="title wrap">Localization of E-learnings &#8211; Articulate Studio in Focus</a>
+                            <a href="#" class="author">Bohdan Kruk</a>
+                            <time
+                                datetime="2013-10-24">24 Oct 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="211" href="http://elekslabs.com/2013/10/the-not-so-short-introduction-to-ec2.html"
+                               class="title wrap">The Not-so-short Introduction to EC2 Instances in AWS SDK for .NET</a>
+                            <a href="#" class="author">Taras Kushnir</a>
+                            <time
+                                datetime="2013-10-15">15 Oct 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="221" href="http://elekslabs.com/2013/10/getting-started-with-powershell.html"
+                               class="title wrap">Getting Started with PowerShell</a>
+                            <a href="#" class="author">Roman Turovskyy</a>
+                            <time
+                                datetime="2013-10-02">02 Oct 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="231" href="http://elekslabs.com/2013/09/deployment-techniques-in-qnx-p2p-network.html"
+                               class="title wrap">Deployment Techniques in the QNX P2P Network</a>
+                            <a href="#" class="author">Taras Kushnir</a>
+                            <time
+                                datetime="2013-09-30">30 Sep 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="241" href="http://elekslabs.com/2013/09/continuous-integration-with-teamcity_30.html"
+                               class="title wrap">Continuous Integration with TeamCity &#8211; Preparing Deployment Package</a>
+                            <a href="#" class="author">Roman Turovskyy</a>
+                            <time
+                                datetime="2013-09-30">30 Sep 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="251" href="http://elekslabs.com/2013/09/continuous-integration-with-teamcity.html"
+                               class="title wrap">Continuous Integration with TeamCity – Supporting Multiple Branches</a>
+                            <a href="#" class="author">Roman Turovskyy</a>
+                            <time
+                                datetime="2013-09-25">25 Sep 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="261" href="http://elekslabs.com/2013/08/mobile-strategy-choices-unraveled.html"
+                               class="title wrap">Mobile Strategy Choices. Unraveled</a>
+                            <a href="#" class="author">Markiyan Matsekh</a>
+                            <time
+                                datetime="2013-08-07">07 Aug 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="271" href="http://elekslabs.com/2013/08/play-globally-with-eleks.html"
+                               class="title wrap">Play Globally with ELEKS</a>
+                            <a href="#" class="author">Lyuba Lazarenko</a>
+                            <time
+                                datetime="2013-08-01">01 Aug 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="281" href="http://elekslabs.com/2013/07/boosting-android-apps-performance.html"
+                               class="title wrap">Boosting Android Apps Performance</a>
+                            <a href="#" class="author">Ostap Andrusiv</a>
+                            <time
+                                datetime="2013-07-24">24 Jul 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="291" href="http://elekslabs.com/2013/07/a-short-note-on-automatic.html"
+                               class="title wrap">A Short Note on Automatic Differentiation</a>
+                            <a href="#" class="author">Mykhailo Iaremko</a>
+                            <time
+                                datetime="2013-07-11">11 Jul 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="301" href="http://elekslabs.com/2013/07/games-localization-mind-pitfalls.html"
+                               class="title wrap">Games Localization: Mind the Pitfalls</a>
+                            <a href="#" class="author">Ihor Kuznietsov</a>
+                            <time
+                                datetime="2013-07-09">09 Jul 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="311" href="http://elekslabs.com/2013/06/scaladroids-developing-android.html"
+                               class="title wrap">Scaladroids: Developing Android Applications Using Scala</a>
+                            <a href="#" class="author">Ostap Andrusiv</a>
+                            <time
+                                datetime="2013-06-19">19 Jun 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="321" href="http://elekslabs.com/2013/06/parallel-testing-in-action.html"
+                               class="title wrap">Parallel Testing in Action</a>
+                            <a href="#" class="author">Nazariy Popov</a>
+                            <time
+                                datetime="2013-06-10">10 Jun 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="331" href="http://elekslabs.com/2013/05/introducing-intel-xeon-phi-hardware-tools.html"
+                               class="title wrap">Introducing Intel Xeon Phi &#8211; Hardware and Installation</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2013-05-21">21 May 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="341" href="http://elekslabs.com/2013/04/parallelism-in-testing-to-be-or-not-to.html"
+                               class="title wrap">Parallelism in Testing – To Be or Not To Be?</a>
+                            <a href="#" class="author">Andriy Skop</a>
+                            <time
+                                datetime="2013-04-22">22 Apr 2013</time>
+                        </li>
+                                                <li class="active_post">
+                            <a data-id="351" href="http://elekslabs.com/2013/04/speeding-up-mr-image-reconstruction.html"
+                               class="title wrap">Speeding up MR Image Reconstruction with GeneRalized Autocalibrating Partially Parallel Acquisitions (GRAPPA)</a>
+                            <a href="#" class="author">Volodymyr Kozak</a>
+                            <time
+                                datetime="2013-04-09">09 Apr 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="361" href="http://elekslabs.com/2013/04/eleks-open-source-projects-directory.html"
+                               class="title wrap">ELEKS Open-source Projects Directory</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2013-04-09">09 Apr 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="371" href="http://elekslabs.com/2013/04/cuda-and-machine-learning-at-yandex.html"
+                               class="title wrap">20x Performance for the Same HW Price: GPGPU-based Machine Learning at Yandex</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2013-04-04">04 Apr 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="381" href="http://elekslabs.com/2013/04/the-end-of-monolanguage-web.html"
+                               class="title wrap">The End of JavaScript Domination</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2013-04-01">01 Apr 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="391" href="http://elekslabs.com/2013/03/game-localization-for-gamers-by-gamers.html"
+                               class="title wrap">Game Localization: For Gamers by Gamers?</a>
+                            <a href="#" class="author">Katia Kosovan</a>
+                            <time
+                                datetime="2013-03-21">21 Mar 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="401" href="http://elekslabs.com/2013/03/phonegap-unexpected-journey.html"
+                               class="title wrap">PhoneGap: An Unexpected Journey</a>
+                            <a href="#" class="author">Markiyan Matsekh</a>
+                            <time
+                                datetime="2013-03-01">01 Mar 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="411" href="http://elekslabs.com/2013/01/cloud-compute-instances-its-not-always.html"
+                               class="title wrap">Cloud Compute Instances: It&#8217;s Not Always About the Horsepower</a>
+                            <a href="#" class="author">Yuriy Guts</a>
+                            <time
+                                datetime="2013-01-29">29 Jan 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="421" href="http://elekslabs.com/2013/01/disruptor-net.html"
+                               class="title wrap">Disruptor.NET</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2013-01-29">29 Jan 2013</time>
+                        </li>
+                                                <li >
+                            <a data-id="431" href="http://elekslabs.com/2012/12/cloud-computing-myths-fears-and-facts.html"
+                               class="title wrap">Cloud Computing: Myths, Fears and Facts</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-12-28">28 Dec 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="441" href="http://elekslabs.com/2012/12/game-localization-for-windows-phone-7.html"
+                               class="title wrap">Game Localization For Windows Phone 7</a>
+                            <a href="#" class="author">Artem Veselovskiy</a>
+                            <time
+                                datetime="2012-12-27">27 Dec 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="451" href="http://elekslabs.com/2012/12/dive-into-cloud-brief-technology.html"
+                               class="title wrap">Dive into the Cloud: Brief Technology Introduction</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-12-25">25 Dec 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="461" href="http://elekslabs.com/2012/12/android-vs-ios-user-experience.html"
+                               class="title wrap">Android vs. iOS: UI/UX Differences</a>
+                            <a href="#" class="author">Iryna Pantel</a>
+                            <time
+                                datetime="2012-12-20">20 Dec 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="471" href="http://elekslabs.com/2012/12/why-use-exploratory-testing.html"
+                               class="title wrap">Why Use Exploratory Testing?</a>
+                            <a href="#" class="author">Andriy Skop</a>
+                            <time
+                                datetime="2012-12-13">13 Dec 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="481" href="http://elekslabs.com/2012/12/exploratory-testing-styles.html"
+                               class="title wrap">Exploratory Testing Styles</a>
+                            <a href="#" class="author">Andriy Skop</a>
+                            <time
+                                datetime="2012-12-04">04 Dec 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="491" href="http://elekslabs.com/2012/11/what-is-exploratory-testing.html"
+                               class="title wrap">What is Exploratory Testing</a>
+                            <a href="#" class="author">Andriy Skop</a>
+                            <time
+                                datetime="2012-11-28">28 Nov 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="501" href="http://elekslabs.com/2012/11/open-source-wpf-layout-to-layout.html"
+                               class="title wrap">Open-source WPF Layout to Layout Transitions Library</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-11-28">28 Nov 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="511" href="http://elekslabs.com/2012/11/a-deep-look-into-event-store.html"
+                               class="title wrap">A Deep Look into Event Store</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-11-27">27 Nov 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="521" href="http://elekslabs.com/2012/11/penetration-testing-vs-vulnerability.html"
+                               class="title wrap">Penetration Testing vs. Vulnerability Assessment</a>
+                            <a href="#" class="author">Andriy Skop</a>
+                            <time
+                                datetime="2012-11-19">19 Nov 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="531" href="http://elekslabs.com/2012/11/nvidia-tesla-k20-benchmark-facts.html"
+                               class="title wrap">NVIDIA Tesla K20 Benchmark: Facts, Figures and Some Conclusions</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-11-14">14 Nov 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="541" href="http://elekslabs.com/2012/11/tesla-k20-benchmark-results.html"
+                               class="title wrap">Tesla K20 Benchmark Results</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-11-13">13 Nov 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="551" href="http://elekslabs.com/2012/11/windows-azure-backup-tools-available-on.html"
+                               class="title wrap">Windows Azure Backup Tools Available on GitHub</a>
+                            <a href="#" class="author">Yuriy Guts</a>
+                            <time
+                                datetime="2012-11-12">12 Nov 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="561" href="http://elekslabs.com/2012/11/html5-canvas-performance-and_9.html"
+                               class="title wrap">HTML5 Canvas: Performance and Optimization. Part 2: Going Deeper</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-11-09">09 Nov 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="571" href="http://elekslabs.com/2012/11/cloud-solution-for-global-team.html"
+                               class="title wrap">Cloud Solution for Global Team Engagement at Your Fingertips</a>
+                            <a href="#" class="author">Lyuba Lazarenko</a>
+                            <time
+                                datetime="2012-11-08">08 Nov 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="581" href="http://elekslabs.com/2012/11/html5-canvas-performance-and.html"
+                               class="title wrap">HTML5 Canvas: Performance and Optimization</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-11-07">07 Nov 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="591" href="http://elekslabs.com/2012/11/how-does-good-web-application-look-like-2.html"
+                               class="title wrap">What Does a Good Web Application Look Like? Part 2: DevOps&#8217; Point of View</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-11-05">05 Nov 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="601" href="http://elekslabs.com/2012/11/new-eleks-web-site.html"
+                               class="title wrap">New ELEKS Website</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-11-02">02 Nov 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="611" href="http://elekslabs.com/2012/10/devtalks-4-presentations.html"
+                               class="title wrap">DevTalks #4 Presentations</a>
+                            <a href="#" class="author">Ostap Andrusiv</a>
+                            <time
+                                datetime="2012-10-08">08 Oct 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="621" href="http://elekslabs.com/2012/09/how-does-good-web-application-look-like.html"
+                               class="title wrap">What Does a Good Web Application Look Like? Part 1: User Point of View</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-09-21">21 Sep 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="631" href="http://elekslabs.com/2012/09/event-store-launched.html"
+                               class="title wrap">Event Store was Launched Yesterday</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-09-18">18 Sep 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="641" href="http://elekslabs.com/2012/08/amazon-glacier-how-does-it-may-work.html"
+                               class="title wrap">Amazon Glacier: Why and How Does It Work?</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-08-28">28 Aug 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="651" href="http://elekslabs.com/2012/08/eventstore-launch-by-greg-young.html"
+                               class="title wrap">EventStore Launch by Greg Young</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-08-23">23 Aug 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="661" href="http://elekslabs.com/2012/08/mpi-benchmark.html"
+                               class="title wrap">MPI or Not MPI &#8211; That is the Question</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-08-01">01 Aug 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="671" href="http://elekslabs.com/2012/07/rightscale.html"
+                               class="title wrap">RightScale</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-07-30">30 Jul 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="681" href="http://elekslabs.com/2012/07/aws-simple-icons.html"
+                               class="title wrap">AWS Simple Icons</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-07-24">24 Jul 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="691" href="http://elekslabs.com/2012/07/great-article-about-future-of-big-data.html"
+                               class="title wrap">Great Article About the Future of Big Data and Hadoop</a>
+                            <a href="#" class="author">Victor Haydin</a>
+                            <time
+                                datetime="2012-07-18">18 Jul 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="701" href="http://elekslabs.com/2012/06/gtc-2012-effective-hpc-architecture.html"
+                               class="title wrap">[GTC 2012] Effective HPC Architecture &#8211; Design, Develop, Implement (Presented by Oleh Khoma)</a>
+                            <a href="#" class="author">Oleh Khoma</a>
+                            <time
+                                datetime="2012-06-07">07 Jun 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="711" href="http://elekslabs.com/2012/05/gtc-2012.html"
+                               class="title wrap">GTC 2012</a>
+                            <a href="#" class="author">Oleh Khoma</a>
+                            <time
+                                datetime="2012-05-29">29 May 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="721" href="http://elekslabs.com/2012/02/devtalks-1-presentations.html"
+                               class="title wrap">DevTalks #1 Presentations</a>
+                            <a href="#" class="author">Taras Shpot</a>
+                            <time
+                                datetime="2012-02-23">23 Feb 2012</time>
+                        </li>
+                                                <li >
+                            <a data-id="731" href="http://elekslabs.com/2012/02/devtalks-0-presentations.html"
+                               class="title wrap">DevTalks #0 Presentations</a>
+                            <a href="#" class="author">Eleks Labs</a>
+                            <time
+                                datetime="2012-02-16">16 Feb 2012</time>
+                        </li>
+                                        </ul>
+            </div>
+
+            <div class="pane" style="display: block;">
+                <div class="slider"></div>
+            </div>
+        </div>
+
+        <div class="nano has-scrollbar tags_container">
+            <div class="content">
+                <ul id="left_categories" class="tags">
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">13</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">.NET</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">1</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Amazon</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">2</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Architecture</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">3</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Big Data</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">2</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Business Development</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">1</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">C++</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">15</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Cloud</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">2</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Cross-platform</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">2</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Data Science</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">7</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">DevOps</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">3</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Event Sourcing</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">2</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Functional Programming</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">3</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Game Development</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">1</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Glacier</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">7</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">GPU</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">10</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">HPC</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">2</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Java</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">2</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">JavaScript</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">6</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Localization</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">1</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Math</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">2</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Middleware</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">16</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Mobile</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">3</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Multithreading</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">4</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Open Source</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">3</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Performance</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">1</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">QNX</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">3</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Refactoring</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">2</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Security</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">8</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Testing</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">1</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Uncategorized</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">1</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Unit Testing</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">4</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">UX</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">6</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Wearables</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap catlink">
+                                    <span class="count">8</span>
+                                    <span style="font-family: DINProBold;" class="tag_title">Web</span>
+                                </a>
+                            </li>
+                    
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">#throughglass</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Accelerator</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">6</span>
+                                    <span class="tag_title">Amazon</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">7</span>
+                                    <span class="tag_title">Android</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Android NDK</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Apache Flume</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">API</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Appcelerator</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Articulate Studio</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Auto-complete</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Automatic Differentiation</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">AWS</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">AWS SDK</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Azure</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Azure Web Sites</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Barcode</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">BYOX</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Camera</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Centralized Logging</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Cloud OCR</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">Continuous Integration</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Cross-platform app development</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">CSS3</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">5</span>
+                                    <span class="tag_title">CUDA</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Derivatives</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">3</span>
+                                    <span class="tag_title">DevTalks</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Disruptor</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">E-learning</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">EC2</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Emma</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">Enterprise</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Event Sourcing</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">3</span>
+                                    <span class="tag_title">EventStore</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">3</span>
+                                    <span class="tag_title">Exploratory testing</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">FakeItEasy</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">free form text</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Game Localization</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">GitHub</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Glass Development Kit</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">GlassTesla</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Google</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">5</span>
+                                    <span class="tag_title">Google Glass</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">3</span>
+                                    <span class="tag_title">Greg Young</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">GTC</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">Hadoop</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Healthcare</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Hosting</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">HPC</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">6</span>
+                                    <span class="tag_title">HTML5</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Hybrid app development</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">IaaS</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Internationalization</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">iOS</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Isolation Framework</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">3</span>
+                                    <span class="tag_title">Java</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">JavaScript</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">JSP</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">Kepler</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Localization Engineering</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Logging</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Logstash</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Medical Imaging</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">MIDI</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">Mirror API</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Mobility</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">MPI</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">MRI</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Music</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Native app development</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">NLP</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">NoSQL</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">NVIDIA</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Objective-C</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">OCaml</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">OSSM</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">P2P</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">PaaS</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">Parallel Testing</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">passphrase</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">password</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Pebble</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Peer-to-peer</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">PEER1</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">Performance Optimization</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">PhoneGap</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">PowerShell</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Problem Highlighting</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">PyRRD</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Quick Fixes</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">ReReflection Plugin</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">3</span>
+                                    <span class="tag_title">ReSharper</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">Responsive Design</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Review</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">RightScale</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">RRD</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">RRDtool</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">SaaS</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Sar Graphs</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">Scala</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">SEDA</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Smart watch</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Spoon</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">TagLib</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Targeted Advertising</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">TeamCity</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Tesla</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">Tesla K20</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Tesla Model S</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">TeslaMotors</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Titanium</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">TypeScript</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Visual Studio</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Warehouse</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Web</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">2</span>
+                                    <span class="tag_title">Windows Azure</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Windows Phone</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">WordPress</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">WPF</span>
+                                </a>
+                            </li>
+                                                <li>
+                                <a href="#" class="wrap taglink">
+                                    <span class="count">1</span>
+                                    <span class="tag_title">Xeon Phi</span>
+                                </a>
+                            </li>
+                                    </ul>
+            </div>
+            <div class="pane" style="display: block;">
+                <div class="slider"></div>
+            </div>
+        </div>
+        <div class="nano has-scrollbar search_container">
+            <div class="content">
+                <ul class="search_result">
+
+                </ul>
+            </div>
+            <div class="pane" style="display: block;">
+                <div class="slider"></div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<header>
+    <span title="Open Menu" class="pull_NavMenu">show_menu</span>
+    <a target="_blank" title="Go to Eleks.com site" class="logo" href="http://eleks.com/">logo</a>
+    <a class="logo_rd title" title="Go to home page" href="http://elekslabs.com/">logo_rd</a>
+    <a class="rss_logo" title="Read RSS stream" href="http://elekslabs.com/feed/rss">rss</a>
+</header><section id="general" class="container total">
+    <article class="main_content">
+                <div class="profile">
+    <div class="photo" style="background: url(&quot;http://elekslabs.com/wp-content/uploads/2014/03/Volodymyr-Kozak_75x75-50x50.jpg&quot;) no-repeat center;">
+    <img class="mask" alt="" src="http://elekslabs.com/wp-content/themes/elekslabs/assets/img/mask_profile_50x50.png">
+    </div>
+
+    <div class="profile_content">
+    <a class="profile_name" href="#">Volodymyr Kozak</a>
+
+    <!-- socil links -->
+    <div class="social"><a title="See my Facebook profile" class="facebook" target="_blank" href="http://www.facebook.com/volodymyr.kozak.129">facebook</a><a title="See my LinkedIn profile" class="linkedin" target="_blank" href="http://linkedin.com//in/volodymyrkozak">linkedin</a></div>
+    <!-- socil links end-->
+
+    <p class="profile_title">
+    R&D engineer at <a href="http://eleks.com">ELEKS</a>
+    </p>
+    </div>
+
+    </div>        <h1>Speeding up MR Image Reconstruction with GeneRalized Autocalibrating Partially Parallel Acquisitions (GRAPPA)</h1>
+
+        <p class="date">
+            <time datetime="2013-04-09">09 Apr 2013</time>
+            <a title="Jump to comments" class="com_count" href="#comments">0</a>
+        </p>
+
+        <div class="text_wrap"><div style="clear: both; text-align: center;"><a style="margin-left: 1em; margin-right: 1em;" href="http://elekslabs.com/wp-content/uploads/2013/04/MRI.jpg" ><img class="colorbox-351"  alt="" src="http://elekslabs.com/wp-content/uploads/2013/04/MRI-300x200.jpg" width="400" height="266" border="0" /></a></div>
+<p>This time we would like to share some details about realization of one of our projects in medical imaging.<br />
+Currently one of the bottlenecks in MR image reconstruction is speed improvement. Improving the speed of image reconstruction is difficult from algorithmic point of view. But it’s becoming more popular to improve algorithm performance using GPU.</p>
+<h3>Introduction</h3>
+<p>In magnetic resonance (MR) image reconstruction raw data measured from the scanner correspond to the Fourier coefficients of the target image, so the fast Fourier transform (FFT) is used for reconstruction. An important procedure called the density compensation is necessary in the very beginning to account for the non-uniform sampling. GeneRalized Autocalibrating Partially Parallel Acquisitions (GRAPPA) is a partially parallel acquisition (PPA) method which is used to reduce scan times. In this case only partial data is acquired and missing data is mathematically calculated from available data.</p>
+<h3>Subject for optimization</h3>
+<p>Original implementation was based on <a href="http://www.fftw.org/" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.fftw.org']);">FFTW library</a> for Fast Fourier transforms and adapted Singular Value Decomposition (SVD) algorithm from ACM Collected Algorithms for GRAPPA preprocessing. These two algorithms are the most computationally intensive parts of the whole image reconstruction. FFTW library is claimed to be the fastest CPU implementation using all possible optimizations like SSE2/3 and hyper threading, however it does not leverages the power of modern GPU cards. SVD algorithm was done on CPU as well. It is known to be badly parallelizable for small matrices, but in case of GRAPPA algorithm we have many image frames with same size which can be processed in parallel. Besides there are many intermediate steps which consume a lot of CPU and they can be easily parallelized on GPU.</p>
+<h3>Technical analysis</h3>
+<p>FFTW library performance is comparable with Intel MKL implementation. NVidia provides <a href="http://www.blogger.com/" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.blogger.com']);">comparison</a> for their CUDA based cuFFT library with MKL implementation (Figure 1):</p>
+<table style="margin-left: auto; margin-right: auto; text-align: center;" cellspacing="0" cellpadding="0" align="center">
+<tbody>
+<tr>
+<td style="text-align: center;"><a style="margin-left: auto; margin-right: auto;" href="http://elekslabs.com/wp-content/uploads/2013/04/grappa-1.png" ><img class="colorbox-351"  alt="" src="http://elekslabs.com/wp-content/uploads/2013/04/grappa-1.png" border="0" /></a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><b style="font-size: medium; text-align: start;">Figure 1</b><span style="font-size: xx-small; text-align: start;"> Comparison of CUDA based cuFFT library with MKL implementation</span></td>
+</tr>
+</tbody>
+</table>
+<p>According to this we should achieve up to 8-10x faster FFT processing  when using GPU accelerated cuFFT library from Nvidia. GPU accelerated SVD algorithm is also available, for example <a href="https://developer.nvidia.com/em-photonics-cula-tools" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://developer.nvidia.com']);">CULA library</a> by EM Photonics. However, current CULA library implementation does not support batch mode, so we will need to process all image frames as a sequence. Brief testing showed that 64 image frames (256*256) are processed even slower than CPU based version. Since we haven’t found any good alternative to CULA library we decided to implement our own GPU accelerated version of SVD algorithm.</p>
+<h3>Implementation</h3>
+<p>FFT part of image reconstruction when using cuFFT library was straightforward, however we had to deal with image frames which does not fit into available GPU memory. We had to write algorithm to run FFT over portions of the large data frame with subsequent aggregation. Figure 2.1 below shows case when all data fits into GPU memory.</p>
+<table style="margin-left: auto; margin-right: auto; text-align: center;" cellspacing="0" cellpadding="0" align="center">
+<tbody>
+<tr>
+<td style="text-align: center;"><a style="margin-left: auto; margin-right: auto;" href="http://elekslabs.com/wp-content/uploads/2013/04/grappa-2.1.png" ><img class="colorbox-351"  alt="" src="http://elekslabs.com/wp-content/uploads/2013/04/grappa-2.1.png" border="0" /></a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><b style="font-size: medium; text-align: start;">Figure 2.1</b><span style="font-size: xx-small; text-align: start;"> </span></td>
+</tr>
+</tbody>
+</table>
+<p>Figure 2.2 illustrates the case when huge data is processed. Solid lines in figure below show measured performance, dashed lines show estimated time in case data fits into GPU memory.</p>
+<div>
+<div>
+<table style="margin-left: auto; margin-right: auto; text-align: center;" cellspacing="0" cellpadding="0" align="center">
+<tbody>
+<tr>
+<td style="text-align: center;"><a style="margin-left: auto; margin-right: auto;" href="http://elekslabs.com/wp-content/uploads/2013/04/grappa-2.2.png" ><img class="colorbox-351"  alt="" src="http://elekslabs.com/wp-content/uploads/2013/04/grappa-2.2.png" border="0" /></a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><b style="font-size: medium; text-align: start;">Figure 2.2</b></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div>Much more interesting was to implement GPU accelerated SVD algorithm with batch mode. All implementations we had found are focusing on maximum parallelization of a single SVD run, hence we had to change approach. Basically SVD algorithm consists of HouseHolder Reduction, QR Diagonalization and Back Transformation steps. All are iterative processes when next step depends on results from previous step. In case of small matrices each CUDA kernel can’t effectively utilize all parallel processing units of modern GPU. So we had to write kernels in a way when every iteration for all matrices is processed by a single kernel run. This way in case of 64 matrices with 128&#215;128 size each we can process 64*128 elements at a time instead of 128. Figures 3.1 and 3.2 show performance comparison for CULA Library and our implementation.</div>
+<div>
+<table style="margin-left: auto; margin-right: auto; text-align: center;" cellspacing="0" cellpadding="0" align="center">
+<tbody>
+<tr>
+<td style="text-align: center;"><a style="margin-left: auto; margin-right: auto;" href="http://elekslabs.com/wp-content/uploads/2013/04/grappa-3.1.png" ><img class="colorbox-351"  alt="" src="http://elekslabs.com/wp-content/uploads/2013/04/grappa-3.1.png" border="0" /></a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><b style="font-size: medium; text-align: start;">Figure 3.1</b></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div></div>
+<div>
+<table style="margin-left: auto; margin-right: auto; text-align: center;" cellspacing="0" cellpadding="0" align="center">
+<tbody>
+<tr>
+<td style="text-align: center;"><a style="margin-left: auto; margin-right: auto;" href="http://elekslabs.com/wp-content/uploads/2013/04/grappa-3.2.png" ><img class="colorbox-351"  alt="" src="http://elekslabs.com/wp-content/uploads/2013/04/grappa-3.2.png" border="0" /></a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><b style="font-size: medium; text-align: start;">Figure 3.2</b></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div>With more than 8 frames per batch our implementation shows much better performance comparing to sequential CULA calls, although it is not so efficient for a single frame.</div>
+<div></div>
+<h3>Results</h3>
+<div>As a result we have developed a pure C++ library with a set of specialized functions which perform various stages of image reconstruction. It requires only CUDA runtime libraries and free cuFFT library provided by NVidia. In addition we have implemented lightweight C# wrapper for convenient usage. Also we have run a lot of benchmarks with various GPU cards and on different platforms. On test cases provided by customer we received up to 150x speedup comparing to original single-threaded CPU implementation. However significant part of received speedup was due to poorly optimized original code which was completely rewritten and ported to CUDA whenever possible.</div>
+<div>While it is usually understood what FFT stage does in image reconstruction, GRAPPA stage is not so obvious. Due to parallel acquisition of different frames arises distortion of acquired data which is effectively eliminated. Figure 4 shows visual representation of images before and after reconstruction.</div>
+<div>
+<table style="margin-left: auto; margin-right: auto; text-align: center;" cellspacing="0" cellpadding="0" align="center">
+<tbody>
+<tr>
+<td style="text-align: center;"><a style="margin-left: auto; margin-right: auto;" href="http://elekslabs.com/wp-content/uploads/2013/04/grappa-4.png" ><img class="colorbox-351"  alt="" src="http://elekslabs.com/wp-content/uploads/2013/04/grappa-4.png" border="0" /></a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><b style="font-size: medium; text-align: start;">Figure 4</b><span style="font-size: xx-small; text-align: start;"> The image before the reconstruction (left), image after reconstruction (right)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div>Additionally, you can find a case-study on <a href="http://eleks.com/case-studies/accelerated-image-processing-for-healthcare" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://eleks.com']);">ELEKS website</a> or download it in <a href="http://eleks.com/pdf/ELEKS%C3%A2%E2%82%AC%E2%84%A2%20CUDA%C3%A2%E2%80%9E%C2%A2-Accelerated%20Image%20Processing%20for%20Healthcare.pdf" onclick="javascript:_gaq.push(['_trackEvent','download','http://eleks.com/pdf/ELEKS%C3%A2%E2%82%AC%E2%84%A2%20CUDA%C3%A2%E2%80%9E%C2%A2-Accelerated%20Image%20Processing%20for%20Healthcare.pdf']);">PDF</a>. Stay tuned!</div>
+</div>
+</div>
+
+                    <div class="autors">
+                <div class="profile">
+    <div class="photo" style="background: url(&quot;http://elekslabs.com/wp-content/uploads/2014/03/Volodymyr-Kozak_75x75-78x78.jpg&quot;) no-repeat top center;">
+    <img class="mask" alt="" src="http://elekslabs.com/wp-content/themes/elekslabs/assets/img/mask_profile_78x78.png">
+    </div>
+
+    <div class="profile_content">
+    <a class="profile_name" href="#">Volodymyr Kozak</a>
+
+    <div class="social"><a title="See my Facebook profile" class="facebook" target="_blank" href="http://www.facebook.com/volodymyr.kozak.129">facebook</a><a title="See my LinkedIn profile" class="linkedin" target="_blank" href="http://linkedin.com//in/volodymyrkozak">linkedin</a></div>
+
+    <p class="profile_title">
+    Volodymyr Kozak is an R&amp;D engineer at <a href="http://eleks.com">ELEKS</a>. Mundane tasks are not for him; Volodymyr’s interests are more challenging: artificial intelligence, tricky tools and algorithms. He is also active when it comes to sports. Volodymyr likes mountain skiing, table tennis and swimming. Writing articles for him is a way of sharing the results of his complicated but extremely interesting work.
+    </p>
+    </div>
+
+    </div>            </div>
+            </article>
+
+            <section class="tags_cloud">
+            <h3 class="title">tags</h3>
+            <ul id="bottom_tags" class="tags">
+                                    <li><a title="Search all posts with tag 'CUDA'" class="tag taglink"
+                           href="#">CUDA</a></li>
+                                    <li><a title="Search all posts with tag 'Healthcare'" class="tag taglink"
+                           href="#">Healthcare</a></li>
+                                    <li><a title="Search all posts with tag 'Medical Imaging'" class="tag taglink"
+                           href="#">Medical Imaging</a></li>
+                                    <li><a title="Search all posts with tag 'MRI'" class="tag taglink"
+                           href="#">MRI</a></li>
+                                    <li><a title="Search all posts with tag 'Performance Optimization'" class="tag taglink"
+                           href="#">Performance Optimization</a></li>
+                            </ul>
+        </section>
+    
+    <!-- socil follow count -->
+    <div class="social_icons clearfix">
+        <ul><li class="twitter"><a title="Share via Twitter" id="ssba_twitter_share" href="http://twitter.com/share?url=http://elekslabs.com/2013/04/speeding-up-mr-image-reconstruction.html&amp;text=Speeding up MR Image Reconstruction with GeneRalized Autocalibrating Partially Parallel Acquisitions (GRAPPA)" target="_blank"><span class="count">0</span></a></li><li class="facebook"><a title="Share via Facebook" id="ssba_facebook_share" href="http://www.facebook.com/sharer.php?u=http://elekslabs.com/2013/04/speeding-up-mr-image-reconstruction.html" target="_blank"><span class="count">13</span></a></li><li class="google"><a title="Share via Google+" id="ssba_google_share" href="https://plus.google.com/share?url=http://elekslabs.com/2013/04/speeding-up-mr-image-reconstruction.html" target="_blank"><span class="count">0</span></a></li></ul></div>    <!-- socil follow count end-->
+
+    
+<div class="comments" id="comments">
+    <h2>Comments: <span id="com_count">0</span></h2>
+    <ul class="parent"></ul>
+
+
+
+
+    <ul class="parent">
+                    <!-- login with social networks -->
+            <li class="login lastchild">
+                <div class="networks ">
+                    <div class="add"></div>
+                    <div style="display: none;" class="networks_content">
+                        Leave a comment with
+                        				<a rel="nofollow" href="javascript:void(0);" title="Connect with Facebook"
+                   class="wsl_connect_with_provider network facebook"
+                   data-provider="Facebook"></a> 								<a rel="nofollow" href="javascript:void(0);" title="Connect with Google"
+                   class="wsl_connect_with_provider network google"
+                   data-provider="Google"></a> 								<a rel="nofollow" href="javascript:void(0);" title="Connect with Twitter"
+                   class="wsl_connect_with_provider network twitter"
+                   data-provider="Twitter"></a> 								<a rel="nofollow" href="javascript:void(0);" title="Connect with LinkedIn"
+                   class="wsl_connect_with_provider network linkedin"
+                   data-provider="LinkedIn"></a> 								<a rel="nofollow" href="javascript:void(0);" title="Connect with GitHub"
+                   class="wsl_connect_with_provider network github"
+                   data-provider="GitHub"></a> 						<input id="wsl_popup_base_url" type="hidden" value="http://elekslabs.com/wp-login.php?action=wordpress_social_authenticate&#038;" />
+		<input type="hidden" id="wsl_login_form_uri" value="http://elekslabs.com/wp-login.php" />
+	                    </div>
+                </div>
+            </li>
+
+            </ul>
+</div>
+</section>
+    <!-- next page link-->
+    <div class="next_page">
+                    <span class="link">
+                            <span class="anim"></span>
+                            <span class="next">Read next:</span>
+                            <a href="http://elekslabs.com/2013/04/eleks-open-source-projects-directory.html"
+                               class="title">ELEKS Open-source Projects Directory</a>
+                        </span>
+            </div>
+    <!-- next page link end-->
+
+        <div class="loaded"></div>
+
+</div>
+</div>
+</div>
+
+<!--Plugin Global Hide Admin Tool Bar 1.6.1 Active - Tag 74be16979710d4c4e7c6647856088456-->
+
+<!-- This website is patched against a big problem not solved from WordPress 3.3+ to date -->
+
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shCore.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushAS3.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushBash.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushColdFusion.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/third-party-brushes/shBrushClojure.js?ver=20090602'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushCpp.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushCSharp.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushCss.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushDelphi.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushDiff.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushErlang.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/third-party-brushes/shBrushFSharp.js?ver=20091003'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushGroovy.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushJava.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushJavaFX.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushJScript.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/third-party-brushes/shBrushLatex.js?ver=20090613'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/third-party-brushes/shBrushMatlabKey.js?ver=20091209'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/third-party-brushes/shBrushObjC.js?ver=20091207'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushPerl.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushPhp.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushPlain.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushPowerShell.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushPython.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/third-party-brushes/shBrushR.js?ver=20100919'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushRuby.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushScala.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushSql.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushVb.js?ver=2.1.364'></script>
+<script type='text/javascript' src='http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/shBrushXml.js?ver=2.1.364'></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/styles/shCore.css?ver=2.1.364";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/styles/shThemeDefault.css?ver=2.1.364";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.clipboardSwf = 'http://elekslabs.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter2/scripts/clipboard.swf';
+	SyntaxHighlighter.config.strings.expandSource = 'show source';
+	SyntaxHighlighter.config.strings.viewSource = 'view source';
+	SyntaxHighlighter.config.strings.copyToClipboard = 'copy to clipboard';
+	SyntaxHighlighter.config.strings.copyToClipboardConfirmation = 'The code is in your clipboard now';
+	SyntaxHighlighter.config.strings.print = 'print';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['auto-links'] = false;
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.all();
+</script>
+<script type='text/javascript' src='http://s0.wp.com/wp-content/js/devicepx-jetpack.js?ver=201427'></script>
+
+	<script src="http://stats.wordpress.com/e-201427.js" type="text/javascript"></script>
+	<script type="text/javascript">
+	st_go({v:'ext',j:'1:3.0.1',blog:'66919397',post:'351',tz:'3'});
+	var load_cmc = function(){linktracker_init(66919397,351,2);};
+	if ( typeof addLoadEvent != 'undefined' ) addLoadEvent(load_cmc);
+	else load_cmc();
+	</script><!--<script src="--><!--/assets/js/jquery.tools.min.js"></script>-->
+<script src="http://elekslabs.com/wp-content/themes/elekslabs/assets/js/elekslabs.js"></script>
+
+<script src="http://elekslabs.com/wp-content/themes/elekslabs/assets/js/min/nanoScroler.js"></script>
+<script src="http://elekslabs.com/wp-content/themes/elekslabs/assets/js/MenuSlide.js"></script>
+<script src="http://elekslabs.com/wp-content/themes/elekslabs/assets/js/animationPage.js"></script>
+
+<script src="http://elekslabs.com/wp-content/themes/elekslabs/assets/js/jquery_mobile_1.3.2.js"></script>
+</body>
+</html>
+<!-- Dynamic page generated in 1.376 seconds. -->
+<!-- Cached page generated by WP-Super-Cache on 2014-07-01 15:52:25 -->
+
+<!-- super cache -->

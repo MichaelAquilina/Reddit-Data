@@ -1,0 +1,662 @@
+<!DOCTYPE HTML>
+
+
+<html lang='en'><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width"><title>Ned Batchelder: Facts and myths about Python names and values</title><link rel='stylesheet' href='http://nedbatchelder.com/style.css' type='text/css'><link rel='stylesheet' href='http://nedbatchelder.com/printstyle.css' type='text/css' media='print'><script type='text/javascript' src='http://nedbatchelder.com/nedbatchelder.js'></script><script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-32134006-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script></head><body><table id='logo_banner'><tr><td id='logo'><a href='/'><img src='/dodeca3_100.gif' width='100' height='120' alt='[*]'></a></td><td id='banner'><span class='path'><a href='/'>Ned Batchelder</a> : <a href='/blog'>Blog</a> | <a href='/code'>Code</a> | <a href='/text'>Text</a> | <a href='/site'>Site</a></span><br><span class='headslug'>Facts and myths about Python names and values</span><br><span class='path'>
+                    &#xbb; <a href='/'>Home</a> : <a href='/text'>Text</a></span></td></tr></table><table id='content_menu'><tr><td id='content'><div class='body'><div id='searchwelcome'></div><p class='dateline'>
+                            Created 6 July 2013, last updated 26 January 2014
+                        </p><p class="first">The behavior of names and values in Python can be confusing.  Like many
+    parts of Python, it has an underlying simplicity that can be hard to
+    discern, especially if you are used to other programming languages. Here
+    I'll explain how it all works, and present some facts and myths along the
+    way.</p><h1 id="h_Names_and_values">Names and values</h1><p>Let's start simple:</p><blockquote class="box" id="names_refer">Fact: Names refer to values.</blockquote><p>As in many programming languages, a Python assignment statement associates a
+    symbolic name on the left-hand side with a value on the right-hand side.
+    In Python, we say that names refer to values, or a name is a reference to a
+    value:</p><blockquote class="code"><code><span class="n">x</span>&#xA0;<span class="o">=</span>&#xA0;<span class="mi">23</span><br></code></blockquote><p>Now the name "x" refers to the value 23.  The next time we use the name x,
+    we'll get the value 23:</p><blockquote class="code"><code><span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span>&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;<span class="c">#&#xA0;prints&#xA0;25</span><br></code></blockquote><p>Exactly how the name refers to the value isn't really important.  If you're
+    experienced with the C language, you might like to think of it as a
+    pointer, but if that means nothing to you then don't worry about it.</p><p>To help explain what's going on, I'll use diagrams.  A gray rectangular tag-like shape is a
+    name, with an arrow pointing to its value. Here's the name x refering to an
+    integer 23:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="34.0" version="1.1" width="116.0"><title>x refers to 23</title><defs><marker id="id1" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(-81.0,-13.0)"><polygon class="name" points="83,15 116.25,15 120,30 116.25,45 83,45"></polygon><text dy=".3em" text-anchor="middle" x="99.625" y="30">x</text><circle class="int value" cx="180" cy="30" r="15"></circle><text dy=".3em" text-anchor="middle" x="180" y="30">23</text><path class="arrow" d="M 120,30 C 131,30 131,30 142,30 C 153,30 153,30 165,30" fill="none" marker-end="url(#id1)"></path></g></svg></p><p>I'll be using these diagrams to show how Python statements affect the names
+    and values involved.  (The diagrams are SVG, if they don't render, let me
+    know.)</p><p>Another way to explore what's going on with these code snippets is to try
+    them on <a class="offsite" rel="external" href="http://pythontutor.com">pythontutor.com</a>, which
+    cleverly diagrams your code as it runs.  I've included links there with
+    some of the examples.</p><blockquote class="box" id="many_names">Fact: Many names can refer to one value.</blockquote><p>There's no rule that says a value can only have one name.  An assignment
+    statement can make a second (or third, ...) name refer to the same
+    value.</p><blockquote class="code"><code><span class="n">x</span>&#xA0;<span class="o">=</span>&#xA0;<span class="mi">23</span><br><span class="n">y</span>&#xA0;<span class="o">=</span>&#xA0;<span class="n">x</span><br></code></blockquote><p>Now x and y both refer to the same value:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="79.0" version="1.1" width="116.0"><title>x and y both refer to 23</title><defs><marker id="id2" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(-81.0,-13.0)"><polygon class="name" points="83,15 116.25,15 120,30 116.25,45 83,45"></polygon><text dy=".3em" text-anchor="middle" x="99.625" y="30">x</text><polygon class="name" points="83,60 116.25,60 120,75 116.25,90 83,90"></polygon><text dy=".3em" text-anchor="middle" x="99.625" y="75">y</text><circle class="int value" cx="180" cy="52.5" r="15"></circle><text dy=".3em" text-anchor="middle" x="180" y="52.5">23</text><path class="arrow" d="M 120,30 C 132,30 132,30 142,37 C 153,43 153,44 165,48" fill="none" marker-end="url(#id2)"></path><path class="arrow" d="M 120,75 C 132,75 132,74 142,67 C 153,61 153,60 165,56" fill="none" marker-end="url(#id2)"></path></g></svg></p><p>Neither x or y is the "real" name.  They have equal status: each refers to
+    the value in exactly the same way.</p><blockquote class="box" id="reassign">Fact: Names are reassigned independently of other names.</blockquote><p>If two names refer to the same value, this doesn't magically link the
+    two names.  Reassigning one of them won't reassign the other also:</p><blockquote class="code"><code><span class="n">x</span>&#xA0;<span class="o">=</span>&#xA0;<span class="mi">23</span><br><span class="n">y</span>&#xA0;<span class="o">=</span>&#xA0;<span class="n">x</span><br><span class="n">x</span>&#xA0;<span class="o">=</span>&#xA0;<span class="mi">12</span><br></code></blockquote><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="79.0" version="1.1" width="116.0"><title>x and y aren't magically linked</title><defs><marker id="id3" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(-81.0,-13.0)"><polygon class="name" points="83,15 116.25,15 120,30 116.25,45 83,45"></polygon><text dy=".3em" text-anchor="middle" x="99.625" y="30">x</text><polygon class="name" points="83,60 116.25,60 120,75 116.25,90 83,90"></polygon><text dy=".3em" text-anchor="middle" x="99.625" y="75">y</text><circle class="int value" cx="180" cy="30" r="15"></circle><text dy=".3em" text-anchor="middle" x="180" y="30">12</text><circle class="int value" cx="180" cy="75" r="15"></circle><text dy=".3em" text-anchor="middle" x="180" y="75">23</text><path class="arrow" d="M 120,30 C 131,30 131,30 142,30 C 153,30 153,30 165,30" fill="none" marker-end="url(#id3)"></path><path class="arrow" d="M 120,75 C 131,75 131,75 142,75 C 153,75 153,75 165,75" fill="none" marker-end="url(#id3)"></path></g></svg></p><p>When we said "y = x", that doesn't mean that they will always be the
+    same forever.  Reassigning x leaves y alone.  Imagine the chaos if
+    it didn't!</p><blockquote class="box" id="value_life">Fact: Values live until nothing references them.</blockquote><p>Python keeps track of how many references each value has, and automatically
+    cleans up values that have none.  This is called "garbage collection,"
+    and means that you don't have to get rid of values, they go away by
+    themselves when they are no longer needed.</p><p>Exactly how Python keeps track is an implementation detail, but if you hear
+    the term "reference counting," that's an important part of it.  Sometimes
+    cleaning up a value is called reclaiming it.</p><h1 id="h_Assignment">Assignment</h1><p>An important fact about assignment:</p><blockquote class="box" id="no_copies">Fact: Assignment never copies data.</blockquote><p>When values have more than one name, it's easy to get confused and think of
+    it as two names and two values:</p><blockquote class="code"><code><span class="n">x</span>&#xA0;<span class="o">=</span>&#xA0;<span class="mi">23</span><br><span class="n">y</span>&#xA0;<span class="o">=</span>&#xA0;<span class="n">x</span><br><span class="c">#&#xA0;&quot;Now&#xA0;I&#xA0;have&#xA0;two&#xA0;values:&#xA0;x&#xA0;and&#xA0;y!&quot;</span><br><span class="c">#&#xA0;NO:&#xA0;you&#xA0;have&#xA0;two&#xA0;names,&#xA0;but&#xA0;only&#xA0;one&#xA0;value.</span><br></code></blockquote><p>Assigning a value to a name never copies the data, it never makes a new
+    value.  Assignment just makes the name on the left refer to the value on
+    the right.  In this case, we have only one 23, and x and y both refer to
+    it, just as we saw in the last diagrams.</p><p>Things get more interesting when we have more complicated values, like a
+    list:</p><blockquote class="code"><code><span class="n">nums</span>&#xA0;<span class="o">=</span>&#xA0;<span class="p">[</span><span class="mi">1</span><span class="p">,</span>&#xA0;<span class="mi">2</span><span class="p">,</span>&#xA0;<span class="mi">3</span><span class="p">]</span><br></code></blockquote><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="34.0" version="1.1" width="184.0"><title>nums refers to a list of numbers</title><defs><marker id="id4" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(-55.0,-13.0)"><polygon class="name" points="57,15 116.25,15 120,30 116.25,45 57,45"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="30">nums</text><rect class="list" height="30" width="24" x="165" y="15"></rect><text dy=".3em" text-anchor="middle" x="177" y="30">1</text><rect class="list" height="30" width="24" x="189" y="15"></rect><text dy=".3em" text-anchor="middle" x="201" y="30">2</text><rect class="list" height="30" width="24" x="213" y="15"></rect><text dy=".3em" text-anchor="middle" x="225" y="30">3</text><path class="arrow" d="M 120,30 C 131,30 131,30 142,30 C 153,30 153,30 165,30" fill="none" marker-end="url(#id4)"></path></g></svg></p><p>Now if we assign nums to another name, we'll have two names referring to the
+    same list:</p><blockquote class="code"><code><span class="n">nums</span>&#xA0;<span class="o">=</span>&#xA0;<span class="p">[</span><span class="mi">1</span><span class="p">,</span>&#xA0;<span class="mi">2</span><span class="p">,</span>&#xA0;<span class="mi">3</span><span class="p">]</span><br><span class="n">tri</span>&#xA0;<span class="o">=</span>&#xA0;<span class="n">nums</span><br></code></blockquote><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="79.0" version="1.1" width="184.0"><title>nums and tri both refer to the same list</title><defs><marker id="id5" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(-55.0,-13.0)"><polygon class="name" points="57,15 116.25,15 120,30 116.25,45 57,45"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="30">nums</text><polygon class="name" points="77,60 116.25,60 120,75 116.25,90 77,90"></polygon><text dy=".3em" text-anchor="middle" x="96.625" y="75">tri</text><rect class="list" height="30" width="24" x="165" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="177" y="52.5">1</text><rect class="list" height="30" width="24" x="189" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="201" y="52.5">2</text><rect class="list" height="30" width="24" x="213" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="225" y="52.5">3</text><path class="arrow" d="M 120,30 C 132,30 132,30 142,37 C 153,43 153,44 165,48" fill="none" marker-end="url(#id5)"></path><path class="arrow" d="M 120,75 C 132,75 132,74 142,67 C 153,61 153,60 165,56" fill="none" marker-end="url(#id5)"></path></g></svg></p><p>Remember: assignment never makes new values, and it never copies data.  This
+    assignment statement doesn't magically turn my list into two lists.</p><p>At this point, we have one list, referred to by two names, which can lead
+    to a big surprise which is common enough I'm going to give it a catchy
+    name: the Mutable Presto-Chango.</p><blockquote class="box" id="presto_chango">Fact: Changes in a value are visible through all of its names. (Mutable Presto-Chango)</blockquote><p>Values fall into two categories based on their type: mutable or immutable.
+    Immutable values include numbers, strings, and tuples.  Almost everything
+    else is mutable, including lists, dicts, and user-defined objects.  Mutable
+    means that the value has methods that can change the value in-place.
+    Immutable means that the value can never change, instead when you think you
+    are changing the value, you are really making new values from old ones.</p><p>Since numbers are immutable, you can't change one in-place, you can only
+    make a new value and assign it to the same name:</p><blockquote class="code"><code><span class="n">x</span>&#xA0;<span class="o">=</span>&#xA0;<span class="mi">1</span><br><span class="n">x</span>&#xA0;<span class="o">=</span>&#xA0;<span class="n">x</span>&#xA0;<span class="o">+</span>&#xA0;<span class="mi">1</span><br></code></blockquote><p>Here, x+1 computes an entirely new value, which is then assigned to x.</p><p>With a mutable value, you can change the value directly, usually with a
+    method on the value:</p><blockquote class="code"><code><span class="n">nums</span>&#xA0;<span class="o">=</span>&#xA0;<span class="p">[</span><span class="mi">1</span><span class="p">,</span>&#xA0;<span class="mi">2</span><span class="p">,</span>&#xA0;<span class="mi">3</span><span class="p">]</span><br><span class="n">nums</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><br></code></blockquote><p>First we assign a list to a name:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="65.5" version="1.1" width="184.0"><title>nums refers to a list of numbers</title><defs><marker id="id6" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(-55.0,-4.0)"><polygon class="name" points="57,37.5 116.25,37.5 120,52.5 116.25,67.5 57,67.5"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="52.5">nums</text><rect class="list" height="30" width="24" x="165" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="177" y="52.5">1</text><rect class="list" height="30" width="24" x="189" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="201" y="52.5">2</text><rect class="list" height="30" width="24" x="213" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="225" y="52.5">3</text><path class="arrow" d="M 120,52 C 131,52 131,52 142,52 C 153,52 153,52 165,52" fill="none" marker-end="url(#id6)"></path><text class="top_code" dy=".3em" text-anchor="middle" x="147" y="15">nums = [1, 2, 3]</text></g></svg></p><p>Then we append another value onto the list:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="65.5" version="1.1" width="208.0"><title>nums refers to a list of numbers</title><defs><marker id="id7" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(-55.0,-4.0)"><polygon class="name" points="57,37.5 116.25,37.5 120,52.5 116.25,67.5 57,67.5"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="52.5">nums</text><rect class="list" height="30" width="24" x="165" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="177" y="52.5">1</text><rect class="list" height="30" width="24" x="189" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="201" y="52.5">2</text><rect class="list" height="30" width="24" x="213" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="225" y="52.5">3</text><rect class="list" height="30" width="24" x="237" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="249" y="52.5">4</text><path class="arrow" d="M 120,52 C 131,52 131,52 142,52 C 153,52 153,52 165,52" fill="none" marker-end="url(#id7)"></path><text class="top_code" dy=".3em" text-anchor="middle" x="159" y="15">nums.append(4)</text></g></svg></p><p>Here we haven't changed which value nums refers to.  At first, the
+    name nums refers to a three-element list.  Then we use the name nums to
+    access the list, but we don't assign to nums, so the name continues to
+    refer to the same list.  The append method modifies that list by appending
+    4 to it, but it's the same list, and nums still refers to it.  This
+    distinction between assigning a name and changing a value is sometimes
+    described as "rebinding the name vs. mutating the value."</p><p>Notice that informal English descriptions can be ambigious.  We might say
+    that "x = x+1" is changing x, and "nums.append(4)" is changing nums, but
+    they are very different kinds of change.  The first makes x refer to a new
+    value (rebinding), the second is modifying the value x refers to
+    (mutating).</p><p>Here's where people get surprised: if two names refer to the same value, and
+    the value is mutated, then both names see the change:</p><blockquote class="code"><code><span class="n">nums</span>&#xA0;<span class="o">=</span>&#xA0;<span class="p">[</span><span class="mi">1</span><span class="p">,</span>&#xA0;<span class="mi">2</span><span class="p">,</span>&#xA0;<span class="mi">3</span><span class="p">]</span><br><span class="n">tri</span>&#xA0;<span class="o">=</span>&#xA0;<span class="n">nums</span><br><span class="n">nums</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><br><br><span class="k">print</span><span class="p">(</span><span class="n">tri</span><span class="p">)</span>&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;<span class="c">#&#xA0;[1,&#xA0;2,&#xA0;3,&#xA0;4]</span><br></code></blockquote><p>Why did tri change!?  The answer follows from what we've learned so far.
+    Assignment never copies values, so after the assignment to tri, we have two
+    names referring to the same list:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="110.5" version="1.1" width="184.0"><title>nums and tri both refer to the same list</title><defs><marker id="id8" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(-55.0,-4.0)"><polygon class="name" points="57,37.5 116.25,37.5 120,52.5 116.25,67.5 57,67.5"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="52.5">nums</text><polygon class="name" points="77,82.5 116.25,82.5 120,97.5 116.25,112.5 77,112.5"></polygon><text dy=".3em" text-anchor="middle" x="96.625" y="97.5">tri</text><rect class="list" height="30" width="24" x="165" y="60"></rect><text dy=".3em" text-anchor="middle" x="177" y="75">1</text><rect class="list" height="30" width="24" x="189" y="60"></rect><text dy=".3em" text-anchor="middle" x="201" y="75">2</text><rect class="list" height="30" width="24" x="213" y="60"></rect><text dy=".3em" text-anchor="middle" x="225" y="75">3</text><path class="arrow" d="M 120,52 C 132,52 132,52 142,59 C 153,66 153,66 165,71" fill="none" marker-end="url(#id8)"></path><path class="arrow" d="M 120,97 C 132,97 132,97 142,90 C 153,83 153,83 165,78" fill="none" marker-end="url(#id8)"></path><text class="top_code" dy=".3em" text-anchor="middle" x="147" y="15">tri = nums</text></g></svg></p><p>Then we mutate the list by calling .append(4), which modifies the list
+    in place.  Since tri refers to that list, when we look at tri we see the
+    same list as nums, which has been changed, so tri now shows four numbers
+    also:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="110.5" version="1.1" width="208.0"><title>changing the list means both names see the change</title><defs><marker id="id9" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(-55.0,-4.0)"><polygon class="name" points="57,37.5 116.25,37.5 120,52.5 116.25,67.5 57,67.5"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="52.5">nums</text><polygon class="name" points="77,82.5 116.25,82.5 120,97.5 116.25,112.5 77,112.5"></polygon><text dy=".3em" text-anchor="middle" x="96.625" y="97.5">tri</text><rect class="list" height="30" width="24" x="165" y="60"></rect><text dy=".3em" text-anchor="middle" x="177" y="75">1</text><rect class="list" height="30" width="24" x="189" y="60"></rect><text dy=".3em" text-anchor="middle" x="201" y="75">2</text><rect class="list" height="30" width="24" x="213" y="60"></rect><text dy=".3em" text-anchor="middle" x="225" y="75">3</text><rect class="list" height="30" width="24" x="237" y="60"></rect><text dy=".3em" text-anchor="middle" x="249" y="75">4</text><path class="arrow" d="M 120,52 C 132,52 132,52 142,59 C 153,66 153,66 165,71" fill="none" marker-end="url(#id9)"></path><path class="arrow" d="M 120,97 C 132,97 132,97 142,90 C 153,83 153,83 165,78" fill="none" marker-end="url(#id9)"></path><text class="top_code" dy=".3em" text-anchor="middle" x="159" y="15">nums.append(4)</text></g></svg></p><p>This Mutable Presto-Chango is the biggest issue people have with Python's
+    names and values.  A value is shared by more than one name, and is
+    modified, and all names see the change.  To make the Presto-Chango happen,
+    you need:</p><ul><li>A mutable value, in this case the list,</li><li>More than one name referring to the value,</li><li>Some code changes the value through one of the names, and</li><li>The other names see the change.</li></ul><p>Keep in mind, this is not a bug in Python, however much you might wish that
+    it worked differently.  Many values have more than one name at certain
+    points in your program, and it's perfectly fine to mutate values and have
+    all the names see the change.  The alternative would be for assignment to
+    copy values, and that would make your programs unbearably slow.</p><blockquote class="box" id="myth_mutable_immutable">Myth: Python assigns mutable and immutable values differently.</blockquote><p>Because the Presto-Chango only happens with mutable values, some people
+    believe that assignment works differently for mutable values than for
+    immutable values. It doesn't.</p><p>All assignment works the same: it makes a name refer to a value.  But with 
+    an immutable value, no matter how many names are referring to the same
+    value, the value can't be changed in-place, so you can never get into a
+    surprising Presto-Chango situation.</p><h1 id="h_Python_27s_diversity">Python's diversity</h1><p>I said earlier that Python has an underlying simplicity.  Its mechanisms are
+    quite simple, but they manifest in a number of ways.</p><blockquote class="box" id="references">Fact: References can be more than just names.</blockquote><p>All of the examples I've been using so far used names as references to
+    values, but other things can be references.  Python has a number of
+    compound data structures each of which hold references to values: list
+    elements, dictionary keys and values, object attributes, and so on.  Each
+    of those can be used on the left-hand side of an assignment, and all the
+    details I've been talking about apply to them.  Anything that can appear on
+    the left-hand side of an assignment statement is a reference, and
+    everywhere I say "name" you can substitute "reference".</p><p>In our diagrams of lists, I've shown numbers as the elements, but really,
+    each element is a reference to a number, so it should be drawn like this:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="120.5" version="1.1" width="198.0"><title>nums refers to a list, which refers to ints</title><defs><marker id="id10" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker><marker id="id11" markerHeight="4" markerWidth="4" orient="auto" refX="2" refY="2" viewBox="0,0,4,4"><circle cx="2" cy="2" fill="black" r="2" stroke="none"></circle></marker></defs><g transform="translate(-55.0,-4.0)"><polygon class="name" points="57,37.5 116.25,37.5 120,52.5 116.25,67.5 57,67.5"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="52.5">nums</text><rect class="list" height="30" width="24" x="165" y="37.5"></rect><rect class="list" height="30" width="24" x="189" y="37.5"></rect><rect class="list" height="30" width="24" x="213" y="37.5"></rect><path class="arrow" d="M 120,52 C 131,52 131,52 142,52 C 153,52 153,52 165,52" fill="none" marker-end="url(#id10)"></path><circle class="int value" cx="166" cy="107.5" r="15"></circle><text dy=".3em" text-anchor="middle" x="166" y="107.5">1</text><circle class="int value" cx="201" cy="107.5" r="15"></circle><text dy=".3em" text-anchor="middle" x="201" y="107.5">2</text><circle class="int value" cx="236" cy="107.5" r="15"></circle><text dy=".3em" text-anchor="middle" x="236" y="107.5">3</text><path class="arrow" d="M 177,52 C 177,62 176,63 171,72 C 166,81 166,82 166,92" fill="none" marker-end="url(#id10)" marker-start="url(#id11)"></path><path class="arrow" d="M 201,52 C 201,62 201,62 201,72 C 201,82 201,82 201,92" fill="none" marker-end="url(#id10)" marker-start="url(#id11)"></path><path class="arrow" d="M 225,52 C 225,62 225,63 230,72 C 235,81 236,82 236,92" fill="none" marker-end="url(#id10)" marker-start="url(#id11)"></path><text class="top_code" dy=".3em" text-anchor="middle" x="154" y="15">nums = [1, 2, 3]</text></g></svg></p><p>But that gets complicated quickly, so I've used a visual shorthand:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="65.5" version="1.1" width="184.0"><title>nums refers to a list of numbers</title><defs><marker id="id12" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(-55.0,-4.0)"><polygon class="name" points="57,37.5 116.25,37.5 120,52.5 116.25,67.5 57,67.5"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="52.5">nums</text><rect class="list" height="30" width="24" x="165" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="177" y="52.5">1</text><rect class="list" height="30" width="24" x="189" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="201" y="52.5">2</text><rect class="list" height="30" width="24" x="213" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="225" y="52.5">3</text><path class="arrow" d="M 120,52 C 131,52 131,52 142,52 C 153,52 153,52 165,52" fill="none" marker-end="url(#id12)"></path><text class="top_code" dy=".3em" text-anchor="middle" x="147" y="15">nums = [1, 2, 3]</text></g></svg></p><p>If you have list elements referring to other mutable values, like sub-lists, 
+    it's important to remember that the list elements are just references to
+    values.</p><p>Here are some other assignments.  Each of these left-hand sides is a
+    reference:</p><blockquote class="code"><code><span class="n">my_obj</span><span class="o">.</span><span class="n">attr</span>&#xA0;<span class="o">=</span>&#xA0;<span class="mi">23</span><br><span class="n">my_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>&#xA0;<span class="o">=</span>&#xA0;<span class="mi">24</span><br><span class="n">my_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>&#xA0;<span class="o">=</span>&#xA0;<span class="mi">25</span><br><span class="n">my_obj</span><span class="o">.</span><span class="n">attr</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">attr</span>&#xA0;<span class="o">=</span>&#xA0;<span class="s">&quot;etc,&#xA0;etc&quot;</span><br></code></blockquote><p>and so on. Lots of Python data structures hold values, and each of those
+    is a reference.  All of the rules here about names apply exactly the same
+    to any of these references.  For example, the garbage collector doesn't
+    just count names, it counts any kind of reference to decide when a value
+    can be reclaimed.</p><p>Note that "i = x" assigns to the name i, but "i[0] = x" doesn't, it assigns
+    to the first element of i's value.  It's important to keep straight what
+    exactly is being assigned to.  Just because a name appears somewhere on the
+    left-hand side of the assignment statement doesn't mean the name is being
+    rebound.</p><blockquote class="box" id="lots_of_assignment">Fact: Lots of things are assignment</blockquote><p>Just as many things can serve as references, there are many operations in
+    Python that are assignments.  Each of these lines is an assignment to the
+    name X:</p><blockquote class="code"><code><span class="n">X</span>&#xA0;<span class="o">=</span>&#xA0;<span class="o">...</span><br><span class="k">for</span>&#xA0;<span class="n">X</span>&#xA0;<span class="ow">in</span>&#xA0;<span class="o">...</span><br><span class="p">[</span><span class="o">...</span>&#xA0;<span class="k">for</span>&#xA0;<span class="n">X</span>&#xA0;<span class="ow">in</span>&#xA0;<span class="o">...</span><span class="p">]</span><br><span class="p">(</span><span class="o">...</span>&#xA0;<span class="k">for</span>&#xA0;<span class="n">X</span>&#xA0;<span class="ow">in</span>&#xA0;<span class="o">...</span><span class="p">)</span><br><span class="p">{</span><span class="o">...</span>&#xA0;<span class="k">for</span>&#xA0;<span class="n">X</span>&#xA0;<span class="ow">in</span>&#xA0;<span class="o">...</span><span class="p">}</span><br><span class="k">class</span>&#xA0;<span class="nc">X</span><span class="p">(</span><span class="o">...</span><span class="p">):</span><br><span class="k">def</span>&#xA0;<span class="nf">X</span><span class="p">(</span><span class="o">...</span><span class="p">):</span><br><span class="k">def</span>&#xA0;<span class="nf">fn</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>&#xA0;<span class="o">...</span>&#xA0;<span class="p">;</span>&#xA0;<span class="n">fn</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><br><span class="k">with</span>&#xA0;<span class="o">...</span>&#xA0;<span class="k">as</span>&#xA0;<span class="n">X</span><span class="p">:</span><br><span class="k">except</span>&#xA0;<span class="o">...</span>&#xA0;<span class="k">as</span>&#xA0;<span class="n">X</span><span class="p">:</span><br><span class="kn">import</span>&#xA0;<span class="nn">X</span><br><span class="kn">from</span>&#xA0;<span class="nn">...</span>&#xA0;<span class="kn">import</span>&#xA0;<span class="n">X</span><br><span class="kn">import</span>&#xA0;<span class="o">...</span>&#xA0;<span class="k">as</span>&#xA0;<span class="n">X</span><br><span class="kn">from</span>&#xA0;<span class="nn">...</span>&#xA0;<span class="kn">import</span>&#xA0;<span class="o">...</span>&#xA0;<span class="k">as</span>&#xA0;<span class="n">X</span><br></code></blockquote><p>I don't mean that these statements act kind of like assignments.  I mean
+    that these are assignments: they all make the name X refer to a value, and
+    everything I've been saying about assignments applies to all of them
+    uniformly.</p><p>For the most part, these statements define X in the same scope as the
+    statement, but not all of them, especially the comprehensions, and the
+    details differ slightly between Python 2 and Python 3.  But they are all
+    real assignments, and every fact about assignment applies to all of
+    them.</p><blockquote class="box" id="call_by_assign">Fact: Python passes function arguments by assigning to them.</blockquote><p>Let's examine the most interesting of these alternate assignments: calling a
+    function.  When I define a function, I name its parameters:</p><blockquote class="code"><code><span class="k">def</span>&#xA0;<span class="nf">my_func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>&#xA0;<span class="n">y</span><span class="p">):</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="k">return</span>&#xA0;<span class="n">x</span><span class="o">+</span><span class="n">y</span><br></code></blockquote><p>Here x and y are the parameters of the function my_func.  When I call
+    my_func, I provide actual values to be used as the arguments of the
+    function.  These values are assigned to the parameter names just as if an
+    assignment statement had been used:</p><blockquote class="code"><code><span class="k">def</span>&#xA0;<span class="nf">my_func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>&#xA0;<span class="n">y</span><span class="p">)</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="k">return</span>&#xA0;<span class="n">x</span><span class="o">+</span><span class="n">y</span><br><br><span class="k">print</span><span class="p">(</span><span class="n">my_func</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span>&#xA0;<span class="mi">9</span><span class="p">))</span><br></code></blockquote><p>When my_func is called, the name x has 8 assigned to it, and the name y has
+    9 assigned to it.  That assignment works exactly the same as the simple
+    assignment statements we've been talking about. The names x and y are local
+    to the function, so when the function returns, those names go away.  But if
+    the values they refer to are still referenced by other names, the values
+    live on.</p><p>Just like every other assignment, mutable values can be passed into
+    functions, and changes to the value will be visible through all of its
+    names:</p><blockquote class="code"><code><span class="k">def</span>&#xA0;<span class="nf">augment_twice</span><span class="p">(</span><span class="n">a_list</span><span class="p">,</span>&#xA0;<span class="n">val</span><span class="p">):</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="sd">&quot;&quot;&quot;Put&#xA0;`val`&#xA0;on&#xA0;the&#xA0;end&#xA0;of&#xA0;`a_list`&#xA0;twice.&quot;&quot;&quot;</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="n">a_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="n">a_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><br><br><span class="n">nums</span>&#xA0;<span class="o">=</span>&#xA0;<span class="p">[</span><span class="mi">1</span><span class="p">,</span>&#xA0;<span class="mi">2</span><span class="p">,</span>&#xA0;<span class="mi">3</span><span class="p">]</span><br><span class="n">augment_twice</span><span class="p">(</span><span class="n">nums</span><span class="p">,</span>&#xA0;<span class="mi">4</span><span class="p">)</span><br><span class="k">print</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;<span class="c">#&#xA0;[1,&#xA0;2,&#xA0;3,&#xA0;4,&#xA0;4]</span><br></code></blockquote><p>This can produce surprising results, so let's take this step by step.  When
+    we call augment_twice, the names and values look like this:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="200.5" version="1.1" width="266.0"><title>the moment we call augment_twice</title><defs><marker id="id13" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(27.0,-4.0)"><polygon class="name" points="57,37.5 116.25,37.5 120,52.5 116.25,67.5 57,67.5"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="52.5">nums</text><rect class="list" height="30" width="24" x="165" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="177" y="52.5">1</text><rect class="list" height="30" width="24" x="189" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="201" y="52.5">2</text><rect class="list" height="30" width="24" x="213" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="225" y="52.5">3</text><path class="arrow" d="M 120,52 C 131,52 131,52 142,52 C 153,52 153,52 165,52" fill="none" marker-end="url(#id13)"></path><rect class="frame" height="120" rx="12" ry="12" width="160" x="-25" y="82.5"></rect><text class="framelabel" dy=".3em" opacity="1" text-anchor="middle" x="55" y="97.5">augment_twice</text><polygon class="name" points="56,112.5 116.25,112.5 120,127.5 116.25,142.5 56,142.5"></polygon><text dy=".3em" text-anchor="middle" x="86.125" y="127.5">a_list</text><path class="arrow" d="M 120,127 C 140,127 141,118 144,98 C 146,77 147,68 165,57" fill="none" marker-end="url(#id13)"></path><polygon class="name" points="71,157.5 116.25,157.5 120,172.5 116.25,187.5 71,187.5"></polygon><text dy=".3em" text-anchor="middle" x="93.625" y="172.5">val</text><circle class="int value" cx="180" cy="172.5" r="15"></circle><text dy=".3em" text-anchor="middle" x="180" y="172.5">4</text><path class="arrow" d="M 120,172 C 131,172 131,172 142,172 C 153,172 153,172 165,172" fill="none" marker-end="url(#id13)"></path><text class="top_code" dy=".3em" text-anchor="middle" x="106" y="15">augment_twice(nums, 4)</text></g></svg></p><p>The local names in the function are drawn in a new frame. Calling the
+    function assigned the actual values to the parameter names, just like any
+    other assignment statement.  Remember that assignment never makes new
+    values or copies any data, so the here the local name a_list refers to the
+    same value that was passed in, nums.</p><p>Then we call a_list.append twice, which mutates the list:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="200.5" version="1.1" width="314.0"><title>after appending twice</title><defs><marker id="id14" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(27.0,-4.0)"><polygon class="name" points="57,37.5 116.25,37.5 120,52.5 116.25,67.5 57,67.5"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="52.5">nums</text><rect class="list" height="30" width="24" x="165" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="177" y="52.5">1</text><rect class="list" height="30" width="24" x="189" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="201" y="52.5">2</text><rect class="list" height="30" width="24" x="213" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="225" y="52.5">3</text><rect class="list" height="30" width="24" x="237" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="249" y="52.5">4</text><rect class="list" height="30" width="24" x="261" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="273" y="52.5">4</text><path class="arrow" d="M 120,52 C 131,52 131,52 142,52 C 153,52 153,52 165,52" fill="none" marker-end="url(#id14)"></path><rect class="frame" height="120" rx="12" ry="12" width="160" x="-25" y="82.5"></rect><text class="framelabel" dy=".3em" opacity="1" text-anchor="middle" x="55" y="97.5">augment_twice</text><polygon class="name" points="56,112.5 116.25,112.5 120,127.5 116.25,142.5 56,142.5"></polygon><text dy=".3em" text-anchor="middle" x="86.125" y="127.5">a_list</text><path class="arrow" d="M 120,127 C 140,127 141,118 144,98 C 146,77 147,68 165,57" fill="none" marker-end="url(#id14)"></path><polygon class="name" points="71,157.5 116.25,157.5 120,172.5 116.25,187.5 71,187.5"></polygon><text dy=".3em" text-anchor="middle" x="93.625" y="172.5">val</text><circle class="int value" cx="180" cy="172.5" r="15"></circle><text dy=".3em" text-anchor="middle" x="180" y="172.5">4</text><path class="arrow" d="M 120,172 C 131,172 131,172 142,172 C 153,172 153,172 165,172" fill="none" marker-end="url(#id14)"></path><text class="top_code" dy=".3em" text-anchor="middle" x="130" y="15">a_list.append(4)</text></g></svg></p><p>When the function ends, the local names are destroyed.  Values that are no
+    longer referenced are reclaimed, but others remain:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="65.5" version="1.1" width="232.0"><title>after returning from augment_twice</title><defs><marker id="id15" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(-55.0,-4.0)"><polygon class="name" points="57,37.5 116.25,37.5 120,52.5 116.25,67.5 57,67.5"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="52.5">nums</text><rect class="list" height="30" width="24" x="165" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="177" y="52.5">1</text><rect class="list" height="30" width="24" x="189" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="201" y="52.5">2</text><rect class="list" height="30" width="24" x="213" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="225" y="52.5">3</text><rect class="list" height="30" width="24" x="237" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="249" y="52.5">4</text><rect class="list" height="30" width="24" x="261" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="273" y="52.5">4</text><path class="arrow" d="M 120,52 C 131,52 131,52 142,52 C 153,52 153,52 165,52" fill="none" marker-end="url(#id15)"></path><text class="top_code" dy=".3em" text-anchor="middle" x="171" y="15">print(nums)</text></g></svg></p><p>You can try this example code yourself
+
+<a class="offsite" rel="external" href="http://pythontutor.com/visualize.html#code=def%20augment_twice%28a_list%2C%20val%29%3A%0A%20%20%20%20a_list.append%28val%29%0A%20%20%20%20a_list.append%28val%29%0A%0Anums%20%3D%20%5B1%2C%202%2C%203%5D%0Aaugment_twice%28nums%2C%204%29%0Aprint%28nums%29%20%20%20%20%20%20%20%20%20%23%20%5B1%2C%202%2C%203%2C%204%2C%204%5D%0A&amp;mode=display&amp;cumulative=false&amp;heapPrimitives=false&amp;drawParentPointers=false&amp;textReferences=false&amp;showOnlyOutputs=false&amp;py=2" target="_blank">
+
+on pythontutor.com</a>.</p><p>We passed the list into the function, which modified it.  No values were
+    copied. Although this behavior might be surprising, it's essential. Without
+    it, we couldn't write methods that modify objects.</p><p>Here's another way to write the function, but it doesn't work.  Let's see
+    why.</p><blockquote class="code"><code><span class="k">def</span>&#xA0;<span class="nf">augment_twice_bad</span><span class="p">(</span><span class="n">a_list</span><span class="p">,</span>&#xA0;<span class="n">val</span><span class="p">):</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="sd">&quot;&quot;&quot;Put&#xA0;`val`&#xA0;on&#xA0;the&#xA0;end&#xA0;of&#xA0;`a_list`&#xA0;twice.&quot;&quot;&quot;</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="n">a_list</span>&#xA0;<span class="o">=</span>&#xA0;<span class="n">a_list</span>&#xA0;<span class="o">+</span>&#xA0;<span class="p">[</span><span class="n">val</span><span class="p">,</span>&#xA0;<span class="n">val</span><span class="p">]</span><br><br><span class="n">nums</span>&#xA0;<span class="o">=</span>&#xA0;<span class="p">[</span><span class="mi">1</span><span class="p">,</span>&#xA0;<span class="mi">2</span><span class="p">,</span>&#xA0;<span class="mi">3</span><span class="p">]</span><br><span class="n">augment_twice_bad</span><span class="p">(</span><span class="n">nums</span><span class="p">,</span>&#xA0;<span class="mi">4</span><span class="p">)</span><br><span class="k">print</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;<span class="c">#&#xA0;[1,&#xA0;2,&#xA0;3]</span><br></code></blockquote><p>At the moment we call augment_twice_bad, it looks the same as we saw
+    earlier with augment_twice:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="200.5" version="1.1" width="266.0"><title>the moment we call augment_twice_bad</title><defs><marker id="id16" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(27.0,-4.0)"><polygon class="name" points="57,37.5 116.25,37.5 120,52.5 116.25,67.5 57,67.5"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="52.5">nums</text><rect class="list" height="30" width="24" x="165" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="177" y="52.5">1</text><rect class="list" height="30" width="24" x="189" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="201" y="52.5">2</text><rect class="list" height="30" width="24" x="213" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="225" y="52.5">3</text><path class="arrow" d="M 120,52 C 131,52 131,52 142,52 C 153,52 153,52 165,52" fill="none" marker-end="url(#id16)"></path><rect class="frame" height="120" rx="12" ry="12" width="160" x="-25" y="82.5"></rect><text class="framelabel" dy=".3em" opacity="1" text-anchor="middle" x="55" y="97.5">augment_twice_bad</text><polygon class="name" points="56,112.5 116.25,112.5 120,127.5 116.25,142.5 56,142.5"></polygon><text dy=".3em" text-anchor="middle" x="86.125" y="127.5">a_list</text><path class="arrow" d="M 120,127 C 140,127 141,118 144,98 C 146,77 147,68 165,57" fill="none" marker-end="url(#id16)"></path><polygon class="name" points="71,157.5 116.25,157.5 120,172.5 116.25,187.5 71,187.5"></polygon><text dy=".3em" text-anchor="middle" x="93.625" y="172.5">val</text><circle class="int value" cx="180" cy="172.5" r="15"></circle><text dy=".3em" text-anchor="middle" x="180" y="172.5">4</text><path class="arrow" d="M 120,172 C 131,172 131,172 142,172 C 153,172 153,172 165,172" fill="none" marker-end="url(#id16)"></path><text class="top_code" dy=".3em" text-anchor="middle" x="106" y="15">augment_twice_bad(nums, 4)</text></g></svg></p><p>The next statement is an assignment.  The expression on the right-hand side
+    makes a new list, which is then assigned to a_list:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="200.5" version="1.1" width="314.0"><title>after assigning to a_list</title><defs><marker id="id17" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(27.0,-4.0)"><polygon class="name" points="57,37.5 116.25,37.5 120,52.5 116.25,67.5 57,67.5"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="52.5">nums</text><rect class="list" height="30" width="24" x="165" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="177" y="52.5">1</text><rect class="list" height="30" width="24" x="189" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="201" y="52.5">2</text><rect class="list" height="30" width="24" x="213" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="225" y="52.5">3</text><path class="arrow" d="M 120,52 C 131,52 131,52 142,52 C 153,52 153,52 165,52" fill="none" marker-end="url(#id17)"></path><rect class="frame" height="120" rx="12" ry="12" width="160" x="-25" y="82.5"></rect><text class="framelabel" dy=".3em" opacity="1" text-anchor="middle" x="55" y="97.5">augment_twice_bad</text><polygon class="name" points="56,112.5 116.25,112.5 120,127.5 116.25,142.5 56,142.5"></polygon><text dy=".3em" text-anchor="middle" x="86.125" y="127.5">a_list</text><rect class="list" height="30" width="24" x="165" y="112.5"></rect><text dy=".3em" text-anchor="middle" x="177" y="127.5">1</text><rect class="list" height="30" width="24" x="189" y="112.5"></rect><text dy=".3em" text-anchor="middle" x="201" y="127.5">2</text><rect class="list" height="30" width="24" x="213" y="112.5"></rect><text dy=".3em" text-anchor="middle" x="225" y="127.5">3</text><rect class="list" height="30" width="24" x="237" y="112.5"></rect><text dy=".3em" text-anchor="middle" x="249" y="127.5">4</text><rect class="list" height="30" width="24" x="261" y="112.5"></rect><text dy=".3em" text-anchor="middle" x="273" y="127.5">4</text><path class="arrow" d="M 120,127 C 131,127 131,127 142,127 C 153,127 153,127 165,127" fill="none" marker-end="url(#id17)"></path><polygon class="name" points="71,157.5 116.25,157.5 120,172.5 116.25,187.5 71,187.5"></polygon><text dy=".3em" text-anchor="middle" x="93.625" y="172.5">val</text><circle class="int value" cx="180" cy="172.5" r="15"></circle><text dy=".3em" text-anchor="middle" x="180" y="172.5">4</text><path class="arrow" d="M 120,172 C 131,172 131,172 142,172 C 153,172 153,172 165,172" fill="none" marker-end="url(#id17)"></path><text class="top_code" dy=".3em" text-anchor="middle" x="130" y="15">a_list = a_list + [val, val]</text></g></svg></p><p>When the function ends, its local names are destroyed, and any values no
+    longer referenced are reclaimed, leaving us just where we started:</p><p class="figure"><svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="65.5" version="1.1" width="184.0"><title>after returning from augment_twice_bad</title><defs><marker id="id18" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="5" viewBox="0,0,10,10"><path d="M 0,0 L 10,5 L 0,10 L 1,5 z" fill="black" stroke="none"></path></marker></defs><g transform="translate(-55.0,-4.0)"><polygon class="name" points="57,37.5 116.25,37.5 120,52.5 116.25,67.5 57,67.5"></polygon><text dy=".3em" text-anchor="middle" x="86.625" y="52.5">nums</text><rect class="list" height="30" width="24" x="165" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="177" y="52.5">1</text><rect class="list" height="30" width="24" x="189" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="201" y="52.5">2</text><rect class="list" height="30" width="24" x="213" y="37.5"></rect><text dy=".3em" text-anchor="middle" x="225" y="52.5">3</text><path class="arrow" d="M 120,52 C 131,52 131,52 142,52 C 153,52 153,52 165,52" fill="none" marker-end="url(#id18)"></path><text class="top_code" dy=".3em" text-anchor="middle" x="147" y="15">print(nums)</text></g></svg></p><p>(Try this code 
+
+<a class="offsite" rel="external" href="http://pythontutor.com/visualize.html#code=def%20augment_twice_bad%28a_list%2C%20val%29%3A%0A%20%20%20%20a_list%20%3D%20a_list%20%2B%20%5Bval%2C%20val%5D%0A%0Anums%20%3D%20%5B1%2C%202%2C%203%5D%0Aaugment_twice_bad%28nums%2C%204%29%0Aprint%28nums%29%20%20%20%20%20%20%20%20%20%23%20%5B1%2C%202%2C%203%5D%0A&amp;mode=display&amp;cumulative=false&amp;heapPrimitives=false&amp;drawParentPointers=false&amp;textReferences=false&amp;showOnlyOutputs=false&amp;py=2" target="_blank">
+
+on pythontutor.com</a>.)</p><p>It's really important to keep in mind the difference between mutating a
+    value in place, and rebinding a name.  augment_twice worked because it
+    mutated the value passed in, so that mutation was available after the
+    function returned.  augment_twice_bad used an assignment to rebind a local
+    name, so the changes weren't visible outside the function.</p><p>Another option for our function is to make a new value, and return it:</p><blockquote class="code"><code><span class="k">def</span>&#xA0;<span class="nf">augment_twice_good</span><span class="p">(</span><span class="n">a_list</span><span class="p">,</span>&#xA0;<span class="n">val</span><span class="p">):</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="n">a_list</span>&#xA0;<span class="o">=</span>&#xA0;<span class="n">a_list</span>&#xA0;<span class="o">+</span>&#xA0;<span class="p">[</span><span class="n">val</span><span class="p">,</span>&#xA0;<span class="n">val</span><span class="p">]</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="k">return</span>&#xA0;<span class="n">a_list</span><br><br><span class="n">nums</span>&#xA0;<span class="o">=</span>&#xA0;<span class="p">[</span><span class="mi">1</span><span class="p">,</span>&#xA0;<span class="mi">2</span><span class="p">,</span>&#xA0;<span class="mi">3</span><span class="p">]</span><br><span class="n">nums</span>&#xA0;<span class="o">=</span>&#xA0;<span class="n">augment_twice_good</span><span class="p">(</span><span class="n">nums</span><span class="p">,</span>&#xA0;<span class="mi">4</span><span class="p">)</span><br><span class="k">print</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;&#xA0;<span class="c">#&#xA0;[1,&#xA0;2,&#xA0;3,&#xA0;4,&#xA0;4]</span><br></code></blockquote><p>Here we make an entirely new value inside augment_twice_good, and return it
+    from the function.  The caller uses an assignment to hold onto that value,
+    and we get the effect we want.</p><p>This last function is perhaps the best, since it creates the fewest
+    surprises.  It avoids the Presto-Chango by not mutating a value in-place,
+    and only creating new values.</p><p>There's no right answer to choosing between mutating and rebinding: which
+    you use depends on the effect you need.  The important thing is to
+    understand how each behaves, to know what tools you have at your disposal,
+    and then to pick the one that works best for your particular problem.</p><h1 id="h_Dynamic_typing">Dynamic typing</h1><p>Some details about Python names and values:</p><blockquote class="box" id="any_value">Fact: Any name can refer to any value at any time.</blockquote><p>Python is dynamically typed, which means that names have no type.  Any name
+    can refer to any value at any time.  A name can refer to an integer, and
+    then to a string, and then to a function, and then to a module.  Of course,
+    this could be a very confusing program, and you shouldn't do it, but the
+    Python language won't mind.</p><blockquote class="box" id="type_scope">Fact: Names have no type, values have no scope.</blockquote><p>Just as names have no type, values have no scope.  When we say that a
+    function has a local variable, we mean that the name is scoped to the
+    function: you can't use the name outside the function, and when the
+    function returns, the name is destroyed.  But as we've seen, if the name's
+    value has other references, it will live on beyond the function call.  It
+    is a local name, not a local value.</p><blockquote class="box" id="no_delete">Fact: Values can't be deleted, only names can.</blockquote><p>Python's memory management is so central to its behavior, not only do you
+    not have to delete values, but there is no way to delete values.  You may
+    have seen the del statement:</p><blockquote class="code"><code><span class="n">nums</span>&#xA0;<span class="o">=</span>&#xA0;<span class="p">[</span><span class="mi">1</span><span class="p">,</span>&#xA0;<span class="mi">2</span><span class="p">,</span>&#xA0;<span class="mi">3</span><span class="p">]</span><br><span class="k">del</span>&#xA0;<span class="n">nums</span><br></code></blockquote><p>This does not delete the value nums, it deletes the name nums.  The name
+    is removed from its scope, and then the usual reference counting kicks in:
+    if nums' value had only that one reference, then the value will be
+    reclaimed.  But if it had other references, then it will not.</p><blockquote class="box" id="myth_no_variables">Myth: Python has no variables.</blockquote><p>Some people like to say, "Python has no variables, it has names."  This
+    slogan is misleading.  The truth is that Python has variables, they just
+    work differently than variables in C.</p><p>Names are Python's variables: they refer to values, and those values can
+    change (vary) over the course of your program. Just because another
+    language (albeit an important one) behaves differently is no reason to
+    describe Python as not having variables.</p><h1 id="h_Wrapping_up">Wrapping up</h1><blockquote class="box" id="myth_confusing">Myth? Python is confusing.</blockquote><p>I hope this has helped clarify how names and values work in Python.  It's a
+    very simple mechanism that can be surprising, but is very powerful.
+    Especially if you are used to languages like C, you'll have to think about
+    your values differently.</p><p>There are lots of side trips that I skipped here:</p><ul><li>Is Python call-by-value or not?</li><li>Why do beginners find it hard to make a tic-tac-toe board in Python?
+        Answered in <a href="http://nedbatchelder.com/blog/201308/names_and_values_making_a_game_board.html">Names and values: making a game board</a>.
+        </li><li>Why is "list += seq" not the same as "list = list + seq"?</li><li>Why is "is" different than "==" and how come "2 + 2 is 4", but "1000 + 1 is not 1001"?</li><li>What's the deal with mutable default arguments to functions?</li><li>Why is it easy to make a list class attribute, but hard to make an int class attribute?</li></ul><h1 id="h_See_also">See also</h1><p>If you are looking for more information about these topics, try:</p><ul><li><a class="offsite" rel="external" href="http://pythontutor.com">Python Tutor</a>, which visualizes program execution, including bindings of names to values.</li><li><a class="offsite" rel="external" href="http://python.net/~mwh/hacks/objectthink.html">How to Think Like a Pythonista</a>, which explains all this, with ASCII art!</li><li><a href="http://nedbatchelder.com/blog">My blog</a>, where posts occasionally appear about these sorts of things.</li></ul><div class='comments' id='comments'>
+<h1>Comments</h1>
+
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/b5577f5938dc47bebdf38e6e92a8d2ff.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa175.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Daniel Biro</b></span>
+			<span class='when'><span class='adminlink'></span> 2:46 PM on 8 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Hello!<br><br>These are good explanations. Make complicated things simple by using proper and clear abstractions. You are a good writer.<br><br>I would like to see an explanation of the execution model on the skip list.<br>The documentation is hard to understand and full of loose ends. I am not alone with this.<br><br><a rel='nofollow' href='http://docs.python.org/2/reference/executionmodel.html'>http://docs.python.org/2/reference/executionmodel.html</a><br><a rel='nofollow' href='http://bugs.python.org/issue12374'>http://bugs.python.org/issue12374</a><br><br>This is an attempt by me to give an explanation for it, on apropos of the default mutable value:<br><a rel='nofollow' href='http://www.daniweb.com/software-development/python/threads/457567/somebody-please-explain-why-this-is-happening#post1990653'>http://www.daniweb.com/software-development/python/threads/457567/somebody-please-explain-why-this-is-happening#post1990653</a><br><br><br><br>Bye<br>Daniel
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 3:06 PM on 8 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Daniel, thanks.  Your issue is already on the skip list: "What's the deal with mutable default arguments to functions?"  <br><br>In a nutshell: default values for arguments are evaluated just once, when the function is defined.  When the function is called, if a value isn't supplied for that argument, then the default value is assigned to the local name, and execution proceeds.  If you mutate that value, then you have a Presto-Chango, where the two references are: 1) the default for the function argument, and 2) the local parameter name.  Since values live until there are no more references, and the function object continues to refer to the default value, that mutable default value will live a very long time, and will collect mutations as it goes.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0f581244e01b1d9f4c402b55d1a0f2f2.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa262.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Robert</b></span>
+			<span class='when'><span class='adminlink'></span> 3:11 AM on 9 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Ned<br>Can you explain if n and n2 refer to same list ?<br>If Y: why no mutable-presto-changeo<br>If N: why so ? why python creates 2 lists here ?<br><br>>>> n=[1,2,3]<br>>>> n2=[1,2,3]<br>>>> n[0]='x'<br>>>> n,n2<br>(['x', 2, 3], [1, 2, 3])
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/cf980d6b636f8697658fbd57a0e7e59d.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa246.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://macjournals.com' rel='nofollow' target='_blank'>Matt</a></b></span>
+			<span class='when'><span class='adminlink'></span> 5:22 AM on 9 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Robert: <br><br>Take Ned's advce and <a rel='nofollow' href="http://pythontutor.com/visualize.html#code=n%3D%5B1,2,3%5D%0An2%3D%5B1,2,3%5D+%0An%5B0%5D%3D'x'+%0An,n2+%0A%23+(%5B'x',+2,+3%5D,+%5B1,+2,+3%5D)&mode=edit&cumulative=false&heapPrimitives=false&drawParentPointers=false&textReferences=false&showOnlyOutputs=false&py=2">try this on pythontutor.com.</a><br><br>You'll see that the creation of both 'n' and 'n2' create separate lists with the same value.  Why? Python could get impossibly slow if it had to seach <i>every single value</i> for equality every time a name was assigned a new value.   Imagine you have a program that holds 100,000 dictionaries each with 50,000 keys and you start to see the point.<br><br>If your code had said 'n2=n', then Python says, "Oh, I already know that value; I'll just create a new name to point to it." <br><br>More to the point, Python does this when <i>you</i> assign a value to a name via another name.  It would hardly be sporting if you had a list of value [1,2,3], and so did some code in a third-party module, and it changed the list for its own purpose.  If Python checked all values before assigning names to avoid duplicates, then anyone changing that list would change your list! Insanity would rule. Black is down, up is north, and the sun would set in liters.<br><br>You can wind up assigning many names to one value, but every time you assign by value (and not by name), you by necessity create a new instance of the value.<br><br>Or so I believe.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 11:22 AM on 9 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Robert: Matt has provided a good explanation, I'll add just a bit more.  The semantics of Python are that [1,2,3] creates a list with three elements.  It always does, no matter how many lists have already been created.  Once you've executed<pre>n = [1,2,3]</pre>these two statements have very different effects:<pre>n2 = [1,2,3]   # make a list and assign it to n2
+n3 = n         # assign n's value to n3</pre>All three names refer to a three-element list, but n and n3 refer to the same list, n2 refers to a different list that happens to be equal.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0f581244e01b1d9f4c402b55d1a0f2f2.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa262.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Robert</b></span>
+			<span class='when'><span class='adminlink'></span> 2:21 PM on 9 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Thanks, Matt and Ned<br><br>So at the "root" - this operation:<br><br>aName = aValue<br><br>it goes back to whether aValue is mutable or not, right ?<br>If non-mutable: Same value can be pointed to by multiple names<br>if mutable: Python just creates aValue right there.<br><br>Is this right ?
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 3:49 PM on 9 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Robert.  Mutable and immutable values are treated exactly the same, refer to the Myth about that very topic above.  The expression on the right-hand side of the assignment statement produces a value.  How it does that is up to it.  A list literal *always* makes a new list.  An integer literal might make a new int, or it might not.  Python can share integer objects because they are immutable, so there's no way to change their values, so there's no harm in sharing them widely.<br><br>Myth: Python assigns mutable and immutable values differently.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/3fce6843aa8fad6d8157e094417d1165.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa260.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Norman</b></span>
+			<span class='when'><span class='adminlink'></span> 5:46 PM on 11 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			> how come "2 + 2 is 4", but "1000 + 1 is not 1001"<br><br>I had to try in shell before I believed. Are small ints (not sure of correct terminology) pre-allocated, interned?
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 5:55 PM on 11 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Norman: indeed, CPython interns small ints (-5 to 256), and since they are immutable, it doesn't affect the Python semantics.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/ed2219eca9df62538ccf18b3f310be1c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa76.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>atul</b></span>
+			<span class='when'><span class='adminlink'></span> 4:58 AM on 13 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Hi Ned,<br>    Thanks for the article... It made very good reading. Initially I got confused with "2 + 2 is 4", but "1000 + 1 is not 1001" - then I realized the "is" is like reference comparison - and == is value comparison<br>- similar to java's == versus equals(...) <br>    I think that is what you meant by the interns above...<br><br>Thanks - and it was enlightening - learnt something new...
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/d66ebf42c0b087d8d40fe7c703fd277b.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa186.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>vasu</b></span>
+			<span class='when'><span class='adminlink'></span> 4:23 PM on 14 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			I may be wrong but I think there's a mistake<br><br>The first example where<br>x=23<br>y=x<br><br>The value of 23 is COPIED and assigned to 'y'. So actually you have 2 different values, because when you change the value of y, the value of x remains the same<br><br>y = y+2<br>x # 23
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 5:25 PM on 14 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@vasu: You are mistaken.  The diagrams are correct. Initially x and y refer to the same value.  Then the statement "y = y+2" makes y refer to an entirely new value, 25.  x is left referring to the old value, 23.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/ea4b362255280d25b21ea1d0ed04fab3.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa100.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://www.franzoni.eu' rel='nofollow' target='_blank'>Alan Franzoni</a></b></span>
+			<span class='when'><span class='adminlink'></span> 9:42 PM on 14 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Nice article! Good and thorough explanation of the way Python handles names and values.<br><br>One thing I don't agree with: I really think that the "Python has no variables" makes things far easier for the novice. Saying that variables exist but have a different behaviour makes things much more complicate. "variable" contains a very precise built-in idea of "variable within a certain scope" - normally a specific type - which is got no match in Python. We shouldn't have variable-envy, let's name a different concept in a different way.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 10:53 PM on 14 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Alan: I guess we'll just have to disagree.  This is my definition of a variable (taken from Wikipedia): "a symbolic name associated with a value and whose associated value may be changed."  That definition applies equally well to C and to Python, without getting into language-specific details.  <br><br>According to your logic, Javascript has no variables either, which makes explaining the "var" keyword a bit tricky.<br><br>Don't let C-myopia make perfectly good terms off-limits to other languages.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0f0d352d076dd110683ff438d9f5a42f.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa50.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://jamiealexandre.com' rel='nofollow' target='_blank'>Jamie Alexandre</a></b></span>
+			<span class='when'><span class='adminlink'></span> 5:52 AM on 15 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Thanks for the great explanations, Ned! I'll definitely be directing students here when they ask me these questions.<br><br>At the risk of seeming pedantic: as I was reading through this, a counter-example came to mind that I thought might be an interesting footnote:<br><a rel='nofollow' href='https://gist.github.com/jamalex/5997735'>https://gist.github.com/jamalex/5997735</a><br><br>In short: sometimes assignment <b>does</b> make new values, if it's been specifically set up to do so. Yay, magic methods!
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 11:39 AM on 15 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Jamie, thanks, that's a good point.  The complex assignments (attribute, element, item, augmented) can all be overridden with special methods, and therefore can be arbitrarily different from the built-in behavior.  There isn't even a guarantee that they will assign anything!<br><br>On the other hand, simple name assignment cannot be overridden.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/c0365f86527d7e1aec297aaffb1adb86.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa138.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Ankit</b></span>
+			<span class='when'><span class='adminlink'></span> 8:31 PM on 16 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Hi Ned. I've recently decided that I want to learn Python in-depth. I've written a fair number of scripts with python, but haven't learnt it deeply - e.g I know what generators and decorators are, but never use them, or the fact that lists are mutable types and hence unhashable constantly trips me up (why not have a frozenlist like a frozenset?).<br><br>Could you recommend good resources to up my Python-fu? Ideally I'm looking for something comprehensive, like a book/course/workshop/series that I can go through.<br><br>Thanks, and nice article. Names and values get tricky because they seem to behave like C most of the time, but they are really quite different.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0383e4cae325f65a1bbd906be4be2276.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa125.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://asmeurersympy.wordpress.com/' rel='nofollow' target='_blank'>Aaron Meurer</a></b></span>
+			<span class='when'><span class='adminlink'></span> 2:39 AM on 18 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Reading through the facts and myths, and looking at the side trips a the end, I felt like these are all things that I pretty much understood, until I got to the very last one, "Why is it easy to make a list class attribute, but hard to make an int class attribute?"  Can you explain what you are referring to here? I've never come across this issue. Do you mean that it is hard to do <br><br>class Stuff(object):<br>    a = 1<br><br>or <br><br>class Stuff(int):<br>    a = 'myattr'<br><br>or what? Are you referring to a use-case in the former where instances mutate the class attribute?
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0383e4cae325f65a1bbd906be4be2276.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa125.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://asmeurersympy.wordpress.com/' rel='nofollow' target='_blank'>Aaron Meurer</a></b></span>
+			<span class='when'><span class='adminlink'></span> 2:43 AM on 18 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			I find it interesting that you never mention the locals() dictionary, or namespaces in general.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/7ca0c7b856a5d29beb3fc1e9316ed4c0.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa38.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Steve</b></span>
+			<span class='when'><span class='adminlink'></span> 6:47 PM on 19 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			I really like the diagrams in your post. What software did you use to create them?<br>Thanks
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 8:33 PM on 19 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Steve, thanks.  I think I had mentioned this in an earlier draft, but it's not in the text here: I used graphviz with some Python code to help make them all uniform.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 8:35 PM on 19 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@aaron: the difficulty with class attributes:   self.my_int = 2 vs. self.my_list.append("thing")<br><br>I didn't mention namespaces because this mostly was not about scoping, and I didn't mention locals() because it's an esoteric attractive nuisance.  I left out lots of stuff that's more important than locals()!
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0383e4cae325f65a1bbd906be4be2276.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa125.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://asmeurersympy.wordpress.com/' rel='nofollow' target='_blank'>Aaron Meurer</a></b></span>
+			<span class='when'><span class='adminlink'></span> 9:38 PM on 19 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			I see. That's more of an issue with the way Python makes class variables accessible from instances. I think if you do self.__class__.my_int = 2 you should be fine.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/922a531469d720242886bf0b855d4072.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa194.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Ben</b></span>
+			<span class='when'><span class='adminlink'></span> 7:03 AM on 26 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Great article, I didn't know that about small ints and the is keyword!<br><br>But now you've got me wanting more... Why <b>do</b> beginners find it hard to make a tic-tac-toe board in Python??
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0383e4cae325f65a1bbd906be4be2276.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa53.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Aaron Meurer</b></span>
+			<span class='when'><span class='adminlink'></span> 1:46 PM on 26 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Maybe because they try [[], [], []]*3.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/68868a63a2e53cebdc2f257278088e5e.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa250.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Chris Lee</b></span>
+			<span class='when'><span class='adminlink'></span> 8:05 PM on 24 Aug 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Hi Ned, <br>one thing that helped me understand these aspects of Python when first learning it was to think "all these things are dictionaries", e.g.<br><br>* "names" are a dictionary (ie. NameError is just KeyError from locals() or globals()).  The facts you state about assignment etc. follow logically from that.<br><br>* object attributes are a dictionary<br><br>* function calls are a dictionary (hence args act like assignment...  The one subtle exception to this seems to be **kwargs itself, which is always copied rather than assigned in cpython)<br><br>So if you understand how Python dictionaries behave, you can understand how all these things behave.  Does this seem like a useful viewpoint to you?
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0383e4cae325f65a1bbd906be4be2276.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa53.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Aaron Meurer</b></span>
+			<span class='when'><span class='adminlink'></span> 9:19 PM on 24 Aug 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Be careful. Object attributes are actually much more complicated than a dictionary lookup in the general case.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 10:47 PM on 24 Aug 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Chris Lee: I like the analogy of "all things are dictionaries" for understanding object attributes, including modules and classes.  I don't see how function calls are dictionaries though, so I wouldn't go as far as you do.<br><br>But also, that analogy is a orthongonal to the topics this piece addresses.  Once you accept that everything is a dictionary, you still have to understand what d[k]=v does, and that brings you right back to the issues discussed here.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/ef912c92e93fb64e5317012744530ea0.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa135.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Alok Joshi</b></span>
+			<span class='when'><span class='adminlink'></span> 4:25 PM on 28 Aug 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Super nice
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/5ca0f8158fe405abdbf211622853bb3e.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa24.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Gordon</b></span>
+			<span class='when'><span class='adminlink'></span> 7:50 PM on 13 Sep 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			The diagram after this code block:<pre>
+x = 23
+y = x
+x = 12
+</pre>seems to be wrong.  x should be 12 and y should be 23, but the diagram has them reversed.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 9:25 PM on 13 Sep 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Gordon, thanks, I've fixed it.
+		</p>
+	</div>
+
+<div id='commentform'>
+<h2>Add a comment:</h2>
+<div>
+	<form method="post" action="http://nedbatchelder.com/text/names.html#commentform" id="commentformform">
+		<table>
+			<tr>
+				<td class="labels">
+					<div class='label'>name</div>
+				</td>
+				<td class="inputs">
+					<input class='edit' type="text" name="fe2b7d2d85338847170bc5d2f742a469a" id="fe2b7d2d85338847170bc5d2f742a469a" size="40" value="">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class='label'>email</div>
+				</td>
+				<td>
+					<div class="dn">
+                        Ignore this:
+                        <input class='edit' type="email" name="fdb0cd1917dece022b464fbd853622deb" id="fdb0cd1917dece022b464fbd853622deb" size="40">
+					</div>
+					<input class='edit' type="email" name="fdd818a3c7b382e5913d6be1c64768a80" id="fdd818a3c7b382e5913d6be1c64768a80" size="40" value="">
+					<span class='notice'>not displayed and no spam.</span>
+					<div class="dn">
+                        Leave this empty:
+                        <input class='edit' type="email" name="fea250ea4aac6f32e05f04c74594919b4" id="fea250ea4aac6f32e05f04c74594919b4" size="40">
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class='label'>www</div>
+				</td>
+				<td>
+					<input class='edit' type="url" name="f6bed3e79b661ecab8248301a72108d7c" id="f6bed3e79b661ecab8248301a72108d7c" size="40" value="">
+					<span class='notice'>not searched.</span>
+				</td>
+			</tr>
+			<tr>
+				<td>&nbsp;</td>
+				<td>
+					<div class="notice">Name and either email or www are required.</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="dn">
+						Don't put anything here:
+						<textarea name="f6e82dd1071d247890ea0a19b607e553e" id="f6e82dd1071d247890ea0a19b607e553e" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+					<div>
+						<textarea name="f2ebbb0580e7f948bd6b42c556e2cced1" id="f2ebbb0580e7f948bd6b42c556e2cced1" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+					<div class="dn">
+						Leave this empty:
+						<textarea name="f7d3823159aaf2b5b6d0f7d44c7de01d2" id="f7d3823159aaf2b5b6d0f7d44c7de01d2" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="notice right">
+					URLs auto-link and some tags are allowed: &lt;a&gt;&lt;b&gt;&lt;i&gt;&lt;p&gt;&lt;br&gt;&lt;pre&gt;.
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="notice right">
+						<label for="cbnotify">
+							<input type="checkbox" name="fb718b1985f70455a2f985b56b5b23a93" id="cbnotify" >
+							<span class='label'>Email me future comments</span>
+						</label>&#160;&#160;
+						<input id="previewbtn" type="submit" name="f6b3c30bc5898127b29ec9f38c39fd215" value="preview >>">
+						<span class="dn">
+                            <input type="submit" name="f997393b4c60bb1682429b52ff956bdd8" value="I'm a spambot">
+						</span>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<input type='hidden' name='fe75a848804be05348e43a36e38bf614f' value='text/names.html'>
+		<input type='hidden' name='spinner' value='865ece5ef1ae4dadf4dba28de36677bd'>
+		<input type='hidden' name='fddc58b2048b043125cc427f51f8d104a' value='1404132089'>
+
+
+	</form>
+</div>
+</div>
+
+</div>
+</div></td><td id='menu'><div class='sidebar'>
+
+
+<div class='blogroll'><ul class='first'><li class='first'>Search this site:
+            
+<form action="http://www.google.com/cse" id="searchbox_007818501792991951010:s9hiibxg-ty" style="margin-top:6px;"><input type="hidden" name="cx" value="007818501792991951010:s9hiibxg-ty"><table><tr><td class="vmid"><input type="text" name="q" style='border:1px solid #7e9db9;padding:2px;width:144px;height:16px;'></td><td class="vmid"><input id="submit" class="vmid" type="image" title="Search" alt="Search" src="/pix/search.png"></td></tr></table></form><script type="text/javascript">
+    (function() {
+        var f = document.getElementById('searchbox_007818501792991951010:s9hiibxg-ty');
+        if (f && f.q) {
+            var q = f.q;
+            var b = function() {
+                if (q.value == '') {
+                    q.style.background = '#fff url(http:\x2F\x2Fwww.google.com\x2Fcoop\x2Fintl\x2Fen\x2Fimages\x2Fgoogle_custom_search_watermark.gif) left no-repeat';
+                }
+            };
+            var f = function() {
+                q.style.background = '#fff';
+            };
+            q.onfocus = f;
+            q.onblur = b;
+            if (!/[&?]q=[^&]/.test(location.search)) {
+                b();
+            }
+        }
+    })();
+</script></li><li><a href='/site/aboutned.html' rel='author'>About me</a></li><li class='inline'>Also me:
+            <ul><li><a href='http://twitter.com/nedbat'>twitter</a>&#xa0;&#xb7; </li><li><a href='mailto:ned@nedbatchelder.com'>email</a></li></ul></li><li class='inline'>Tip me:
+            <ul><li><a href='http://gittip.com/nedbat'>gittip</a>&#xa0;&#xb7; </li><li><a href='https://coinbase.com/checkouts/c2a7f9652ecc0f6bf9c240c05109305f'>bitcoin</a></li></ul></li><li>You might like:
+            <ul class='compact'><li>&#xbb;&#xa0;<a href='/blog'>My blog</a></li><li>&#xbb;&#xa0;<a href='http://susansenator.com/makingpeace.html'>My wife's books</a><br><a href='http://susansenator.com/makingpeace.html'><img src='/pix/makingpeacetiny.png' alt='Making Peace With Autism' width='83' height='127' style='margin: 10px 0 0 0'></a> <a href='http://susansenator.com/survivalguide.html'><img src='/pix/survivalguidetiny.png' alt='Autism Mom&#39;s Survival Guide' width='86' height='121' style='margin: 10px 0 0 0'></a></li></ul></li></ul></div>
+
+</div></td></tr><tr><td id='copyright' colspan='2'><p class='copyright'><a rel='copyright license' href='/site/legal.html'>
+                            &#xa9; Copyright
+                            
+                                2013&ndash;2014,
+                            
+                            Ned Batchelder
+                        </a></p></td></tr></table></body></html>

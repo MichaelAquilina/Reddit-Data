@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <title>python - Why is it slower to iterate over a small string than a small list? - Stack Overflow</title>
+    <link rel="shortcut icon" href="//cdn.sstatic.net/stackoverflow/img/favicon.ico?v=038622610830">
+    <link rel="apple-touch-icon image_src" href="//cdn.sstatic.net/stackoverflow/img/apple-touch-icon.png?v=fd7230a85918">
+    <link rel="search" type="application/opensearchdescription+xml" title="Stack Overflow" href="/opensearch.xml">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:domain" content="stackoverflow.com"/>
+    <meta name="og:type" content="website" />
+    <meta name="og:image" content="http://cdn.sstatic.net/stackoverflow/img/apple-touch-icon@2.png?v=fde65a5a78c6"/>
+    <meta name="og:title" content="Why is it slower to iterate over a small string than a small list?" />
+    <meta name="og:description" content="I was playing around with timeit and noticed that doing a simple list comprehension over a small string took longer than doing the same operation on a list of small single character strings. Any " />
+    <meta name="og:url" content="http://stackoverflow.com/questions/23861468/why-is-it-slower-to-iterate-over-a-small-string-than-a-small-list"/>
+    <link rel="canonical" href="http://stackoverflow.com/questions/23861468/why-is-it-slower-to-iterate-over-a-small-string-than-a-small-list" />
+
+    
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="//cdn.sstatic.net/Js/stub.en.js?v=d142d951ee55"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.sstatic.net/stackoverflow/all.css?v=dc5a5d7ef830">
+    
+    <link rel="alternate" type="application/atom+xml" title="Feed for question &#39;Why is it slower to iterate over a small string than a small list?&#39;" href="/feeds/question/23861468">
+    <script>
+        
+        StackExchange.ready(function () {
+            StackExchange.using("postValidation", function () {
+                StackExchange.postValidation.initOnBlurAndSubmit($('#post-form'), 2, 'answer');
+            });
+
+            
+            StackExchange.question.init({showAnswerHelp:true,totalCommentCount:1,shownCommentCount:1,highlightColor:'#F4A83D',backgroundColor:'#FFF',questionId:23861468});
+
+            styleCode();
+
+                StackExchange.realtime.subscribeToQuestion('1', '23861468');
+            
+                    });
+    </script>
+
+
+    <script>
+        StackExchange.init({"locale":"en","stackAuthUrl":"https://stackauth.com","serverTime":1404132077,"networkMetaHostname":"meta.stackexchange.com","styleCode":true,"enableUserHovercards":true,"site":{"name":"Stack Overflow","description":"Q&A for professional and enthusiast programmers","isNoticesTabEnabled":true,"recaptchaPublicKey":"6LdchgIAAAAAAJwGpIzRQSOFaO0pU6s44Xt8aTwc","recaptchaAudioLang":"en","enableNewTagCreationWarning":true,"nonAsciiTags":true,"enableSocialMediaInSharePopup":true},"user":{"fkey":"a92f13ba36c772525db1c7111c756719","isAnonymous":true}});
+        StackExchange.using.setCacheBreakers({"js/prettify-full.en.js":"12ef2711e474","js/moderator.en.js":"e2c6bab58c56","js/full-anon.en.js":"a66b4586d8f3","js/full.en.js":"d43401f72f80","js/wmd.en.js":"d25c057c3f48","js/third-party/jquery.autocomplete.min.js":"e5f01e97f7c3","js/third-party/jquery.autocomplete.min.en.js":"","js/mobile.en.js":"5f0b5c72eaa8","js/help.en.js":"43b6b771d4d9","js/tageditor.en.js":"afabf8d8de91","js/tageditornew.en.js":"140e973e4037","js/inline-tag-editing.en.js":"21223186b436","js/revisions.en.js":"989c474e85a9","js/review.en.js":"c261687765b3","js/tagsuggestions.en.js":"bb4721d888d2","js/post-validation.en.js":"62fe2d3d1730","js/explore-qlist.en.js":"8b8b631bd679","js/events.en.js":"7263182fd2c2"});
+        StackExchange.using("gps", function() {
+             StackExchange.gps.init(true);
+        });
+    </script>
+    
+        <script>
+            StackExchange.ready(function () {
+                $('#nav-tour').click(function () {
+                    StackExchange.using("gps", function() {
+                        StackExchange.gps.track("aboutpage.click", { aboutclick_location: "headermain" }, true);
+                    });
+                });
+            });
+        </script>
+</head>
+<body class="question-page new-topbar">
+    <noscript><div id="noscript-padding"></div></noscript>
+    <div id="notify-container"></div>
+    <div id="overlay-header"></div>
+    <div id="custom-header"></div>
+<div class="topbar">
+    <div class="topbar-wrapper">
+        
+        <div class="js-topbar-dialog-corral">
+
+<div class="topbar-dialog siteSwitcher-dialog dno">
+    <div class="header">
+        <h3><a href="//stackoverflow.com">current community</a></h3>
+    </div>
+    <div class="modal-content current-site-container">
+        <ul class="current-site">
+                <li>
+                        <div class="related-links">
+            <a href="http://chat.stackoverflow.com"     data-gps-track="site_switcher.click({ item_type:6 })"
+>chat</a>
+                    <a href="http://blog.stackoverflow.com"     data-gps-track="site_switcher.click({ item_type:7 })"
+>blog</a>
+            </div>
+
+
+
+
+    <a href="//stackoverflow.com"
+       class="current-site-link site-link js-gps-track"
+       data-id="1"
+       data-gps-track="
+        site_switcher.click({ item_type:3 })">
+        <div class="site-icon favicon favicon-stackoverflow" title="Stack Overflow"></div>
+        Stack Overflow
+    </a>
+
+                </li>
+                <li class="related-site">
+                        <div class="L-shaped-icon-container">
+        <span class="L-shaped-icon"></span>
+    </div>
+
+                    
+
+
+
+    <a href="http://meta.stackoverflow.com"
+       class="site-link js-gps-track"
+       data-id="552"
+       data-gps-track="
+            site.switch({ target_site:552, item_type:3 }),
+        site_switcher.click({ item_type:4 })">
+        <div class="site-icon favicon favicon-stackoverflowmeta" title="Meta Stack Overflow"></div>
+        Meta Stack Overflow
+    </a>
+
+                </li>
+                            <li class="related-site">
+                        <div class="L-shaped-icon-container">
+        <span class="L-shaped-icon"></span>
+    </div>
+
+                    <a class="site-link"
+                       href="//careers.stackoverflow.com"
+                            data-gps-track="site_switcher.click({ item_type:9 })"
+>
+                        <div class="site-icon favicon favicon-careers" title="Stack Overflow Careers"></div>
+                        Careers 2.0
+                    </a>
+                </li>
+        </ul>
+    </div>
+    
+    <div class="header" id="your-communities-header">
+        <h3>
+your communities        </h3>
+            
+    </div>
+    <div class="modal-content" id="your-communities-section">
+            
+            <div class="call-to-login">
+                        <a href="https://stackoverflow.com/users/signup?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f23861468%2fwhy-is-it-slower-to-iterate-over-a-small-string-than-a-small-list" class="js-gps-track"     data-gps-track="site_switcher.click({ item_type:10 })"
+>Sign up</a>
+                    or
+                    <a href="https://stackoverflow.com/users/login?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f23861468%2fwhy-is-it-slower-to-iterate-over-a-small-string-than-a-small-list" class="js-gps-track"     data-gps-track="site_switcher.click({ item_type:11 })"
+>log in</a>
+
+                    to customize your list.
+            </div>
+    </div>
+    
+    <div class="header">
+        <h3><a href="//stackexchange.com/sites">more stack exchange communities</a></h3>
+    </div>
+    <div class="modal-content">
+            <div class="child-content"></div>
+    </div>
+</div>
+        </div>
+
+        <div class="network-items">
+            
+            <a href="//stackexchange.com" 
+               class="topbar-icon icon-site-switcher yes-hover js-site-switcher-button js-gps-track"
+               data-gps-track="site_switcher.show"
+               title="A list of all 128 Stack Exchange sites">
+                <span class="hidden-text">Stack Exchange</span>
+            </a>
+            
+        </div>
+
+        <div class="topbar-links">
+            
+                <div class="links-container">
+                    <span class="topbar-menu-links">
+                            <a href="https://stackoverflow.com/users/signup?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f23861468%2fwhy-is-it-slower-to-iterate-over-a-small-string-than-a-small-list" class="login-link">sign up</a>
+                            <a href="https://stackoverflow.com/users/login?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f23861468%2fwhy-is-it-slower-to-iterate-over-a-small-string-than-a-small-list" class="login-link">log in</a>
+                            <a href="/tour">tour</a>
+
+                            <a href="#" class="icon-help js-help-button" title="Help Center and other resources">
+        help
+        <span class="triangle"></span>
+    </a>
+    <div class="topbar-dialog help-dialog js-help-dialog dno">
+        <div class="modal-content">
+            <ul>
+                                    <li>
+                        <a href="/tour"     class="js-gps-track" data-gps-track="help_popup.click({ item_type:1 })"
+>
+                            Tour
+                            <span class="item-summary">
+                                Start here for a quick overview of the site
+                            </span>
+                        </a>
+                    </li>
+                <li>
+                    <a href="/help"     class="js-gps-track" data-gps-track="help_popup.click({ item_type:4 })"
+>
+                        Help Center
+                        <span class="item-summary">
+                            Detailed answers to any questions you might have
+                        </span>
+                    </a>
+                </li>
+                    <li>
+                        <a href="//meta.stackoverflow.com"     class="js-gps-track" data-gps-track="help_popup.click({ item_type:2 })"
+>
+                            Meta
+                            <span class="item-summary">
+                                Discuss the workings and policies of this site
+                            </span>
+                        </a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+
+                            <a href="//careers.stackoverflow.com">careers 2.0</a>
+                    </span>
+                </div>
+
+			<div class="search-container">
+                <form id="search" action="/search" method="get" autocomplete="off">
+                    <input name="q" type="text" placeholder="search" value="" tabindex="1" autocomplete="off" maxlength="240" />
+                </form>
+			</div>
+            	
+        </div>      
+    </div> 
+</div>
+<script>
+    StackExchange.ready(function () { StackExchange.topbar.init(); });
+</script>
+    <div class="container">
+        <div id="header" class=headeranon>
+            <br class="cbt">
+            <div id="hlogo">
+                <a href="/">
+                    Stack Overflow
+                </a>
+            </div>
+            <div id="hmenus">
+                <div class="nav mainnavs mainnavsanon">
+                    <ul>
+                        <li class="youarehere"><a id="nav-questions" href="/questions">Questions</a></li>
+                        <li><a id="nav-tags" href="/tags">Tags</a></li>
+                        <li><a id="nav-users" href="/users">Users</a></li>
+                        <li><a id="nav-badges" href="/help/badges">Badges</a></li>
+                        <li><a id="nav-unanswered" href="/unanswered">Unanswered</a></li>
+                    </ul>
+                </div>
+                <div class="nav askquestion">
+                    <ul>
+                        <li>
+                            <a id="nav-askquestion"  href="/questions/ask">Ask Question</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+
+
+
+        <div id="content">
+            
+
+<div itemscope itemtype="http://schema.org/Article">
+	<link itemprop="image" href="//cdn.sstatic.net/stackoverflow/img/apple-touch-icon.png">
+			<!--googleoff: all-->
+
+<div id="herobox-mini">
+    <div id="hero-content">
+        <span id="controls">
+            <a href="/tour" id="tell-me-more" class="button">Take the 2-minute tour</a>
+            <span id="close"><a title="click to dismiss">&times;</a></span>
+        </span>
+        <div id="blurb">
+            Stack Overflow is a question and answer site for professional and enthusiast programmers. It&#39;s 100% free, no registration required.
+        </div>        
+    </div>
+    <script>
+        $('#tell-me-more').click(function () {
+            var clickSource = $("body").attr("class") + '-mini';
+            if ($("body").hasClass("questions-page")) {
+                clickSource = 'questionpagemini';
+            } else if ($("body").hasClass("question-page")) {
+                clickSource = 'questionpagemini';
+            } else if ($("body").hasClass("home-page")) {
+                clickSource = 'homepagemini';
+            }
+
+            StackExchange.using("gps", function () {
+                StackExchange.gps.track("aboutpage.click", { aboutclick_location: clickSource } , true);
+            });
+        });
+        $('#herobox-mini #close').click(function () {
+            StackExchange.using("gps", function () {
+                StackExchange.gps.track("hero.action", { hero_action_type: "close" }, true);
+            });
+            $.cookie("hero", "none", { path: "/" });
+            var $hero = $("#herobox-mini");
+            $hero.slideUp('fast', function () { $hero.remove(); });
+            return false;
+        });
+    </script>
+</div>
+			<!--googleon: all-->
+			<div id="question-header">
+			<h1 itemprop="name"><a href="/questions/23861468/why-is-it-slower-to-iterate-over-a-small-string-than-a-small-list" class="question-hyperlink">Why is it slower to iterate over a small string than a small list?</a></h1>
+		</div>
+			<div id="mainbar">
+
+			
+
+<div class="question" data-questionid="23861468"  id="question">
+
+    <script>
+                var ados = ados || {};ados.run = ados.run || [];
+                ados.run.push(function() { ados_add_placement(22,8277,"adzerk1111955267",4).setZone(43) ; });                    
+            </script>
+            <div class="everyonelovesstackoverflow" id="adzerk1111955267">
+            </div>    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="23861468">
+    <a class="vote-up-off" title="This question shows research effort; it is useful and clear">up vote</a>
+    <span class="vote-count-post ">103</span>
+    <a class="vote-down-off" title="This question does not show any research effort; it is unclear or not useful">down vote</a>
+    
+    <a class="star-off" href="#" title="This is a favorite question (click again to undo)">favorite</a>
+    <div class="favoritecount"><b>33</b></div>   
+
+</div>
+
+            </td>
+            
+<td class="postcell">
+<div>
+    <div class="post-text" itemprop="description">
+
+        <p>I was playing around with timeit and noticed that doing a simple list comprehension over a small string took longer than doing the same operation on a list of small single character strings. Any explanation? It's almost 1.35 times as much time.</p>
+
+<pre><code>&gt;&gt;&gt; from timeit import timeit
+&gt;&gt;&gt; timeit("[x for x in 'abc']")
+2.0691067844831528
+&gt;&gt;&gt; timeit("[x for x in ['a', 'b', 'c']]")
+1.5286479570345861
+</code></pre>
+
+<p>What's happening on a lower level that's causing this?</p>
+
+    </div>
+    <div class="post-taglist">
+        <a href="/questions/tagged/python" class="post-tag" title="show questions tagged &#39;python&#39;" rel="tag">python</a> <a href="/questions/tagged/performance" class="post-tag" title="show questions tagged &#39;performance&#39;" rel="tag">performance</a> <a href="/questions/tagged/cpython" class="post-tag" title="show questions tagged &#39;cpython&#39;" rel="tag">cpython</a> <a href="/questions/tagged/timeit" class="post-tag" title="show questions tagged &#39;timeit&#39;" rel="tag">timeit</a> <a href="/questions/tagged/python-internals" class="post-tag" title="show questions tagged &#39;python-internals&#39;" rel="tag">python-internals</a> 
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/q/23861468" title="short permalink to this question" class="short-link" id="link-post-23861468">share</a><span class="lsep">|</span><a href="/posts/23861468/edit" class="suggest-edit-post" title="">improve this question</a></div>        
+    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/23861468/revisions" title="show all edits to this post">edited <span title="2014-05-31 00:21:11Z" class="relativetime">May 31 at 0:21</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1763356/veedrac"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/BvxQN.png?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1763356/veedrac">Veedrac</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">7,887</span><span title="3 gold badges"><span class="badge1"></span><span class="badgecount">3</span></span><span title="20 silver badges"><span class="badge2"></span><span class="badgecount">20</span></span><span title="43 bronze badges"><span class="badge3"></span><span class="badgecount">43</span></span>
+    </div>
+</div>    </td>
+    <td class="post-signature owner">
+        <div class="user-info ">
+    <div class="user-action-time">
+        asked <span title="2014-05-26 01:09:13Z" class="relativetime">May 26 at 1:09</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/551904/sunjay-varma"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/3c0a0f47f94565025a9aa388e8bd8681?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/551904/sunjay-varma">Sunjay Varma</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">1,724</span><span title="1 gold badge"><span class="badge1"></span><span class="badgecount">1</span></span><span title="12 silver badges"><span class="badge2"></span><span class="badgecount">12</span></span><span title="22 bronze badges"><span class="badge3"></span><span class="badgecount">22</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</div>
+</td>
+        </tr>
+                
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-23861468" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-36735257" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="hot">28</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">+1 for doing an actual measurement instead of relying on folklore</span>
+                &ndash;&nbsp;
+                    <a href="/users/833362/plasmahh"
+                       title="8147 reputation"
+                       class="comment-user">PlasmaHH</a>
+                <span class="comment-date" dir="ltr"><span title="2014-05-26 09:12:08Z" class="relativetime-clean">May 26 at 9:12</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-23861468" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid answering questions in comments." 
+				>add comment</a>
+    </td>
+</tr>        </table>
+</div>
+
+
+			<div id="answers">
+
+				<a name="tab-top"></a>
+				<div id="answers-header">
+					<div class="subheader answers-subheader">
+						<h2>
+								4 Answers
+						</h2>
+						<div>
+							<div id="tabs">
+        <a href="/questions/23861468/why-is-it-slower-to-iterate-over-a-small-string-than-a-small-list?answertab=active#tab-top" title="Answers with the latest activity first">active</a>
+        <a href="/questions/23861468/why-is-it-slower-to-iterate-over-a-small-string-than-a-small-list?answertab=oldest#tab-top" title="Answers in the order they were provided">oldest</a>
+        <a class="youarehere" href="/questions/23861468/why-is-it-slower-to-iterate-over-a-small-string-than-a-small-list?answertab=votes#tab-top" title="Answers with the highest score first">votes</a>
+</div>
+						</div>
+					</div>    
+				</div>    
+
+
+
+
+  
+<a name="23864108"></a>
+<div id="answer-23864108" class="answer accepted-answer" data-answerid="23864108" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="23864108">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">170</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+        <span class="vote-accepted-on load-accepted-answer-date" title="loading when this answer was accepted...">accepted</span>
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <h1>TL;DR</h1>
+
+<ul>
+<li><p>The actual speed difference is closer to 70% (or more) once a lot of the overhead is removed, for Python 2.</p></li>
+<li><p>Object creation is <strong>not</strong> at fault. Neither method creates a new object, as one-character strings are cached.</p></li>
+<li><p>The difference is unobvious, but is likely created from a greater number of checks on string indexing, with regards to the type and well-formedness. It is also quite likely thanks to the need to check what to return.</p></li>
+<li><p>List indexing is remarkably fast.</p></li>
+</ul>
+
+<hr>
+
+<hr>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit '[x for x in "abc"]'
+1000000 loops, best of 3: 0.388 usec per loop
+
+&gt;&gt;&gt; python3 -m timeit '[x for x in ["a", "b", "c"]]'
+1000000 loops, best of 3: 0.436 usec per loop
+</code></pre>
+
+<p>This disagrees with what you've found...</p>
+
+<p>You must be using Python 2, then.</p>
+
+<pre><code>&gt;&gt;&gt; python2 -m timeit '[x for x in "abc"]'
+1000000 loops, best of 3: 0.309 usec per loop
+
+&gt;&gt;&gt; python2 -m timeit '[x for x in ["a", "b", "c"]]'
+1000000 loops, best of 3: 0.212 usec per loop
+</code></pre>
+
+<p>Let's explain the difference between the versions. I'll examine the compiled code.</p>
+
+<p><strong>For Python 3:</strong></p>
+
+<pre><code>import dis
+
+def list_iterate():
+    [item for item in ["a", "b", "c"]]
+
+dis.dis(list_iterate)
+#&gt;&gt;&gt;   4           0 LOAD_CONST               1 (&lt;code object &lt;listcomp&gt; at 0x7f4d06b118a0, file "", line 4&gt;)
+#&gt;&gt;&gt;               3 LOAD_CONST               2 ('list_iterate.&lt;locals&gt;.&lt;listcomp&gt;')
+#&gt;&gt;&gt;               6 MAKE_FUNCTION            0
+#&gt;&gt;&gt;               9 LOAD_CONST               3 ('a')
+#&gt;&gt;&gt;              12 LOAD_CONST               4 ('b')
+#&gt;&gt;&gt;              15 LOAD_CONST               5 ('c')
+#&gt;&gt;&gt;              18 BUILD_LIST               3
+#&gt;&gt;&gt;              21 GET_ITER
+#&gt;&gt;&gt;              22 CALL_FUNCTION            1 (1 positional, 0 keyword pair)
+#&gt;&gt;&gt;              25 POP_TOP
+#&gt;&gt;&gt;              26 LOAD_CONST               0 (None)
+#&gt;&gt;&gt;              29 RETURN_VALUE
+
+def string_iterate():
+    [item for item in "abc"]
+
+dis.dis(string_iterate)
+#&gt;&gt;&gt;  21           0 LOAD_CONST               1 (&lt;code object &lt;listcomp&gt; at 0x7f4d06b17150, file "", line 21&gt;)
+#&gt;&gt;&gt;               3 LOAD_CONST               2 ('string_iterate.&lt;locals&gt;.&lt;listcomp&gt;')
+#&gt;&gt;&gt;               6 MAKE_FUNCTION            0
+#&gt;&gt;&gt;               9 LOAD_CONST               3 ('abc')
+#&gt;&gt;&gt;              12 GET_ITER
+#&gt;&gt;&gt;              13 CALL_FUNCTION            1 (1 positional, 0 keyword pair)
+#&gt;&gt;&gt;              16 POP_TOP
+#&gt;&gt;&gt;              17 LOAD_CONST               0 (None)
+#&gt;&gt;&gt;              20 RETURN_VALUE
+</code></pre>
+
+<p>You see here that the list variant is likely to be slower due to the building of the list each time.</p>
+
+<p>This is the</p>
+
+<pre><code> 9 LOAD_CONST   3 ('a')
+12 LOAD_CONST   4 ('b')
+15 LOAD_CONST   5 ('c')
+18 BUILD_LIST   3
+</code></pre>
+
+<p>part. The string variant only has</p>
+
+<pre><code> 9 LOAD_CONST   3 ('abc')
+</code></pre>
+
+<p>You can check that this does seem to make a difference:</p>
+
+<pre><code>def string_iterate():
+    [item for item in ("a", "b", "c")]
+
+dis.dis(string_iterate)
+#&gt;&gt;&gt;  35           0 LOAD_CONST               1 (&lt;code object &lt;listcomp&gt; at 0x7f4d068be660, file "", line 35&gt;)
+#&gt;&gt;&gt;               3 LOAD_CONST               2 ('string_iterate.&lt;locals&gt;.&lt;listcomp&gt;')
+#&gt;&gt;&gt;               6 MAKE_FUNCTION            0
+#&gt;&gt;&gt;               9 LOAD_CONST               6 (('a', 'b', 'c'))
+#&gt;&gt;&gt;              12 GET_ITER
+#&gt;&gt;&gt;              13 CALL_FUNCTION            1 (1 positional, 0 keyword pair)
+#&gt;&gt;&gt;              16 POP_TOP
+#&gt;&gt;&gt;              17 LOAD_CONST               0 (None)
+#&gt;&gt;&gt;              20 RETURN_VALUE
+</code></pre>
+
+<p>This produces just</p>
+
+<pre><code> 9 LOAD_CONST               6 (('a', 'b', 'c'))
+</code></pre>
+
+<p>as tuples are immutable. Test:</p>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit '[x for x in ("a", "b", "c")]'
+1000000 loops, best of 3: 0.369 usec per loop
+</code></pre>
+
+<p>Great, back up to speed.</p>
+
+<p><strong>For Python 2:</strong></p>
+
+<pre><code>def list_iterate():
+    [item for item in ["a", "b", "c"]]
+
+dis.dis(list_iterate)
+#&gt;&gt;&gt;   2           0 BUILD_LIST               0
+#&gt;&gt;&gt;               3 LOAD_CONST               1 ('a')
+#&gt;&gt;&gt;               6 LOAD_CONST               2 ('b')
+#&gt;&gt;&gt;               9 LOAD_CONST               3 ('c')
+#&gt;&gt;&gt;              12 BUILD_LIST               3
+#&gt;&gt;&gt;              15 GET_ITER            
+#&gt;&gt;&gt;         &gt;&gt;   16 FOR_ITER                12 (to 31)
+#&gt;&gt;&gt;              19 STORE_FAST               0 (item)
+#&gt;&gt;&gt;              22 LOAD_FAST                0 (item)
+#&gt;&gt;&gt;              25 LIST_APPEND              2
+#&gt;&gt;&gt;              28 JUMP_ABSOLUTE           16
+#&gt;&gt;&gt;         &gt;&gt;   31 POP_TOP             
+#&gt;&gt;&gt;              32 LOAD_CONST               0 (None)
+#&gt;&gt;&gt;              35 RETURN_VALUE        
+
+def string_iterate():
+    [item for item in "abc"]
+
+dis.dis(string_iterate)
+#&gt;&gt;&gt;   2           0 BUILD_LIST               0
+#&gt;&gt;&gt;               3 LOAD_CONST               1 ('abc')
+#&gt;&gt;&gt;               6 GET_ITER            
+#&gt;&gt;&gt;         &gt;&gt;    7 FOR_ITER                12 (to 22)
+#&gt;&gt;&gt;              10 STORE_FAST               0 (item)
+#&gt;&gt;&gt;              13 LOAD_FAST                0 (item)
+#&gt;&gt;&gt;              16 LIST_APPEND              2
+#&gt;&gt;&gt;              19 JUMP_ABSOLUTE            7
+#&gt;&gt;&gt;         &gt;&gt;   22 POP_TOP             
+#&gt;&gt;&gt;              23 LOAD_CONST               0 (None)
+#&gt;&gt;&gt;              26 RETURN_VALUE        
+</code></pre>
+
+<p>The odd thing is that we have the <em>same</em> building of the list, but it's still faster for this. Python 2 is acting strangely fast.</p>
+
+<p>Let's remove the comprehensions and re-time. The <code>_ =</code> is to prevent it getting optimised out.</p>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit '_ = ["a", "b", "c"]'
+10000000 loops, best of 3: 0.0707 usec per loop
+
+&gt;&gt;&gt; python3 -m timeit '_ = "abc"'
+100000000 loops, best of 3: 0.0171 usec per loop
+</code></pre>
+
+<p>We can see that initialisation is not significant enough to account for the difference between the versions (those numbers are small)! We can thus conclude that Python 3 has slower comprehensions. This makes sense as Python 3 changed comprehensions to have saner scoping.</p>
+
+<p>Well, now improve the benchmark (I'm just removing overhead that isn't iteration). This removes the building of the iterable be pre-assigning it:</p>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit -s 'iterable = "abc"'           '[x for x in iterable]'
+1000000 loops, best of 3: 0.387 usec per loop
+
+&gt;&gt;&gt; python3 -m timeit -s 'iterable = ["a", "b", "c"]' '[x for x in iterable]'
+1000000 loops, best of 3: 0.368 usec per loop
+</code></pre>
+
+
+
+<pre><code>&gt;&gt;&gt; python2 -m timeit -s 'iterable = "abc"'           '[x for x in iterable]'
+1000000 loops, best of 3: 0.309 usec per loop
+
+&gt;&gt;&gt; python2 -m timeit -s 'iterable = ["a", "b", "c"]' '[x for x in iterable]'
+10000000 loops, best of 3: 0.164 usec per loop
+</code></pre>
+
+<p>We can check if calling <code>iter</code> is the overhead:</p>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit -s 'iterable = "abc"'           'iter(iterable)'
+10000000 loops, best of 3: 0.099 usec per loop
+
+&gt;&gt;&gt; python3 -m timeit -s 'iterable = ["a", "b", "c"]' 'iter(iterable)'
+10000000 loops, best of 3: 0.1 usec per loop
+</code></pre>
+
+
+
+<pre><code>&gt;&gt;&gt; python2 -m timeit -s 'iterable = "abc"'           'iter(iterable)'
+10000000 loops, best of 3: 0.0913 usec per loop
+
+&gt;&gt;&gt; python2 -m timeit -s 'iterable = ["a", "b", "c"]' 'iter(iterable)'
+10000000 loops, best of 3: 0.0854 usec per loop
+</code></pre>
+
+<p>No. No it is not. The difference is too small, especially for Python 3.</p>
+
+<p>So let's remove yet more unwanted overhead... by making the whole thing slower! The aim is just to have a longer iteration so the time hides overhead.</p>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit -s 'import random; iterable = "".join(chr(random.randint(0, 127)) for _ in range(100000))' '[x for x in iterable]'
+100 loops, best of 3: 3.12 msec per loop
+
+&gt;&gt;&gt; python3 -m timeit -s 'import random; iterable =        [chr(random.randint(0, 127)) for _ in range(100000)]' '[x for x in iterable]'
+100 loops, best of 3: 2.77 msec per loop
+</code></pre>
+
+
+
+<pre><code>&gt;&gt;&gt; python2 -m timeit -s 'import random; iterable = "".join(chr(random.randint(0, 127)) for _ in range(100000))' '[x for x in iterable]'
+100 loops, best of 3: 2.32 msec per loop
+
+&gt;&gt;&gt; python2 -m timeit -s 'import random; iterable =        [chr(random.randint(0, 127)) for _ in range(100000)]' '[x for x in iterable]'
+100 loops, best of 3: 2.09 msec per loop
+</code></pre>
+
+<p>This hasn't actually changed <em>much</em>, but it's helped a little.</p>
+
+<p>So remove the comprehension. It's overhead that's not part of the question:</p>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit -s 'import random; iterable = "".join(chr(random.randint(0, 127)) for _ in range(100000))' 'for x in iterable: pass'
+1000 loops, best of 3: 1.71 msec per loop
+
+&gt;&gt;&gt; python3 -m timeit -s 'import random; iterable =        [chr(random.randint(0, 127)) for _ in range(100000)]' 'for x in iterable: pass'
+1000 loops, best of 3: 1.36 msec per loop
+</code></pre>
+
+
+
+<pre><code>&gt;&gt;&gt; python2 -m timeit -s 'import random; iterable = "".join(chr(random.randint(0, 127)) for _ in range(100000))' 'for x in iterable: pass'
+1000 loops, best of 3: 1.27 msec per loop
+
+&gt;&gt;&gt; python2 -m timeit -s 'import random; iterable =        [chr(random.randint(0, 127)) for _ in range(100000)]' 'for x in iterable: pass'
+1000 loops, best of 3: 935 usec per loop
+</code></pre>
+
+<p>That's more like it! We can get slightly faster still by using <code>deque</code> to iterate. It's basically the same, but it's <em>faster</em>:</p>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit -s 'import random; from collections import deque; iterable = "".join(chr(random.randint(0, 127)) for _ in range(100000))' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 777 usec per loop
+
+&gt;&gt;&gt; python3 -m timeit -s 'import random; from collections import deque; iterable =        [chr(random.randint(0, 127)) for _ in range(100000)]' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 405 usec per loop
+</code></pre>
+
+
+
+<pre><code>&gt;&gt;&gt; python2 -m timeit -s 'import random; from collections import deque; iterable = "".join(chr(random.randint(0, 127)) for _ in range(100000))' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 805 usec per loop
+
+&gt;&gt;&gt; python2 -m timeit -s 'import random; from collections import deque; iterable =        [chr(random.randint(0, 127)) for _ in range(100000)]' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 438 usec per loop
+</code></pre>
+
+<p>What impresses me is that Unicode is competitive with bytestrings. We can check this explicitly by trying <code>bytes</code> and <code>unicode</code> in both:</p>
+
+<ul>
+<li><p><code>bytes</code></p>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit -s 'import random; from collections import deque; iterable = b"".join(chr(random.randint(0, 127)).encode("ascii") for _ in range(100000))' 'deque(iterable, maxlen=0)'                                                                    :(
+1000 loops, best of 3: 571 usec per loop
+
+&gt;&gt;&gt; python3 -m timeit -s 'import random; from collections import deque; iterable =         [chr(random.randint(0, 127)).encode("ascii") for _ in range(100000)]' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 394 usec per loop
+</code></pre>
+
+
+
+<pre><code>&gt;&gt;&gt; python2 -m timeit -s 'import random; from collections import deque; iterable = b"".join(chr(random.randint(0, 127))                 for _ in range(100000))' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 757 usec per loop
+
+&gt;&gt;&gt; python2 -m timeit -s 'import random; from collections import deque; iterable =         [chr(random.randint(0, 127))                 for _ in range(100000)]' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 438 usec per loop
+</code></pre>
+
+<p>Here you see Python 3 actually <em>faster</em> than Python 2.</p></li>
+<li><p><code>unicode</code></p>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit -s 'import random; from collections import deque; iterable = u"".join(   chr(random.randint(0, 127)) for _ in range(100000))' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 800 usec per loop
+
+&gt;&gt;&gt; python3 -m timeit -s 'import random; from collections import deque; iterable =         [   chr(random.randint(0, 127)) for _ in range(100000)]' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 394 usec per loop
+</code></pre>
+
+
+
+<pre><code>&gt;&gt;&gt; python2 -m timeit -s 'import random; from collections import deque; iterable = u"".join(unichr(random.randint(0, 127)) for _ in range(100000))' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 1.07 msec per loop
+
+&gt;&gt;&gt; python2 -m timeit -s 'import random; from collections import deque; iterable =         [unichr(random.randint(0, 127)) for _ in range(100000)]' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 469 usec per loop
+</code></pre>
+
+<p>Again, Python 3 is faster, although this is to be expected (<code>str</code> has had a lot of attention in Python 3).</p></li>
+</ul>
+
+<p>In fact, this <code>unicode</code>-<code>bytes</code> difference is very small, which is impressive.</p>
+
+<p>So let's analyse this one case, seeing as it's fast and convenient for me:</p>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit -s 'import random; from collections import deque; iterable = "".join(chr(random.randint(0, 127)) for _ in range(100000))' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 777 usec per loop
+
+&gt;&gt;&gt; python3 -m timeit -s 'import random; from collections import deque; iterable =        [chr(random.randint(0, 127)) for _ in range(100000)]' 'deque(iterable, maxlen=0)'
+1000 loops, best of 3: 405 usec per loop
+</code></pre>
+
+<p><strong>We can actually rule out Tim Peter's 10-times-upvoted answer!</strong></p>
+
+<pre><code>&gt;&gt;&gt; foo = iterable[123]
+&gt;&gt;&gt; iterable[36] is foo
+True
+</code></pre>
+
+<h1>These are not new objects!</h1>
+
+<p>But this is worth mentioning: indexing <em>costs</em>. The difference will likely be in the indexing, so remove the iteration and just index:</p>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit -s 'import random; iterable = "".join(chr(random.randint(0, 127)) for _ in range(100000))' 'iterable[123]'
+10000000 loops, best of 3: 0.0397 usec per loop
+
+&gt;&gt;&gt; python3 -m timeit -s 'import random; iterable =        [chr(random.randint(0, 127)) for _ in range(100000)]' 'iterable[123]'
+10000000 loops, best of 3: 0.0374 usec per loop
+</code></pre>
+
+<p>The difference seems small, but <em>at least</em> half of the cost is overhead:</p>
+
+<pre><code>&gt;&gt;&gt; python3 -m timeit -s 'import random; iterable =        [chr(random.randint(0, 127)) for _ in range(100000)]' 'iterable; 123'
+100000000 loops, best of 3: 0.0173 usec per loop
+</code></pre>
+
+<p>so the speed difference is sufficient to decide to blame it. I think.</p>
+
+<p>So why is indexing a list so much faster?</p>
+
+<p>Well, I'll come back to you on that, but my guess is that's is down to the check for <em>interned</em> strings (or cached characters if it's a seperate mechanism). This will be less fast than optimal. But I'll go check the source (although I'm not comfortable in C...) :).</p>
+
+<hr>
+
+<p>So here's the source:</p>
+
+<pre><code>static PyObject *
+unicode_getitem(PyObject *self, Py_ssize_t index)
+{
+    void *data;
+    enum PyUnicode_Kind kind;
+    Py_UCS4 ch;
+    PyObject *res;
+
+    if (!PyUnicode_Check(self) || PyUnicode_READY(self) == -1) {
+        PyErr_BadArgument();
+        return NULL;
+    }
+    if (index &lt; 0 || index &gt;= PyUnicode_GET_LENGTH(self)) {
+        PyErr_SetString(PyExc_IndexError, "string index out of range");
+        return NULL;
+    }
+    kind = PyUnicode_KIND(self);
+    data = PyUnicode_DATA(self);
+    ch = PyUnicode_READ(kind, data, index);
+    if (ch &lt; 256)
+        return get_latin1_char(ch);
+
+    res = PyUnicode_New(1, ch);
+    if (res == NULL)
+        return NULL;
+    kind = PyUnicode_KIND(res);
+    data = PyUnicode_DATA(res);
+    PyUnicode_WRITE(kind, data, 0, ch);
+    assert(_PyUnicode_CheckConsistency(res, 1));
+    return res;
+}
+</code></pre>
+
+<p>Walking from the top, we'll have some checks. These are boring. Then some assigns, which should also be boring. The first interesting line is</p>
+
+<pre><code>ch = PyUnicode_READ(kind, data, index);
+</code></pre>
+
+<p>but we'd <em>hope</em> that is fast, as we're reading from a contiguous C array by indexing it. The result, <code>ch</code>, will be less than 256 so we'll return the cached character in <code>get_latin1_char(ch)</code>.</p>
+
+<p>So we'll run (dropping the first checks)</p>
+
+<pre><code>kind = PyUnicode_KIND(self);
+data = PyUnicode_DATA(self);
+ch = PyUnicode_READ(kind, data, index);
+return get_latin1_char(ch);
+</code></pre>
+
+<p>Where</p>
+
+<pre><code>#define PyUnicode_KIND(op) \
+    (assert(PyUnicode_Check(op)), \
+     assert(PyUnicode_IS_READY(op)),            \
+     ((PyASCIIObject *)(op))-&gt;state.kind)
+</code></pre>
+
+<p>(which is boring because asserts get ignored in debug [so I can check that they're fast] and <code>((PyASCIIObject *)(op))-&gt;state.kind)</code> is (I think) an indirection and a C-level cast);</p>
+
+<pre><code>#define PyUnicode_DATA(op) \
+    (assert(PyUnicode_Check(op)), \
+     PyUnicode_IS_COMPACT(op) ? _PyUnicode_COMPACT_DATA(op) :   \
+     _PyUnicode_NONCOMPACT_DATA(op))
+</code></pre>
+
+<p>(which is also boring for similar reasons, assuming the macros (<code>Something_CAPITALIZED</code>) are all fast),</p>
+
+<pre><code>#define PyUnicode_READ(kind, data, index) \
+    ((Py_UCS4) \
+    ((kind) == PyUnicode_1BYTE_KIND ? \
+        ((const Py_UCS1 *)(data))[(index)] : \
+        ((kind) == PyUnicode_2BYTE_KIND ? \
+            ((const Py_UCS2 *)(data))[(index)] : \
+            ((const Py_UCS4 *)(data))[(index)] \
+        ) \
+    ))
+</code></pre>
+
+<p>(which involves indexes but really isn't slow at all) and</p>
+
+<pre><code>static PyObject*
+get_latin1_char(unsigned char ch)
+{
+    PyObject *unicode = unicode_latin1[ch];
+    if (!unicode) {
+        unicode = PyUnicode_New(1, ch);
+        if (!unicode)
+            return NULL;
+        PyUnicode_1BYTE_DATA(unicode)[0] = ch;
+        assert(_PyUnicode_CheckConsistency(unicode, 1));
+        unicode_latin1[ch] = unicode;
+    }
+    Py_INCREF(unicode);
+    return unicode;
+}
+</code></pre>
+
+<p>Which confirms my suspicion that:</p>
+
+<ul>
+<li><p>This is cached:</p>
+
+<pre><code>PyObject *unicode = unicode_latin1[ch];
+</code></pre></li>
+<li><p>This should be fast. The <code>if (!unicode)</code> is not run, so it's literally equivalent in this case to</p>
+
+<pre><code>PyObject *unicode = unicode_latin1[ch];
+Py_INCREF(unicode);
+return unicode;
+</code></pre></li>
+</ul>
+
+<p>Honestly, after testing the <code>assert</code>s are fast (by disabling them [I <em>think</em> it works on the C-level asserts...]), the only plausibly-slow parts are:</p>
+
+<pre><code>PyUnicode_IS_COMPACT(op)
+_PyUnicode_COMPACT_DATA(op)
+_PyUnicode_NONCOMPACT_DATA(op)
+</code></pre>
+
+<p>Which are:</p>
+
+<pre><code>#define PyUnicode_IS_COMPACT(op) \
+    (((PyASCIIObject*)(op))-&gt;state.compact)
+</code></pre>
+
+<p>(fast, as before),</p>
+
+<pre><code>#define _PyUnicode_COMPACT_DATA(op)                     \
+    (PyUnicode_IS_ASCII(op) ?                   \
+     ((void*)((PyASCIIObject*)(op) + 1)) :              \
+     ((void*)((PyCompactUnicodeObject*)(op) + 1)))
+</code></pre>
+
+<p>(fast if the macro <code>IS_ASCII</code> is fast), and</p>
+
+<pre><code>#define _PyUnicode_NONCOMPACT_DATA(op)                  \
+    (assert(((PyUnicodeObject*)(op))-&gt;data.any),        \
+     ((((PyUnicodeObject *)(op))-&gt;data.any)))
+</code></pre>
+
+<p>(also fast as it's an assert plus an indirection plus a cast).</p>
+
+<p>So we're down (the rabbit hole) to:</p>
+
+<pre><code>PyUnicode_IS_ASCII
+</code></pre>
+
+<p>which is</p>
+
+<pre><code>#define PyUnicode_IS_ASCII(op)                   \
+    (assert(PyUnicode_Check(op)),                \
+     assert(PyUnicode_IS_READY(op)),             \
+     ((PyASCIIObject*)op)-&gt;state.ascii)
+</code></pre>
+
+<p>Hmm... that seems fast too...</p>
+
+<hr>
+
+<p>Well, OK, but let's compare it to <code>PyList_GetItem</code>. (Yeah, <em>thanks</em> Tim Peters for giving me more work to do :P.)</p>
+
+<pre><code>PyObject *
+PyList_GetItem(PyObject *op, Py_ssize_t i)
+{
+    if (!PyList_Check(op)) {
+        PyErr_BadInternalCall();
+        return NULL;
+    }
+    if (i &lt; 0 || i &gt;= Py_SIZE(op)) {
+        if (indexerr == NULL) {
+            indexerr = PyUnicode_FromString(
+                "list index out of range");
+            if (indexerr == NULL)
+                return NULL;
+        }
+        PyErr_SetObject(PyExc_IndexError, indexerr);
+        return NULL;
+    }
+    return ((PyListObject *)op) -&gt; ob_item[i];
+}
+</code></pre>
+
+<p>We can see that on non-error cases this is just going to run:</p>
+
+<pre><code>PyList_Check(op)
+Py_SIZE(op)
+((PyListObject *)op) -&gt; ob_item[i]
+</code></pre>
+
+<p>Where <code>PyList_Check</code> is</p>
+
+<pre><code>#define PyList_Check(op) \
+     PyType_FastSubclass(Py_TYPE(op), Py_TPFLAGS_LIST_SUBCLASS)
+</code></pre>
+
+<p><strike>(<a href="https://github.com/python/cpython/blob/237284d0a73e472f836adc72f090432ae7c5dfad/Include/listobject.h#L49"><strong>TABS! TABS!!!</strong></a>) (<a href="http://bugs.python.org/issue21587">issue21587</a>)</strike> That got fixed and merged in <strong>5 minutes</strong>. Like... yeah. Damn. They put Skeet to shame.</p>
+
+<pre><code>#define Py_SIZE(ob)             (((PyVarObject*)(ob))-&gt;ob_size)
+</code></pre>
+
+
+
+<pre><code>#define PyType_FastSubclass(t,f)  PyType_HasFeature(t,f)
+</code></pre>
+
+
+
+<pre><code>#ifdef Py_LIMITED_API
+#define PyType_HasFeature(t,f)  ((PyType_GetFlags(t) &amp; (f)) != 0)
+#else
+#define PyType_HasFeature(t,f)  (((t)-&gt;tp_flags &amp; (f)) != 0)
+#endif
+</code></pre>
+
+<p>So this is normally really trivial (two indirections and a couple of boolean checks) unless <code>Py_LIMITED_API</code> is on, in which case... ???</p>
+
+<p>Then there's the indexing and a cast (<code>((PyListObject *)op) -&gt; ob_item[i]</code>) and we're done.</p>
+
+<p>So there are definitely <em>fewer</em> checks for lists, and the small speed differences certainly imply that it could be relevant.</p>
+
+<hr>
+
+<p>I think in general, there's just more type-checking and indirection <code>(-&gt;)</code> for unicode. It seems I'm missing a point, but <em>what</em>?</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/23864108" title="short permalink to this answer" class="short-link" id="link-post-23864108">share</a><span class="lsep">|</span><a href="/posts/23864108/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/23864108/revisions" title="show all edits to this post">edited <span title="2014-05-27 02:30:00Z" class="relativetime">May 27 at 2:30</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1053021/michaelb958"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/43e2837c81e20dacb4dd3112bf96590b?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1053021/michaelb958">michaelb958</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">2,722</span><span title="7 gold badges"><span class="badge1"></span><span class="badgecount">7</span></span><span title="13 silver badges"><span class="badge2"></span><span class="badgecount">13</span></span><span title="24 bronze badges"><span class="badge3"></span><span class="badgecount">24</span></span>
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2014-05-26 06:37:07Z" class="relativetime">May 26 at 6:37</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1763356/veedrac"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/BvxQN.png?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1763356/veedrac">Veedrac</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">7,887</span><span title="3 gold badges"><span class="badge1"></span><span class="badgecount">3</span></span><span title="20 silver badges"><span class="badge2"></span><span class="badgecount">20</span></span><span title="43 bronze badges"><span class="badge3"></span><span class="badgecount">43</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-23864108" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="8" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-36732193" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="hot">15</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">You are presenting the code as self explanatory; you are even presenting the snippets as conclusions. Unfortunately for me, I can&#39;t really follow it. Not saying that your approach to finding out what&#39;s wrong isn&#39;t solid, but it would be nice if it was easier to follow.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1575066/pascalvkooten"
+                       title="3647 reputation"
+                       class="comment-user">PascalvKooten</a>
+                <span class="comment-date" dir="ltr"><span title="2014-05-26 07:27:50Z" class="relativetime-clean">May 26 at 7:27</span></span>
+                    <span class="edited-yes" title="this comment was edited 3 times"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-36733252" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">1</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I tried improving it, but I&#39;m unsure how to make it clearer. Note that I don&#39;t write C, so this is a high-level analysis of the code and only the overall concepts are important.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1763356/veedrac"
+                       title="7887 reputation"
+                       class="comment-user">Veedrac</a>
+                <span class="comment-date" dir="ltr"><span title="2014-05-26 08:04:47Z" class="relativetime-clean">May 26 at 8:04</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-36752557" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">3</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I&#39;ll give this another day before I accept your answer (I&#39;d love to see something more concrete pop up), but thank you for the very interesting and well researched answer.</span>
+                &ndash;&nbsp;
+                    <a href="/users/551904/sunjay-varma"
+                       title="1724 reputation"
+                       class="comment-user owner">Sunjay Varma</a>
+                <span class="comment-date" dir="ltr"><span title="2014-05-26 18:39:03Z" class="relativetime-clean">May 26 at 18:39</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-36754967" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">3</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Note that you&#39;re shooting at a moving target ;-) This implementation doesn&#39;t just differ between Python 2 and Python 3, but also between different releases.  For example, on the current development trunk, the <code>get_latin1_char()</code> trick no longer exists in <code>unicode_getitem()</code>, but in the lower-level <code>unicode_char</code>.  So there&#39;s another level of function call now - or not (depending on the compiler and optimization flags used).  At this level of detail, there simply are no reliable answers ;-)</span>
+                &ndash;&nbsp;
+                    <a href="/users/2705542/tim-peters"
+                       title="15915 reputation"
+                       class="comment-user">Tim Peters</a>
+                <span class="comment-date" dir="ltr"><span title="2014-05-26 20:16:29Z" class="relativetime-clean">May 26 at 20:16</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-36811543" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">2</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">When is the book coming out on stores? :D</span>
+                &ndash;&nbsp;
+                    <a href="/users/3283203/kilazur"
+                       title="436 reputation"
+                       class="comment-user">Kilazur</a>
+                <span class="comment-date" dir="ltr"><span title="2014-05-28 08:30:02Z" class="relativetime-clean">May 28 at 8:30</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-23864108" data-rep=50 data-anon=true
+			   class="comments-link " 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>show <b>8</b> more comments</a>
+    </td>
+</tr>    </table>
+</div>
+<script>
+                var ados = ados || {};ados.run = ados.run || [];
+                ados.run.push(function() { ados_add_placement(22,8277,"adzerk650860408",4).setZone(44) ; });                    
+            </script>
+            <div class="everyonelovesstackoverflow" id="adzerk650860408">
+            </div>
+  
+<a name="23861518"></a>
+<div id="answer-23861518" class="answer" data-answerid="23861518" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="23861518">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">25</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>When you iterate over most container objects (lists, tuples, dicts, ...), the iterator delivers the objects <em>in</em> the container.</p>
+
+<p>But when you iterate over a string, a <em>new</em> object has to be created for each character delivered - a string is not "a container" in the same sense a list is a container.  The individual characters in a string don't exist as distinct objects before iteration creates those objects.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/23861518" title="short permalink to this answer" class="short-link" id="link-post-23861518">share</a><span class="lsep">|</span><a href="/posts/23861518/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2014-05-26 01:16:49Z" class="relativetime">May 26 at 1:16</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/2705542/tim-peters"><div><img src="https://www.gravatar.com/avatar/ffc22708f70324dcbfe34f247637ca01?s=32&d=identicon&r=PG&f=1" alt="" width="32" height="32"></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/2705542/tim-peters">Tim Peters</a><br>
+        <span class="reputation-score" title="reputation score 15915" dir="ltr">15.9k</span><span title="2 gold badges"><span class="badge1"></span><span class="badgecount">2</span></span><span title="14 silver badges"><span class="badge2"></span><span class="badgecount">14</span></span><span title="31 bronze badges"><span class="badge3"></span><span class="badgecount">31</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-23861518" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-36730942" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">2</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I don&#39;t think this is true, actually. You can check with <code>is</code>. It <i>sounds</i> right, but I really don&#39;t think it can be.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1763356/veedrac"
+                       title="7887 reputation"
+                       class="comment-user">Veedrac</a>
+                <span class="comment-date" dir="ltr"><span title="2014-05-26 06:42:29Z" class="relativetime-clean">May 26 at 6:42</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-36731098" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Take a look to @Veedrac answer.</span>
+                &ndash;&nbsp;
+                    <a href="/users/2670792/christian"
+                       title="20314 reputation"
+                       class="comment-user">Christian</a>
+                <span class="comment-date" dir="ltr"><span title="2014-05-26 06:48:35Z" class="relativetime-clean">May 26 at 6:48</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-36733019" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">1</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy"><a href="http://hg.python.org/cpython/file/ba84d1e9a742/Objects/stringobject.c#l1168" rel="nofollow"><code>stringobject.c</code></a> shows that <code>__getitem__</code> for strings just retrieves the result from a table of stored 1-character strings, so allocation costs for those are only incurred once.</span>
+                &ndash;&nbsp;
+                    <a href="/users/2357112/user2357112"
+                       title="32871 reputation"
+                       class="comment-user">user2357112</a>
+                <span class="comment-date" dir="ltr"><span title="2014-05-26 07:56:22Z" class="relativetime-clean">May 26 at 7:56</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-36754771" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">5</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@user2357112, yes, for plain strings in Python 2 that&#39;s a vital point.  In Python 3, all strings are &quot;officially&quot; Unicode and a lot more details are involved (see Veedrac&#39;s answer).  For example, in Python 3, after <code>s = chr(256)</code>, <code>s is chr(256)</code> returns <code>False</code> - knowing the type alone isn&#39;t enough, because mounds of special cases exist under the covers triggering on the data <i>values</i>.</span>
+                &ndash;&nbsp;
+                    <a href="/users/2705542/tim-peters"
+                       title="15915 reputation"
+                       class="comment-user">Tim Peters</a>
+                <span class="comment-date" dir="ltr"><span title="2014-05-26 20:09:13Z" class="relativetime-clean">May 26 at 20:09</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-23861518" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="23861489"></a>
+<div id="answer-23861489" class="answer" data-answerid="23861489" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="23861489">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">2</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>You could be incurring and overhead for creating the iterator for the string.  Whereas the array already contains an iterator upon instantiation.   </p>
+
+<p>EDIT:</p>
+
+<pre><code>&gt;&gt;&gt; timeit("[x for x in ['a','b','c']]")
+0.3818681240081787
+&gt;&gt;&gt; timeit("[x for x in 'abc']")
+0.3732869625091553
+</code></pre>
+
+<p>This was ran using 2.7, but on my mac book pro i7.  This could be the result of a system configuration difference.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/23861489" title="short permalink to this answer" class="short-link" id="link-post-23861489">share</a><span class="lsep">|</span><a href="/posts/23861489/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/23861489/revisions" title="show all edits to this post">edited <span title="2014-05-26 23:36:20Z" class="relativetime">May 26 at 23:36</span></a>
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        <br>
+        
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2014-05-26 01:14:00Z" class="relativetime">May 26 at 1:14</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/3667285/robert-chumley"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/bcada7e146d159249328ef61e1395852?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/3667285/robert-chumley">Robert Chumley</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">106</span><span title="3 bronze badges"><span class="badge3"></span><span class="badgecount">3</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-23861489" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-36726475" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Even just using the straight iterators, the string is still significantly slower. timeit(&quot;[x for x in it]&quot;, &quot;it = iter(&#39;abc&#39;)&quot;) = 0.34543599384033535; timeit(&quot;[x for x in it]&quot;, &quot;it = iter(list(&#39;abc&#39;))&quot;) = 0.2791691380446508</span>
+                &ndash;&nbsp;
+                    <a href="/users/551904/sunjay-varma"
+                       title="1724 reputation"
+                       class="comment-user owner">Sunjay Varma</a>
+                <span class="comment-date" dir="ltr"><span title="2014-05-26 01:30:01Z" class="relativetime-clean">May 26 at 1:30</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-23861489" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="23938134"></a>
+<div id="answer-23938134" class="answer" data-answerid="23938134" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="23938134">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">1</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>Cannot confirm the results for Python 2: In Python 2 it doesn't seem to make a difference if you iterate over strings or lists...and tuples are pretty speedy!</p>
+
+<pre><code>import platform
+print('Python', platform.python_version())
+
+%timeit [c for c in 'abcd']
+%timeit [c for c in ['a', 'b', 'c', 'd']]
+%timeit [c for c in ('a', 'b', 'c', 'd')]
+
+
+Python 3.4.0
+1000000 loops, best of 3: 502 ns per loop
+1000000 loops, best of 3: 638 ns per loop
+1000000 loops, best of 3: 475 ns per loop
+
+
+
+import platform
+print 'Python', platform.python_version()
+
+%timeit [c for c in 'abcd']
+%timeit [c for c in ['a', 'b', 'c', 'd']]
+%timeit [c for c in ('a', 'b', 'c', 'd')]
+
+Python 2.7.6
+1000000 loops, best of 3: 458 ns per loop
+1000000 loops, best of 3: 464 ns per loop
+1000000 loops, best of 3: 280 ns per loop
+</code></pre>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/23938134" title="short permalink to this answer" class="short-link" id="link-post-23938134">share</a><span class="lsep">|</span><a href="/posts/23938134/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2014-05-29 16:25:38Z" class="relativetime">May 29 at 16:25</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/2489252/sebastian-raschka"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/399d67140608ba98c8554aa1c12a25d7?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/2489252/sebastian-raschka">Sebastian Raschka</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">907</span><span title="3 silver badges"><span class="badge2"></span><span class="badgecount">3</span></span><span title="14 bronze badges"><span class="badge3"></span><span class="badgecount">14</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-23938134" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-37209995" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Try running these tests on a really slow machine like a raspberrypi, then you will see big differences between strings, lists and tuples (13.514776945114136, 8.507247924804688,7.308984041213989) respectively.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1201324/tim-hoffman"
+                       title="9323 reputation"
+                       class="comment-user">Tim Hoffman</a>
+                <span class="comment-date" dir="ltr"><span title="2014-06-09 11:27:36Z" class="relativetime-clean">Jun 9 at 11:27</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-23938134" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+									<a name='new-answer'></a>
+						<form id="post-form" action="/questions/23861468/answer/submit" method="post"  class="post-form">
+						    <input type="hidden" id="post-id" value="23861468" />
+                            <input type="hidden" id="qualityBanWarningShown" name="qualityBanWarningShown" value="false" />
+							<h2 class="space">Your Answer</h2>
+
+
+
+    
+
+<script>
+    StackExchange.ready(function() {
+        initTagRenderer("".split(" "), "".split(" "));
+         
+        prepareEditor({
+            heartbeatType: 'answer',
+            bindNavPrevention: true,
+            postfix: "",
+            onDemand: true,
+            discardSelector: ".discard-answer"
+            ,immediatelyShowMarkdownHelp:true
+        });
+        
+
+    });  
+</script>
+
+
+<div id="post-editor" class="post-editor">
+
+    <div style="position: relative;">     
+        <div class="wmd-container">
+            <div id="wmd-button-bar" class="wmd-button-bar"></div>
+            <textarea id="wmd-input" class="wmd-input" name="post-text" cols="92" rows="15" tabindex="101" data-min-length=""></textarea>
+        </div>
+    </div>
+
+    <div class="fl" style="margin-top: 8px; height:24px;">&nbsp;</div>
+    <div id="draft-saved" class="draft-saved community-option fl" style="margin-top: 8px; height:24px; display:none;">draft saved</div>
+
+    <div id="draft-discarded" class="draft-discarded community-option fl" style="margin-top: 8px; height:24px; display:none;">draft discarded</div>
+
+
+
+    <div id="wmd-preview" class="wmd-preview"></div>
+    <div></div>
+    <div class="edit-block">
+        <input id="fkey" name="fkey" type="hidden" value="a92f13ba36c772525db1c7111c756719">
+        <input id="author" name="author" type="text">
+    </div>
+</div>
+							<div style="position: relative;">
+								
+            <div class="form-item dno new-post-login">
+        
+                <div class="new-login-form">
+                    <div class="new-login-left">
+                        <h3>Sign up or <a id="login-link" href="/users/login?returnurl=%2fquestions%2f23861468%2fwhy-is-it-slower-to-iterate-over-a-small-string-than-a-small-list%23new-answer">log in</a></h3>
+                        <script>
+                            StackExchange.ready(function () {
+                                StackExchange.helpers.onClickDraftSave('#login-link');
+                            });
+                        </script>
+                        <div class="preferred-login google-login">
+                            <p><span class="icon"></span><span>Sign up using Google</span></p>
+                        </div>
+                        <div class="preferred-login facebook-login">
+                            <p><span class="icon"></span><span>Sign up using Facebook</span></p>
+                        </div>
+                        <div class="preferred-login stackexchange-login">
+                            <p><span class="icon"></span><span>Sign up using Stack Exchange</span></p>
+                        </div>
+                    </div>
+                    <input type="hidden" name="manual-openid" class="manual-openid" />
+                    <input type="hidden" name="use-facebook" class="use-facebook" value="false" />
+                    <input type="button" class="submit-openid" value="Submit" style="display:none" />
+                    <div class="new-login-right">
+                                <h3>Post as a guest</h3>
+    <div class="form-item">
+        <table>
+        <tr>
+                    <script>
+                StackExchange.ready(function () {
+                    StackExchange.helpers.bindHelpOverlayEvents($('.vm input'));
+                });
+            </script>
+            <td class="vm">
+                <div>
+                    <label for="display-name">Name</label>
+                    <input id="display-name" name="display-name" type="text" size="30" maxlength="30" value="" tabindex="105">
+                </div>
+                <div>
+                    <label for="m-address">Email</label>
+                    <input id="m-address" name="m-address" type="text" size="30" maxlength="100" value="" tabindex="106">
+                    <span class="edit-field-overlay">required, but not shown</span>
+                </div>
+            </td>
+        </tr>
+        </table>
+    </div>
+
+                    </div>
+                </div>
+            </div>
+            <script>
+                StackExchange.ready(
+                    function () {
+                        StackExchange.openid.initPostLogin('.new-post-login', '%2fquestions%2f23861468%2fwhy-is-it-slower-to-iterate-over-a-small-string-than-a-small-list%23new-answer');
+                    }
+                );
+            </script>
+            <noscript>
+                        <h3>Post as a guest</h3>
+    <div class="form-item">
+        <table>
+        <tr>
+                    <script>
+                StackExchange.ready(function () {
+                    StackExchange.helpers.bindHelpOverlayEvents($('.vm input'));
+                });
+            </script>
+            <td class="vm">
+                <div>
+                    <label for="display-name">Name</label>
+                    <input id="display-name" name="display-name" type="text" size="30" maxlength="30" value="" tabindex="105">
+                </div>
+                <div>
+                    <label for="m-address">Email</label>
+                    <input id="m-address" name="m-address" type="text" size="30" maxlength="100" value="" tabindex="106">
+                    <span class="edit-field-overlay">required, but not shown</span>
+                </div>
+            </td>
+        </tr>
+        </table>
+    </div>
+
+            </noscript>
+							</div>
+           
+															<div class="form-submit cbt">
+									<input id="submit-button" type="submit" value="Post Your Answer" tabindex="110">
+									<a href="#" class="discard-answer dno">discard</a>
+
+<p class="privacy-policy-agreement">
+By posting your answer, you agree to the <a href='http://stackexchange.com/legal/privacy-policy' target='_blank'>privacy policy</a> and <a href='http://stackexchange.com/legal/terms-of-service' target='_blank'>terms of service</a>.</p>
+<input type="hidden" name="legalLinksShown" value="1" />								</div>
+						</form>
+
+
+
+						<h2 class="bottom-notice" data-loc="1">
+Not the answer you&#39;re looking for?							Browse other questions tagged <a href="/questions/tagged/python" class="post-tag" title="show questions tagged &#39;python&#39;" rel="tag">python</a> <a href="/questions/tagged/performance" class="post-tag" title="show questions tagged &#39;performance&#39;" rel="tag">performance</a> <a href="/questions/tagged/cpython" class="post-tag" title="show questions tagged &#39;cpython&#39;" rel="tag">cpython</a> <a href="/questions/tagged/timeit" class="post-tag" title="show questions tagged &#39;timeit&#39;" rel="tag">timeit</a> <a href="/questions/tagged/python-internals" class="post-tag" title="show questions tagged &#39;python-internals&#39;" rel="tag">python-internals</a>  or <a href="/questions/ask">ask your own question</a>.						</h2>
+			</div>
+		</div>
+				<div id="sidebar" class="show-votes">
+						    <div class="module question-stats">
+			        <table id="qinfo">
+			            <tr>
+			                <td>
+			                    <p class="label-key">asked</p>
+			                </td>
+			                <td style="padding-left: 10px">
+			                    <p class="label-key" title="2014-05-26 01:09:13Z"><b>1 month ago</b></p>
+			                </td>
+			            </tr>
+			            <tr>
+			                <td>
+			                    <p class="label-key">viewed</p>
+			                </td>
+
+			                <td style="padding-left: 10px">
+			                    <p class="label-key">
+			                        <b>9893 times</b>
+			                    </p>
+			                </td>
+			            </tr>
+			                <tr>
+			                    <td>
+			                        <p class="label-key">active</p>
+			                    </td>
+			                    <td style="padding-left: 10px">
+			                        <p class="label-key"><b><a href="?lastactivity" class="lastactivity-link" title="2014-05-31 00:21:11Z">30 days ago</a></b></p>
+			                    </td>
+			                </tr>
+			        </table>
+			    </div>
+						
+			<script>
+                var ados = ados || {};ados.run = ados.run || [];
+                ados.run.push(function() { ados_add_placement(22,8277,"adzerk1228017261",17).setZone(45) ; });                    
+            </script>
+            <div class="everyonelovesstackoverflow" id="adzerk1228017261">
+            </div>  
+    <div id="hireme">
+        <script>
+window.careers_adurl="//careers.stackoverflow.com/gethired/js",window.careers_cssurl="//cdn-careers.sstatic.net/careers/gethired/sidebar.min.css?v=88f3fd5e2263",window.careers_leaderboardcssurl="{leaderboardcssurl}",window.careers_companycssurl="//cdn-careers.sstatic.net/careers/gethired/company",window.careers_adselector="div#hireme",StackExchange.ready(function(){$.ajax({url:"//cdn-careers.sstatic.net/careers/gethired/loader.min.js?v=77944c6f6aca",dataType:"script",cache:!0})});        </script>
+    </div>
+			<div style="margin-bottom: 10px;">
+        
+
+<style type="text/css">
+#newsletter-ad {
+    width: 190px;
+    height: 250px;
+    overflow: hidden;
+    background: url('//cdn.sstatic.net/stackoverflow/img/newsletter-ad.png');
+    padding: 0 15px 0 15px;
+}
+#newsletter-ad-header {
+    margin-top: 60px;
+}
+#newsletter-ad ul {
+    margin: 1em 0 1em 1.5em;
+}
+#newsletter-ad ul li {
+    margin-bottom: 5px;
+}
+#newsletter-signup-container {
+    text-align: center;
+}
+#newsletter-preview-container {
+    margin-top: 10px;
+    text-align: center;
+}
+#newsletter-email-input {
+    width: 200px;
+}
+</style>
+
+<script>
+    StackExchange.ready(function () {
+        StackExchange.newsletterAd.init();
+    });
+</script>
+
+<div id="newsletter-ad">
+    <p id="newsletter-ad-header">Get the <b>weekly newsletter!</b></p>
+    <ul>
+        <li>Top questions and answers</li>
+        <li>Important announcements</li>
+        <li>Unanswered questions</li>
+    </ul>
+    <div id="newsletter-signup-container"><input id="newsletter-signup" type="button" value="Sign up for the newsletter" /></div>
+    <p id="newsletter-preview-container">see an <a href="http://stackexchange.com/newsletters/newsletter?site=stackoverflow.com" id="newsletter-preview">example newsletter</a></p>
+    <div class="dno">
+        
+<p class="privacy-policy-agreement">
+By subscribing, you agree to the <a href='http://stackexchange.com/legal/privacy-policy' target='_blank'>privacy policy</a> and <a href='http://stackexchange.com/legal/terms-of-service' target='_blank'>terms of service</a>.</p>
+<input type="hidden" name="legalLinksShown" value="1" />
+    </div>
+</div>
+
+    </div>  
+    
+            
+
+				<div class="module sidebar-related">
+					<h4 id="h-related">Related</h4>
+                    <div class="related js-gps-related-questions" data-tracker="rq=1">
+                        <div class="spacer">
+<a href="/q/68630" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">55
+    </div>
+</a><a href="/questions/68630/are-tuples-more-efficient-than-lists-in-python" class="question-hyperlink">Are tuples more efficient than lists in Python?</a>
+</div>
+<div class="spacer">
+<a href="/q/5626164" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">12
+    </div>
+</a><a href="/questions/5626164/list-lookup-faster-than-tuple" class="question-hyperlink">List lookup faster than tuple?</a>
+</div>
+<div class="spacer">
+<a href="/q/8068019" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">70
+    </div>
+</a><a href="/questions/8068019/python-why-are-and-faster-than-and-sqrt" class="question-hyperlink">Python: why are * and ** faster than / and sqrt()?</a>
+</div>
+<div class="spacer">
+<a href="/q/8547778" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted extra-large">1009
+    </div>
+</a><a href="/questions/8547778/why-is-one-loop-so-much-slower-than-two-loops" class="question-hyperlink">Why is one loop so much slower than two loops?</a>
+</div>
+<div class="spacer">
+<a href="/q/9371238" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted large">518
+    </div>
+</a><a href="/questions/9371238/why-is-reading-lines-from-stdin-much-slower-in-c-than-python" class="question-hyperlink">Why is reading lines from stdin much slower in C++ than Python?</a>
+</div>
+<div class="spacer">
+<a href="/q/11227809" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted extra-large">8109
+    </div>
+</a><a href="/questions/11227809/why-is-processing-a-sorted-array-faster-than-an-unsorted-array" class="question-hyperlink">Why is processing a sorted array faster than an unsorted array?</a>
+</div>
+<div class="spacer">
+<a href="/q/12537716" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">15
+    </div>
+</a><a href="/questions/12537716/why-is-slice-assignment-faster-than-list-insert" class="question-hyperlink">Why is slice assignment faster than `list.insert`?</a>
+</div>
+<div class="spacer">
+<a href="/q/18946662" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted large">294
+    </div>
+</a><a href="/questions/18946662/why-shouldnt-i-use-pypy-over-cpython-if-pypy-is-6-3-times-faster" class="question-hyperlink">Why shouldn&#39;t I use PyPy over CPython if PyPy is 6.3 times faster?</a>
+</div>
+<div class="spacer">
+<a href="/q/21947452" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted large">907
+    </div>
+</a><a href="/questions/21947452/why-is-printing-b-dramatically-slower-than-printing" class="question-hyperlink">Why is printing &ldquo;B&rdquo; dramatically slower than printing &ldquo;#&rdquo;?</a>
+</div>
+<div class="spacer">
+<a href="/q/24471117" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">1
+    </div>
+</a><a href="/questions/24471117/multiply-function-slower-in-numba-than-cpython" class="question-hyperlink">Multiply function slower in Numba than CPython</a>
+</div>
+
+                    </div>
+				</div>
+            
+<div id="hot-network-questions" class="module">
+    <h4>
+        <a href="//stackexchange.com/questions?tab=hot" 
+           class="js-gps-track" 
+           data-gps-track="posts_hot_network.click({ item_type:1, location:11 })">
+            Hot Network Questions
+        </a>
+    </h4>
+    <ul>
+            <li >
+                <div class="favicon favicon-physics" title="Physics Stack Exchange"></div><a href="http://physics.stackexchange.com/questions/122452/can-an-asteroid-meteroid-meteor-meteorite-be-stopped-in-its-way-to-earth" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:151 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Can an asteroid/meteroid/meteor/meteorite be stopped in it&#39;s way to Earth?
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-history" title="History Stack Exchange"></div><a href="http://history.stackexchange.com/questions/14325/why-bother-attacking-castles-at-all-why-not-go-around" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:324 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why bother attacking castles at all? Why not go around?
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-serverfault" title="Server Fault"></div><a href="http://serverfault.com/questions/608874/what-is-the-ideal-value-for-worker-processes-in-nginx-config" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:2 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What is the Ideal value for Worker Processes in Nginx Config?
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-ell" title="English Language Learners Stack Exchange"></div><a href="http://ell.stackexchange.com/questions/27182/the-definite-article-the-was-missing" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:481 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    The definite article &quot;the&quot; was missing
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-physics" title="Physics Stack Exchange"></div><a href="http://physics.stackexchange.com/questions/122353/why-does-our-voice-sound-different-on-inhaling-helium" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:151 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why does our voice sound different on inhaling helium?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-datascience" title="Data Science Stack Exchange"></div><a href="http://datascience.stackexchange.com/questions/631/how-to-explain-to-non-stats-people-about-border-line-p-values" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:557 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How to explain to non-stats people about border line p-values
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-salesforce" title="Salesforce Stack Exchange"></div><a href="http://salesforce.stackexchange.com/questions/41874/bulkifying-trigger-to-update-lookup-field-using-trigger" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:459 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Bulkifying trigger to update lookup field using trigger
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-rpg" title="Role-playing Games Stack Exchange"></div><a href="http://rpg.stackexchange.com/questions/41614/are-undead-mounts-considered-evil" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:122 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Are undead mounts considered &quot;evil&quot;?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-math" title="Mathematics Stack Exchange"></div><a href="http://math.stackexchange.com/questions/852026/compute-one-improper-integral-involving-arctangent" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:69 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    compute one improper integral involving arctangent
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-skeptics" title="Skeptics Stack Exchange"></div><a href="http://skeptics.stackexchange.com/questions/22157/do-us-military-personnel-have-to-observe-ramadan-while-gideon-volunteers-are-ban" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:212 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Do US Military personnel have to observe Ramadan while Gideon volunteers are banned from bases?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-pets" title="Pets Stack Exchange"></div><a href="http://pets.stackexchange.com/questions/5618/have-i-done-everything-that-i-could-to-peacefully-protect-my-pets" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:518 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Have I done everything that I could to peacefully protect my pets?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-superuser" title="Super User"></div><a href="http://superuser.com/questions/775034/ethernet-cable-too-long" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:3 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Ethernet cable too long?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-gis" title="Geographic Information Systems Stack Exchange"></div><a href="http://gis.stackexchange.com/questions/103658/how-to-turn-on-all-fields-before-appending" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:79 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    how to turn on all fields before appending?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-rpg" title="Role-playing Games Stack Exchange"></div><a href="http://rpg.stackexchange.com/questions/41637/should-a-quest-completed-be-its-own-reward" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:122 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Should a quest completed be its own reward?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-english" title="English Language &amp; Usage Stack Exchange"></div><a href="http://english.stackexchange.com/questions/180899/soccer-mom-why-soccer" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:97 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    &quot;Soccer mom&quot;: why soccer?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-ux" title="User Experience Stack Exchange"></div><a href="http://ux.stackexchange.com/questions/60599/best-practices-for-how-search-icon-functionality-should-work" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:102 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Best practices for how search icon functionality should work
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-sports" title="Sports Stack Exchange"></div><a href="http://sports.stackexchange.com/questions/5116/fifa-world-cup-2014-overtime" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:411 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    FIFA World Cup 2014 overtime
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-codegolf" title="Programming Puzzles &amp; Code Golf Stack Exchange"></div><a href="http://codegolf.stackexchange.com/questions/32386/what-colour-is-this" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:200 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What colour is this?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-stackoverflow" title="Stack Overflow"></div><a href="http://stackoverflow.com/questions/24485226/c-sharp-oop-composition-and-generalization-at-the-same-time" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:1 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    C# OOP Composition and Generalization at the same time
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-genealogy" title="Genealogy &amp; Family History Stack Exchange"></div><a href="http://genealogy.stackexchange.com/questions/5280/when-did-printed-register-books-come-into-use-in-england-and-wales" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:467 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    When did printed register books come into use in England and Wales?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-scifi" title="Science Fiction &amp; Fantasy Stack Exchange"></div><a href="http://scifi.stackexchange.com/questions/60315/why-didn-t-yoda-and-kenobi-do-anything-except-wait-in-hiding-for-20-years" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:186 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why didn’t Yoda and Kenobi do anything except wait in hiding for 20 years?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-unix" title="Unix &amp; Linux Stack Exchange"></div><a href="http://unix.stackexchange.com/questions/139891/why-does-verifying-sha256-checksum-with-sha256sum-fail-on-debian-and-work-on-u" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:106 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why does verifying SHA256 checksum with `sha256sum` fail on Debian and work on Ubuntu?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-unix" title="Unix &amp; Linux Stack Exchange"></div><a href="http://unix.stackexchange.com/questions/139866/how-do-i-cat-and-follow-a-file" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:106 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How do I &quot;cat and follow&quot; a file?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-academia" title="Academia Stack Exchange"></div><a href="http://academia.stackexchange.com/questions/24146/credit-with-helping-to-write-a-phd-thesis" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:415 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Credit with helping to write a PhD thesis
+                </a>
+
+            </li>
+    </ul>
+
+        <a href="#" 
+           class="show-more js-show-more js-gps-track" 
+           data-gps-track="posts_hot_network.click({ item_type:3, location:11 })">
+            more hot questions
+        </a>
+</div>
+		</div>
+	
+<div id="feed-link">
+    <div id="feed-link-text">
+        <a href="/feeds/question/23861468" title="feed of this question and its answers">
+            <span class="feed-icon"></span>question feed
+        </a>
+    </div>
+</div>	<script>
+StackExchange.ready(function(){$.get('/posts/23861468/ivc/7561');});
+</script>
+<noscript>
+    <div><img src="/posts/23861468/ivc/7561" class="dno" alt="" width="0" height="0"></div>
+</noscript><div style="display:none" id="prettify-lang">lang-py</div></div>
+
+
+
+        </div>
+    </div>
+    <div id="footer" class="categories">
+        <div class="footerwrap">
+            <div id="footer-menu">
+                <div class="top-footer-links">
+                        <a href="/tour">tour</a>
+                    <a href="/help">help</a>
+                        <a href="/help/badges">badges</a>
+                    <a href="http://blog.stackoverflow.com?blb=1">blog</a>
+                        <a href="http://chat.stackoverflow.com">chat</a>
+                    <a href="http://data.stackexchange.com">data</a>
+                    <a href="http://stackexchange.com/legal">legal</a>
+                    <a href="http://stackexchange.com/legal/privacy-policy">privacy policy</a>
+                    <a href="http://stackexchange.com/work-here">work here</a>
+                    <a href="http://stackexchange.com/mediakit">advertising info</a>
+
+                    <a onclick='StackExchange.switchMobile("on")'>mobile</a>
+                    <b><a href="/contact">contact us</a></b>
+                        <b><a href="http://meta.stackoverflow.com">feedback</a></b>
+                    
+                </div>
+                <div id="footer-sites">
+                    <table>
+    <tr>
+            <th colspan=3>
+                Technology
+            </th>
+            <th >
+                Life / Arts
+            </th>
+            <th >
+                Culture / Recreation
+            </th>
+            <th >
+                Science
+            </th>
+            <th >
+                Other
+            </th>
+    </tr>
+    <tr>
+            <td>
+                <ol>
+                        <li><a href="http://stackoverflow.com" title="professional and enthusiast programmers">Stack Overflow</a></li>
+                        <li><a href="http://serverfault.com" title="professional system and network administrators">Server Fault</a></li>
+                        <li><a href="http://superuser.com" title="computer enthusiasts and power users">Super User</a></li>
+                        <li><a href="http://webapps.stackexchange.com" title="power users of web applications">Web Applications</a></li>
+                        <li><a href="http://askubuntu.com" title="Ubuntu users and developers">Ask Ubuntu</a></li>
+                        <li><a href="http://webmasters.stackexchange.com" title="pro webmasters">Webmasters</a></li>
+                        <li><a href="http://gamedev.stackexchange.com" title="professional and independent game developers">Game Development</a></li>
+                        <li><a href="http://tex.stackexchange.com" title="users of TeX, LaTeX, ConTeXt, and related typesetting systems">TeX - LaTeX</a></li>
+                            </ol></td><td><ol>
+                        <li><a href="http://programmers.stackexchange.com" title="professional programmers interested in conceptual questions about software development">Programmers</a></li>
+                        <li><a href="http://unix.stackexchange.com" title="users of Linux, FreeBSD and other Un*x-like operating systems.">Unix &amp; Linux</a></li>
+                        <li><a href="http://apple.stackexchange.com" title="power users of Apple hardware and software">Ask Different (Apple)</a></li>
+                        <li><a href="http://wordpress.stackexchange.com" title="WordPress developers and administrators">WordPress Development</a></li>
+                        <li><a href="http://gis.stackexchange.com" title="cartographers, geographers and GIS professionals">Geographic Information Systems</a></li>
+                        <li><a href="http://electronics.stackexchange.com" title="electronics and electrical engineering professionals, students, and enthusiasts">Electrical Engineering</a></li>
+                        <li><a href="http://android.stackexchange.com" title="enthusiasts and power users of the Android operating system">Android Enthusiasts</a></li>
+                        <li><a href="http://security.stackexchange.com" title="Information security professionals">Information Security</a></li>
+                            </ol></td><td><ol>
+                        <li><a href="http://dba.stackexchange.com" title="database professionals who wish to improve their database skills and learn from others in the community">Database Administrators</a></li>
+                        <li><a href="http://drupal.stackexchange.com" title="Drupal developers and administrators">Drupal Answers</a></li>
+                        <li><a href="http://sharepoint.stackexchange.com" title="SharePoint enthusiasts">SharePoint</a></li>
+                        <li><a href="http://ux.stackexchange.com" title="user experience researchers and experts">User Experience</a></li>
+                        <li><a href="http://mathematica.stackexchange.com" title="users of Mathematica">Mathematica</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#technology" class="more">
+                                more (14)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://photo.stackexchange.com" title="professional, enthusiast and amateur photographers">Photography</a></li>
+                        <li><a href="http://scifi.stackexchange.com" title="science fiction and fantasy enthusiasts">Science Fiction &amp; Fantasy</a></li>
+                        <li><a href="http://graphicdesign.stackexchange.com" title="professional graphic designers and non-designers trying to do their own graphic design">Graphic Design</a></li>
+                        <li><a href="http://cooking.stackexchange.com" title="professional and amateur chefs">Seasoned Advice (cooking)</a></li>
+                        <li><a href="http://diy.stackexchange.com" title="contractors and serious DIYers">Home Improvement</a></li>
+                        <li><a href="http://money.stackexchange.com" title="people who want to be financially literate">Personal Finance &amp; Money</a></li>
+                        <li><a href="http://academia.stackexchange.com" title="academics and those enrolled in higher education">Academia</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#lifearts" class="more">
+                                more (10)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://english.stackexchange.com" title="linguists, etymologists, and serious English language enthusiasts">English Language &amp; Usage</a></li>
+                        <li><a href="http://skeptics.stackexchange.com" title="scientific skepticism">Skeptics</a></li>
+                        <li><a href="http://judaism.stackexchange.com" title="those who base their lives on Jewish law and tradition and anyone interested in learning more">Mi Yodeya (Judaism)</a></li>
+                        <li><a href="http://travel.stackexchange.com" title="road warriors and seasoned travelers">Travel</a></li>
+                        <li><a href="http://christianity.stackexchange.com" title="committed Christians, experts in Christianity and those interested in learning more">Christianity</a></li>
+                        <li><a href="http://gaming.stackexchange.com" title="passionate videogamers on all platforms">Arqade (gaming)</a></li>
+                        <li><a href="http://bicycles.stackexchange.com" title="people who build and repair bicycles, people who train cycling, or commute on bicycles">Bicycles</a></li>
+                        <li><a href="http://rpg.stackexchange.com" title="gamemasters and players of tabletop, paper-and-pencil role-playing games">Role-playing Games</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#culturerecreation" class="more">
+                                more (21)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://math.stackexchange.com" title="people studying math at any level and professionals in related fields">Mathematics</a></li>
+                        <li><a href="http://stats.stackexchange.com" title="people interested in statistics, machine learning, data analysis, data mining, and data visualization">Cross Validated (stats)</a></li>
+                        <li><a href="http://cstheory.stackexchange.com" title="theoretical computer scientists and researchers in related fields">Theoretical Computer Science</a></li>
+                        <li><a href="http://physics.stackexchange.com" title="active researchers, academics and students of physics">Physics</a></li>
+                        <li><a href="http://mathoverflow.net" title="professional mathematicians">MathOverflow</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#science" class="more">
+                                more (7)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://stackapps.com" title="apps, scripts, and development with the Stack Exchange API">Stack Apps</a></li>
+                        <li><a href="http://meta.stackexchange.com" title="meta-discussion of the Stack Exchange family of Q&amp;A websites">Meta Stack Exchange</a></li>
+                        <li><a href="http://area51.stackexchange.com" title="proposing new sites in the Stack Exchange network">Area 51</a></li>
+                        <li><a href="http://careers.stackoverflow.com">Stack Overflow Careers</a></li>
+                    
+                </ol>
+            </td>
+    </tr>
+</table>
+                </div>
+            </div>
+
+            <div id="copyright">
+                site design / logo &#169; 2014 stack exchange inc; user contributions licensed under <a href="http://creativecommons.org/licenses/by-sa/3.0/" rel="license">cc by-sa 3.0</a> 
+                with <a href="http://blog.stackoverflow.com/2009/06/attribution-required/" rel="license">attribution required</a>
+            </div>
+            <div id="svnrev">
+                rev 2014.6.30.1688
+            </div>
+            
+        </div>
+    </div>
+    <noscript>
+        <div id="noscript-warning">Stack Overflow works best with JavaScript enabled<img src="http://pixel.quantserve.com/pixel/p-c1rF4kxgLUzNc.gif" alt="" class="dno"></div>
+    </noscript>
+<script>var p = "http", d = "static"; if (document.location.protocol == "https:") { p += "s"; d = "engine"; } var z = document.createElement("script"); z.type = "text/javascript"; z.async = true; z.src = p + "://" + d + ".adzerk.net/ados.js"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(z, s);</script>
+<script>
+    var ados = ados || {};
+    ados.run = ados.run || [];
+    ados.run.push(function () { ados_setKeywords('python,performance,cpython,timeit,python-internals');; ados_load(); });         
+</script>
+
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () { (i[r].q = i[r].q || []).push(arguments) }, i[r].l = 1 * new Date(); a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m);
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+        ga('create', 'UA-5620270-1');        
+        
+        ga('set', 'dimension2', '|python|performance|cpython|timeit|python-internals|');         
+        ga('send', 'pageview');
+        var _qevents = _qevents || [],
+            _comscore = _comscore || [];
+        (function () {
+            var ssl='https:'==document.location.protocol,
+                s=document.getElementsByTagName('script')[0],
+                qc=document.createElement('script');
+            qc.async=true;
+            qc.src=(ssl?'https://secure':'http://edge')+'.quantserve.com/quant.js';
+            s.parentNode.insertBefore(qc, s);
+            var sc=document.createElement('script');
+            sc.async=true;
+            sc.src=(ssl?'https://sb':'http://b') + '.scorecardresearch.com/beacon.js';
+            s.parentNode.insertBefore(sc, s);
+        })();
+        _comscore.push({ c1: "2", c2: "17440561" });
+        _qevents.push({ qacct: "p-c1rF4kxgLUzNc" });
+    </script>        
+    
+    </body>
+</html>

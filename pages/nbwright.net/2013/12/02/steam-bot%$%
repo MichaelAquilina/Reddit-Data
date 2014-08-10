@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+  <head>
+  <!-- Dynamic Stuff -->
+  <title>NaKyle On Tech: Steam Bot - Shopping better, with Python!</title>
+  
+  <meta name="author" content="NaKyle Wright">
+  
+  
+  <meta name="description" content="talkin bout tech">
+  
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <!-- Enable responsiveness on mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/css/poole.css">
+  <link rel="stylesheet" href="/assets/css/syntax.css">
+  <link rel="stylesheet" href="/assets/css/lanyon.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+  <!-- Icons -->
+  <!--<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/assets/images/apple-touch-icon-144-precomposed.png">-->
+  <link rel="shortcut icon" href="/assets/images/favicon.ico">
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.xml">
+  <!-- JS -->
+  <script src="/assets/js/analytics.js" type="text/javascript"></script>
+</head>
+  <body>
+    <input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item"></div>
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item" href="http://nbwright.net/">Home</a>
+    <a class="sidebar-nav-item" href="/archive.html">Archive</a>
+    
+    <span class="sidebar-nav-item">Find Me On:</span>
+    <a class="sidebar-nav-item" href="https://github.com/chipolux">Github</a>
+    <a class="sidebar-nav-item" href="https://bitbucket.org/chipolux">Bitbucket</a>
+    <a class="sidebar-nav-item" href="http://www.linkedin.com/in/nakylewright">LinkedIn</a>
+    <span class="sidebar-nav-item">Currently v1.0 (alpha)</span>
+  </nav>
+  <div class="sidebar-item">
+    <p>
+      &copy; 2013-2014, NaKyle Wright. All rights reserved.
+    </p>
+  </div>
+</div>
+    <div class="wrap">
+      <div class="masthead">
+        <div class="container">
+          <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+          <h3 class="masthead-title">
+            <a href="http://nbwright.net/" title="Home">NaKyle On Tech</a>
+            <small>talkin bout tech</small>
+          </h3>
+        </div>
+      </div>
+      <div class="container content">
+        
+<div class="post">
+  <h1 class="post-title">Steam Bot - Shopping better, with Python!</h1>
+  <span class="post-date">Monday, December 02, 2013</span>
+  <p>I spend a lot of time on Steam, and almost as much money. I also spend far too much time on Reddit, so to save myself some time and money I built a Reddit bot that will make reports on the best stuff on sale and post them! You can see how I did it after the jump.</p>
+
+<p>Steam is just about the best place to buy games online anymore. Not necessarily for price reasons but for the combination of good prices, excellent community, and ease of use.</p>
+
+<p>An issue I&#39;ve ran into time and again is how difficult it can be to figure out everything that&#39;s on sale and how much it&#39;s going for. So to fill this gap I started work on what is now <a href="http://www.reddit.com/user/steam_bot">/u/steam_bot</a> on Reddit.</p>
+
+<p>Basically it pulls down current store data for every app in Steam and formats it into a nice little report every six hours. Sounds simple enough right? Well not exactly.</p>
+<h2>How&#39;d Ya Do It!?</h2><h3>The Toolbox</h3>
+<ul>
+<li><a href="http://www.python.org">Python 2.7</a> - My Python version of choice due to working conditions.</li>
+<li><a href="http://www.python-requests.org">Requests</a> - Best HTTP request handling module out there!</li>
+<li><a href="http://praw.readthedocs.org">PRAW</a> - Best Python Reddit API Wrapper!</li>
+</ul>
+
+<p>This is my standard toolset I use when building a new reddit bot. Keeps it nice, simple, and light!</p>
+<h3>Building It</h3>
+<p><strong><em>Note: For this walkthrough I&#39;m going to take the path of least resistance, there will be better ways of doing a lot of these things and a lot of uncaught exceptions but I leave finding those as an exercise for the reader.</em></strong></p>
+
+<p>First we need to gather up info on all the apps in Steam, app ids and names mostly. We can get that from the public API endpoint here:</p>
+<pre><code>http:&#47;&#47;api.steampowered.com&#47;ISteamApps&#47;GetAppList&#47;v0002
+</code></pre>
+<p>Here&#39;s the beginning of what you should see returned:</p>
+<pre><code>{
+    &quot;applist&quot;: {
+        &quot;apps&quot;: [
+            {
+                &quot;appid&quot;: 5,
+                &quot;name&quot;: &quot;Dedicated Server&quot;
+            },
+</code></pre>
+<p>You don&#39;t even need an API key, though I always recommend being nice to public API&#39;s and avoiding anything that could be misconstrued as abuse. Steam has pretty specific rules on API usage you can find <a href="http://steamcommunity.com/dev">here</a>.</p>
+
+<p>That endpoint will give you a list of all the app ids and names that Steam currently tracks.
+<em>This includes servers, movies, dlc, and stuff we have to remove later.</em></p>
+
+<p>You can easily load up that info and parse it out into a nice list of dicts like this:</p>
+
+<p><script src="http://pastebin.com/embed_js.php?i=AC8LuhPc"></script></p>
+
+<p>Now that we&#39;ve got all the app ids and names into a big list we can start doing some fun stuff!</p>
+
+<p>It&#39;s nice to add the store url to each of the items which we can do like so:</p>
+
+<p><script src="http://pastebin.com/embed_js.php?i=7cGeA40M"></script></p>
+
+<p>Python never copies variables except in very specific cases or if you do it explicitly, this lets us update all the apps in place while we iterate over the loop without having to worry about indexes and such. Just remember never to remove or add anything to a loop you&#39;re iterating over!</p>
+
+<p>Next we can grab the price and other store page data. Unfortunately there isn&#39;t a valid public API endpoint for this. But a little snooping of the JavaScript on the store pages and a few trips to google turned up an undocumented endpoint!</p>
+
+<p><em>Note: Undocumented endpoints can change suddenly and should only be used with caution!</em></p>
+<pre><code>http:&#47;&#47;store.steampowered.com&#47;api&#47;appdetails
+</code></pre>
+<p>This endpoint gives us basically all the worthwhile content from the store page, including price and discount percent.</p>
+
+<p>There are only a few parameters for this endpoint that I&#39;m aware of:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Parameter</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>appids</td>
+      <td>List of comma separated appids to retrieve info for. Up to 10 seems to work fine.</td>
+    </tr>
+    <tr>
+      <td>cc</td>
+      <td>Country code to retrieve other countries prices and localizations.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The response you get from this endpoint looks basically like this:</p>
+<pre><code>{
+    &quot;&lt;APPID&gt;&quot;: {
+        &quot;data&quot;: {
+            &quot;steam_appid&quot;: &quot;&lt;APPID&gt;&quot;,
+            &quot;price_overview&quot;: {
+                &quot;currency&quot;: &quot;USD&quot;,
+                &quot;initial&quot;: 5999,
+                &quot;final&quot;: 5999,
+                &quot;discount_percent&quot;: 0
+            }
+</code></pre>
+<p>And so on, there are a ton of fields with all kinds of neat data you can explore, for now we&#39;re only concerned with the price overview and a few other bits.</p>
+
+<p>So we can go about loading the information for each app like this:</p>
+
+<p><script src="http://pastebin.com/embed_js.php?i=hsFEB04L"></script></p>
+
+<p>That&#39;s the simplest way to get the data, but I recommend building a list of apps around 5 long and requesting all at once to drastically lower your request count as well as other optimizations to filter out non-game items.</p>
+
+<p>Now I also wanted to get a bit of information about current players to help decide what the best apps really are. Fortunately Steam has another handy <em>documented</em> endpoint for us:</p>
+<pre><code>http:&#47;&#47;api.steampowered.com&#47;ISteamUserStats&#47;GetNumberOfCurrentPlayers&#47;v0001
+</code></pre>
+<p>This endpoint requires a parameter, <code>appid</code> which is the integer appid like we got from the first request. Here&#39;s some sample output:</p>
+<pre><code>{
+    &quot;response&quot;: {
+        &quot;result&quot;: 1,
+        &quot;player_count&quot;: 205
+    }
+}
+</code></pre>
+<p>We&#39;ll use requests again to get the current players for all the apps:</p>
+
+<p><script src="http://pastebin.com/embed_js.php?i=niP7rM2P"></script></p>
+
+<p>So now we have a big list of all the apps on Steam as well as their store page information and how many players are currently online for each. It&#39;s all just a mish mash right now so let&#39;s start filtering out the cream of the crop!</p>
+
+<p>Python has some really nice simple dataset manipulation tools out of the box, first lets remove all apps that aren&#39;t on sale using the builtin <a href="http://docs.python.org/2/library/functions.html#filter">filter</a> and a quick <a href="http://docs.python.org/2/reference/expressions.html#lambda">lambda</a> expression. We can also quickly sort by current players and pull out the top 20 using the <a href="http://docs.python.org/2/library/functions.html#sorted">sorted</a> function:</p>
+
+<p><script src="http://pastebin.com/embed_js.php?i=BQnKMmbA"></script></p>
+
+<p>Now we can start formatting a Reddit post! Reddit self posts need a title and a string of body text that can be up to 10,000 characters long. We&#39;ll start with the title:</p>
+
+<p><script src="http://pastebin.com/embed_js.php?i=7TchPnmk"></script></p>
+
+<p>That will give you a nice little post title with the date and UTC time in.</p>
+
+<p>Next we can build the post body, I basically use a bunch of tables, reddit uses a nice set of Markdown syntax, you can find a reference <a href="http://www.reddit.com/wiki/commenting">here</a>.</p>
+
+<p><script src="http://pastebin.com/embed_js.php?i=sA8bTrAq"></script></p>
+
+<p>You can see how I used Python&#39;s implicit line continuation within parenthesis to keep the code clean and under the usual 80 character limit as well as using some of the more complex string operations to format the price and discount numbers on line 7.</p>
+
+<p>Now all we need to do is initialize a reddit instance using praw and get a subreddit instance to submit to.</p>
+
+<p><script src="http://pastebin.com/embed_js.php?i=EH5h8GWC"></script></p>
+
+<p>All four of those lines have the potential to raise exceptions but I&#39;ll leave catching and handling them to you.</p>
+
+<p>Now that we have our subreddit context to post to, our post title and body to submit there&#39;s only one thing left to do!</p>
+
+<p><script src="http://pastebin.com/embed_js.php?i=q7qVT5RD"></script></p>
+
+<p><code>result</code> will contain things like your post id, url, etc. If it&#39;s unable to post it will raise an exception.</p>
+
+<p>And that&#39;s it, you&#39;ve made a Steam sale report bot and you have the tools and know-how to start pulling data from any other number of resources and enriching your bot&#39;s posts! To keep things simple you can just set up a cron job to run your bot on a schedule, as well as adding logging and reporting functions.</p>
+
+<p>You can also take a look at the much more fleshed out source of my own steam_bot over on <a href="https://bitbucket.org/chipolux/steam_bot">BitBucket!</a></p>
+
+</div>
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_shortname = 'nakyleontech';
+  (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+<script type="text/javascript">
+  var elements = document.getElementsByTagName('*');
+  for (i = 0; i < elements.length; i++)
+  {
+    if ((' ' + elements[i].className + ' ').indexOf(' embedFooter ') > -1)
+    {
+      elements[i].parentNode.removeChild(elements[i]);
+      i--;
+    }
+  }
+</script>
+
+      </div>
+    </div>
+  </body>
+</html>

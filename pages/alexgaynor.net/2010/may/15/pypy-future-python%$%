@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Alex Gaynor -- PyPy is the Future of Python </title>
+        <link rel="stylesheet" href="/site_media/static/css/reset.css" />
+        <link rel="stylesheet" href="/site_media/static/css/style.css" />
+        <link rel="alternate" type="application/rss+xml" title="Alex Gaynor's blago-blog RSS" href="/feeds/latest/" />
+        
+        
+    </head>
+    <body>
+        <div id="container">
+            <header>
+                <hgroup>
+                    <form action="/search/" method="get">
+                        <input type="search" class="right" id="search_field" name="q" value="search" />
+                    </form>
+                    <h1><a href="/">alex gaynor's blago-blog</a></h1>
+                    <ul id="nav">
+                        <li>
+                            <a href="/">home</a>
+                        </li>
+                        <li>
+                            <a href="/quotes/">quotes</a>
+                        </li>
+                        <li>
+                            <a href="/about/">about</a>
+                        </li>
+                        <li>
+                            <a href="/contact/">contact</a>
+                        </li>
+                    </ul>
+                </hgroup>
+            </header>
+            <div>
+                
+    <section>
+        <h1>PyPy is the Future of Python </h1>
+        <small>Posted May 15th, 2010.</small>
+        <p>
+            <p>Currently the most common implementation of Python is known as CPython, and it's the version of Python you get at <a class="reference external" href="http://python.org">python.org</a>, probably 99.9% of Python developers are using it.  However, I think over the next couple of years we're going to see a move away from this towards PyPy, Python written in Python.  This is going to happen because PyPy offers better speed, more flexibility, and is a better platform for Python's growth, and the most important thing is you can make this transition happen.</p>
+<p>The first thing to consider: speed.  PyPy is a lot faster than CPython for a lot of tasks, and they've got <a class="reference external" href="http://speed.pypy.org/overview/">the benchmarks to prove it</a>.  There's room for improvement, but it's clear that for a lot of benchmarks PyPy screams, and it's not just number crunching (although PyPy is good at that too).  Although Python performance might not be a bottleneck for a lot of us (especially us web developers who like to push performance down the stack to our database), would you say no to having your code run 2x faster?</p>
+<p>The next factor is the flexibility.  By writing their interpreter in RPython PyPy can automatically generate C code (like CPython), but also JVM and .NET versions of the interpreter.  Instead of writing entirely separate Jython and IronPython implementations of Python, just automatically generate them from one shared codebase.  PyPy can also have its binary generated with a stackless option, just like stackless Python, again no separate implementations to maintain.  Lastly, PyPy's JIT is almost totally separate from the interpreter, this means changes to the language itself can be made without needing to update the JIT, contrast this with many JITs that need to statically define fast-paths for various operations.</p>
+<p>And finally that it's a better platform for growth.  The last point is a good example of this: one can keep the speed from the JIT while making changes to the language, you don't need to be an assembly expert to write a new bytecode, or play with the builtin types, the JIT generator takes care of it for you.  Also, it's written in Python, it may be RPython which isn't as high level as regular Python, but compare the implementations of of <tt class="docutils literal">map</tt> from CPython and PyPy:</p>
+<div class="highlight" style="background: #111111"><pre style="line-height: 125%"><span style="color: #fb660a; font-weight: bold">static</span> <span style="color: #ffffff">PyObject</span> <span style="color: #ffffff">*</span>
+<span style="color: #ff0086; font-weight: bold">builtin_map</span><span style="color: #ffffff">(PyObject</span> <span style="color: #ffffff">*self,</span> <span style="color: #ffffff">PyObject</span> <span style="color: #ffffff">*args)</span>
+<span style="color: #ffffff">{</span>
+    <span style="color: #fb660a; font-weight: bold">typedef</span> <span style="color: #fb660a; font-weight: bold">struct</span> <span style="color: #ffffff">{</span>
+        <span style="color: #ffffff">PyObject</span> <span style="color: #ffffff">*it;</span>           <span style="color: #008800; font-style: italic; background-color: #0f140f">/* the iterator object */</span>
+        <span style="color: #cdcaa9; font-weight: bold">int</span> <span style="color: #ffffff">saw_StopIteration;</span>  <span style="color: #008800; font-style: italic; background-color: #0f140f">/* bool:  did the iterator end? */</span>
+    <span style="color: #ffffff">}</span> <span style="color: #ffffff">sequence;</span>
+
+    <span style="color: #ffffff">PyObject</span> <span style="color: #ffffff">*func,</span> <span style="color: #ffffff">*result;</span>
+    <span style="color: #ffffff">sequence</span> <span style="color: #ffffff">*seqs</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">NULL,</span> <span style="color: #ffffff">*sqp;</span>
+    <span style="color: #ffffff">Py_ssize_t</span> <span style="color: #ffffff">n,</span> <span style="color: #ffffff">len;</span>
+    <span style="color: #fb660a; font-weight: bold">register</span> <span style="color: #cdcaa9; font-weight: bold">int</span> <span style="color: #ffffff">i,</span> <span style="color: #ffffff">j;</span>
+
+    <span style="color: #ffffff">n</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">PyTuple_Size(args);</span>
+    <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(n</span> <span style="color: #ffffff">&lt;</span> <span style="color: #0086f7; font-weight: bold">2</span><span style="color: #ffffff">)</span> <span style="color: #ffffff">{</span>
+        <span style="color: #ffffff">PyErr_SetString(PyExc_TypeError,</span>
+                        <span style="color: #0086d2">&quot;map() requires at least two args&quot;</span><span style="color: #ffffff">);</span>
+        <span style="color: #fb660a; font-weight: bold">return</span> <span style="color: #ffffff">NULL;</span>
+    <span style="color: #ffffff">}</span>
+
+    <span style="color: #ffffff">func</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">PyTuple_GetItem(args,</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">);</span>
+    <span style="color: #ffffff">n--;</span>
+
+    <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(func</span> <span style="color: #ffffff">==</span> <span style="color: #ffffff">Py_None)</span> <span style="color: #ffffff">{</span>
+        <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(PyErr_WarnPy3k(</span><span style="color: #0086d2">&quot;map(None, ...) not supported in 3.x; &quot;</span>
+                           <span style="color: #0086d2">&quot;use list(...)&quot;</span><span style="color: #ffffff">,</span> <span style="color: #0086f7; font-weight: bold">1</span><span style="color: #ffffff">)</span> <span style="color: #ffffff">&lt;</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">)</span>
+            <span style="color: #fb660a; font-weight: bold">return</span> <span style="color: #ffffff">NULL;</span>
+        <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(n</span> <span style="color: #ffffff">==</span> <span style="color: #0086f7; font-weight: bold">1</span><span style="color: #ffffff">)</span> <span style="color: #ffffff">{</span>
+            <span style="color: #008800; font-style: italic; background-color: #0f140f">/* map(None, S) is the same as list(S). */</span>
+            <span style="color: #fb660a; font-weight: bold">return</span> <span style="color: #ffffff">PySequence_List(PyTuple_GetItem(args,</span> <span style="color: #0086f7; font-weight: bold">1</span><span style="color: #ffffff">));</span>
+        <span style="color: #ffffff">}</span>
+    <span style="color: #ffffff">}</span>
+
+    <span style="color: #008800; font-style: italic; background-color: #0f140f">/* Get space for sequence descriptors.  Must NULL out the iterator</span>
+<span style="color: #008800; font-style: italic; background-color: #0f140f">     * pointers so that jumping to Fail_2 later doesn&#39;t see trash.</span>
+<span style="color: #008800; font-style: italic; background-color: #0f140f">     */</span>
+    <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">((seqs</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">PyMem_NEW(sequence,</span> <span style="color: #ffffff">n))</span> <span style="color: #ffffff">==</span> <span style="color: #ffffff">NULL)</span> <span style="color: #ffffff">{</span>
+        <span style="color: #ffffff">PyErr_NoMemory();</span>
+        <span style="color: #fb660a; font-weight: bold">return</span> <span style="color: #ffffff">NULL;</span>
+    <span style="color: #ffffff">}</span>
+    <span style="color: #fb660a; font-weight: bold">for</span> <span style="color: #ffffff">(i</span> <span style="color: #ffffff">=</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">;</span> <span style="color: #ffffff">i</span> <span style="color: #ffffff">&lt;</span> <span style="color: #ffffff">n;</span> <span style="color: #ffffff">++i)</span> <span style="color: #ffffff">{</span>
+        <span style="color: #ffffff">seqs[i].it</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">(PyObject*)NULL;</span>
+        <span style="color: #ffffff">seqs[i].saw_StopIteration</span> <span style="color: #ffffff">=</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">;</span>
+    <span style="color: #ffffff">}</span>
+
+    <span style="color: #008800; font-style: italic; background-color: #0f140f">/* Do a first pass to obtain iterators for the arguments, and set len</span>
+<span style="color: #008800; font-style: italic; background-color: #0f140f">     * to the largest of their lengths.</span>
+<span style="color: #008800; font-style: italic; background-color: #0f140f">     */</span>
+    <span style="color: #ffffff">len</span> <span style="color: #ffffff">=</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">;</span>
+    <span style="color: #fb660a; font-weight: bold">for</span> <span style="color: #ffffff">(i</span> <span style="color: #ffffff">=</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">,</span> <span style="color: #ffffff">sqp</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">seqs;</span> <span style="color: #ffffff">i</span> <span style="color: #ffffff">&lt;</span> <span style="color: #ffffff">n;</span> <span style="color: #ffffff">++i,</span> <span style="color: #ffffff">++sqp)</span> <span style="color: #ffffff">{</span>
+        <span style="color: #ffffff">PyObject</span> <span style="color: #ffffff">*curseq;</span>
+        <span style="color: #ffffff">Py_ssize_t</span> <span style="color: #ffffff">curlen;</span>
+
+        <span style="color: #008800; font-style: italic; background-color: #0f140f">/* Get iterator. */</span>
+        <span style="color: #ffffff">curseq</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">PyTuple_GetItem(args,</span> <span style="color: #ffffff">i+</span><span style="color: #0086f7; font-weight: bold">1</span><span style="color: #ffffff">);</span>
+        <span style="color: #ffffff">sqp-&gt;it</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">PyObject_GetIter(curseq);</span>
+        <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(sqp-&gt;it</span> <span style="color: #ffffff">==</span> <span style="color: #ffffff">NULL)</span> <span style="color: #ffffff">{</span>
+            <span style="color: #fb660a; font-weight: bold">static</span> <span style="color: #cdcaa9; font-weight: bold">char</span> <span style="color: #ffffff">errmsg[]</span> <span style="color: #ffffff">=</span>
+                <span style="color: #0086d2">&quot;argument %d to map() must support iteration&quot;</span><span style="color: #ffffff">;</span>
+            <span style="color: #cdcaa9; font-weight: bold">char</span> <span style="color: #ffffff">errbuf[</span><span style="color: #fb660a; font-weight: bold">sizeof</span><span style="color: #ffffff">(errmsg)</span> <span style="color: #ffffff">+</span> <span style="color: #0086f7; font-weight: bold">25</span><span style="color: #ffffff">];</span>
+            <span style="color: #ffffff">PyOS_snprintf(errbuf,</span> <span style="color: #fb660a; font-weight: bold">sizeof</span><span style="color: #ffffff">(errbuf),</span> <span style="color: #ffffff">errmsg,</span> <span style="color: #ffffff">i+</span><span style="color: #0086f7; font-weight: bold">2</span><span style="color: #ffffff">);</span>
+            <span style="color: #ffffff">PyErr_SetString(PyExc_TypeError,</span> <span style="color: #ffffff">errbuf);</span>
+            <span style="color: #fb660a; font-weight: bold">goto</span> <span style="color: #ffffff">Fail_2;</span>
+        <span style="color: #ffffff">}</span>
+
+        <span style="color: #008800; font-style: italic; background-color: #0f140f">/* Update len. */</span>
+        <span style="color: #ffffff">curlen</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">_PyObject_LengthHint(curseq,</span> <span style="color: #0086f7; font-weight: bold">8</span><span style="color: #ffffff">);</span>
+        <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(curlen</span> <span style="color: #ffffff">&gt;</span> <span style="color: #ffffff">len)</span>
+            <span style="color: #ffffff">len</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">curlen;</span>
+    <span style="color: #ffffff">}</span>
+
+    <span style="color: #008800; font-style: italic; background-color: #0f140f">/* Get space for the result list. */</span>
+    <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">((result</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">(PyObject</span> <span style="color: #ffffff">*)</span> <span style="color: #ffffff">PyList_New(len))</span> <span style="color: #ffffff">==</span> <span style="color: #ffffff">NULL)</span>
+        <span style="color: #fb660a; font-weight: bold">goto</span> <span style="color: #ffffff">Fail_2;</span>
+
+    <span style="color: #008800; font-style: italic; background-color: #0f140f">/* Iterate over the sequences until all have stopped. */</span>
+    <span style="color: #fb660a; font-weight: bold">for</span> <span style="color: #ffffff">(i</span> <span style="color: #ffffff">=</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">;</span> <span style="color: #ffffff">;</span> <span style="color: #ffffff">++i)</span> <span style="color: #ffffff">{</span>
+        <span style="color: #ffffff">PyObject</span> <span style="color: #ffffff">*alist,</span> <span style="color: #ffffff">*item=NULL,</span> <span style="color: #ffffff">*value;</span>
+        <span style="color: #cdcaa9; font-weight: bold">int</span> <span style="color: #ffffff">numactive</span> <span style="color: #ffffff">=</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">;</span>
+
+        <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(func</span> <span style="color: #ffffff">==</span> <span style="color: #ffffff">Py_None</span> <span style="color: #ffffff">&amp;&amp;</span> <span style="color: #ffffff">n</span> <span style="color: #ffffff">==</span> <span style="color: #0086f7; font-weight: bold">1</span><span style="color: #ffffff">)</span>
+            <span style="color: #ffffff">alist</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">NULL;</span>
+        <span style="color: #fb660a; font-weight: bold">else</span> <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">((alist</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">PyTuple_New(n))</span> <span style="color: #ffffff">==</span> <span style="color: #ffffff">NULL)</span>
+            <span style="color: #fb660a; font-weight: bold">goto</span> <span style="color: #ffffff">Fail_1;</span>
+
+        <span style="color: #fb660a; font-weight: bold">for</span> <span style="color: #ffffff">(j</span> <span style="color: #ffffff">=</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">,</span> <span style="color: #ffffff">sqp</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">seqs;</span> <span style="color: #ffffff">j</span> <span style="color: #ffffff">&lt;</span> <span style="color: #ffffff">n;</span> <span style="color: #ffffff">++j,</span> <span style="color: #ffffff">++sqp)</span> <span style="color: #ffffff">{</span>
+            <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(sqp-&gt;saw_StopIteration)</span> <span style="color: #ffffff">{</span>
+                <span style="color: #ffffff">Py_INCREF(Py_None);</span>
+                <span style="color: #ffffff">item</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">Py_None;</span>
+            <span style="color: #ffffff">}</span>
+            <span style="color: #fb660a; font-weight: bold">else</span> <span style="color: #ffffff">{</span>
+                <span style="color: #ffffff">item</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">PyIter_Next(sqp-&gt;it);</span>
+                <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(item)</span>
+                    <span style="color: #ffffff">++numactive;</span>
+                <span style="color: #fb660a; font-weight: bold">else</span> <span style="color: #ffffff">{</span>
+                    <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(PyErr_Occurred())</span> <span style="color: #ffffff">{</span>
+                        <span style="color: #ffffff">Py_XDECREF(alist);</span>
+                        <span style="color: #fb660a; font-weight: bold">goto</span> <span style="color: #ffffff">Fail_1;</span>
+                    <span style="color: #ffffff">}</span>
+                    <span style="color: #ffffff">Py_INCREF(Py_None);</span>
+                    <span style="color: #ffffff">item</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">Py_None;</span>
+                    <span style="color: #ffffff">sqp-&gt;saw_StopIteration</span> <span style="color: #ffffff">=</span> <span style="color: #0086f7; font-weight: bold">1</span><span style="color: #ffffff">;</span>
+                <span style="color: #ffffff">}</span>
+            <span style="color: #ffffff">}</span>
+            <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(alist)</span>
+                <span style="color: #ffffff">PyTuple_SET_ITEM(alist,</span> <span style="color: #ffffff">j,</span> <span style="color: #ffffff">item);</span>
+            <span style="color: #fb660a; font-weight: bold">else</span>
+                <span style="color: #fb660a; font-weight: bold">break</span><span style="color: #ffffff">;</span>
+        <span style="color: #ffffff">}</span>
+
+        <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(!alist)</span>
+            <span style="color: #ffffff">alist</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">item;</span>
+
+        <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(numactive</span> <span style="color: #ffffff">==</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">)</span> <span style="color: #ffffff">{</span>
+            <span style="color: #ffffff">Py_DECREF(alist);</span>
+            <span style="color: #fb660a; font-weight: bold">break</span><span style="color: #ffffff">;</span>
+        <span style="color: #ffffff">}</span>
+
+        <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(func</span> <span style="color: #ffffff">==</span> <span style="color: #ffffff">Py_None)</span>
+            <span style="color: #ffffff">value</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">alist;</span>
+        <span style="color: #fb660a; font-weight: bold">else</span> <span style="color: #ffffff">{</span>
+            <span style="color: #ffffff">value</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">PyEval_CallObject(func,</span> <span style="color: #ffffff">alist);</span>
+            <span style="color: #ffffff">Py_DECREF(alist);</span>
+            <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(value</span> <span style="color: #ffffff">==</span> <span style="color: #ffffff">NULL)</span>
+                <span style="color: #fb660a; font-weight: bold">goto</span> <span style="color: #ffffff">Fail_1;</span>
+        <span style="color: #ffffff">}</span>
+        <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(i</span> <span style="color: #ffffff">&gt;=</span> <span style="color: #ffffff">len)</span> <span style="color: #ffffff">{</span>
+            <span style="color: #cdcaa9; font-weight: bold">int</span> <span style="color: #ffffff">status</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">PyList_Append(result,</span> <span style="color: #ffffff">value);</span>
+            <span style="color: #ffffff">Py_DECREF(value);</span>
+            <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(status</span> <span style="color: #ffffff">&lt;</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">)</span>
+                <span style="color: #fb660a; font-weight: bold">goto</span> <span style="color: #ffffff">Fail_1;</span>
+        <span style="color: #ffffff">}</span>
+        <span style="color: #fb660a; font-weight: bold">else</span> <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(PyList_SetItem(result,</span> <span style="color: #ffffff">i,</span> <span style="color: #ffffff">value)</span> <span style="color: #ffffff">&lt;</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">)</span>
+            <span style="color: #fb660a; font-weight: bold">goto</span> <span style="color: #ffffff">Fail_1;</span>
+    <span style="color: #ffffff">}</span>
+
+    <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">(i</span> <span style="color: #ffffff">&lt;</span> <span style="color: #ffffff">len</span> <span style="color: #ffffff">&amp;&amp;</span> <span style="color: #ffffff">PyList_SetSlice(result,</span> <span style="color: #ffffff">i,</span> <span style="color: #ffffff">len,</span> <span style="color: #ffffff">NULL)</span> <span style="color: #ffffff">&lt;</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">)</span>
+        <span style="color: #fb660a; font-weight: bold">goto</span> <span style="color: #ffffff">Fail_1;</span>
+
+    <span style="color: #fb660a; font-weight: bold">goto</span> <span style="color: #ffffff">Succeed;</span>
+
+<span style="color: #ffffff">Fail_1:</span>
+    <span style="color: #ffffff">Py_DECREF(result);</span>
+<span style="color: #ffffff">Fail_2:</span>
+    <span style="color: #ffffff">result</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">NULL;</span>
+<span style="color: #ffffff">Succeed:</span>
+    <span style="color: #ffffff">assert(seqs);</span>
+    <span style="color: #fb660a; font-weight: bold">for</span> <span style="color: #ffffff">(i</span> <span style="color: #ffffff">=</span> <span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">;</span> <span style="color: #ffffff">i</span> <span style="color: #ffffff">&lt;</span> <span style="color: #ffffff">n;</span> <span style="color: #ffffff">++i)</span>
+        <span style="color: #ffffff">Py_XDECREF(seqs[i].it);</span>
+    <span style="color: #ffffff">PyMem_DEL(seqs);</span>
+    <span style="color: #fb660a; font-weight: bold">return</span> <span style="color: #ffffff">result;</span>
+<span style="color: #ffffff">}</span>
+</pre></div>
+<p>That's a lot of code!  It wouldn't be bad, for C code, except for the fact that there's far too much boilerplate: every single call into the C-API needs to check for an exception, and <tt class="docutils literal">INCREF</tt> and <tt class="docutils literal">DECREF</tt> calls are littered throughout the code.  Compare this with PyPy's RPython implementation:</p>
+<div class="highlight" style="background: #111111"><pre style="line-height: 125%"><span style="color: #fb660a; font-weight: bold">def</span> <span style="color: #ff0086; font-weight: bold">map</span><span style="color: #ffffff">(space,</span> <span style="color: #ffffff">w_func,</span> <span style="color: #ffffff">collections_w):</span>
+    <span style="color: #0086d2">&quot;&quot;&quot;does 3 separate things, hence this enormous docstring.</span>
+<span style="color: #0086d2">       1.  if function is None, return a list of tuples, each with one</span>
+<span style="color: #0086d2">           item from each collection.  If the collections have different</span>
+<span style="color: #0086d2">           lengths,  shorter ones are padded with None.</span>
+
+<span style="color: #0086d2">       2.  if function is not None, and there is only one collection,</span>
+<span style="color: #0086d2">           apply function to every item in the collection and return a</span>
+<span style="color: #0086d2">           list of the results.</span>
+
+<span style="color: #0086d2">       3.  if function is not None, and there are several collections,</span>
+<span style="color: #0086d2">           repeatedly call the function with one argument from each</span>
+<span style="color: #0086d2">           collection.  If the collections have different lengths,</span>
+<span style="color: #0086d2">           shorter ones are padded with None</span>
+<span style="color: #0086d2">    &quot;&quot;&quot;</span>
+    <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">not</span> <span style="color: #ffffff">collections_w:</span>
+        <span style="color: #ffffff">msg</span> <span style="color: #ffffff">=</span> <span style="color: #0086d2">&quot;map() requires at least two arguments&quot;</span>
+        <span style="color: #fb660a; font-weight: bold">raise</span> <span style="color: #ffffff">OperationError(space.w_TypeError,</span> <span style="color: #ffffff">space.wrap(msg))</span>
+    <span style="color: #ffffff">num_collections</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">len(collections_w)</span>
+    <span style="color: #ffffff">none_func</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">space.is_w(w_func,</span> <span style="color: #ffffff">space.w_None)</span>
+    <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">none_func</span> <span style="color: #ffffff">and</span> <span style="color: #ffffff">num_collections</span> <span style="color: #ffffff">==</span> <span style="color: #0086f7; font-weight: bold">1</span><span style="color: #ffffff">:</span>
+        <span style="color: #fb660a; font-weight: bold">return</span> <span style="color: #ffffff">space.call_function(space.w_list,</span> <span style="color: #ffffff">collections_w[</span><span style="color: #0086f7; font-weight: bold">0</span><span style="color: #ffffff">])</span>
+    <span style="color: #ffffff">result_w</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">[]</span>
+    <span style="color: #ffffff">iterators_w</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">[space.iter(w_seq)</span> <span style="color: #fb660a; font-weight: bold">for</span> <span style="color: #ffffff">w_seq</span> <span style="color: #ffffff">in</span> <span style="color: #ffffff">collections_w]</span>
+    <span style="color: #ffffff">num_iterators</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">len(iterators_w)</span>
+    <span style="color: #fb660a; font-weight: bold">while</span> <span style="color: #ffffff">True:</span>
+        <span style="color: #ffffff">cont</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">False</span>
+        <span style="color: #ffffff">args_w</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">[space.w_None]</span> <span style="color: #ffffff">*</span> <span style="color: #ffffff">num_iterators</span>
+        <span style="color: #fb660a; font-weight: bold">for</span> <span style="color: #ffffff">i</span> <span style="color: #ffffff">in</span> <span style="color: #ffffff">range(len(iterators_w)):</span>
+            <span style="color: #fb660a; font-weight: bold">try</span><span style="color: #ffffff">:</span>
+                <span style="color: #ffffff">args_w[i]</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">space.next(iterators_w[i])</span>
+            <span style="color: #fb660a; font-weight: bold">except</span> <span style="color: #ffffff">OperationError,</span> <span style="color: #ffffff">e:</span>
+                <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">not</span> <span style="color: #ffffff">e.match(space,</span> <span style="color: #ffffff">space.w_StopIteration):</span>
+                    <span style="color: #fb660a; font-weight: bold">raise</span>
+            <span style="color: #fb660a; font-weight: bold">else</span><span style="color: #ffffff">:</span>
+                <span style="color: #ffffff">cont</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">True</span>
+        <span style="color: #ffffff">w_args</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">space.newtuple(args_w)</span>
+        <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">cont:</span>
+            <span style="color: #fb660a; font-weight: bold">if</span> <span style="color: #ffffff">none_func:</span>
+                <span style="color: #ffffff">result_w.append(w_args)</span>
+            <span style="color: #fb660a; font-weight: bold">else</span><span style="color: #ffffff">:</span>
+                <span style="color: #ffffff">w_res</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">space.call(w_func,</span> <span style="color: #ffffff">w_args)</span>
+                <span style="color: #ffffff">result_w.append(w_res)</span>
+        <span style="color: #fb660a; font-weight: bold">else</span><span style="color: #ffffff">:</span>
+            <span style="color: #fb660a; font-weight: bold">return</span> <span style="color: #ffffff">space.newlist(result_w)</span>
+<span style="color: #ffffff">map.unwrap_spec</span> <span style="color: #ffffff">=</span> <span style="color: #ffffff">[ObjSpace,</span> <span style="color: #ffffff">W_Root,</span> <span style="color: #0086d2">&quot;args_w&quot;</span><span style="color: #ffffff">]</span>
+</pre></div>
+<p>It's not exactly what you'd write for a pure Python implementation of <tt class="docutils literal">map</tt>, but it's a hell of a lot closer than the C version.</p>
+<p>The case for PyPy being the future is strong, I think, however it's not all sunshine are roses, there are a few issues.  It lags behind CPython's version (right now Python 2.5 is implemented), C extension compatibility isn't there yet, and not enough people are trying it out yet.  But PyPy is getting there, and you can help.</p>
+<p>Right now the single biggest way to help for most people is to test their code.  Any pure Python code targeting Python 2.5 should run perfectly under PyPy, and if it doesn't: it's a bug, if it's slower than Python: let us know (unless it involves <tt class="docutils literal">re</tt>, we know it's slow).  Maybe try out your C-extensions, however <tt class="docutils literal">cpyext</tt> is very alpha and even a segfault isn't surprising (but let us know so we can investigate).  Of course help on development is always appreciated, right now most of the effort is going into speeding up the JIT even more, however I believe there is also going to be work on moving up to Python 2.7 (currently pre-release) this summer.  If you're interested in helping out with either you should hop into <a class="reference external" href="irc://irc.feenode.net#pypy">#pypy on irc.freenode.net</a>, or send a message to <a class="reference external" href="http://codespeak.net/mailman/listinfo/pypy-dev">pypy-dev</a>.  PyPy's doing good work, Python doesn't need to be slow, and we don't all need to write C code!</p>
+
+            <script type="text/javascript" src="http://www.reddit.com/button.js?t=1"></script>
+            <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="alex_gaynor">Tweet</a>
+            <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+        </p>
+        
+            
+                <small>
+                        This entry was tagged with
+                        
+                            <a href="/tags/python/">python</a>, 
+                        
+                            <a href="/tags/pypy/">pypy</a>.
+                        
+                </small>
+            
+        
+        
+        <div id="disqus_thread"></div>
+<script type="text/javascript">
+/* <![CDATA[ */
+
+	var disqus_shortname = 'alexgaynor';
+
+
+	/* * * DON'T EDIT BELOW THIS LINE * * */
+	(function() {
+		var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+		dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+	})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </section>
+
+            </div>
+            <footer>
+                <p>
+                    Copyright 2009-2014 Alex Gaynor.  Hosted by the <a href="http://oebfare.com/">Steward of Gondor</a>.
+                    <a href="http://www.djangoproject.com/">
+                        <img src="http://media.djangoproject.com/img/badges/djangojoint107x25.gif" />
+                    </a>
+                </p>
+            </footer>
+        </div>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.0/jquery.min.js"></script>
+        <script>
+            $(function() {
+                $("#search_field").focus(function() {
+                    if ($(this).val() == "search") {
+                        $(this).val("");
+                    }
+                }).blur(function() {
+                    if ($(this).val() == "") {
+                        $(this).val("search");
+                    }
+                });
+            });
+        </script>
+        <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+        </script>
+        <script type="text/javascript">
+            try {
+            var pageTracker = _gat._getTracker("UA-1735273-7");
+            pageTracker._trackPageview();
+            } catch(err) {}
+        </script>
+    </body>
+</html>

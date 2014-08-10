@@ -1,0 +1,374 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>EFF: DocuColor Tracking Dot Decoding Guide</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="http://www.eff.org/sites/all/themes/frontier/style.css">
+  <link rel="stylesheet" type="text/css" href="http://w2.eff.org/stylesheets/www2.css">
+  <link rel="alternate" type="application/rss+xml" title="EFF Updates" href="http://www.eff.org/rss/updates.xml" />
+      <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+</head>
+
+<body>
+<div class="wrapper">
+<div id="header">
+     <div id="headerinner">
+     <a id="logo" href="/"><img src="https://www.eff.org/sites/all/themes/frontier/images/head_logo.gif" alt="Electronic Frontier Foundation" border="0" height="53" width="442"></a>
+      <a href="https://w2.eff.org/donate/random.php?s_src=http://w2.eff.org" rel="nofollow"><img src="https://www.eff.org/sites/all/themes/frontier/images/w2-donate.gif" alt="Donate to EFF" height="38" width="167" style="float:right;border:0;margin-top:31px"></a>   
+      <script type="text/javascript">
+      <!--
+      var URL = location.href;
+      var cleanURL = URL.split("?",1);
+      var link = document.getElementById("donate");
+      link.href = "https://w2.eff.org/donate/random.php?s_src=" + cleanURL;
+      //-->
+      </script>    
+     </div>
+</div>
+
+</div><div id="topnav">
+  <div class="wrapper">
+	<div id="search"><div id="searchinner">
+	  <form action="http://www.eff.org/search"  method="post">
+	    <input class="searchtextarea" type="text" name="text" size="17" maxlength="255" value="Enter search terms" onclick="this.value = ''" /> <input type="submit" name="op" class="submit" value="Go" /><input type="hidden" name="form_id" id="edit-effsearch-form" value="effsearch_form"  /> 
+		<a class="searchinfolink" href="http://www.eff.org/policy#searchpolicy" title="View our privacy policy">?</a>
+	  </form>
+	</div></div>
+  <ul class="links-menu">
+	<li><a href="http://www.eff.org/about" class=" first">About</a></li>
+	<li><a href="http://www.eff.org/work">Our Work</a></li>
+	<li><a href="http://www.eff.org/deeplinks">Deeplinks Blog</a></li>
+	<li><a href="http://www.eff.org/press">Press Room</a></li>
+	<li><a href="http://www.eff.org/action">Take Action</a></li>
+	<li><a href="http://www.eff.org/support" class=" last">Join EFF</a></li>
+  </ul>
+  </div>
+</div><div class="wrapper">
+       <div id="content" class="withoutsidebar">
+<div class="breadcrumb">
+<a href="http://www.eff.org/">Home</a> &raquo; <a href="/Privacy/">Privacy</a> &raquo; <a href="/Privacy/printers/">Printers</a><span class="crumbspacer">&nbsp;</span>
+</div>
+</div>
+<!-- conditional navbars -->
+<div class="clr"></div>
+ 
+
+  
+
+<div id="featuretext">
+
+
+<h1>DocuColor Tracking Dot Decoding Guide</h1>
+
+<div style="border: 1px solid #cccccc; background: #e7e7e7; padding:
+5px; margin-right: 260px;">
+<h2><a href="/support/">Help EFF Watch the Watchers. Join EFF today!</a></h2>
+</div>
+
+<p>This guide is part of the <a href="http://www.eff.org/Privacy/printers">Machine
+Identification Code Technology project</a>.  It explains how to read the date, time,
+and printer serial number from forensic tracking codes in a Xerox DocuColor color laser
+printout.  This information is the result of research by
+Robert Lee, Seth Schoen, Patrick Murphy, Joel Alwen, and Andrew "bunnie" Huang.  We
+acknowledge the assistance of EFF supporters who have contributed sample printouts to give us
+material to study.  We are still looking for help in this research; we are asking
+the public to <a href="http://www.eff.org/Privacy/printers/wp.php#testsheets">submit test
+sheets</a> or <a href="http://zork.net/mailman/listinfo/printers">join
+the printers mailing list</a> to participate in our reverse engineering efforts.</p>
+
+<p>The DocuColor series prints a rectangular grid of 15 by 8 miniscule yellow dots on
+every color page.  The same grid is printed repeatedly over the entire page, but the
+repetitions of the grid are offset slightly from one another so that each grid is
+separated from the others.  The grid is printed parallel to the edges of the page,
+and the offset of the grid from the edges of the page seems to vary.
+These dots encode up to 14 7-bit bytes of tracking information, plus row and
+column parity for error correction.  Typically, about four of these bytes were unused
+(depending on printer model), giving 10 bytes of useful data.  Below, we explain how
+to extract serial number, date, and time from these dots.  Following the explanation,
+we implement the decoding process in <a href="#program">an interactive computer
+program</a>.</p>
+
+<p>Because of their limited contrast with the background, the forensic dots are not
+usually visible to the naked eye under white light.  They can be made visible by
+magnification (using a magnifying glass or microscope), or by illuminating the page
+with blue instead of white light.  Pure blue light causes the yellow dots to appear
+black.  It can be helpful to use magnification together with illumination under
+blue light, although most individuals with good vision will be able to see the dots
+distinctly using either technique by itself.</p>
+<p>This is an image of the dot grid produced by a Xerox DocuColor 12, magnified 10x
+and photographed by a <a href="http://www.playdigitalblue.com/products/qx5/info/">Digital
+Blue QX5 computer microscope</a> under white light.  While
+yellow dots are visible, they are <strong>very hard to see</strong>.  We will need to
+use a different technique in order to get a better view.</p>
+<img src="faint2.jpg" alt="Faint yellow dots" />
+<p>This is an image of a portion of the dot grid under 60x magnification.  Now the
+dots are easy to see, but their overall structure is hard to discern because the
+microscope field only includes a few dots at a time.</p>
+<img src="60x.jpg" alt="60x" />
+<p>This is an image of one repetition of the dot grid from the same Xerox DocuColor
+12 page, magnified 10x and photographed by the QX5 microscope under illumination from a
+<a href="http://www.photonlight.com/">Photon</a> blue LED flashlight.  Note that the
+increased contrast under blue light allows us to see the entire dot pattern
+clearly.</p>
+<img src="docucolor4.jpg" alt="DocuColor image under blue light and magnification" />
+<p>The illumination is from the lower right; to the upper and lower left of the image,
+the corners of another repetition of the dot grid are visible.</p>
+<p>Here, we use computer graphics software to overlay the black dots in the
+microscope image with larger yellow dots for greater visibility.  (Because these
+computer-generated dots are significantly larger than the original dots, this image
+is no longer to scale and is now a schematic representation of the relative position
+of the dots.)</p>
+<img src="yellow.png" alt="DocuColor image with large yellow dots added" />
+<p>Finally, we add explanatory text to show the significance of the dots.</p>
+<img src="guide.png" alt="Decoding guide" />
+<p>The topmost row and leftmost column are a parity row and column for error correction.
+They help verify that the forensic information has been read accurately (and, if a
+single dot has been read incorrectly, to identify the location of the error).  The
+rows and columns all have odd parity: that is, every column contains an odd number of
+dots, and every row (except the topmost row) contains an odd number of dots.  If any
+row or column appears to contain an even number of dots, it has been read incorrectly.
+</p>
+<p>Each column is read top-to-bottom as a single byte of seven bits (omitting the first
+parity bit); the bytes are then read right-to-left.  The columns (which we have
+chosen to number from left to right) have the following meanings:</p>
+<ul>
+<li>15: unknown (often zero; constant for each individual printer; may convey some
+non-user-visible fact about the printer's model or configuration)</li>
+<li>14, 13, 12, 11: printer <strong>serial number</strong> in binary-coded-decimal, two digits per
+byte (constant for each individual printer; see below)</li>
+<li>10: <strong>separator</strong> (typically all ones; does not appear to code
+information)</li>
+<li>9: <strong>unused</strong></li>
+<li>8: <strong>year</strong> that page was printed (without century; 2005 is coded as 5)</li>
+<li>7: <strong>month</strong> that page was printed</li>
+<li>6: <strong>day</strong> that page was printed</li>
+<li>5: <strong>hour</strong> that page was printed (may be UTC time zone, or may be set
+inaccurately within printer)</li>
+<li>4, 3: <strong>unused</strong></li>
+<li>2: <strong>minute</strong> that page was printed</li>
+<li>1: <strong>row parity bit</strong> (set to guarantee an odd number of dots present
+per row)</li>
+</ul>
+<p>The printer serial number is a decimal number of six or eight digits; these digits
+are coded two at a time in columns 14, 13, 12, and 11 (or possibly just 13, 12, and 11);
+for instance, the serial number 00654321 would be coded with column values 00, 65, 43,
+and 21.</p>
+<p><a name="program"></a>We have prepared a computer program to automate this decoding process.  Below, you
+can interactively enter a dot grid from a DocuColor page and have it interpreted by
+our program.  If you don't have a microscope, a magnifying glass should be a practical
+substitute.</p>
+
+<!-- Script courtesy of brainerror.net;
+http://www.brainerror.net/scripts_js_checkbox2.php -->
+<script type="text/javascript" src="checkbox.js"></script>
+
+<form action="/cgi-bin/docucolor.cgi" method="post">
+<table>
+<th>
+<td align="center">1</td>
+<td align="center">2</td>
+<td align="center">3</td>
+<td align="center">4</td>
+<td align="center">5</td>
+<td align="center">6</td>
+<td align="center">7</td>
+<td align="center">8</td>
+<td align="center">9</td>
+<td align="center">10</td>
+<td align="center">11</td>
+<td align="center">12</td>
+<td align="center">13</td>
+<td align="center">14</td>
+<td align="center">15</td>
+</th>
+<tr>
+<td>col parity</td>
+<td><input type="checkbox" name="1,7" unchecked /></td>
+<td><input type="checkbox" name="2,7" unchecked /></td>
+<td><input type="checkbox" name="3,7" unchecked /></td>
+<td><input type="checkbox" name="4,7" unchecked /></td>
+<td><input type="checkbox" name="5,7" unchecked /></td>
+<td><input type="checkbox" name="6,7" unchecked /></td>
+<td><input type="checkbox" name="7,7" unchecked /></td>
+<td><input type="checkbox" name="8,7" unchecked /></td>
+<td><input type="checkbox" name="9,7" unchecked /></td>
+<td><input type="checkbox" name="10,7" unchecked /></td>
+<td><input type="checkbox" name="11,7" unchecked /></td>
+<td><input type="checkbox" name="12,7" unchecked /></td>
+<td><input type="checkbox" name="13,7" unchecked /></td>
+<td><input type="checkbox" name="14,7" unchecked /></td>
+<td><input type="checkbox" name="15,7" unchecked /></td>
+</tr>
+<tr>
+<td>64</td>
+<td><input type="checkbox" name="1,6" unchecked /></td>
+<td><input type="checkbox" name="2,6" unchecked /></td>
+<td><input type="checkbox" name="3,6" unchecked /></td>
+<td><input type="checkbox" name="4,6" unchecked /></td>
+<td><input type="checkbox" name="5,6" unchecked /></td>
+<td><input type="checkbox" name="6,6" unchecked /></td>
+<td><input type="checkbox" name="7,6" unchecked /></td>
+<td><input type="checkbox" name="8,6" unchecked /></td>
+<td><input type="checkbox" name="9,6" unchecked /></td>
+<td><input type="checkbox" name="10,6" unchecked /></td>
+<td><input type="checkbox" name="11,6" unchecked /></td>
+<td><input type="checkbox" name="12,6" unchecked /></td>
+<td><input type="checkbox" name="13,6" unchecked /></td>
+<td><input type="checkbox" name="14,6" unchecked /></td>
+<td><input type="checkbox" name="15,6" unchecked /></td>
+</tr>
+<tr>
+<td>32</td>
+<td><input type="checkbox" name="1,5" unchecked /></td>
+<td><input type="checkbox" name="2,5" unchecked /></td>
+<td><input type="checkbox" name="3,5" unchecked /></td>
+<td><input type="checkbox" name="4,5" unchecked /></td>
+<td><input type="checkbox" name="5,5" unchecked /></td>
+<td><input type="checkbox" name="6,5" unchecked /></td>
+<td><input type="checkbox" name="7,5" unchecked /></td>
+<td><input type="checkbox" name="8,5" unchecked /></td>
+<td><input type="checkbox" name="9,5" unchecked /></td>
+<td><input type="checkbox" name="10,5" unchecked /></td>
+<td><input type="checkbox" name="11,5" unchecked /></td>
+<td><input type="checkbox" name="12,5" unchecked /></td>
+<td><input type="checkbox" name="13,5" unchecked /></td>
+<td><input type="checkbox" name="14,5" unchecked /></td>
+<td><input type="checkbox" name="15,5" unchecked /></td>
+</tr>
+<tr>
+<td>16</td>
+<td><input type="checkbox" name="1,4" unchecked /></td>
+<td><input type="checkbox" name="2,4" unchecked /></td>
+<td><input type="checkbox" name="3,4" unchecked /></td>
+<td><input type="checkbox" name="4,4" unchecked /></td>
+<td><input type="checkbox" name="5,4" unchecked /></td>
+<td><input type="checkbox" name="6,4" unchecked /></td>
+<td><input type="checkbox" name="7,4" unchecked /></td>
+<td><input type="checkbox" name="8,4" unchecked /></td>
+<td><input type="checkbox" name="9,4" unchecked /></td>
+<td><input type="checkbox" name="10,4" unchecked /></td>
+<td><input type="checkbox" name="11,4" unchecked /></td>
+<td><input type="checkbox" name="12,4" unchecked /></td>
+<td><input type="checkbox" name="13,4" unchecked /></td>
+<td><input type="checkbox" name="14,4" unchecked /></td>
+<td><input type="checkbox" name="15,4" unchecked /></td>
+</tr>
+<tr>
+<td>8</td>
+<td><input type="checkbox" name="1,3" unchecked /></td>
+<td><input type="checkbox" name="2,3" unchecked /></td>
+<td><input type="checkbox" name="3,3" unchecked /></td>
+<td><input type="checkbox" name="4,3" unchecked /></td>
+<td><input type="checkbox" name="5,3" unchecked /></td>
+<td><input type="checkbox" name="6,3" unchecked /></td>
+<td><input type="checkbox" name="7,3" unchecked /></td>
+<td><input type="checkbox" name="8,3" unchecked /></td>
+<td><input type="checkbox" name="9,3" unchecked /></td>
+<td><input type="checkbox" name="10,3" unchecked /></td>
+<td><input type="checkbox" name="11,3" unchecked /></td>
+<td><input type="checkbox" name="12,3" unchecked /></td>
+<td><input type="checkbox" name="13,3" unchecked /></td>
+<td><input type="checkbox" name="14,3" unchecked /></td>
+<td><input type="checkbox" name="15,3" unchecked /></td>
+</tr>
+<tr>
+<td>4</td>
+<td><input type="checkbox" name="1,2" unchecked /></td>
+<td><input type="checkbox" name="2,2" unchecked /></td>
+<td><input type="checkbox" name="3,2" unchecked /></td>
+<td><input type="checkbox" name="4,2" unchecked /></td>
+<td><input type="checkbox" name="5,2" unchecked /></td>
+<td><input type="checkbox" name="6,2" unchecked /></td>
+<td><input type="checkbox" name="7,2" unchecked /></td>
+<td><input type="checkbox" name="8,2" unchecked /></td>
+<td><input type="checkbox" name="9,2" unchecked /></td>
+<td><input type="checkbox" name="10,2" unchecked /></td>
+<td><input type="checkbox" name="11,2" unchecked /></td>
+<td><input type="checkbox" name="12,2" unchecked /></td>
+<td><input type="checkbox" name="13,2" unchecked /></td>
+<td><input type="checkbox" name="14,2" unchecked /></td>
+<td><input type="checkbox" name="15,2" unchecked /></td>
+</tr>
+<tr>
+<td>2</td>
+<td><input type="checkbox" name="1,1" unchecked /></td>
+<td><input type="checkbox" name="2,1" unchecked /></td>
+<td><input type="checkbox" name="3,1" unchecked /></td>
+<td><input type="checkbox" name="4,1" unchecked /></td>
+<td><input type="checkbox" name="5,1" unchecked /></td>
+<td><input type="checkbox" name="6,1" unchecked /></td>
+<td><input type="checkbox" name="7,1" unchecked /></td>
+<td><input type="checkbox" name="8,1" unchecked /></td>
+<td><input type="checkbox" name="9,1" unchecked /></td>
+<td><input type="checkbox" name="10,1" unchecked /></td>
+<td><input type="checkbox" name="11,1" unchecked /></td>
+<td><input type="checkbox" name="12,1" unchecked /></td>
+<td><input type="checkbox" name="13,1" unchecked /></td>
+<td><input type="checkbox" name="14,1" unchecked /></td>
+<td><input type="checkbox" name="15,1" unchecked /></td>
+</tr>
+<tr>
+<td>1</td>
+<td><input type="checkbox" name="1,0" unchecked /></td>
+<td><input type="checkbox" name="2,0" unchecked /></td>
+<td><input type="checkbox" name="3,0" unchecked /></td>
+<td><input type="checkbox" name="4,0" unchecked /></td>
+<td><input type="checkbox" name="5,0" unchecked /></td>
+<td><input type="checkbox" name="6,0" unchecked /></td>
+<td><input type="checkbox" name="7,0" unchecked /></td>
+<td><input type="checkbox" name="8,0" unchecked /></td>
+<td><input type="checkbox" name="9,0" unchecked /></td>
+<td><input type="checkbox" name="10,0" unchecked /></td>
+<td><input type="checkbox" name="11,0" unchecked /></td>
+<td><input type="checkbox" name="12,0" unchecked /></td>
+<td><input type="checkbox" name="13,0" unchecked /></td>
+<td><input type="checkbox" name="14,0" unchecked /></td>
+<td><input type="checkbox" name="15,0" unchecked /></td>
+</tr>
+<!-- for spacing -->
+<tr />
+<tr />
+<tr />
+<tr><td align="right" colspan="16"><input type="reset" value="Clear" onClick="clearChecks()" /> <input type="submit" value="Submit" /></td></tr>
+</table>
+</form>
+
+<p>EFF does not log the information submitted to this web form or the results it returns.  If you
+prefer, you can <a href="docucolor.cgi">download the source code of this program</a>, which
+we have licensed under the GNU General Public License.</p>
+
+
+</div>
+
+
+  <div style="clear:both"> </div>
+
+	</div>
+</div>
+</div>
+
+<!-- footer -->
+<div id="footer">
+   <div class="wrapper">
+     <div id="footerinner">
+     <div id="cc">
+     <a href="http://www.eff.org/copyright"><img src="https://www.eff.org/sites/all/themes/frontier/images/cclogo.gif" alt="Creative Commons Licensed" width="23" height="23" border="0" /></a>
+     </div>
+	<div id="footernav" style="width:50%!important">
+	<ul class="links-menu">
+	<li><a href="http://www.eff.org/thanks" title="Thanks" class=" first">Thanks</a></li>
+	<li><a href="http://www.eff.org/rss" title="RSS Feeds">RSS Feeds</a></li>
+	<li><a href="http://www.eff.org/policy" title="Privacy Policy">Privacy Policy</a></li>
+	<li><a href="http://www.eff.org/about/contact" title="Contact EFF" class=" last">Contact EFF</a></li>
+	</ul>	
+	</div>
+	<div class="clr"></div>
+      </div>
+  </div>
+</div>
+
+
+</body>
+</html>
+
+

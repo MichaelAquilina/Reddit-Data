@@ -1,0 +1,442 @@
+<!DOCTYPE HTML>
+
+
+<html lang='en'><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width"><title>Ned Batchelder: War is peace</title><link rel='stylesheet' href='http://nedbatchelder.com/style.css' type='text/css'><link rel='stylesheet' href='http://nedbatchelder.com/printstyle.css' type='text/css' media='print'><link rel="alternate" type="application/rss+xml" href="http://nedbatchelder.com/blog/rss.xml" title="RSS feed for Ned's blog"><script type='text/javascript' src='http://nedbatchelder.com/nedbatchelder.js'></script><script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-32134006-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script></head><body><table id='logo_banner'><tr><td id='logo'><a href='/'><img src='/dodeca3_100.gif' width='100' height='120' alt='[*]'></a></td><td id='banner'><span class='path'><a href='/'>Ned Batchelder</a> : <a href='/blog'>Blog</a> | <a href='/code'>Code</a> | <a href='/text'>Text</a> | <a href='/site'>Site</a></span><br><span class='headslug'>War is peace</span><br><span class='path'>
+                    &#xbb; <a href='/'>Home</a> : <a href='/blog'>Blog</a> : <a href='/blog/201302.html'>February 2013</a></span></td></tr></table><table id='content_menu'><tr><td id='content'><div class='body'><div id='searchwelcome'></div><div class='blog-entry' id='e20130201T093134'><div class='head'><h3 class='title'><a class='s' href='/blog/201302/war_is_peace.html' rel='bookmark' title='Link to this post'>War is peace</a></h3><p class='date'>Friday 1 <a class='s' href='/blog/201302.html'>February 2013</a></p></div><p>The Rails community has had a few high-profile security issues this week.
+        They are well-summarized, with an alarming list of what follow-ons to expect,
+        by Patrick McKenzie:
+        <a class="offsite" rel="external" href="http://www.kalzumeus.com/2013/01/31/what-the-rails-security-issue-means-for-your-startup/">What the Rails Security Issue Means for Your Startup</a>.</p><p><b>tl;dr</b>:</p><ul><li>Ruby's YAML parser will execute arbitrary Ruby code,</li><li>YAML is parsed all over the place in Rails, including for all JSON input,</li><li>Pretty much every Rails app is going to be compromised soon.</li></ul><p>The Python community is in a slightly better position. True, we have pickle in the standard
+        library, which has exactly the same problem, but it's rare to find applications that
+        accept pickles from untrusted sources.</p><blockquote class="box">Don't ever unpickle data you don't trust!</blockquote><p>The 3rd-party YAML parser <a class="offsite" rel="external" href="http://pypi.python.org/pypi/PyYAML">PyYAML</a>
+        has the same issue as Ruby's YAML parser.  By default, it will let you create
+        arbitrary Python objects, which means it can run arbitrary Python code.
+        YAML isn't nearly as pervasive in the Python world, and we don't parse
+        JSON with the YAML parser usually, but this can still create security holes.</p><p>PyYAML has a .load() method and a .safe_load() method.  Why do serialization
+        implementers do this? If you must extend the format with dangerous features, provide
+        them in the non-obvious method.  Provide a .load() method and a .dangerous_load() method
+        instead.  At least that way people would have to decide to do the dangerous thing.
+        I would advocate for PyYAML to make this change now, who cares if backward compatibility
+        breaks?  Most people using .load() never intended to deserialize arbitrary Python objects
+        anyway, so they'll never notice.</p><blockquote class="box">If you use the PyYAML library in your code, check now that you are using the .safe_load()
+        method.</blockquote><p>If you want automatic serialization of your user-defined classes, take a look at
+        <a class="offsite" rel="external" href="http://home.gna.org/oomadness/en/cerealizer/index.html">Cerealizer</a>, which
+        works similarly to pickle, but is built to be secure from the start.  I've never used
+        it, but it looks promising.</p><p>BTW, this whole circus reminded me of Allen Short's excellent lightning talk from PyCon 2010:
+        <a class="offsite" rel="external" href="http://pyvideo.org/video/309/pycon-2010--plenary--saturday-evening-lightning-t">Big Brother's Design Rules</a>
+        (skip to 17:30).  To summarize Allen's pithy maxims:</p><ul><li>War is Peace: assume you are at war, all input is an attack, and then you can be at peace.</li><li>Slavery is Freedom: the more you constrain your code's behavior, the more freedom you have to act.
+            The smaller your interface, the smaller your attack surface.</li><li>Ignorance is Strength: the less your code knows about, the fewer things it can break.
+            This is the principle of least authority.</li></ul><p>Allen in particular mentions that adding "conveniences" to your interface can make your life harder
+        later on.  In Ruby's case, there were two unneeded conveniences that combined to make things really
+        bad: parse JSON with the YAML parser, and let the YAML parser construct arbitrary Ruby objects.
+        Neither of these is actually needed by 99.999% of programs reading JSON, but now all of them
+        are compromisable.</p><p>Think hard about what your program does.  Stay safe.</p><div class='foot'><span class='via'>
+
+    
+    
+        tagged: 
+        <a href='/blog/tag/python.html' rel='tag'>python</a>,
+    
+        
+        <a href='/blog/tag/security.html' rel='tag'>security</a>,
+    
+        
+        <a href='/blog/tag/ruby.html' rel='tag'>ruby</a></span><span class='react'>&#xbb;&#xa0;22 reactions</span></div></div><div class='comments' id='comments'>
+<h1>Comments</h1>
+
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/357a20e8c56e69d6f9734d23ef9517e8.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa154.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Walls</b></span>
+			<span class='when'><span class='adminlink'></span> 1:26 PM on 1 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			TLDR: It doesn't affect the vast majority of python users in any way shape or form, you just felt the need to drag it through the mud because rails is quickly being outed as the piece of shit it is.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/4eddef6a78dad0b44ccd255e5ccc3dff.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa167.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Nate</b></span>
+			<span class='when'><span class='adminlink'></span> 1:49 PM on 1 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			I would say Ned pointed out a couple very specific places where that exploit could affect python developers. You don't know what every developer out there is doing, so I think this is really good advice.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/7a28ec500204ab21b028ddef1cc603b2.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa252.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Sneakyness</b></span>
+			<span class='when'><span class='adminlink'></span> 2:01 PM on 1 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			load() and dangerous_load() is a great idea
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 5:19 PM on 1 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Walls: wow, this post is "dragging it through the mud"?  You might not want to venture into the rest of the internet....  :)
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/a7c5d47d8eb734a5ff42850e2f7168ad.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa210.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://sashahart.net' rel='nofollow' target='_blank'>Sasha Hart</a></b></span>
+			<span class='when'><span class='adminlink'></span> 7:43 PM on 1 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Python libraries which unpickle untrusted data are unfortunately in widespread use. Please don't underestimate this - *even in stdlib* Cookie.Cookie does exactly this and it is still somehow accepted in the name of backward compatibility.<br><br>Posts like Ned's acknowledging issues like this and taking them seriously are more helpful and do more credit to the Python community than just "closing the issue" would. Every language has problems, not just Ruby (and certainly not just Rails). If there's a way for the Python community to distinguish itself here it is by taking security seriously and getting out ahead of the issues instead of just getting defensive.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/f3ba3ecffd20251d73749afbfa636786.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa72.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Nick Coghlan</b></span>
+			<span class='when'><span class='adminlink'></span> 10:33 PM on 1 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Walls: Writing secure software is hard - it requires a combination of paranoia (assuming you will be attacked instead of thinking "Why would anyone ever try to exploit this?") and humility (assuming your attackers will be smarter than you instead of thinking "I don't know how to break it, therefore it is secure") that most people don't have. It also often comes at a cost in flexibility - pickle is a lot more powerful than JSON as a data format, but that power carries with it a huge increase in risk.<br><br>The core Python team tries hard to promote a culture of "use as much magic as you need, but no more" (often paraphrased as "magic is evil", and included in the Zen of Python in various guises like "explicit is better than implicit", "simple is better than complex", "complex is better than complicated" and "if the implementation is hard to explain, it's a bad idea"). However, it's <i>always</i> going to be tempting to make the powerful and flexible option the default, and the more restrictive option the exception.<br><br>As an example that was fixed in Python 3: Python 2 has "input()" which implicitly calls "eval()" on user supplied data. The safer alternative, which allows the use of more restrictive parsing by always returning a string, is called "raw_input()". In Python 3, the input() builtin itself has been fixed to behave like Python 2's raw_input()<br><br>However, even in Python 3, the builtin eval() is still dangerous to use on user-supplied data, as it can execute *any* Python expression. For obscure technical reasons, the safer-but-more-limited alternative, "ast.literal_eval()", isn't even a builtin the way raw_input() was.<br><br>Only in Python 3.3 did we start shipping a comparison operation suitable for security sensitive operations (hmac.compare_digest), and there are still no suitable primitives for password hashing in the standard library (although "passlib" is just a download away on PyPI).<br><br>No Pythonista should ever feel smug about security woes in another language or runtime, whether that's Java or Ruby or something else. We have a track record of promoting "safe by default" behaviour, but our record certainly isn't perfect, and we'll almost certainly have more issues in the future. Standard library behaviours that are safe within the confines of a single system (like sharing pickled objects through a pipe) become unsafe when spanning multiple systems (like sharing pickled objects without cryptographic signatures across a network socket), and we're relying on other developers to understand that. Heck, the Rails vulnerability is overshadowing a recent MoinMoin exploit which was used to take out both Debian's main wiki and the Python wiki on python.org.<br><br>Looking specifically at the case of the recent Rails problems, even apps written in Python may run into trouble if a related Rails app, or an unrelated Rails app on the same network, falls to an attacker. Attackers don't stop just with the first machine compromised - every compromised machine becomes a platform for launching additional attacks, often with additional data about or privileged access to subsequent target systems.<br><br>The design space available for programming languages is enormous, and we collectively still know very little about how to write large scale software sensibly. When other languages and software are attacked, it is important to reflect on it and see what lessons can be learned for our own tools (as Ned has done here), rather than arrogantly assuming ourselves to be immune from the same kinds of error.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/aa2e915659b46e11cb847c5c169489f5.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa138.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Lise de Saint Romain</b></span>
+			<span class='when'><span class='adminlink'></span> 12:41 AM on 2 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Very good advice. Thanks.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/717c09c121dd66d83aa8b729f4b92973.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa92.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://code.scottbartell.com' rel='nofollow' target='_blank'>Scott Bartell</a></b></span>
+			<span class='when'><span class='adminlink'></span> 1:25 AM on 2 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			"the less your code knows about, the fewer things it can break"<br><br>I like that. Nicely put.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/f9375b447dd668a10c19891379b9db2a.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa67.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Devin</b></span>
+			<span class='when'><span class='adminlink'></span> 1:52 AM on 2 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Nice blog post! I'm glad to see the renewed attention to security in Python. It would absolutely be a shame if we didn't learn from the failures of others -- because then the only failures we have to learn from are our own, and when that happens we've already lost.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/ca8aacd0bed604a4e5ce55affd6df9d2.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa244.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>PHP4Life</b></span>
+			<span class='when'><span class='adminlink'></span> 7:27 PM on 2 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Change load to safe_load and safe_load to real_safe_load.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/dc6fb9e0de7cbb190f2bab12598f626c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa31.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>DC</b></span>
+			<span class='when'><span class='adminlink'></span> 3:14 AM on 3 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			There are big problems with Rails.<br>There aren't any problems with Python.<br>Rails is not comparable to Python.<br>I don't see any amazing insight in this post.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/47f9fe6c61f5fc5ef068f0e504dbf9f4.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa95.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>D</b></span>
+			<span class='when'><span class='adminlink'></span> 5:26 AM on 3 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			As much as I love Python (my first favorite language :'-), Wall and, to a lesser degree, DC demonstrate one of the main reasons I don't use it anymore: these insufferable anti-Ruby Python trolls are omnipresent in the community, and hiring them in a polyglot team leads to totally unnecessary tension. It's to the point that for any developer position for even non-python positions I have interview questions to weed them out ASAP. As this post demonstrates, you can't even mention "Ruby" without these toxic individuals showing up.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/3eb0a3ff60d9952cb7b311520cd00fca.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa256.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>jim</b></span>
+			<span class='when'><span class='adminlink'></span> 6:18 AM on 3 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Wow. So many Python fan boys.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0f7511a631037401705bc92cea170144.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa9.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>david</b></span>
+			<span class='when'><span class='adminlink'></span> 6:21 AM on 3 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			I think we should all be thankful of the efforts of all python (cpython in particular) contributors and everyone should read Nick Coghlan's comment (found above).<br><br>There is only one thing that at the present time irks me in python and it is package management. I would love to see <a rel='nofollow' href='http://www.python.org/dev/peps/pep-0381/'>http://www.python.org/dev/peps/pep-0381/</a> implemented as a starting point and maybe even parts of the technical spec of TUF found at <a rel='nofollow' href='https://www.updateframework.com/'>https://www.updateframework.com/</a> integrated into the code (perhaps in the 'pip' module). <br><br>BTW, if anyone is interested in a 'dumb search' for 'potentially' unsafe module/module function calls in their python code, I maintain a small grep script which can be found at <a rel='nofollow' href='https://github.com/d1b/python-check-script/blob/master/python_hunt.sh'>https://github.com/d1b/python-check-script/blob/master/python_hunt.sh</a>
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/2cdc1553a23a7c67e4649dd8fb3949e2.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa204.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>James Sullivan</b></span>
+			<span class='when'><span class='adminlink'></span> 6:22 AM on 3 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Thanks for the write-up Ned.  I was wondering about the same thing with our standard json, simplejson, pyyaml, etc. and just hadn't had the time yet to satisfy the curiosity.<br><br>* don't feed the trolls *
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/b7de0c1550ea70a6da14a862ea7c73e8.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa258.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Hai</b></span>
+			<span class='when'><span class='adminlink'></span> 8:46 AM on 3 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Thank you for writing this, I have been thinking the same thing about PyYAML.<br>My half-baked plan of action would be use Github's code search to dig up some real-world examples of unsafe PyYAML usage, and petition the PyYAML author to<br><br> - Increase the major version<br> - Rename load() to unsafe_load()<br> - rename safe_load to load(), but keep safe_load() as an alias<br><br>This would break the API for some users, but I suspect many people are using YAML as a "prettier JSON", and should really be using safe_load anyway.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/a27a73bf3b4c35a576f9baa74021458a.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa140.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Chris Sattinger</b></span>
+			<span class='when'><span class='adminlink'></span> 10:15 AM on 3 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Django uses pickle for its cache implementation.  <br><br>Celery by default uses pickle for sending objects through the broker.   You can switch it to json, but then you need to implement json methods for any complex objects you are sending.  All of my objects in celery are only ids and strings but I should go make absolutely sure.<br><br>Popular packages should get community security reviews. Maybe eyeballs are good enough.<br><br>Pip needs to be checking PGP keys and we need to all be signing our distributions when we push.  That's serious and we should get on that.  Gather the most paranoid dudes and fortify the castle.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/8c68a839282f699145cb8bc314287555.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa130.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Jimmy Wong</b></span>
+			<span class='when'><span class='adminlink'></span> 12:32 PM on 3 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			For those who are able, it's time to jump on this pip ticket and start giving it some TLS cert and GPG signature verifications:<br><br><a rel='nofollow' href='https://github.com/pypa/pip/issues/425'>https://github.com/pypa/pip/issues/425</a>
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/a58bbe7456f45e242ddcfa582edc8b53.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa79.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Martin Lindsay</b></span>
+			<span class='when'><span class='adminlink'></span> 2:44 PM on 3 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			This is definitely a problem with the jsonpickle library, but has always been a documented issue. Normal json/yaml decoders in python just return arrays and dicts of the given data, so the chance of the implemetation allowing any sort of execution is much, much lower.<br><br>The need for caution when using *native* serialisation seems obvious enough to go without saying to myself, but perhaps a little more warning should be more heavily peppered in the pickle/unpickle documentation.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/4999255df35111dd7b1670bcb05b217b.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa229.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>ilya</b></span>
+			<span class='when'><span class='adminlink'></span> 7:31 AM on 4 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			> True, we have pickle in the standard library, which has <br>> exactly the same problem, but it's rare to find applications <br>> that accept pickles from untrusted sources.<br><br>There was known issue on this.  <br><a rel='nofollow' href='http://blog.nelhage.com/2011/03/exploiting-pickle/'>http://blog.nelhage.com/2011/03/exploiting-pickle/</a>
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/4f776ee53d980b0c7eac4814b7d327bf.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa279.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://www.dirtymonkey.co.uk' rel='nofollow' target='_blank'>Matt Stevens</a></b></span>
+			<span class='when'><span class='adminlink'></span> 9:31 AM on 7 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Great post, I'm a Python guy but I do like the synergistic relationship that Ruby and Python have. Which is why I'll be learning Ruby this year.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/5a0829b5d513e9f91a244156e8f24dcc.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa206.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>makomk</b></span>
+			<span class='when'><span class='adminlink'></span> 11:29 AM on 14 Feb 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			"PyYAML has a .load() method and a .safe_load() method."<br><br>Ruby had a .load() method and... well, that's it. Pretty much every Ruby application that parsed untrusted YAML did so unsafely because there was no trivial way to parse it the correct, safe way, and the parser developers had been dragging their feet on adding one. That's a fairly fundamental difference.
+		</p>
+	</div>
+
+<div id='commentform'>
+<h2>Add a comment:</h2>
+<div>
+	<form method="post" action="http://nedbatchelder.com/blog/201302/war_is_peace.html#commentform" id="commentformform">
+		<table>
+			<tr>
+				<td class="labels">
+					<div class='label'>name</div>
+				</td>
+				<td class="inputs">
+					<input class='edit' type="text" name="f4d7e12298c33bf9e8479cd848a0a21b3" id="f4d7e12298c33bf9e8479cd848a0a21b3" size="40" value="">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class='label'>email</div>
+				</td>
+				<td>
+					<div class="dn">
+                        Ignore this:
+                        <input class='edit' type="email" name="f1e45cd10aa47722ca753a9edd1573248" id="f1e45cd10aa47722ca753a9edd1573248" size="40">
+					</div>
+					<input class='edit' type="email" name="f6470c8ed34ac4c9acaf8d2288647b601" id="f6470c8ed34ac4c9acaf8d2288647b601" size="40" value="">
+					<span class='notice'>not displayed and no spam.</span>
+					<div class="dn">
+                        Leave this empty:
+                        <input class='edit' type="email" name="f9c37e96a4517982c0ad4f94d410cd338" id="f9c37e96a4517982c0ad4f94d410cd338" size="40">
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class='label'>www</div>
+				</td>
+				<td>
+					<input class='edit' type="url" name="fe3c22252ec0b6ece6816c428b060e9ad" id="fe3c22252ec0b6ece6816c428b060e9ad" size="40" value="">
+					<span class='notice'>not searched.</span>
+				</td>
+			</tr>
+			<tr>
+				<td>&nbsp;</td>
+				<td>
+					<div class="notice">Name and either email or www are required.</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="dn">
+						Don't put anything here:
+						<textarea name="faa038d8530128ca5bdff4d0e83c9e47b" id="faa038d8530128ca5bdff4d0e83c9e47b" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+					<div>
+						<textarea name="fc6d51bb8081f68ead990a3fed34035a8" id="fc6d51bb8081f68ead990a3fed34035a8" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+					<div class="dn">
+						Leave this empty:
+						<textarea name="ffffc666d39cb394dd0b65616af623d35" id="ffffc666d39cb394dd0b65616af623d35" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="notice right">
+					URLs auto-link and some tags are allowed: &lt;a&gt;&lt;b&gt;&lt;i&gt;&lt;p&gt;&lt;br&gt;&lt;pre&gt;.
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="notice right">
+						<label for="cbnotify">
+							<input type="checkbox" name="f2a323fcfe6eb4d24fcb15d6d0d6a90e6" id="cbnotify" >
+							<span class='label'>Email me future comments</span>
+						</label>&#160;&#160;
+						<input id="previewbtn" type="submit" name="fbf40e970e74e8c089e69e60810a94f78" value="preview >>">
+						<span class="dn">
+                            <input type="submit" name="f07f66fe0c1af141a81dbb3447dd96cfb" value="I'm a spambot">
+						</span>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<input type='hidden' name='fb0f65c14c3c955f3002c8b7d79735820' value='e20130201T093134'>
+		<input type='hidden' name='spinner' value='1dd64de1521d6b7e58a263967d4d1364'>
+		<input type='hidden' name='fbdd9301734f946216e635a1811bff531' value='1404132073'>
+
+
+	</form>
+</div>
+</div>
+
+</div>
+</div></td><td id='menu'><div class='sidebar'>
+
+
+<div class='blogroll'><ul class='first'><li class='first'>Search this site:
+            
+<form action="http://www.google.com/cse" id="searchbox_007818501792991951010:s9hiibxg-ty" style="margin-top:6px;"><input type="hidden" name="cx" value="007818501792991951010:s9hiibxg-ty"><table><tr><td class="vmid"><input type="text" name="q" style='border:1px solid #7e9db9;padding:2px;width:144px;height:16px;'></td><td class="vmid"><input id="submit" class="vmid" type="image" title="Search" alt="Search" src="/pix/search.png"></td></tr></table></form><script type="text/javascript">
+    (function() {
+        var f = document.getElementById('searchbox_007818501792991951010:s9hiibxg-ty');
+        if (f && f.q) {
+            var q = f.q;
+            var b = function() {
+                if (q.value == '') {
+                    q.style.background = '#fff url(http:\x2F\x2Fwww.google.com\x2Fcoop\x2Fintl\x2Fen\x2Fimages\x2Fgoogle_custom_search_watermark.gif) left no-repeat';
+                }
+            };
+            var f = function() {
+                q.style.background = '#fff';
+            };
+            q.onfocus = f;
+            q.onblur = b;
+            if (!/[&?]q=[^&]/.test(location.search)) {
+                b();
+            }
+        }
+    })();
+</script></li><li><a href='/site/aboutned.html' rel='author'>About me</a></li><li class='inline'>Also me:
+            <ul><li><a href='http://twitter.com/nedbat'>twitter</a>&#xa0;&#xb7; </li><li><a href='mailto:ned@nedbatchelder.com'>email</a></li></ul></li><li class='inline'>Tip me:
+            <ul><li><a href='http://gittip.com/nedbat'>gittip</a>&#xa0;&#xb7; </li><li><a href='https://coinbase.com/checkouts/c2a7f9652ecc0f6bf9c240c05109305f'>bitcoin</a></li></ul></li><li>Commerce:
+            <ul class='compact'><li>&#xbb;&#xa0;<a href='http://www.amazon.com/exec/obidos/redirect-home/nedbatchelder-20'>Amazon</a></li><li>&#xbb;&#xa0;<a href='http://susansenator.com/survivalguide.html'>Susan's books</a><br><a href='http://susansenator.com/makingpeace.html'><img src='/pix/makingpeacetiny.png' alt='Making Peace With Autism' width='83' height='127' style='margin: 10px 0 0 0'></a> <a href='http://susansenator.com/dirt.html'><img src='/pix/dirttiny.png' alt='Dirt, a novel' width='86' height='125' style='margin: 10px 0 0 0'></a><!--
+                    <a href='http://susansenator.com/survivalguide.html'><img src='pix/survivalguidetiny.png' alt='Autism Mom&#39;s Survival Guide' width='86' height='121' style='margin: 10px 0 0 0'></a>
+                    --></li></ul></li><li class='inline'>More blog:
+            <ul><li><a href='/blog/tag/python.html'>python</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/art.html'>art</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2014.html'>14</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/funny.html'>funny</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/webpage.html'>web</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2013.html'>13</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/tools.html'>tools</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/parenting.html'>parenting</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2012.html'>12</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/math.html'>math</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/politics.html'>politics</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2011.html'>11</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/movies.html'>movies</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/ling.html'>language</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2010.html'>10</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/mycode.html'>my code</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/history.html'>history</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2009.html'>09</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/books.html'>books</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/type.html'>typography</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2008.html'>08</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/business.html'>business</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/autism.html'>autism</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2007.html'>07</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/howto.html'>how-to</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/coverage.html'>coverage</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2006.html'>06</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/games.html'>games</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/quick.html'>quick links</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2005.html'>05</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/science.html'>science</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/windows.html'>windows</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2004.html'>04</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/friendfam.html'>friends & family</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/work.html'>work</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2003.html'>03</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/online.html'>online</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/photos.html'>photos</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2002.html'>02</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/crafts.html'>crafts</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/music.html'>music</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tags.html'><i>all tags</i></a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archiveall.html'><b><i>everything!</i></b></a></li></ul></li><li><a
+                href='/blog/rss.xml'
+                type='application/rss+xml'
+                style='
+                    padding: 0 .4em;
+                    background: #F60;
+                    color: white;
+                    border: 1px solid;
+                    border-color: #FC9 #630 #330 #F96;
+                    font-weight: bold;
+                    text-decoration: none;
+                    '
+                >RSS</a></li></ul></div>
+
+</div></td></tr><tr><td id='copyright' colspan='2'><p class='copyright'><a rel='copyright license' href='/site/legal.html'>
+                            &#xa9; Copyright
+                            
+                                2013,
+                            
+                            Ned Batchelder
+                        </a></p></td></tr></table></body></html>

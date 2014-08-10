@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Understanding Python by breaking it - Hakril's blog</title>
+
+
+        <link media="screen" type="text/css" href="/medias/css/main.css" rel="stylesheet" />
+        <link media="screen" type="text/css" href="/medias/css/pygments.css" rel="stylesheet" />
+
+        
+
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="http://blog.hakril.net/rssfeed.xml" />
+    </head>
+    <body>
+
+<div id="header">
+    <a href="/"><h1>Hakril's blog</h1></a>
+    
+</div>
+
+<div id="main_body">
+    <ul id="menu">
+        
+        
+        <li><p><strong>About me:</strong>  </p>
+<p>Highly interested in security, low level and python. I enjoy understanding how things works and put them out of their normal operation.  </p>
+<p><br/></p>
+<p><strong>Infos:</strong></p>
+<ul>
+<li><a href="http://twitter.com/hakril">@hakril</a></li>
+<li><a href="https://bitbucket.org/Hakril/">bitbucket</a></li>
+</ul>
+<p><a href="/rssfeed.xml" class="rss">RSS Feed</a></p></li>
+        
+
+        
+        <li><div id="categories"><strong>Categories</strong>
+            <ul>
+                
+                <li><a href="/cat/python/index.html">python</a>
+                    
+                </li>
+                
+            </ul>
+        </div></li>
+
+        
+        <li><div id="authors"><strong>Authors</strong>
+            <ul>
+                
+                <li><div class="author_menu_link"><a class="author_mail" href="mailto:hakril42@gmail.com">&#9993;</a><a class="author_link" href="/authors/hakril/index.html">
+        Hakril
+    </a>
+    <div class="cleaner" />
+</div></li>
+                
+            </ul>
+        </div></li>
+    </ul>
+
+    <ul id="articles">
+    
+    
+
+<li id="0">
+    <a href="/articles/0-understanding-python-by-breaking-it.html"><h1>Understanding Python by breaking it</h1></a>
+    <div class="infos"><p>Written by <a href="/authors/hakril/index.html">Hakril</a><br/>2014-03-27 16:57:42</p></div>
+    <p><p>I have recently discovered <code>ctypes</code> and decided to use it to manipulate Python in a way I should not.
+The purpose was to see some of the <em>Python's internals</em> at work directly from the interpreter.<br />
+The article studies to the <code>CPython</code> implementation of Python 2.7.</p>
+<h2>Reference counting and the Garbage Collector</h2>
+<p>One thing to know about Python is that its Garbage Collector uses
+reference counting. It means that every Python object has a <em>ref counter</em> that knows how many references are pointing to the object.<br />
+Our first goal is to visualise that <em>ref counter</em> for any object from the Python interpreter.</p>
+<p>The principal tool we are going to use is:  </p>
+<ul>
+<li><strong><code>ctypes._CData.from_address</code></strong> that allows us to create a <code>ctypes</code> mapping on any address we want:  </li>
+</ul>
+<p>Example (a bad one)</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span class="kn">import</span> <span class="nn">ctypes</span>
+<span class="n">ctypes</span><span class="o">.</span><span class="n">c_size_t</span><span class="o">.</span><span class="n">from_address</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="c"># segfault! (to dereference 0 is not a good idea)</span>
+</pre></div>
+</td></tr></table>
+
+<p>So we now have the ability to read any value in our address space. Next step is to get an object's address. For that, we will use a builtin function:</p>
+<ul>
+<li><em><code>id()</code></em> : returns the âidentityâ of an object. This is an integer (or long integer) which is guaranteed to be unique and constant for this object during its lifetime.<br />
+<strong> <code>CPython</code> implementation detail</strong>: This is the address of the object in memory.</li>
+</ul>
+<p>All we need to do now is to get the offset of the <em>ref counter</em> in the Python object:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="codehilite"><pre><span class="cm">/** My own comments begin by &#39;**&#39; **/</span>
+<span class="cm">/** From: Includes/object.h **/</span>
+
+<span class="k">typedef</span> <span class="k">struct</span> <span class="n">_object</span> <span class="p">{</span>
+    <span class="n">PyObject_HEAD</span>
+<span class="p">}</span> <span class="n">PyObject</span><span class="p">;</span>
+
+<span class="cm">/* PyObject_HEAD defines the initial segment of every PyObject. */</span>
+<span class="cp">#define PyObject_HEAD    \</span>
+<span class="cp">    _PyObject_HEAD_EXTRA   </span><span class="cm">/** empty in standard build **/</span><span class="cp"> \</span>
+<span class="cp">    Py_ssize_t ob_refcnt;  </span><span class="cm">/**ref counter **/</span><span class="cp"> \</span>
+<span class="cp">    struct _typeobject *ob_type; </span><span class="cm">/** pointer to the type **/</span><span class="cp"></span>
+</pre></div>
+</td></tr></table>
+
+<p>We can see that <code>ob_refcnt</code> is the first field of the struct, and therefore
+<code>addr(ob_refcnt) == addr(object) == id(object)</code>.</p>
+<p>So our function will simply be :</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span class="k">def</span> <span class="nf">get_ref</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; returns a c_size_t, which is the refcount of obj &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_size_t</span><span class="o">.</span><span class="n">from_address</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+</pre></div>
+</td></tr></table>
+
+<p>Let's try it!</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27</pre></div></td><td class="code"><div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">ctypes</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">def</span> <span class="nf">get_ref</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<span class="o">...</span>     <span class="s">&quot;&quot;&quot; returns a c_size_t, which is the refcount of obj &quot;&quot;&quot;</span>
+<span class="o">...</span>     <span class="k">return</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_size_t</span><span class="o">.</span><span class="n">from_address</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+<span class="o">...</span>
+<span class="c"># the c_ulong is not a copy of the address</span>
+<span class="c"># so any modification of the ob_refcnt are directly visible</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l_ref</span> <span class="o">=</span> <span class="n">get_ref</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l_ref</span> 
+<span class="n">c_ulong</span><span class="p">(</span><span class="il">1L</span><span class="p">)</span> <span class="c"># there is just one reference on the list (l)</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l2</span> <span class="o">=</span> <span class="n">l</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l_ref</span> 
+<span class="n">c_ulong</span><span class="p">(</span><span class="il">2L</span><span class="p">)</span><span class="c"># two references on the list (l and l2)</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="k">del</span> <span class="n">l</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l_ref</span>
+<span class="n">c_ulong</span><span class="p">(</span><span class="il">1L</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="k">del</span> <span class="n">l2</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l_ref</span>
+<span class="n">c_ulong</span><span class="p">(</span><span class="il">0L</span><span class="p">)</span> <span class="c"># no more reference!</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">another_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l_ref</span>
+<span class="n">c_ulong</span><span class="p">(</span><span class="il">1L</span><span class="p">)</span> <span class="c"># woot : old list&#39;s ob_refcnt have changed</span>
+</pre></div>
+</td></tr></table>
+
+<p>This example is pretty straightforward, but the last two lines need an explanations. 
+Why would creating a new list change the <em>ref counting</em> of the old one ? <br />
+This is the work of the Garbage Collector! When the <code>old_list</code> <em>ref count</em> go to 0, the GC "cleans" the list and put it in a pool of unused lists that  will be used the next list to be created!  </p>
+<p>Proof: </p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">l1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l2</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">hex</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">l1</span><span class="p">))</span>
+<span class="s">&#39;0xa367e8&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">hex</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">l2</span><span class="p">))</span>
+<span class="s">&#39;0xa36d40&#39;</span>  <span class="c"># not the same address as l1 (hopefully)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">del</span> <span class="n">l1</span>  <span class="c"># l1 is garbage collected</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l3</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">hex</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">l3</span><span class="p">))</span>
+<span class="s">&#39;0xa367e8&#39;</span>  <span class="c"># l1 address is reused for the new list l3</span>
+</pre></div>
+</td></tr></table>
+
+<h3>Special case : <code>int</code> and <code>str</code></h3>
+<p>In the <code>CPython</code> implementation of <code>int</code>, the references to <code>[-5 ; 256]</code> are shared.
+And we have the tools to verify that!  </p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</pre></div></td><td class="code"><div class="codehilite"><pre><span class="c"># with &quot;non-shared&quot; int</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x1</span> <span class="o">=</span> <span class="mi">257</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x2</span> <span class="o">=</span> <span class="mi">257</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">get_ref</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
+<span class="n">c_ulong</span><span class="p">(</span><span class="il">1L</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">get_ref</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span>
+<span class="n">c_ulong</span><span class="p">(</span><span class="il">1L</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">id</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">id</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span>
+<span class="bp">False</span>  <span class="c"># logic : differents objects</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x3</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">get_ref</span><span class="p">(</span><span class="n">x3</span><span class="p">)</span>
+<span class="n">c_ulong</span><span class="p">(</span><span class="il">409L</span><span class="p">)</span> <span class="c">#  all ref to &quot;0&quot; point the the same &quot;int(0)&quot; object</span>
+</pre></div>
+</td></tr></table>
+
+<p>Same thing happens with strings!</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">p</span> <span class="o">=</span> <span class="s">&quot;python&quot;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">get_ref</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<span class="n">c_ulong</span><span class="p">(</span><span class="il">8L</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">p2</span> <span class="o">=</span> <span class="s">&quot;python&quot;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">get_ref</span><span class="p">(</span><span class="n">p2</span><span class="p">)</span>
+<span class="n">c_ulong</span><span class="p">(</span><span class="il">9L</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">id</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="nb">id</span><span class="p">(</span><span class="n">p2</span><span class="p">)</span>
+<span class="bp">True</span>  <span class="c"># the two variables are references to the same string object!</span>
+</pre></div>
+</td></tr></table>
+
+<h3>Breaking reference counter</h3>
+<p>For now, we have just read the value of <code>ob_refcnt</code>. What if we change it ?<br />
+We can rewrite <code>ob_refcnt</code> to force a premature garbage collection!</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x_ref</span> <span class="o">=</span> <span class="n">get_ref</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">xx</span> <span class="o">=</span> <span class="n">x</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x_ref</span>
+<span class="n">c_ulong</span><span class="p">(</span><span class="il">2L</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x_ref</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span> <span class="c"># GC now thinks that we have just one reference to the list</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">del</span> <span class="n">xx</span> <span class="c"># ob_refcnt == 0 -&gt; garbage collection!</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x</span>
+<span class="p">[]</span> <span class="c"># garbage collection of a list sets its size to 0</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">another_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">15</span> <span class="p">,</span><span class="mi">16</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">42</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">15</span> <span class="p">,</span><span class="mi">16</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">42</span><span class="p">]</span>  <span class="c"># always the same &quot;reuse list&quot; tricks!</span>
+</pre></div>
+</td></tr></table>
+
+<p>Of course: this kind of code put the interpreter into an unstable state that will likeky cause crashes!</p>
+<h2>Messing with tuple</h2>
+<p>Other fun and simple things to mess with, are tuples.
+The documentation says "<em><code>tuple</code> is an immutable sequence type</em>" : let's try to change this!  </p>
+<p>If you look at the <code>CPython</code> implementation you can find:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="codehilite"><pre><span class="cm">/** From: Includes/tupleobject.h **/</span>
+<span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">PyObject_VAR_HEAD</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">ob_item</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span> <span class="cm">/** An array of pointer to PyObject **/</span>
+<span class="p">}</span> <span class="n">PyTupleObject</span><span class="p">;</span>
+
+<span class="cm">/** From: Includes/object.h **/</span>
+<span class="cp">#define PyObject_VAR_HEAD     \</span>
+<span class="cp">    PyObject_HEAD    </span><span class="cm">/** See: part 1 **/</span><span class="cp"> \</span>
+<span class="cp">    Py_ssize_t ob_size; </span><span class="cm">/* Number of items in variable part */</span><span class="cp"></span>
+</pre></div>
+</td></tr></table>
+
+<p>So the two importants things about tuples are:</p>
+<ul>
+<li>a tuple is basically just an array of pointers to <code>PyObject</code> and,</li>
+<li>a tuple object is composed of three <code>size_t</code> (<code>ref_count</code>, <code>ob_type</code>, <code>ob_size</code>) and the array of pointers.</li>
+</ul>
+<p>Based on that and the <code>memmove</code> implementation in <code>ctypes</code> we can build a <code>tuplecopy</code> function:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="codehilite"><pre><span class="k">def</span> <span class="nf">tuplecpy</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">begin_offset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">       Of course this function should NEVER be used in real code</span>
+<span class="sd">       It  will probably result in segfaults/crashes</span>
+<span class="sd">       - copy tuple(src) to dst[begin_offset:] tuple</span>
+<span class="sd">       - remember id(x) -&gt; addressof(x)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">OFFSET</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">sizeof</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_size_t</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span>
+    <span class="n">PTR_SIZE</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">sizeof</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_size_t</span><span class="p">)</span>
+    <span class="n">dst_addr</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span> <span class="o">+</span> <span class="n">OFFSET</span> <span class="o">+</span> <span class="n">PTR_SIZE</span> <span class="o">*</span> <span class="n">begin_offset</span>
+    <span class="n">src_addr</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="o">+</span> <span class="n">OFFSET</span>
+    <span class="n">ctypes</span><span class="o">.</span><span class="n">memmove</span><span class="p">(</span><span class="n">dst_addr</span><span class="p">,</span> <span class="n">src_addr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="o">*</span> <span class="n">PTR_SIZE</span><span class="p">)</span>
+</pre></div>
+</td></tr></table>
+
+<p>Let's try this new toy!</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">x1</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="s">&quot;A&quot;</span> <span class="o">*</span> <span class="mi">4</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x2</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="s">&quot;B&quot;</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="p">(</span><span class="s">&quot;BEFORE -&gt; x1 = {0} | x2  = {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">tuplecpy</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="p">(</span><span class="s">&quot;AFTER  -&gt; x1 = {0} | x2  = {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">))</span>
+
+<span class="c">#Result:</span>
+<span class="c">#    BEFORE -&gt; x1 = (&#39;A&#39;, &#39;A&#39;, &#39;A&#39;, &#39;A&#39;) | x2  = (&#39;B&#39;, &#39;B&#39;)</span>
+<span class="c">#    AFTER  -&gt; x1 = (&#39;A&#39;, &#39;A&#39;, &#39;B&#39;, &#39;B&#39;) | x2  = (&#39;B&#39;, &#39;B&#39;)</span>
+</pre></div>
+</td></tr></table>
+
+<p>It works! but why is this foundamentally bad (besides the fact of modifying tuples)?<br />
+The answer is in the first section: we have created new references to multiple objects (the ones in the src tuple) without any update of their <em>ref count</em> </p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">x1</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="s">&quot;B&quot;</span> <span class="o">*</span> <span class="mi">4</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x2</span> <span class="o">=</span> <span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],)</span>
+
+<span class="c"># problem is : </span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">t</span> <span class="o">=</span> <span class="n">get_ref</span><span class="p">(</span><span class="n">x2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">t</span>
+<span class="n">c_ulong</span><span class="p">(</span><span class="il">1L</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">del</span> <span class="n">x2</span> <span class="c"># no more references</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x1</span>
+<span class="p">(</span><span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">refcnt</span> <span class="mi">0</span> <span class="n">at</span> <span class="mh">0xacac68</span><span class="o">&gt;</span><span class="p">)</span>  <span class="c"># nice printing of an object with ob_refcnt == 0 :)</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">69</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x1</span> <span class="c"># GC IN ACTION \o/</span>
+<span class="p">(</span><span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">69</span><span class="p">])</span> <span class="c"># Same principle as before</span>
+</pre></div>
+</td></tr></table>
+
+<p>We can just fix our function so that it updates the reference counter! (but it doesn't mean that we should now use this function in real code..)</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="codehilite"><pre><span class="k">def</span> <span class="nf">tuplecpy</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">begin_offset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">       Of course this function should NEVER be used in real code</span>
+<span class="sd">       It  will probably result in segfaults/crashes</span>
+<span class="sd">       - copy tuple(src) to dst[begin_offset:] tuple</span>
+<span class="sd">       - remember id(x) -&gt; addressof(x)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">OFFSET</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">sizeof</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_size_t</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span>
+    <span class="n">PTR_SIZE</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">sizeof</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_size_t</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">src</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">get_ref</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="mi">1</span> <span class="c"># manually update ob_refcnt</span>
+    <span class="n">dst_addr</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span> <span class="o">+</span> <span class="n">OFFSET</span> <span class="o">+</span> <span class="n">PTR_SIZE</span> <span class="o">*</span> <span class="n">begin_offset</span>
+    <span class="n">src_addr</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="o">+</span> <span class="n">OFFSET</span>
+    <span class="n">ctypes</span><span class="o">.</span><span class="n">memmove</span><span class="p">(</span><span class="n">dst_addr</span><span class="p">,</span> <span class="n">src_addr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="o">*</span> <span class="n">PTR_SIZE</span><span class="p">)</span>
+</pre></div>
+</td></tr></table>
+
+<h2>Diving into function and code objects.</h2>
+<p>Now that we can modify tuple, we are going to see the impact of modifying some important tuples in function objects and code objects</p>
+<h3>Code object</h3>
+<p>As explained in the documentation : "<em>Code objects represent byte-compiled executable Python code</em>"</p>
+<p>In Python 2 code objects are in the <code>func_code</code> variable of function objects.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</pre></div></td><td class="code"><div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">dis</span>  <span class="c"># bytecode disassembler module</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">def</span> <span class="nf">time_2</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="o">...</span>     <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span>
+<span class="o">...</span> 
+<span class="o">&gt;&gt;&gt;</span> <span class="n">time_2</span><span class="o">.</span><span class="n">func_code</span>
+<span class="o">&lt;</span><span class="n">code</span> <span class="nb">object</span> <span class="n">time_2</span> <span class="n">at</span> <span class="mh">0x9ee230</span><span class="p">,</span> <span class="nb">file</span> <span class="s">&quot;&lt;stdin&gt;&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">1</span><span class="o">&gt;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">time_2</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="mi">8</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">dis</span><span class="o">.</span><span class="n">dis</span><span class="p">(</span><span class="n">time_2</span><span class="p">)</span>
+          <span class="mi">0</span> <span class="n">LOAD_CONST</span>               <span class="mi">1</span> <span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+          <span class="mi">3</span> <span class="n">LOAD_FAST</span>                <span class="mi">0</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span>
+          <span class="mi">6</span> <span class="n">BINARY_MULTIPLY</span>
+          <span class="mi">7</span> <span class="n">RETURN_VALUE</span>
+</pre></div>
+</td></tr></table>
+
+<p>If we look at the disassembly of the function (which is pretty easy to read), we can see that the function:</p>
+<ul>
+<li><code>LOAD</code> the constant <code>(2)</code>,</li>
+<li><code>LOAD</code> the variable <code>(x)</code>,</li>
+<li><code>MULTIPLY</code> the two values,</li>
+<li><code>RETURN</code> the result.</li>
+</ul>
+<p>If we focus on the first instruction (<code>LOAD_CONST</code>) we can see the following things:</p>
+<ul>
+<li><code>LOAD_CONST</code> is <em>called</em> with an argument <code>1</code></li>
+<li>that argument points to the const <code>2</code></li>
+</ul>
+<p>The fact is that <code>1</code> is just an offset into the code object's constants tuple.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">time_2</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_consts</span>  <span class="c"># tuple of constants of our code object</span>
+<span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">time_2</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_consts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="mi">2</span> <span class="c"># yep we were right!</span>
+<span class="c"># So what if we change this value ?</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">tuplecpy</span><span class="p">(</span><span class="n">time_2</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_consts</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,),</span> <span class="mi">1</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">time_2</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_consts</span> <span class="c"># tuple of constants of our code object</span>
+<span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">time_2</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="mi">40</span> <span class="c"># woot! It works!</span>
+</pre></div>
+</td></tr></table>
+
+<p>So we are able to modify the constant used in the function.<br />
+Can we do the same for the <code>LOAD_FAST</code> instruction ?</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17</pre></div></td><td class="code"><div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">time_2</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="c"># works on the modified function!</span>
+<span class="mi">40</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">time_2</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="c"># call by dict</span>
+<span class="mi">40</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">time_2</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_varnames</span> <span class="c"># tuple of local variables and argnames</span>
+<span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">tuplecpy</span><span class="p">(</span><span class="n">time_2</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_varnames</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;new_arg_name&#39;</span><span class="p">,),</span> <span class="mi">0</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">time_2</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="c"># x is not the argument name anymore!</span>
+<span class="ne">TypeError</span><span class="p">:</span> <span class="n">time_2</span><span class="p">()</span> <span class="n">got</span> <span class="n">an</span> <span class="n">unexpected</span> <span class="n">keyword</span> <span class="n">argument</span> <span class="s">&#39;x&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">time_2</span><span class="p">(</span><span class="n">new_arg_name</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="mi">40</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">dis</span><span class="o">.</span><span class="n">dis</span><span class="p">(</span><span class="n">time_2</span><span class="p">)</span> <span class="c"># see the function changes:</span>
+          <span class="mi">0</span> <span class="n">LOAD_CONST</span>               <span class="mi">1</span> <span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="c"># const changed</span>
+          <span class="mi">3</span> <span class="n">LOAD_FAST</span>                <span class="mi">0</span> <span class="p">(</span><span class="n">new_arg_name</span><span class="p">)</span> <span class="c"># arg name changed</span>
+          <span class="mi">6</span> <span class="n">BINARY_MULTIPLY</span>
+          <span class="mi">7</span> <span class="n">RETURN_VALUE</span>
+</pre></div>
+</td></tr></table>
+
+<p>So, yeah, we have modified the behaviour of the function pretty well!<br />
+And here is a last example that I find very fun:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17</pre></div></td><td class="code"><div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="k">def</span> <span class="nf">nop</span><span class="p">():</span> <span class="k">pass</span>  <span class="c"># the function that does nothing</span>
+<span class="o">...</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">dis</span><span class="o">.</span><span class="n">dis</span><span class="p">(</span><span class="n">nop</span><span class="p">)</span>
+         <span class="mi">0</span> <span class="n">LOAD_CONST</span>               <span class="mi">0</span> <span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+         <span class="mi">3</span> <span class="n">RETURN_VALUE</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">nop</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">func_consts</span>
+<span class="p">(</span><span class="bp">None</span><span class="p">,)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">tuplecpy</span><span class="p">(</span><span class="n">nop</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">func_consts</span><span class="p">,</span> <span class="p">(</span><span class="n">l</span><span class="p">,),</span> <span class="mi">0</span><span class="p">)</span>  <span class="c"># the function will always return the same list!</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">nop</span><span class="p">()</span>
+<span class="p">[]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">nop</span><span class="p">()</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">dis</span><span class="o">.</span><span class="n">dis</span><span class="p">(</span><span class="n">nop</span><span class="p">)</span>
+         <span class="mi">0</span> <span class="n">LOAD_CONST</span>               <span class="mi">0</span> <span class="p">([</span><span class="mi">2</span><span class="p">])</span>
+         <span class="mi">3</span> <span class="n">RETURN_VALUE</span>
+</pre></div>
+</td></tr></table>
+
+<h3>Function closure!</h3>
+<p>Finally, we are going to play with closure!
+Closure appear in function generating functions. <a href="http://en.wikipedia.org/wiki/Closure_%28computer_programming%29">Wikipedia page</a></p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11</pre></div></td><td class="code"><div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="k">def</span> <span class="nf">gen_return_function</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="o">...</span>     <span class="k">def</span> <span class="nf">f</span><span class="p">():</span>
+<span class="o">...</span>         <span class="k">return</span> <span class="n">x</span>  <span class="c"># in f(): x is going to be a closure</span>
+<span class="o">...</span>     <span class="k">return</span> <span class="n">f</span>
+<span class="o">...</span> 
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ret_42</span> <span class="o">=</span> <span class="n">gen_return_function</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ret_42</span><span class="p">()</span>
+<span class="mi">42</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">dis</span><span class="o">.</span><span class="n">dis</span><span class="p">(</span><span class="n">ret_42</span><span class="p">)</span>
+          <span class="mi">0</span> <span class="n">LOAD_DEREF</span>               <span class="mi">0</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span>
+          <span class="mi">3</span> <span class="n">RETURN_VALUE</span>
+</pre></div>
+</td></tr></table>
+
+<p>This new instruction <code>LOAD_DEREF</code> is the one that handles closure. The question is: where is the closure stored?<br />
+The answer is simple : closures are in <code>ret_42.func_closure</code>. why not in the object code ? Because it allows all generated functions to share the same object code but with different closures!</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16</pre></div></td><td class="code"><div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">ret_23</span> <span class="o">=</span> <span class="n">gen_return_function</span><span class="p">(</span><span class="mi">23</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ret_42</span> <span class="o">=</span> <span class="n">gen_return_function</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ret_42</span><span class="o">.</span><span class="n">func_code</span> <span class="ow">is</span> <span class="n">ret_23</span><span class="o">.</span><span class="n">func_code</span>
+<span class="bp">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ret_42</span><span class="o">.</span><span class="n">func_closure</span>
+<span class="p">(</span><span class="o">&lt;</span><span class="n">cell</span> <span class="n">at</span> <span class="mh">0xa54398</span><span class="p">:</span> <span class="nb">int</span> <span class="nb">object</span> <span class="n">at</span> <span class="mh">0x95d748</span><span class="o">&gt;</span><span class="p">,)</span> <span class="c"># closures are always inside a cell object</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ret_42</span><span class="o">.</span><span class="n">func_closure</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cell_contents</span>
+<span class="mi">42</span>
+
+<span class="c"># We are not going to rewrite the tuple but directly the contents of the cell instead.</span>
+<span class="c"># We will still use tuplecpy but with an offset of (-1) because cell have no ob_size.</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">1337</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">tuplecpy</span><span class="p">(</span><span class="n">ret_42</span><span class="o">.</span><span class="n">func_closure</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">x</span><span class="p">,),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ret_42</span><span class="p">()</span>
+<span class="mi">1337</span> <span class="c"># closure modified :)</span>
+</pre></div>
+</td></tr></table>
+
+<p>That's all!</p>
+<h3>Conclusion</h3>
+<p>I really enjoyed messing with Python (one more time) and I hope you enjoyed it too.
+I think that this method is a good way to quickly and easily have a look at some Python's internals and how they work.  </p>
+<p>Lastly, <code>ctypes</code> is also a very powerful module to do legitimate work, and it is also capable of loading shared libraries and call C functions.
+If you have not already used <code>ctypes</code>,
+I strongly recommand you to read the <a href="http://docs.python.org/2/library/ctypes.html">ctypes Python documentation</a>, and give it a try!</p></p>
+    <div class="infos">
+        
+        <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://blog.hakril.net/articles/0-understanding-python-by-breaking-it.html" data-via="hakril" data-text="Understanding Python by breaking it - Hakril's blog">Tweet</a>
+        <script>
+            !function(d,s,id){
+                var js,fjs=d.getElementsByTagName(s)[0];
+                if(!d.getElementById(id)){
+                    js=d.createElement(s);
+                    js.id=id;
+                    js.src="//platform.twitter.com/widgets.js";
+                    fjs.parentNode.insertBefore(js,fjs);
+                    }
+                }(document,"script","twitter-wjs");
+        </script>
+        
+        <div class="comments-link">
+            <a href="/articles/0-understanding-python-by-breaking-it.html">Permalink & comments</a>
+        </div>
+    </div>
+
+    
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'hakril';
+        var disqus_identifier = '0';
+        var disqus_url = 'http://blog.hakril.net/articles/0-understanding-python-by-breaking-it.html';
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+</li>
+
+
+    
+    </ul>
+
+    <div class="cleaner"></div>
+</div>
+
+<p id="footer">
+    
+    <a href="/rssfeed.xml">RSS Feed</a>
+</p>
+    </body>
+</html>

@@ -1,0 +1,125 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Alex Gaynor -- My experience with the computer language shootout</title>
+        <link rel="stylesheet" href="/site_media/static/css/reset.css" />
+        <link rel="stylesheet" href="/site_media/static/css/style.css" />
+        <link rel="alternate" type="application/rss+xml" title="Alex Gaynor's blago-blog RSS" href="/feeds/latest/" />
+        
+        
+    </head>
+    <body>
+        <div id="container">
+            <header>
+                <hgroup>
+                    <form action="/search/" method="get">
+                        <input type="search" class="right" id="search_field" name="q" value="search" />
+                    </form>
+                    <h1><a href="/">alex gaynor's blago-blog</a></h1>
+                    <ul id="nav">
+                        <li>
+                            <a href="/">home</a>
+                        </li>
+                        <li>
+                            <a href="/quotes/">quotes</a>
+                        </li>
+                        <li>
+                            <a href="/about/">about</a>
+                        </li>
+                        <li>
+                            <a href="/contact/">contact</a>
+                        </li>
+                    </ul>
+                </hgroup>
+            </header>
+            <div>
+                
+    <section>
+        <h1>My experience with the computer language shootout</h1>
+        <small>Posted April 3rd, 2011.</small>
+        <p>
+            <p>For a long time we, the <a class="reference external" href="http://pypy.org/">PyPy</a> developers, have known the Python implementations on the <a class="reference external" href="http://shootout.alioth.debian.org/">Computer Language Shootout</a> were not optimal under PyPy, and in fact had been ruthlessly microoptimized for CPython, to the detriment of PyPy.  But we didn't really care or do anything about it, because we figured those weren't really representative of what people like to do with Python, and who really cares what it says, CPython is over 30 times slower than C, and people use it just the same.  However, I've recently have a number of discussions about language implementation speed and people tend to cite the language shootout as the definitive source for cross-language comparisons.  So I decided to see what I could do about making it faster.</p>
+<p>The first benchmark I took a stab at was <a class="reference external" href="http://shootout.alioth.debian.org/u32/benchmark.php?test=revcomp&amp;lang=pypy">reverse-complement</a>, PyPy was doing crappily on it, and it was super obviously optimized for CPython: every loop possible was pushed down into functions known to be implemented in C, various memory allocation tricks are played (e.g. <tt class="docutils literal">del <span class="pre">some_list[:]</span></tt> removes the contents of the list, but doesn't deallocate the memory), and bound method allocation is pulled out of loops.  The first one is the most important for PyPy, on PyPy your objective is generally to make sure your hot loops are in Python, the exact opposite of what you want on CPython.  So I started coding up my own version, optimized for PyPy, I spent some time with our debugging and profiling tools, and whipped up a nice implementation that was something like 3x faster than the current one on PyPy, which you can see <a class="reference external" href="http://paste.pocoo.org/show/364978/">here</a>.  Generally the objective here was to make sure the program does as little memory allocation in the hot loops as possible, all of which are in Python.  Try that with your average interpreter.</p>
+<p>So I went ahead and submitted it, thinking PyPy would be looking 3 times better when I woke up.  Naturally I wake up to an email from the shootout, which says that I should provide a Python 3 implementation, and that it doesn't work on CPython.  What the hell?  I try to run it myself and indeed it doesn't.  It turns out on CPython <tt class="docutils literal"><span class="pre">sys.stdout.write(buffer(array.array(&quot;c&quot;),</span> 0, idx))</tt> raises an exception.  Which is a tad unfortunate because it should be an easy way to print out part of an array of characters without needing to allocate memory.  After speaking with some CPython core developers, it appears that it is indeed a bug in CPython.  And I noticed on PyPy <tt class="docutils literal">buffer</tt> objects aren't nearly as efficient as they should be, so I set out in search of a new way to work on CPython and PyPy, and be faster if possible.  I happened to stuble across the method <tt class="docutils literal">array.buffer_info</tt> which returns a tuple of the memory address of the array's internal storage and its length, and a brilliant hack occurred to me: use <tt class="docutils literal">ctypes</tt> to call libc's <tt class="docutils literal">write()</tt> function.  I coded it up, and indeed it worked on PyPy and CPython and was 40% faster on PyPy to boot.  Fantastic I thought, I'll just submit this and PyPy will look rocking!  Only 3.5x slower than C, not bad for an interpreter, in a language that is notoriously hard to optimize.  You can see the implementation <a class="reference external" href="http://paste.pocoo.org/show/364987/">right here</a>, it contains a few other performance tricks as well, but nothing too exciting.</p>
+<p>So I submitted this, thinking, &quot;Aha!  I've done it&quot;.  Shortly, I had an email saying this has been accepted as an &quot;interesting alternative&quot; because it used <tt class="docutils literal">ctypes</tt>, which is to say it won't be included in the cumulative timings for each implementation, nor will it be listed with the normal implementations for the per-benchmark scores.  Well crap, that's no good, the whole point of this was to look good, what's the point if no one is going to see this glorious work.  So I sent a message asking why this implementation was considered alternative, since it appeared fairly legitimate.  I received a confusing message questioning why this optimization was necessary, followed by a suggestion that perhaps PyPy wasn't compatible enough with (with what I dare not ask, but the answer obviously isn't Python the abstract language, since CPython had the bug!).</p>
+<p>Overall it was a pretty crappy experience.  The language shootout appears to be governed by arbitrary rules.  For example the C implementations use GCC builtins, which are not part of the C standard, making them not implementation portable.  The CPython pidigits version uses a C extension which is obviously not implementation portable (by comparison every major Python implementation includes <tt class="docutils literal">ctypes</tt>, only CPython, and to varying extents IronPython and PyPy, support the <strong>CPython</strong> C-API), although here PyPy was allowed to use <tt class="docutils literal">ctypes</tt>.  It's also not possible to send any messages once your ticket has been marked as closed, meaning to dispute a decision you basically need to pray the maintainer reopens it for some reason.  The full back and forth <a class="reference external" href="https://alioth.debian.org/tracker/?func=detail&amp;atid=413100&amp;aid=313063&amp;group_id=30402">is available here</a>.  I'm still interested in improving the PyPy submissions there (and further optimizing PyPy where needed).  However given the seemingly capricious and painful submission process I'm not really inclined to continue work, nor can I take the shootout seriously as an honest comparison of languages.</p>
+
+            <script type="text/javascript" src="http://www.reddit.com/button.js?t=1"></script>
+            <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="alex_gaynor">Tweet</a>
+            <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+        </p>
+        
+            
+                <small>
+                        This entry was tagged with
+                        
+                            <a href="/tags/pypy/">pypy</a>, 
+                        
+                            <a href="/tags/programming/">programming</a>, 
+                        
+                            <a href="/tags/python/">python</a>, 
+                        
+                            <a href="/tags/programming-languages/">programming-languages</a>.
+                        
+                </small>
+            
+        
+        
+        <div id="disqus_thread"></div>
+<script type="text/javascript">
+/* <![CDATA[ */
+
+	var disqus_shortname = 'alexgaynor';
+
+
+	/* * * DON'T EDIT BELOW THIS LINE * * */
+	(function() {
+		var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+		dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+	})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </section>
+
+            </div>
+            <footer>
+                <p>
+                    Copyright 2009-2014 Alex Gaynor.  Hosted by the <a href="http://oebfare.com/">Steward of Gondor</a>.
+                    <a href="http://www.djangoproject.com/">
+                        <img src="http://media.djangoproject.com/img/badges/djangojoint107x25.gif" />
+                    </a>
+                </p>
+            </footer>
+        </div>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.0/jquery.min.js"></script>
+        <script>
+            $(function() {
+                $("#search_field").focus(function() {
+                    if ($(this).val() == "search") {
+                        $(this).val("");
+                    }
+                }).blur(function() {
+                    if ($(this).val() == "") {
+                        $(this).val("search");
+                    }
+                });
+            });
+        </script>
+        <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+        </script>
+        <script type="text/javascript">
+            try {
+            var pageTracker = _gat._getTracker("UA-1735273-7");
+            pageTracker._trackPageview();
+            } catch(err) {}
+        </script>
+    </body>
+</html>

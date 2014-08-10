@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <style>
+        @import url("/stylesheets/site.css")
+      </style>
+      <style>
+        @import url("/stylesheets/pygments.css")
+      </style>
+      
+      <title>Bioinformatics and Interface Design</title>
+      <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-548051-4']);
+        _gaq.push(['_setDomainName', 'vincebuffalo.org']);
+        _gaq.push(['_setAllowLinker', true]);
+        _gaq.push(['_trackPageview']);
+        
+        (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+        
+      </script>
+    </head>
+    <body>
+
+      <div id="main-link">
+        <a href="/" title="main page">a digital notebook</a>
+      </div>
+
+      <!--post-->
+      <div id="post">
+        <h1 id="bioinformatics_and_interface_design">Bioinformatics and Interface Design</h1>
+
+<p>Day to day bioinformatics involves interfacing and executing many programs to process data. We end up with some refinement of the data from which we extract biological meaning through data analysis. Given how much interfacing bioinformatics involves, this process undergoes very little thought or design optimization.</p>
+
+<p>Much more attention is needed on the design of interfaces in bioinformatics, to improve their ease of use, robustness, and scalability. Interfacing is a low-level problem that we shouldnât be wasting time on when there are much better high-level problems out there.</p>
+
+<p>More bluntly, interfacing is currently an inconvenient glue that full time bioinformaticians waste too many hours on. There is no better illustration of this than by looking at how much time we waste in file parsing tasks. Parsers are most commonly employed in bioinformatics as crappy interfaces to non-standard formats. We need better designed interfaces and cleaner interface patterns to help.</p>
+
+<p>Iâm hardly the only one to complain about this. Fred Ross had this <a href="http://madhadron.com/?p=227">sadly accurate description</a>:</p>
+
+<blockquote>
+<p>Estimating from my own experience and observation of my colleagues, most bioinformaticists today spend between 90% and 100% of their time stuck in cruft. Methods are chosen because the file formats are compatible, not because of any underlying suitability. Second, algorithms vanish from the fieldâ¦. Iâm worried about the number of bioinformaticists who donât understand the difference between an O(n) and an O(n^2) algorithm, and donât realize that it matters.</p>
+</blockquote>
+
+<p>Heâs <a href="http://madhadron.com/?p=263">parting with bioinformatics</a>, leaving our field with one less person to fix things. However, if practices are suboptimal and frustrating now, itâs not because people are unprepared to implement better approaches, itâs because theyâre content with the status quo because it does work. But, as Iâll argue, we shouldnât be wasting our time on this and much more elegant solutions exist.</p>
+
+<h2 id="the_current_interfacing_practice_and_its_paradigm">The Current Interfacing Practice and its Paradigm</h2>
+
+<p>The current practice is characterized by system calls from a scripting language to execute larger bioinformatics programs, parse any output files created, and repeat. In my mind, I see this as a paradigm in which <a href="http://en.wikipedia.org/wiki/State_(computer_science">state</a>) is stored on the file system, and execution is achieved by passing a stringified set of command-line arguments to a system call.</p>
+
+<p>This practice and paradigm has been the standard for bioinformatics for ages. Itâs clunky and inelegant, but it works for routine bioinformatics tasks. However, the current practice isnât well suited for large, embarrassingly parallel tasks that will grow increasingly common as the number of samples increases in genomics projects. Portability of these pipelines is usually terrible, and involves awkward tasks like ensuring all called programs are in a userâs <code>$PATH</code> (good luck with version differences too). Program state is stored on the disk, the <a href="http://www.eecs.berkeley.edu/~rcs/research/interactive_latency.html">slowest component</a> apart from the network. Hereâs a better look at how to <a href="http://i.imgur.com/X1Hi1.gif">really understand how costly storing state on a disk can be (zoom into this image)</a>.</p>
+
+<p>Storing state on a slow, highly-mutable, non-concurrent component is only acceptable if itâs too big to store in memory. Bioinformatics certainly has tasks that produce files too large to store in memory. However, if a user had a task with little memory overhead, the complete lack of interfaces other than the command-line to all aligners, mappers, assemblers, etc would require the user to write to the disk. If theyâre clever, they can invoke a subprocess from a script and capture standard out, but then theyâre back to parsing text as a sloppy interface, rather than handling higher-level models or objects. This needs to change.</p>
+
+<p>While Iâm maybe being a little harsh on the current paradigm, I should say some parts are elegant. Unix piping is extremely elegant, and avoids any latency due to writing to the disk between execution steps. Workflows like this example from the samtools mpileup <a href="http://samtools.sourceforge.net/mpileup.shtml">man page</a> are clear and powerful:</p>
+
+<pre><code>samtools mpileup -uf ref.fa aln1.bam aln2.bam | bcftools view -bvcg - &gt; var.raw.bcf  
+bcftools view var.raw.bcf | vcfutils.pl varFilter -D100 &gt; var.flt.vcf  </code></pre>
+
+<p>The real drawback of the current system occurs when a user wants to leverage the larger command-line programs for something novel. Most aligners assume you want to align a few sequences, output the results, and then stop. A user that wants an aligner to align a few sequences, and then proceed down different paths depending on the output has the hassle of writing the sequences to a FASTA file or serializing the sequences in the FASTA format, invoking a subprocess, and then either passing it a filename, or (if the tool supports this), passing the serialized string to the subprocess through standard in. If the command-line tool has overheard for starting up, this is incurred during each subprocess call (even if it could be shared and the overhead amortized across subprocess calls).</p>
+
+<h2 id="file_formats_and_interfacing">File Formats and Interfacing</h2>
+
+<p>To make matters worse, many bioinformatics formats like FASTA, FASTQ, and GTF are either ill-defined or implemented differently across libraries, making them risky interface formats. In contrast, consider the elegance of Googleâs <a href="http://code.google.com/p/protobuf/">protocol buffers</a>. This allow users to write their data structures in the protocol buffer <a href="http://en.wikipedia.org/wiki/Interface_description_language">interface description language</a>, and compile interfaces for C++, Java, and Python. This is the type of high-level functionality bioinformatics needs to interface incredibly complex data structures, yet weâre still stuck in the text parsing stone age.</p>
+
+<h2 id="foreign_function_interfaces_and_shared_libraries">Foreign Function Interfaces and Shared Libraries</h2>
+
+<p>One way to avoid unnecessary clunky system calls is through foreign foreign interfaces (FFIs) to shared libraries, using thin wrappers in a userâs scripting language of choice. Large bioinformatics programs like aligners, assemblers, and mappers are most commonly written in C or C++, which allows code to be compiled as a shared library relatively painlessly.</p>
+
+<p>FFIs could solve a few problems for bioinformaticians. First, they would allow much more code recycling in low-level projects: rather than writing your own highly-optimized C FASTA/FASTQ parser, you can ejust link against a shared library with that routine. Additionally, that shared library can be separately developed and improved.</p>
+
+<p>Second, FFIs allow modularity and high-level access to low-level routines. Genome assemblers are packed to the gills with useful functions. So are aligners. Yet unless the developer took the time to separate this out via subcommands or an API (like git or samtools), youâre unlikely to ever be able to access this functionality. Developers with an eye for better program design can write higher level functions that could be utilized through a FFI. Now, novel bioinformatics tasks that may require some sequence assembly, or a few parallel calls to an aligner can be tackled without the system call rubbish, or re-implementing all the low-level algorithms.</p>
+
+<p>For higher-level functionality with FFIs and shared libraries, wrappers work beautifully. Rather than wrapping entire programs through the command line (as <a href="http://github.com/biopython/biopython/blob/master/Bio/Align/Applications/_Muscle.py">BioPython does</a>), scripting language libraries could interact more directly with low-level programs. In cases in which the current paradigm just doesnât fit, weâd have the option to avoid it by calling routines directly. Tools like samtools are very successful because they have a powerful API that allow programs like <a href="http://code.google.com/p/pysam/">pysam</a> to call their routines.</p>
+
+<p>Imagine now that you could also load adapter and quality trimmers wrappers around shared libraries. Rather than using Unix pipes or bash scripts to write quality control pipelines, and have every program in the execution chain read, parse, and then write FASTA formatted files, it could be done once, using object abstractions of data.</p>
+<div class='highlight'><pre><code class='py'>    <span class='kn'>import</span> <span class='nn'>sys</span>
+    <span class='kn'>import</span> <span class='nn'>biolib</span>
+    <span class='kn'>import</span> <span class='nn'>sickle</span>
+    <span class='kn'>import</span> <span class='nn'>scythe</span>
+    
+    <span class='k'>for</span> <span class='n'>read</span> <span class='ow'>in</span> <span class='n'>biolib</span><span class='o'>.</span><span class='n'>read_fasta</span><span class='p'>(</span><span class='nb'>open</span><span class='p'>(</span><span class='n'>sys</span><span class='o'>.</span><span class='n'>argv</span><span class='p'>[</span><span class='mi'>1</span><span class='p'>])):</span>
+        <span class='n'>read_tmd</span> <span class='o'>=</span> <span class='n'>scythe</span><span class='o'>.</span><span class='n'>trim</span><span class='p'>(</span><span class='n'>read</span><span class='o'>.</span><span class='n'>seq</span><span class='p'>,</span> <span class='n'>read</span><span class='o'>.</span><span class='n'>qual</span><span class='p'>,</span> <span class='n'>prior</span><span class='o'>=</span><span class='mf'>0.3</span><span class='p'>)</span>
+        <span class='n'>biolib</span><span class='o'>.</span><span class='n'>write_fasta</span><span class='p'>(</span><span class='n'>sickle</span><span class='o'>.</span><span class='n'>trim</span><span class='p'>(</span><span class='n'>read_tmd</span><span class='o'>.</span><span class='n'>seq</span><span class='p'>,</span> <span class='n'>read_tmd</span><span class='o'>.</span><span class='n'>qual</span><span class='p'>,</span> <span class='n'>qual</span><span class='o'>=</span><span class='mi'>20</span><span class='p'>),</span> <span class='n'>stdout</span><span class='p'>)</span>
+    
+</code></pre></div>
+<p>In this artificial example, reads could then be sent directly to aligners rather than to standard out. Working with higher-level models of data (in this case, a read) allows easier real-time debugging, statistics gathering, and parallelization. Imagine being able to put this entire block in a <code>try</code> statement, and have exceptions handled at a higher level. An error could invoke a debugger, and a bioinformatician could inspect the culprit interactively in real-time. This is impossible in the old paradigm (and weâve all spent ages using streaming tools to track down such bugs).</p>
+
+<p>Note that Iâm not arguing that your average biologist should suddenly start trying to understand <a href="http://en.wikipedia.org/wiki/Position-independent_code">position-independent code</a> and compile shared libraries to avoid making systems calls in their scripts. Sometimes a system call is the right tool for the job. But bioinformatics software developers should reach for a system call not because itâs the only interface, but because itâs the best interface for a particular task. Maybe someday weâll even see thin wrappers coming packaged <em>with</em> bioinformatics tools (even if under <code>contrib/</code> and written by other developers) â I can dream, right?</p>
+
+<h2 id="ffi_in_practice">FFI in Practice</h2>
+
+<p>Hereâs a real FFI example: I needed to assemble many sets of sequences for a pet project. I really wanted to avoid needlessly writing FASTA files of these sets of sequences to disk, as this is quite costly. However, most assemblers were designed solely to be interfaced through the command-line. The inelegance of writing thousands of files, making thousands of system calls to an assembler, then reading and parsing the results not appealing, so I wrote <a href="http://github.com/vsbuffalo/pyfermi">pyfermi</a>, a simple Python interface to <a href="http://lh3lh3.users.sourceforge.net/">Heng Liâs</a> <a href="https://github.com/lh3/fermi">Fermi assembler</a> (note that this software is experimental, so use it with caution). First off, I couldnât have done this without Hengâs excellent assembler and code, so I owe him a debt of gratitude. The Fermi source has a beautiful example of high-level functions that can be interfaced with relative ease: see the <code>fm6_api_*</code> functions used in <a href="https://github.com/lh3/fermi/blob/master/example.c">example.c</a>.</p>
+
+<p>I wrote a few extra C functions in pyfermi (mostly to deal with <code>void
+*</code> necessary because Pythonâs ctypes canât handle foreign types AFAIK), and <a href="https://github.com/vsbuffalo/pyfermi/blob/master/Makefile">compile</a> Fermi as a shared library. I was able to do all this in <em>far</em> less time than it would have taken me to go down the route of writing thousands of files, making syscalls, and handing file parsing.</p>
+
+<h2 id="the_importance_of_good_tools">The Importance of Good Tools</h2>
+
+<p>Overall, bioinformaticians need to be more conscious of the design and interfacing of our tools. I strongly believe tools and methods shape how we approach and solve problems. A data programmer only trained in Perl will likely at some point wage a messy war trying to produce decent statistical graphics. Likewise, a statistician only trained in t-tests and ANOVA, will only see normally distributed data (and apply every transformation under the sun to force their data into this shape). Iâm hardly the first person to argue that this occurs: this idea is known as the <strong>law of the instrument</strong>. Borrowing a 1964 quote from Abraham Kaplan (and <a href="http://en.wikipedia.org/wiki/Law_of_the_instrument#History">Wikipedia</a>):</p>
+
+<blockquote>
+<p>I call it the law of the instrument, and it may be formulated as follows: Give a small boy a hammer, and he will find that everything he encounters needs pounding.</p>
+</blockquote>
+
+<p>Earlier in our bioinformatics careers, weâre trained in file formats, writing scripts, and calling large programs via the command-line. This becomes a hammer, and all problems start looking like nails. However, the old practice and paradigms are breaking down as the scale of our data and the complexity of our problems increase. We need new school bioinformatics with a focus on the bigger picture, so letâs start talking about how we do it.</p>
+      </div>
+      <!--end-post-->
+      
+      <footer>
+        <p>Copyright (c) Vince Buffalo, 2012</p>
+        <p>
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/80x15.png" /></a><br />This <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" rel="dct:type">work</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>. Please notify me if you use my content or ideas.</p>
+      </footer>
+    </body>
+    </html>

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Python, Catastrophic Regular Expressions and the GIL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="author" content="Ben Frederickson">
+    
+    <link href="http://static.benfrederickson.com/bootstrap-3.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://static.benfrederickson.com/google-code-prettify/prettify.css" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" href="/atom.xml" title="RSS feed">
+    <!--[if lt IE 9]>
+      <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-29851970-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+  </head>
+  <body onload="prettyPrint()">
+
+    <div class="navbar navbar-static-top navbar-default">
+      <div class="container">
+      <div class = "row"><div class="col-lg-9">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">Ben Frederickson</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li ><a href="/about.html">About</a></li>
+            <li><a href="/atom.xml">RSS</a></li>
+            <li><a href="http://twitter.com/benfrederickson">Twitter</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+      </div></div>
+    </div>
+
+    <div class="container">
+<div class="row">
+<div class="col-lg-9">
+<div class="page-header" style="margin-top:0px">
+    <h1 style="margin-top:0px">
+        <small style="font-size:12px">09 April 2013</small>
+        <br>
+        <a href="/2013/04/09/python-catastrophic-regular-expressions-and-the-gil.html">Python, Catastrophic Regular Expressions and the GIL</a>
+    </h1>
+</div>
+
+<blockquote><p>"Some people, when confronted with a problem, think 'I know, I'll use
+regular expressions.' Now they have two problems."
+<small>Jamie Zawinski</small></p></blockquote>
+
+<p>The other day at <a href="http://zite.com">work</a> one of our python processes stopped responding. It was
+on one of our servers that was responsible for fetching and analyzing the web
+pages that we might recommend to people.</p>
+
+<p>By the time I got around to debugging this problem, the last log message was over 20 minutes old - and the server had been maxed out at 100% CPU for the whole time. And while it wasn't dead,
+it wasn't responding to any requests, or even sending out any heartbeats. Even
+worse, in the meantime this problem had repeated itself on another server. Our
+whole ability to ingest new web pages looked to be going down one server at a
+time.</p>
+
+<!--more-->
+
+
+<p>Before I killed the process, I connected up to it with
+GDB to try to get a sense of what was going on. Only one thread was active, and looking at
+the stack trace showed something like:</p>
+
+<pre class="prettyprint">
+(gdb) bt
+#0  0x0000000105c62f79 in init_sre ()
+#1  0x0000000105c64885 in init_sre ()
+#2  0x0000000105c61a75 in init_sre ()
+#3  0x0000000105c2bd77 in PyEval_EvalFrameEx ()
+</pre>
+
+
+<p>A little googling showed that it was stuck processing a regular expression, and after some more
+extended debugging I narrowed it down to a regular expression that had been recently added to handle some of our content extraction.</p>
+
+<h3>Catastrophic Backtracking</h3>
+
+<p>The regular expression that was causing the issue here was rather long and
+convoluted, but the core of the problem was that it had two levels of greedy
+matching going on.</p>
+
+<p>A really simple example of what I'm talking about would be:</p>
+
+<pre class="prettyprint">
+import re
+re.search("(a+)+b", "aaaaaaaaaaaaaaaa")
+</pre>
+
+
+<p>The problem is caused when the regular expression fails to match the string.
+It starts out greedily getting the longest possible match of the inner
+<code>(a+)</code> group here, which in this case is all 16 a's. Since it
+doesn't match the regular expression (no 'b' and the end) it backtracks to a
+group of 15 'a's and tries to match again. Since that doesn't work, it keeps
+on backtracking, trying all possible different groups of 'a's before figuring out
+that there is no possible segmentation that will match this regular
+expression.</p>
+
+<p>Since the input string can be segmented at any position, there are O( 2<sup>N</sup> )
+possible different combinations that the regular expression must try out
+before failing. On my laptop it takes about 20ms to do the search above with
+16 characters - but by doubling the input string size to 32 characters, it
+takes over 12 minutes to finish. Exponential running time really does
+suck.</p>
+
+<p>What had happened in our case was that everything worked fine on almost
+every single web page out there. But eventually a web page came along that
+triggered this type of catastrophic backtracking and the process locked up.
+Even worse was that after a couple of minutes of running this regex, our system
+retried fetching the same web page on a different server - which also promptly locked
+up.</p>
+
+<h3>Python and its GIL</h3>
+
+<p>While it totally makes sense that the thread would block given some arbitrary
+malicious input, it still doesn't explain why all the other threads were hung.</p>
+
+<p>The reason why is that python has a <a href="http://en.wikipedia.org/wiki/Global_Interpreter_Lock">Global Interpreter
+Lock</a> that only lets one
+python thread run at a time. To let other threads
+have a chance, the python interpreter releases the lock for a thread after running 100
+instructions or so. However it can only do this inside pure python code -
+extensions written in C can't have the GIL pre-empted like this since the
+python interpreter doesn't know when they'll try to access python interpreter
+variables. This isn't usually a big deal, as many C extensions release the GIL before
+doing long running operations.</p>
+
+<p>However, the regular expression module is a C module that doesn't release the
+GIL before running.</p>
+
+<p>This all means that if you have a long running regular expression, like one
+that is doing catastrophic backtracking - no other code running in another
+thread will ever get run. No heartbeats, RPC handlers - nothing. The whole
+process will simply stop responding while all the other threads wait to
+acquire the GIL from the regular expression which never releases it.</p>
+
+<h3>Dealing with catastrophe</h3>
+
+<p>There are a couple of ways to mitigate this type of problem.</p>
+
+<p>The simple answer is don't ever in any circumstance write a regular expression
+with two levels of greedy matching going on. In the above example there really
+is no reason not to write the regular expression as <code>a+b</code> instead.</p>
+
+<p>Alternatively you could switch to a regular expression engine that doesn't
+exhibit this kind of behaviour. <a href="http://code.google.com/p/re2/">RE2</a> is an excellent
+library that uses a <a href="http://en.wikipedia.org/wiki/Deterministic_finite_automaton">finite
+automata</a>
+approach to avoid this type of catastrophic backtracking. Using this library
+on the same 32 character input reduces the running time from 12 minutes to
+basically instant. The downside being that RE2 doesn't support all the
+functionality of the builtin re package.</p>
+
+<p>In the end we just fixed the code (rather than swap out libraries), and the
+only long term result was two dead python processes and a couple of hours of
+debugging.</p>
+
+<hr style="margin-bottom:5px">
+<!-- <div style="text-align:center;color:#ccc">Â§</div> -->
+
+<div style="margin:auto;text-align:left">
+<a href="https://twitter.com/benfrederickson" class="twitter-follow-button"
+data-show-count="false">Follow @benfrederickson</a>
+<script>!function(d,s,id){var
+js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document,
+'script', 'twitter-wjs');</script>
+<a href="https://twitter.com/share" class="twitter-share-button"
+data-via="benfrederickson">Tweet</a>
+<script>!function(d,s,id){var
+js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document,
+'script', 'twitter-wjs');</script>
+</div>
+
+</div>
+</div>
+
+    </div> <!-- /container -->
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+    <script src="http://static.benfrederickson.com/google-code-prettify/prettify.js"></script>
+    <script src="http://static.benfrederickson.com/bootstrap-3.0.0/js/bootstrap.min.js"></script>
+
+  </body>
+</html>

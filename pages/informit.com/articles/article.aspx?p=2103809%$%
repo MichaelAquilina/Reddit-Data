@@ -1,0 +1,698 @@
+<!DOCTYPE html><!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" xsl="http://www.w3.org/1999/XSL/Transform xmlns:fb="http://www.facebook.com/2008/fbml""><![endif]--><!--[if IE 7]><html class="no-js lt-ie9 lt-ie8" xsl="http://www.w3.org/1999/XSL/Transform xmlns:fb="http://www.facebook.com/2008/fbml""> <![endif]--><!--[if IE 8]><html class="no-js lt-ie9" xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fb="http://www.facebook.com/2008/fbml"><![endif]--><!--[if gt IE 8]><!--><html class="no-js" xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fb="http://www.facebook.com/2008/fbml"><!--<![endif]--><head><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="verify-v1" content="jKqgZt8qtZUt+IrazV2fydKUZG2KKR8QEUoYjH9tth4=" /><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>GPU Programming and Streaming Multiprocessors | 8.1. Memory | InformIT</title><link href="/display/InformIT/css/style.css?v=20140620" rel="stylesheet" type="text/css" /><link href="/display/common/css/print.css" rel="stylesheet" media="print" type="text/css" /><link rel="apple-touch-icon-precomposed" sizes="144x144" href="/display/InformIT/images/objects/touch_icons/apple-touch-icon-144x144-precomposed.png" /><link rel="apple-touch-icon-precomposed" sizes="114x114" href="/display/InformIT/images/objects/touch_icons/apple-touch-icon-114x114-precomposed.png" /><link rel="apple-touch-icon-precomposed" sizes="72x72" href="/display/InformIT/images/objects/touch_icons/apple-touch-icon-72x72-precomposed.png" /><link rel="apple-touch-icon-precomposed" href="/display/InformIT/images/objects/touch_icons/apple-touch-icon-precomposed.png" /><script language="JavaScript" src="/display/common/javascript/modernizr.custom.js?v=20140620" type="text/javascript"></script><script language="JavaScript" src="/display/common/javascript/jquery.js?v=20140620" type="text/JavaScript"></script><script language="JavaScript" src="/display/common/javascript/global.js?v=20140620" type="text/JavaScript"></script><!--[if lte IE 8]><script language="JavaScript" src="/display/common/javascript/respond.min.js" type="text/JavaScript"></script><![endif]--><script language="JavaScript" src="/display/common/javascript/swfobject.js" type="text/JavaScript"></script><script language="JavaScript" src="/display/common/javascript/jquery-ui-1.10.2.custom.min.js" type="text/JavaScript"></script><script language="JavaScript" src="/display/common/javascript/fastclick.min.js" type="text/JavaScript"></script><link rel="canonical" href="http://www.informit.com/articles/article.aspx?p=2103809" />
+			
+			<link rel="next" href="http://www.informit.com/articles/article.aspx?p=2103809&seqNum=2" />
+		
+				<meta name="pageType" content="Articles and Sample Chapters" />
+			<meta name="publishedDate" content="Aug 6, 2013" />
+				<meta name="description" content="The streaming multiprocessors (SMs) are the part of the GPU that runs CUDA kernels. This chapter focuses on the instruction set capabilities of the SM." />
+			
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+			
+		<link rel="shortcut icon" href="/display/InformIT/images/objects/favicon.ico?v=20140620" />
+        <meta name="WT.si_n" content="Site_Funnel"/>
+<meta name="WT.si_p" content="Article"/>
+<meta name="DCSext.w_ptgarctlnm" content="GPU Programming and Streaming Multiprocessors"/>
+<meta name="DCSext.w_ptgarctlpg" content="1_8.1. Memory"/>
+<meta name="WT.ad" content="Home > Articles > Programming"/>
+
+      </head><body class="r"><div class="wrapper">
+
+<div id="rContent" class="articleProduct content clearfix">
+    <script type="text/javascript" src="/display/common/javascript/waypoints.min.js"></script>
+    <script type="text/javascript" language="javascript">
+        $(document).ready(function() {    
+            $('#articleHeader').waypoint(function() {
+                $('.relatedBook.slide').slideToggle();
+                $('.relatedBookLink').slideToggle();
+            }, { offset: -300 }); 
+            $('#articleContent').waypoint(function() {
+                $('.relatedBook.slide').slideToggle();
+                $('.relatedBookLink').slideToggle();
+            }, { offset: 'bottom-in-view' });  
+                          
+            $('.relatedBookLink').on('click touchstart', function() {
+                $('.relatedBookLink').toggleClass('active');
+                $('.relatedBook.slide').toggleClass('active');
+                return false;              
+            });
+            $('.mobileClose').on('click touchstart', function() {
+                $('.relatedBookLink').toggleClass('active');
+                $('.relatedBook.slide').toggleClass('active');
+                return false;              
+            }); 
+            if (!$('.sidebar').children().is('.title, .theholder')) {
+                $('.sidebar').css('padding', '2em 1em 1em 1em');
+            }              
+        });
+    </script>
+
+<p class="crumb">
+            <a href="/">Home</a>
+            &gt;
+            <a href="/articles/index.aspx">Articles</a>
+            &gt;
+            <a href="/articles/index.aspx?st=60206">Programming</a>
+</p>
+    <div id="columnOne" class="ten columns alpha rFull">
+        <div id="articleContent" class="clearfix">
+            <div id="articleHeader" class="clearfix">
+                    <h1>GPU Programming and Streaming Multiprocessors</h1>
+                                <ul class="plainList">
+                        <li class="authorName"> By <a rel="author" href="/authors/bio/7e573ec5-16d9-4975-b547-b5a967e7fcd6">Nicholas Wilt</a></li>
+                    <li>Aug 6, 2013</li>
+                </ul>
+            </div>
+            <div class="articleTools clearfix box">
+                    <div id="articleTOC">
+                        <p>
+                            <a href="#" class="TOC"><span class="ss-icon">&#x1F4C4;</span> <span class="linkText">Contents</span></a>
+                        </p>
+                        <div id="articleTOCList" class="TOCcontent">
+                            <a class="tocClose ss-icon" href="#">&#x2421;</a>                        
+                            <ol>
+                                            <li class="currentPageInfo">
+                                                8.1. Memory
+                                            </li>
+                                            <li>
+                                                <a href="/articles/article.aspx?p=2103809&amp;seqNum=2">8.2. Integer Support</a>
+                                            </li>
+                                            <li>
+                                                <a href="/articles/article.aspx?p=2103809&amp;seqNum=3">8.3. Floating-Point Support</a>
+                                            </li>
+                                            <li>
+                                                <a href="/articles/article.aspx?p=2103809&amp;seqNum=4">8.4. Conditional Code</a>
+                                            </li>
+                                            <li>
+                                                <a href="/articles/article.aspx?p=2103809&amp;seqNum=5">8.5. Textures and Surfaces</a>
+                                            </li>
+                                            <li>
+                                                <a href="/articles/article.aspx?p=2103809&amp;seqNum=6">8.6. Miscellaneous Instructions</a>
+                                            </li>
+                                            <li>
+                                                <a href="/articles/article.aspx?p=2103809&amp;seqNum=7">8.7. Instruction Sets</a>
+                                            </li>
+                            </ol>                            
+                        </div>
+                    </div>
+                <div class="articleInteraction">
+                    <ul>
+                        <li>
+                            <a href="/articles/printerfriendly/2103809" title="Print"><span class="ss-icon">&#x2399;</span> <span class="linkText">Print</span></a>
+                        </li>
+                        <li>
+
+<script type="text/javascript">
+    addthis_pub = 'informit';
+    addthis_logo = 'http://www.informit.com/display/InformIT/images/header/informit.png';
+    addthis_logo_background = '596770';
+    addthis_logo_color = '596770';
+    addthis_brand = 'informIT';
+    addthis_options = 'email, delicious, digg, facebook, google, newsvine, reddit, slashdot, stumbleupon, technorati, twitter, more';
+</script>
+<a href="http://www.addthis.com/bookmark.php" onmouseover="return addthis_open(this, '', '[URL]', '[TITLE]')" onmouseout="addthis_close()" onclick="return addthis_sendto()"><span class="ss-icon">&#x002B;</span> <span class="linkText">Share This</span></a>
+<script type="text/javascript" src="http://s7.addthis.com/js/152/addthis_widget.js"></script>
+                        </li>
+                        <li>
+                                <a href="#articleDiscussion" title="Discuss"><span class="ss-icon">&#x1F4AC;</span> <span class="linkText">Discuss</span></a>
+                        </li>
+                    </ul>
+                </div>
+                    <div class="pagination">
+        <span class="paginationLocation"><strong>Page 1</strong> of 7</span>
+            <a class="paginationNext" href="/articles/article.aspx?p=2103809&amp;seqNum=2">Next &gt;</a>
+    </div>
+                
+            </div> <!-- end articletools -->
+            <div id="articleText">
+                    <a class="relatedBookLink" href="#">This chapter is from the book <span class="ss-icon">&#xF500;</span></a>
+                    <div class="relatedBook">
+                        <div class="header graydient">
+                            <h3>This chapter is from the book</h3>
+                        </div>
+                        <div class="productArea graydient clearfix">
+                            <a href="/store/cuda-handbook-a-comprehensive-guide-to-gpu-programming-9780321809469?w_ptgrevartcl=GPU+Programming+and+Streaming+Multiprocessors_2103809"><img src="/ShowCover.aspx?isbn=9780321809469&amp;type=d" alt="CUDA Handbook: A Comprehensive Guide to GPU Programming, The" class="product" /></a><a href="/store/cuda-handbook-a-comprehensive-guide-to-gpu-programming-9780321809469?w_ptgrevartcl=GPU+Programming+and+Streaming+Multiprocessors_2103809" class="title">CUDA Handbook: A Comprehensive Guide to GPU Programming, The</a>
+                            <br />
+                            <br />
+                            <a href="/store/cuda-handbook-a-comprehensive-guide-to-gpu-programming-9780321809469?w_ptgrevartcl=GPU+Programming+and+Streaming+Multiprocessors_2103809" class="button">Learn More</a>
+                                <a href="/buy.aspx?isbn=9780321809469&w_ptgrevartcl=GPU+Programming+and+Streaming+Multiprocessors_2103809" class="buy button"><span class="ss-icon">&#xE500;</span>Buy</a>
+                        </div>
+                    </div>
+                    <div class="relatedBook slide">
+                        <div class="header graydient">
+                            <h3 class="relatedHide">This chapter is from the book</h3>
+                            <h3 class="relatedShow"><a href="#" class="mobileClose">This chapter is from the book <span class="ss-icon">&#xF501;</span></a></h3>
+                        </div>
+                        <div class="productArea graydient clearfix">
+                            <a href="/store/cuda-handbook-a-comprehensive-guide-to-gpu-programming-9780321809469?w_ptgrevartcl=GPU+Programming+and+Streaming+Multiprocessors_2103809"><img src="/ShowCover.aspx?isbn=9780321809469&amp;type=d" alt="CUDA Handbook: A Comprehensive Guide to GPU Programming, The" class="product" /></a><a href="/store/cuda-handbook-a-comprehensive-guide-to-gpu-programming-9780321809469?w_ptgrevartcl=GPU+Programming+and+Streaming+Multiprocessors_2103809" class="title">CUDA Handbook: A Comprehensive Guide to GPU Programming, The</a>
+                            <br />
+                            <br />
+                            <a href="/store/cuda-handbook-a-comprehensive-guide-to-gpu-programming-9780321809469?w_ptgrevartcl=GPU+Programming+and+Streaming+Multiprocessors_2103809" class="button">Learn More</a>
+                                <a href="/buy.aspx?isbn=9780321809469&w_ptgrevartcl=GPU+Programming+and+Streaming+Multiprocessors_2103809" class="buy button"><span class="ss-icon">&#xE500;</span>Buy</a>
+                        </div>
+                    </div>
+                                    <div id="articleLongDescription">The streaming multiprocessors (SMs) are the part of the GPU that runs CUDA kernels. This chapter focuses on the instruction set capabilities of the SM.</div>
+                    <div id="articleDescription"></div>
+                
+<p>The streaming multiprocessors (SMs) are the part of the GPU that runs our CUDA kernels. Each SM contains the following.</p>
+
+<ul><li>Thousands of registers that can be partitioned among threads of execution</li>
+<li>Several caches:
+
+<ul class="styleTypeNone">
+<li>&#8211; <em>Shared memory</em> for fast data interchange between threads</li>
+<li>&#8211; <em>Constant cache</em> for fast broadcast of reads from constant memory</li>
+<li>&#8211; <em>Texture cache</em> to aggregate bandwidth from texture memory</li>
+<li>&#8211; <em>L1 cache</em> to reduce latency to local or global memory</li>
+</ul>
+</li>
+<li><em>Warp schedulers</em> that can quickly switch contexts between threads and issue instructions to warps that are ready to execute</li>
+<li>Execution cores for integer and floating-point operations:
+<ul class="styleTypeNone">
+<li>&#8211; Integer and single-precision floating point operations</li>
+<li>&#8211; Double-precision floating point</li>
+<li>&#8211; Special Function Units (SFUs) for single-precision floating-point transcendental functions</li>
+</ul>
+</li>
+</ul>
+
+<p>The reason there are many registers and the reason the hardware can context switch between threads so efficiently are to maximize the throughput of the hardware. The GPU is designed to have enough state to cover both execution latency and the memory latency of hundreds of clock cycles that it may take for data from device memory to arrive after a read instruction is executed.</p>
+
+<p>The SMs are general-purpose processors, but they are designed very differently than the execution cores in CPUs: They target much lower clock rates; they support instruction-level parallelism, but not branch prediction or speculative execution; and they have less cache, if they have any cache at all. For suitable workloads, the sheer computing horsepower in a GPU more than makes up for these disadvantages.</p>
+
+<p>The design of the SM has been evolving rapidly since the introduction of the first CUDA-capable hardware in 2006, with three major revisions, codenamed Tesla, Fermi, and Kepler. Developers can query the compute capability by calling <tt>cudaGetDeviceProperties()</tt> and examining <tt>cudaDeviceProp.major</tt> and <tt>cudaDeviceProp.minor</tt>, or by calling the driver API function <tt>cuDeviceComputeCapability()</tt>. Compute capability 1.x, 2.x, and 3.x correspond to Tesla-class, Fermi-class, and Kepler-class hardware, respectively. Table 8.1 summarizes the capabilities added in each generation of the SM hardware.</p>
+
+<h4>Table 8.1 SM Capabilities</h4>
+
+<table>
+<thead>
+<tr>
+<td valign="top">
+<p><strong>COMPUTELEVEL</strong></p>
+</td>
+<td valign="top">
+<p><strong>INTRODUCED . . .</strong></p></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td valign="top">
+<p>SM 1.1</p></td>
+<td valign="top">
+<p>Global memory atomics; mapped pinned memory; debuggable (e.g., breakpoint instruction)</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p>SM 1.2</p></td>
+<td valign="top">
+<p>Relaxed coalescing constraints; warp voting (<tt>any</tt>() and <tt>all</tt>() intrinsics); atomic operations on shared memory</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p>SM 1.3</p></td>
+<td valign="top">
+<p>Double precision support</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p>SM 2.0</p></td>
+<td valign="top">
+<p>64-bit addressing; L1 and L2 cache; concurrent kernel execution; configurable 16K or 48K shared memory; bit manipulation instructions ( __<tt>clz</tt>(), __<tt>popc</tt>(), __<tt>ffs</tt>(), __<tt>brev</tt>() intrinsics); directed rounding for single-precision floating-point values; fused multiply-add; 64-bit clock counter; surface load/store; 64-bit global atomic add, exchange, and compareand-swap; global atomic add for single-precision floating-point values; warp voting (ballot()intrinsic); assertions and formatted output (printf).</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p>SM 2.1</p></td>
+<td valign="top">
+<p>Function calls and indirect calls in kernels</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p>SM 3.0</p></td>
+<td valign="top">
+<p>Increase maximum grid size; warp shuffle; permute; 32K/32K shared memory configuration; configurable shared memory (32- or 64-bit mode) Bindless textures (&#8220;texture objects&#8221;); faster global atomics</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p>SM 3.5</p></td>
+<td valign="top">
+<p>64-bit atomic min, max, AND, OR, and XOR; 64-bit funnel shift; read global memory via texture; dynamic parallelism</p></td>
+</tr>
+</tbody>
+</table>
+
+
+
+<p>In Chapter 2, Figures 2.29 through 2.32 show block diagrams of different SMs. CUDA cores can execute integer and single-precision floating-point instructions; one double-precision unit implements double-precision support, if available; and Special Function Units implement reciprocal, recriprocal square root, sine/cosine, and logarithm/exponential functions. Warp schedulers dispatch instructions to these execution units as the resources needed to execute the instruction become available.</p>
+
+<p>This chapter focuses on the instruction set capabilities of the SM. As such, it sometimes refers to the &#8220;SASS&#8221; instructions, the native instructions into which <tt>ptxas</tt> or the CUDA driver translate intermediate PTX code. Developers are not able to author SASS code directly; instead, NVIDIA has made these instructions visible to developers through the <tt>cuobjdump</tt> utility so they can direct optimizations of their source code by examining the compiled microcode.</p>
+
+<h2>8.1. Memory</h2>
+
+<h3>8.1.1. Registers</h3>
+
+<p>Each SM contains thousands of 32-bit registers that are allocated to threads as specified when the kernel is launched. Registers are both the fastest and most plentiful memory in the SM. As an example, the Kepler-class (SM 3.0) SMX contains 65,536 registers or 256K, while the texture cache is only 48K.</p>
+
+
+
+<p>CUDA registers can contain integer or floating-point data; for hardware capable of performing double-precision arithmetic (SM 1.3 and higher), the operands are contained in even-valued register pairs. On SM 2.0 and higher hardware, register pairs also can hold 64-bit addresses.</p>
+
+<p>CUDA hardware also supports wider memory transactions: The built-in <tt>int2/float2</tt> and <tt>int4/float4</tt> data types, residing in aligned register pairs or quads, respectively, may be read or written using single 64- or 128-bit-wide loads or stores. Once in registers, the individual data elements can be referenced as <tt>.x/.y</tt> (for <tt>int2/float2</tt>) or <tt>.x/.y/.z/.w</tt> (for <tt>int4/float4</tt>).</p>
+
+<p>Developers can cause <tt>nvcc</tt> to report the number of registers used by a kernel by specifying the command-line option <tt>--ptxas-options -&#8211;verbose</tt>. The number of registers used by a kernel affects the number of threads that can fit in an SM and often must be tuned carefully for optimal performance. The maximum number of registers used for a compilation may be specified with <tt>--ptxas-options --maxregcount N</tt>.</p>
+
+
+<h4>Register Aliasing</h4>
+
+<p>Because registers can hold floating-point or integer data, some intrinsics serve only to coerce the compiler into changing its view of a variable. The <tt>__int_as_float()</tt> and <tt>__float_as_int()</tt> intrinsics cause a variable to &#8220;change personalities&#8221; between 32-bit integer and single-precision floating point.</p>
+
+
+<pre>float __int_as_float( int i );
+int __float_as_int( float f );</pre>
+
+<p>The <tt>__double2loint()</tt>, <tt>__double2hiint()</tt>, and <tt>__hiloint2double()</tt> intrinsics similarly cause registers to change personality (usually in-place). <tt>__double_as_longlong()</tt> and <tt>__longlong_as_double()</tt> coerce register pairs in-place; <tt>__double2loint()</tt> and <tt>__double2hiint()</tt> return the least and the most significant 32 bits of the input operand, respectively; and <tt>__hiloint2double()</tt> constructs a <tt>double</tt> out of the high and low halves.</p>
+
+
+<pre>int double2loint( double d );
+int double2hiint( double d );
+int hiloint2double( int hi, int lo );
+double long_as_double(long long int i );
+long long int __double_as_longlong( double d );</pre>
+
+
+<h3>8.1.2. Local Memory</h3>
+
+<p>Local memory is used to spill registers and also to hold local variables that are indexed and whose indices cannot be computed at compile time. Local memory is backed by the same pool of device memory as global memory, so it exhibits the same latency characteristics and benefits as the L1 and L2 cache hierarchy on Fermi and later hardware. Local memory is addressed in such a way that the memory transactions are automatically coalesced. The hardware includes special instructions to load and store local memory: The SASS variants are <tt>LLD/LST</tt> for Tesla and <tt>LDL/STL</tt> for Fermi and Kepler.</p>
+
+
+
+<h3>8.1.3. Global Memory</h3>
+
+<p>The SMs can read or write global memory using <tt>GLD/GST</tt> instructions (on Tesla) and <tt>LD/ST</tt> instructions (on Fermi and Kepler). Developers can use standard C operators to compute and dereference addresses, including pointer arithmetic and the dereferencing operators <tt>*</tt>, <tt>[]</tt>, and <tt>-&#62;</tt>. Operating on 64- or 128-bit built-in data types (<tt>int2/float2/int4/float4</tt>) automatically causes the compiler to issue 64- or 128-bit load and store instructions. Maximum memory performance is achieved through <em>coalescing</em> of memory transactions, described in Section 5.2.9.</p>
+
+
+<p>Tesla-class hardware (SM 1.x) uses special address registers to hold pointers; later hardware implements a load/store architecture that uses the same register file for pointers; integer and floating-point values; and the same address space for constant memory, shared memory, and global memory.<sup><a href="javascript:popUp('/content/images/chap8_9780321809469/elementLinks/ch08fn01.html')">1</a></sup></p>
+
+<p>Fermi-class hardware includes several features not available on older hardware.</p>
+
+<ul>
+<li>64-bit addressing is supported via &#8220;wide&#8221; load/store instructions in which addresses are held in even-numbered register pairs. 64-bit addressing is not supported on 32-bit host platforms; on 64-bit host platforms, 64-bit addressing is enabled automatically. As a result, code generated for the same kernels compiled for 32- and 64-bit host platforms may have different register counts and performance.</li>
+<li>The L1 cache may be configured to be 16K or 48K in size.<sup><a href="javascript:popUp('/content/images/chap8_9780321809469/elementLinks/ch08fn02.html')">2</a></sup> (Kepler added the ability to split the cache as 32K L1/32K shared.) Load instructions can include cacheability hints (to tell the hardware to pull the read into L1 or to bypass the L1 and keep the data only in L2). These may be accessed via inline PTX or through the command line option <tt>&#8211;X ptxas &#8211;dlcm=ca</tt> (cache in L1 and L2, the default setting) or <tt>&#8211;X ptxas &#8211;dlcm=cg</tt> (cache only in L2).</li></ul>
+
+
+<p>Atomic operations (or just &#8220;atomics&#8221;) update a memory location in a way that works correctly even when multiple GPU threads are operating on the same memory location. The hardware enforces mutual exclusion on the memory location for the duration of the operation. Since the order of operations is not guaranteed, the operators supported generally are associative.<sup><a href="javascript:popUp('/content/images/chap8_9780321809469/elementLinks/ch08fn03.html')">3</a></sup></p>
+
+
+<p>Atomics first became available for global memory for SM 1.1 and greater and for shared memory for SM 1.2 and greater. Until the Kepler generation of hardware, however, global memory atomics were too slow to be useful.</p>
+
+
+<p>The global atomic intrinsics, summarized in Table 8.2, become automatically available when the appropriate architecture is specified to <tt>nvcc</tt> via <tt>--gpu-architecture</tt>. All of these intrinsics can operate on 32-bit integers. 64-bit support for <tt>atomicAdd()</tt>, <tt>atomicExch()</tt>, and <tt>atomicCAS()</tt> was added in SM 1.2. <tt>atomicAdd()</tt> of 32-bit floating-point values (<tt>float</tt>) was added in SM 2.0. 64-bit support for <tt>atomicMin()</tt>, <tt>atomicMax()</tt>, <tt>atomicAnd()</tt>, <tt>atomicOr()</tt>, and <tt>atomicXor()</tt> was added in SM 3.5.</p>
+
+<h4>Table 8.2 Atomic Operations</h4>
+
+<table>
+<thead>
+<tr>
+<td valign="top">
+<p><strong>MNEMONIC</strong></p>
+</td>
+<td valign="top">
+<p><strong>DESCRIPTION</strong></p></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td valign="top">
+<p><tt>atomicAdd</tt></p></td>
+<td valign="top">
+<p>Addition</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p><tt>atomicSub</tt></p></td>
+<td valign="top">
+<p>Subtraction</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p><tt>atomicExch</tt></p></td>
+<td valign="top">
+<p>Exchange</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p><tt>atomicMin</tt></p></td>
+<td valign="top">
+<p>Minimum</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p><tt>atomicMax</tt></p></td>
+<td valign="top">
+<p>Maximum</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p><tt>atomicInc</tt></p></td>
+<td valign="top">
+<p>Increment (add 1)</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p><tt>atomicDec</tt></p></td>
+<td valign="top">
+<p>Decrement (subtract 1)</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p><tt>atomicCAS</tt></p></td>
+<td valign="top">
+<p>Compare and swap</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p><tt>atomicAnd</tt></p></td>
+<td valign="top">
+<p>AND</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p><tt>atomicOr</tt></p></td>
+<td valign="top">
+<p>OR</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p><tt>atomicXor</tt></p></td>
+<td valign="top">
+<p>XOR</p></td>
+</tr>
+</tbody>
+</table>
+
+
+
+<div class="sidebar">
+<p class="title">NOTE</p>
+<p>Because atomic operations are implemented using hardware in the GPU&#8217;s integrated memory controller, they do not work across the PCI Express bus and thus do not work correctly on device memory pointers that correspond to host memory or peer memory.</p>
+</div>
+
+<p>At the hardware level, atomics come in two forms: atomic operations that return the value that was at the specified memory location before the operator was performed, and reduction operations that the developer can &#8220;fire and forget&#8221; at the memory location, ignoring the return value. Since the hardware can perform the operation more efficiently if there is no need to return the old value, the compiler detects whether the return value is used and, if it is not, emits different instructions. In SM 2.0, for example, the instructions are called <tt>ATOM</tt> and <tt>RED</tt>, respectively.</p>
+
+
+<h3>8.1.4. Constant Memory</h3>
+
+<p>Constant memory resides in device memory, but it is backed by a different, read-only cache that is optimized to broadcast the results of read requests to threads that all reference the same memory location. Each SM contains a small, latency-optimized cache for purposes of servicing these read requests. Making the memory (and the cache) read-only simplifies cache management, since the hardware has no need to implement write-back policies to deal with memory that has been updated.</p>
+
+
+<p>SM 2.x and subsequent hardware includes a special optimization for memory that is not denoted as constant but that the compiler has identified as (1) read-only and (2) whose address is not dependent on the block or thread ID. The &#8220;load uniform&#8221; (LDU) instruction reads memory using the constant cache hierarchy and broadcasts the data to the threads.</p>
+
+
+<h3>8.1.5. Shared Memory</h3>
+
+<p>Shared memory is very fast, on-chip memory in the SM that threads can use for data interchange within a thread block. Since it is a per-SM resource, shared memory usage can affect occupancy, the number of warps that the SM can keep resident. SMs load and store shared memory with special instructions: <tt>G2R/R2G</tt> on SM 1.x, and <tt>LDS/STS</tt> on SM 2.x and later.</p>
+
+
+<p>Shared memory is arranged as interleaved <em>banks</em> and generally is optimized for 32-bit access. If more than one thread in a warp references the same bank, a <em>bank conflict</em> occurs, and the hardware must handle memory requests consecutively until all requests have been serviced. Typically, to avoid bank conflicts, applications access shared memory with an interleaved pattern based on the thread ID, such as the following.</p>
+
+
+<pre>extern __shared__ float shared[];
+float data = shared[BaseIndex + threadIdx.x];</pre>
+
+<p>Having all threads in a warp read from the same 32-bit shared memory location also is fast. The hardware includes a broadcast mechanism to optimize for this case. Writes to the same bank are serialized by the hardware, reducing performance. Writes to the same <em>address</em> cause race conditions and should be avoided.</p>
+
+<p>For 2D access patterns (such as tiles of pixels in an image processing kernel), it&#8217;s good practice to pad the shared memory allocation so the kernel can reference adjacent rows without causing bank conflicts. SM 2.x and subsequent hardware has 32 banks,<sup><a href="javascript:popUp('/content/images/chap8_9780321809469/elementLinks/ch08fn04.html')">4</a></sup> so for 2D tiles where threads in the same warp may access the data by row, it is a good strategy to pad the tile size to a multiple of 33 32-bit words.</p>
+
+
+<p>On SM 1.x hardware, shared memory is about 16K in size;<sup><a href="javascript:popUp('/content/images/chap8_9780321809469/elementLinks/ch08fn05.html')">5</a></sup> on later hardware, there is a total of 64K of L1 cache that may be configured as 16K or 48K of shared memory, of which the remainder is used as L1 cache.<sup><a href="javascript:popUp('/content/images/chap8_9780321809469/elementLinks/ch08fn06.html')">6</a></sup></p>
+
+
+
+<p>Over the last few generations of hardware, NVIDIA has improved the hardware&#8217;s handling of operand sizes other than 32 bits. On SM 1.x hardware, 8- and 16-bit reads from the same bank caused bank conflicts, while SM 2.x and later hardware can broadcast reads of any size out of the same bank. Similarly, 64-bit operands (such as <tt>double</tt>) in shared memory were so much slower than 32-bit operands on SM 1.x that developers sometimes had to resort to storing the data as separate high and low halves. SM 3.x hardware adds a new feature for kernels that predominantly use 64-bit operands in shared memory: a mode that increases the bank size to 64 bits.</p>
+
+
+<h4>Atomics in Shared Memory</h4>
+
+<p>SM 1.2 added the ability to perform atomic operations in shared memory. Unlike global memory, which implements atomics using single instructions (either <tt>GATOM</tt> or <tt>GRED</tt>, depending on whether the return value is used), shared memory atomics are implemented with explicit lock/unlock semantics, and the compiler emits code that causes each thread to loop over these lock operations until the thread has performed its atomic operation.</p>
+
+
+<p>Listing 8.1 gives the source code to <tt>atomic32Shared.cu</tt>, a program specifically intended to be compiled to highlight the code generation for shared memory atomics. Listing 8.2 shows the resulting microcode generated for SM 2.0. Note how the <tt>LDSLK</tt> (load shared with lock) instruction returns a predicate that tells whether the lock was acquired, the code to perform the update is predicated, and the code loops until the lock is acquired and the update performed.</p>
+
+<p>The lock is performed per 32-bit word, and the index of the lock is determined by bits 2&#8211;9 of the shared memory address. Take care to avoid contention, or the loop in Listing 8.2 may iterate up to 32 times.</p>
+
+<h4>Listing 8.1. <tt>atomic32Shared.cu</tt>.</h4>
+
+
+<pre>__global__ void
+Return32( int *sum, int *out, const int *pIn )
+{
+    extern __shared__ int s[];
+    s[threadIdx.x] = pIn[threadIdx.x];
+    __syncthreads();
+    (void) atomicAdd( &#38;s[threadIdx.x], *pIn );
+    __syncthreads();
+    out[threadIdx.x] = s[threadIdx.x];
+}</pre>
+
+<h4><em>Listing 8.2.</em> <tt>atomic32Shared.cubin</tt> (microcode compiled for SM 2.0).</h4>
+<pre>code for sm_20
+    Function : _Z8Return32PiS_PKi
+/*0000*/     MOV R1, c [0x1] [0x100];
+/*0008*/     S2R R0, SR_Tid_X;
+/*0010*/     SHL R3, R0, 0x2;
+/*0018*/     MOV R0, c [0x0] [0x28];
+/*0020*/     IADD R2, R3, c [0x0] [0x28];
+/*0028*/     IMAD.U32.U32 RZ, R0, R1, RZ;
+/*0030*/     LD R2, [R2];
+/*0038*/     STS [R3], R2;
+/*0040*/     SSY 0x80;
+/*0048*/     BAR.RED.POPC RZ, RZ;
+/*0050*/     LD R0, [R0];
+/*0058*/     LDSLK P0, R2, [R3];
+/*0060*/     @P0 IADD R2, R2, R0;
+/*0068*/     @P0 STSUL [R3], R2;
+/*0070*/     @!P0 BRA 0x58;
+/*0078*/     NOP.S CC.T;
+/*0080*/     BAR.RED.POPC RZ, RZ;
+/*0088*/     LDS R0, [R3];
+/*0090*/     IADD R2, R3, c [0x0] [0x24];
+/*0098*/     ST [R2], R0;
+/*00a0*/     EXIT;
+    ...................................</pre>
+
+
+<h3>8.1.6. Barriers and Coherency</h3>
+
+<p>The familiar <tt>__syncthreads()</tt> intrinsic waits until all the threads in the thread block have arrived before proceeding. It is needed to maintain coherency of shared memory within a thread block.<sup><a href="javascript:popUp('/content/images/chap8_9780321809469/elementLinks/ch08fn07.html')">7</a></sup> Other, similar memory barrier instructions can be used to enforce some ordering on broader scopes of memory, as described in Table 8.3.</p>
+
+
+
+<h4>Table 8.3 Memory Barrier Intrinsics</h4>
+<table>
+<thead>
+<tr>
+<td valign="top">
+<p><strong>INTRINSIC</strong></p>
+</td>
+<td valign="top">
+<p><strong>DESCRIPTION</strong></p></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td valign="top">
+<p><tt>__syncthreads()</tt></p></td>
+<td valign="top">
+<p>Waits until all shared memory accesses made by the calling thread are visible to all threads in the threadblock</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p>threadfence_block()</p></td>
+<td valign="top">
+<p>Waits until all global and shared memory accesses made by the calling thread are visible to all threads in the threadblock</p></td>
+</tr>
+<tr>
+<td valign="top">
+<p><tt>threadfence()</tt></p></td>
+<td valign="top">
+<p>Waits until all global and shared memory accesses made by the calling thread are visible to</p>
+<ul>
+<li>All threads in the threadblock for shared memory accesses</li>
+<li>All threads in the device for global memory accesses</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p><tt>threadfence_system</tt>() (<tt>SM 2.x only</tt>)</p></td>
+<td valign="top">
+<p>Waits until all global and shared memory accesses made by the calling thread are visible to</p>
+<ul>
+<li>All threads in the threadblock for shared memory accesses</li>
+<li>All threads in the device for global memory accesses</li>
+<li>Host threads for page-locked host memory accesses</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+
+
+            </div>
+            <div class="articleTools bottomTools clearfix box">
+                    <div class="pagination">
+        <span class="paginationLocation"><strong>Page 1</strong> of 7</span>
+            <a class="paginationNext" href="/articles/article.aspx?p=2103809&amp;seqNum=2">Next &gt;</a>
+    </div>
+
+                <div class="articleInteraction">
+                    <ul>
+                        <li>
+
+<script type="text/javascript">
+    addthis_pub = 'informit';
+    addthis_logo = 'http://www.informit.com/display/InformIT/images/header/informit.png';
+    addthis_logo_background = '596770';
+    addthis_logo_color = '596770';
+    addthis_brand = 'informIT';
+    addthis_options = 'email, delicious, digg, facebook, google, newsvine, reddit, slashdot, stumbleupon, technorati, twitter, more';
+</script>
+<a href="http://www.addthis.com/bookmark.php" onmouseover="return addthis_open(this, '', '[URL]', '[TITLE]')" onmouseout="addthis_close()" onclick="return addthis_sendto()"><span class="ss-icon">&#x002B;</span> <span class="linkText">Share This</span></a>
+<script type="text/javascript" src="http://s7.addthis.com/js/152/addthis_widget.js"></script>
+                        </li>
+                        <li class="last">
+                            <a href="#" onclick="openBrWindow('/my_account/addTo.aspx?p=1486826b-97c5-4c14-90fa-10104cb03f10&e=b8ecc9a6-df58-48f9-bf81-684c4493bd8c&t=a','addMyAccount','scrollbars=no,resizable=yes,width=300,height=200');return false;" title="Your Account"><span class="ss-icon">&#x1F516;</span> <span class="linkText">Save To Your Account</span></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+            <div id="articleDiscussion" class="clearfix">
+                <h3>Discussions</h3>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_identifier = 'cdefd349-2665-4295-86cd-4ac46704a7b6';
+    var disqus_shortname = 'informit';
+    var disqus_skip_auth = true;
+    
+</script>
+<script language="JavaScript" src="/display/common/javascript/disqus.js?v=20140122" type="text/JavaScript"></script>
+<noscript>
+    Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=informit">comments powered by Disqus.</a>
+</noscript>
+<a href="http://disqus.com" class="dsq-brlink">
+    comments powered by <span class="logo-disqus">Disqus</span>
+</a>
+            </div>
+    </div>
+    <div id="columnTwo" class="six columns omega rFull">
+<div id="promotions" class="tabwidget prop">
+	<h3>Related Resources</h3>
+	<ul class="tabs clearfix">
+		<li class="selected"><a href="#" onclick="tabWidget(1,'promotions'); return false;">Store</a></li>
+		<li><a href="#" onclick="tabWidget(2,'promotions'); loadWidget('promotions', 1, '/Related/Articles/2103809?stateIntId=60206'); return false;">Articles</a></li>
+		<li><a href="#" onclick="tabWidget(3,'promotions'); loadWidget('promotions', 2, '/Related/Blogs/1721567?stateIntId=60206'); return false;">Blogs</a></li>
+		<li><a href="#" onclick="tabWidget(4,'promotions'); loadWidget('promotions', 3, '/Related/Podcasts/1721567?stateIntId=60206'); return false;">Podcasts</a></li>
+		
+	</ul>
+	<div class="container on">
+
+    <dl class="store">
+        <dt>
+                        <a href="/store/scratch-2.0-sams-teach-yourself-in-24-hours-9780672337093?w_ptgrevartcl=Scratch+2.0+Sams+Teach+Yourself+in+24+Hours_2123455">
+                <img src="/ShowCover.aspx?isbn=0672337096&type=e" alt="Scratch 2.0 Sams Teach Yourself in 24 Hours" class="product" />
+            </a>
+            <a href="/store/scratch-2.0-sams-teach-yourself-in-24-hours-9780672337093" class="title">
+                Scratch 2.0 Sams Teach Yourself in 24 Hours
+            </a>
+        </dt>
+        <dd class="meta">By <a href="/authors/bio/cba9ab43-90dd-4525-b650-87103947a1fb">Timothy L. Warner</a></dd>
+        <dd class="pricing">
+                <img src="/display/common/images/icons/product_16.png" alt="Physical Product" />
+            <a href="/store/scratch-2.0-sams-teach-yourself-in-24-hours-9780672337093">$23.99</a>
+        </dd>
+    </dl>
+    <dl class="store">
+        <dt>
+                        <a href="/store/rails-4-way-9780321944276?w_ptgrevartcl=Rails+4+Way%2c+The_2042587">
+                <img src="/ShowCover.aspx?isbn=0321944275&type=e" alt="Rails 4 Way, The" class="product" />
+            </a>
+            <a href="/store/rails-4-way-9780321944276" class="title">
+                Rails 4 Way, The, 3rd Edition
+            </a>
+        </dt>
+        <dd class="meta">By <a href="/authors/bio/1c2a36ef-5728-404d-be02-37a6c02acd6d">Obie Fernandez</a>, <a href="/authors/bio/46ff65d8-d62c-444b-91c6-3593e9663ddf">Kevin Faustino</a></dd>
+        <dd class="pricing">
+                <img src="/display/common/images/icons/product_16.png" alt="Physical Product" />
+            <a href="/store/rails-4-way-9780321944276">$39.99</a>
+        </dd>
+    </dl>
+    <dl class="store">
+        <dt>
+                        <a href="/store/assembly-language-for-x86-processors-9780133769401?w_ptgrevartcl=Assembly+Language+for+x86+Processors_2143327">
+                <img src="/ShowCover.aspx?isbn=0133769402&type=e" alt="Assembly Language for x86 Processors" class="product" />
+            </a>
+            <a href="/store/assembly-language-for-x86-processors-9780133769401" class="title">
+                Assembly Language for x86 Processors, 7th Edition
+            </a>
+        </dt>
+        <dd class="meta">By <a href="/authors/bio/c91ab40a-eb0b-4a13-a4ab-7d2d6ecba14d">Kip R. Irvine</a></dd>
+        <dd class="pricing">
+                <img src="/display/common/images/icons/product_16.png" alt="Physical Product" />
+            <a href="/store/assembly-language-for-x86-processors-9780133769401">$142.80</a>
+        </dd>
+    </dl>
+    <p class="more">
+        <img src="/display/InformIT/images/icons/plus.png" alt="" />
+        <a href="/store/index.aspx?st=60206">See All Related Store Items</a>
+    </p>
+
+	</div>
+	<div class="container"></div>
+	<div class="container"></div>
+	<div class="container"></div>
+	
+</div>
+        
+        
+    </div>
+</div><div id="header"><div class="cranium"><div class="branding"><div id="hLogo"><a href="/" accesskey="0" title="Home" class="logo"><!--[if lte IE 8]><img src="/display/informIT/images/header/informit.png" alt="InformIT" /><![endif]--></a></div></div><div class="tagline">the trusted technology learning source</div><a href="#menu" class="menu-link ss-icon"></a><div id="headerLinks" class="clearfix">
+									   
+    <div id="cartLink" class="headerLink c">
+        <span class="bighead ss-icon">&#xE500;</span>
+        <a href="https://memberservices.informit.com/cart/buy.aspx?partner=53">
+            <span class="bighead">View </span>Your Cart
+        </a>
+    </div>
+
+    <div class="hi">
+            <a href="https://memberservices.informit.com/my_account/login.aspx?partner=53">Account Sign In</a>
+    </div>
+
+								<form name="headersearchform" id="headersearchform" class="s" method="GET" action="/search/index.aspx"><label for="headersearchform">Search</label><input onfocus="checkClear(this,'Search');" type="text" name="query" id="query" value="Search" /><input type="submit" id="searchbutton" class="ss-icon" value="🔎" /></form></div></div></div><div id="siteNav"><div class="cranium clearfix"><ul id="nav"><li class="mobile search"><form name="headersearchform" id="headersearchform" class="s" method="GET" action="/search/index.aspx"><label for="headersearchform">Search</label><input onfocus="checkClear(this,'Search');" type="text" name="query" id="query" value="Search" /><input type="submit" id="searchbutton" class="ss-icon" value="🔎" /></form></li><li class="mobile"><a href="https://memberservices.informit.com/cart/buy.aspx?partner=53"><span class="ss-icon"></span> View Your Cart
+										</a></li><li class="mobile"><a href="https://memberservices.informit.com/my_account/login.aspx?partner=53"><span class="ss-icon">👤</span> Account Sign In
+										</a></li><li class="mobile"><a href="https://memberservices.informit.com/my_account/register.aspx?partner=53">Create Account</a></li><li><a class="arrow" href="/topics/">Topics</a><ul class="column1 sib"><li><a href="/topics/topic.aspx?st=61443">
+													Business &amp; Management
+												</a></li><li><a href="/topics/topic.aspx?st=61444">Certification</a></li><li><a href="/topics/topic.aspx?st=98420">
+													Cloud Computing &amp; Virtualization
+												</a></li><li><a href="/topics/topic.aspx?st=61446">Data</a></li><li><a href="/topics/topic.aspx?st=61447">Engineering</a></li><li><a href="/topics/topic.aspx?st=61449">
+													Graphics &amp; Web Design
+												</a></li><li><a href="/topics/topic.aspx?st=61450">Hardware</a></li><li><a href="/topics/topic.aspx?st=61451">
+													Home &amp; Office Computing
+												</a></li><li><a href="/topics/topic.aspx?st=61452">Information Technology</a></li></ul><ul class="column2 sib"><li><a href="/topics/topic.aspx?st=98422">
+													Mobile Application Development &amp; Programming
+												</a></li><li><a href="/topics/topic.aspx?st=61453">Networking</a></li><li><a href="/topics/topic.aspx?st=66399">Open Source</a></li><li><a href="/topics/topic.aspx?st=61454">Operating Systems, Server</a></li><li><a href="/topics/topic.aspx?st=61455">Process Improvement</a></li><li><a href="/topics/topic.aspx?st=61456">Programming</a></li><li><a href="/topics/topic.aspx?st=61457">Security</a></li><li><a href="/topics/topic.aspx?st=61458">
+													Software Development &amp; Management
+												</a></li><li><a href="/topics/topic.aspx?st=61459">Web Development</a></li><li><a href="/topics/topic.aspx?st=61460">Web Services</a></li></ul></li><li><a class="arrow" href="/store/">Store</a><ul><li><a href="/store/browse/books">Books</a></li><li><a href="/store/browse/ebooks">eBooks</a></li><li><a href="/store/browse/practice-tests">Practice Tests</a></li><li><a href="/store/browse/software">Software</a></li><li><a href="/store/browse/video">Video</a></li></ul></li><li><a href="/authors/">Authors</a></li><li><a href="http://safari.informit.com/home?cid=my-201307-informit-topnav">Safari Books Online</a></li><li><a class="arrow" href="/imprint/">Imprints</a><ul class="imprints"><li><a href="/imprint/index.aspx?st=61085">Addison-Wesley Professional</a></li><li><a href="http://www.ciscopress.com">Cisco Press</a></li><li><a href="http://www.ibmpressbooks.com">IBM Press</a></li><li><a href="http://www.pearsonitcertification.com">Pearson IT Certification</a></li><li><a href="/imprint/index.aspx?st=61089">Prentice Hall Professional</a></li><li><a href="http://www.quepublishing.com">Que Publishing</a></li><li><a href="/imprint/index.aspx?st=61091">Sams Publishing</a></li><li><a href="http://www.pearsonitcertification.com/promotions/vmware-press-138356">VMware Press</a></li></ul></li><li><a class="arrow" href="/explore/">Explore</a><ul class="last"><li><a href="/about/">About</a></li><li><a href="/affiliates/">Affiliates</a></li><li><a href="/articles/">Articles</a></li><li><a href="/blogs/">Blogs</a></li><li><a href="/promotions/informits-community-resource-center-139745">Community</a></li><li><a href="/promotions/">Deals and Promotions</a></li><li><a href="/newsletters/">Newsletters</a></li><li><a href="/press/">Press</a></li><li><a href="/user_groups/">User Groups</a></li></ul></li></ul></div></div><div id="footer"><ul class="links"><li><a href="/about/">About</a></li><li><a href="/affiliates/">Affiliates</a></li><li><a href="/about/contact_us/">Contact Us</a></li><li><a href="/about/jobs.aspx">Jobs</a></li><li><a href="/about/legal.aspx">Legal Notice</a></li><li><a href="/about/privacy.aspx">Privacy Policy</a></li><li><a href="/press/">Press</a></li><li><a href="/promotions/">Promotions</a></li><li><a href="/site_map/">Site Map</a></li><li><a href="/about/write_for_us.aspx">Write for Us</a></li></ul><div itemscope="itemscope" itemtype="http://schema.org/Corporation">
+						©  2014 Pearson Education, <span itemprop="name">Informit</span>. All rights reserved.<br /><div itemprop="address" itemscope="itemscope" itemtype="http://schema.org/PostalAddress"><span itemprop="streetAddress">800 East 96th Street</span>, <span itemprop="addressLocality">Indianapolis</span>, <span itemprop="addressRegion">Indiana </span><span itemprop="postalCode">46240</span></div></div></div><div id="strap"><div class="cranium"><div id="pearsonTopLogoLink"></div><div id="pearsonAlwaysLearningImage"></div></div></div><!--Google analytics--><script type="text/javascript">var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www."); document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));</script><script type="text/javascript">
+					try {var pageTracker = _gat._getTracker("UA-433761-6"); pageTracker._setVar(""); pageTracker._trackPageview();} catch(err) {}
+				</script><!--Webtrends--><script language="JavaScript" src="/display/InformIT/javascript/webtrends.js" type="text/javascript"></script><noscript><img alt="" border="0" name="DCSIMG" width="1" height="1" src="http://statse.webtrendslive.com/dcs1slwc200000cl8qmbbfxqx_5x2u/njs.gif?dcsuri=/nojavascript&amp;WT.js=No&amp;WT.tv=8.0.3" /></noscript><!--Disqus Comment Count--><script type="text/javascript">
+					var disqus_shortname = 'informit';
+				</script><script language="JavaScript" src="/display/common/javascript/disqus_count.js?v=20140122" type="text/JavaScript"></script><script type="text/JavaScript">
+			setTimeout(function(){var a=document.createElement("script");
+			var b=document.getElementsByTagName("script")[0];
+			a.src=document.location.protocol+"//dnn506yrbagrg.cloudfront.net/pages/scripts/0018/4148.js?"+Math.floor(new Date().getTime()/3600000);
+			a.async=true;a.type="text/javascript";b.parentNode.insertBefore(a,b)}, 1);
+		</script></div></body></html>

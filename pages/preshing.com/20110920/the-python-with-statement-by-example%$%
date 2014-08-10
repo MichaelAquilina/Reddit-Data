@@ -1,0 +1,478 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>The Python "with" Statement by Example</title>
+  <meta name="author" content="Jeff Preshing">
+
+  
+  <meta name="description" content="Python&rsquo;s with statement was first introduced five years ago, in Python 2.5. It&rsquo;s handy when you have two related operations which you& &hellip;">
+  
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://preshing.com/20110920/the-python-with-statement-by-example">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/feed" rel="alternate" title="Preshing on Programming" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44017752-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/"><img src="/images/header.png" alt="Preshing on Programming"/></a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://twitter.com/preshing" rel="follow-twitter" title="Follow on Twitter">Twitter</a></li>
+  <li><a href="/feed" rel="subscribe-rss" title="Subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="stripe1"></div>
+  <div id="stripe2"></div>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-09-20T09:09:10-04:00" pubdate data-updated="true">Sep 20, 2011</time>
+        
+      </p>
+    
+    
+      <h1 class="entry-title">The Python "with" Statement by Example</h1>
+    
+  </header>
+
+
+<div class="entry-content"><p>Python&rsquo;s <a href="http://docs.python.org/reference/compound_stmts.html#the-with-statement"><code>with</code></a> statement was first introduced five years ago, in Python 2.5. It&rsquo;s handy when you have two related operations which you&rsquo;d like to execute as a pair, with a block of code in between. The classic example is opening a file, manipulating the file, then closing it:</p>
+
+<div><div class="CodeRay">
+  <div class="code"><pre><span class="keyword">with</span> <span class="predefined">open</span>(<span class="string"><span class="delimiter">'</span><span class="content">output.txt</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">w</span><span class="delimiter">'</span></span>) <span class="keyword">as</span> f:
+    f.write(<span class="string"><span class="delimiter">'</span><span class="content">Hi there!</span><span class="delimiter">'</span></span>)
+</pre></div>
+</div>
+</div>
+
+<p>The above <code>with</code> statement will automatically close the file after the nested block of code. (Continue reading to see exactly how the close occurs.) The advantage of using a <code>with</code> statement is that it is guaranteed to close the file no matter <em>how</em> the nested block exits. If an exception occurs before the end of the block, it will close the file before the exception is caught by an outer exception handler. If the nested block were to contain a <code>return</code> statement, or a <code>continue</code> or <code>break</code> statement, the <code>with</code> statement would automatically close the file in those cases, too.</p>
+
+<!-- more -->
+<p>Here&rsquo;s another example. The <a href="http://cairographics.org/pycairo/">pycairo</a> drawing library contains a <code>Context</code> class which exposes a <a href="http://cairographics.org/documentation/pycairo/2/reference/context.html#cairo.Context.save"><code>save</code></a> method, to push the current drawing state on an internal stack, and a <a href="http://cairographics.org/documentation/pycairo/2/reference/context.html#cairo.Context.restore"><code>restore</code></a> method, to restore the drawing state from the stack. These two functions are always called in a pair, with some code in between.</p>
+
+<p>This code sample uses a <code>Context</code> object (&ldquo;cairo context&rdquo;) to draw six rectangles, each with a different rotation. Each call to <a href="http://cairographics.org/documentation/pycairo/2/reference/context.html#cairo.Context.rotate"><code>rotate</code></a> is actually combined with the current transformation, so we use a pair of calls to <code>save</code> and <code>restore</code> to preserve the drawing state on each iteration of the loop. This prevents the rotations from combining with each other:</p>
+
+<div><div class="CodeRay">
+  <div class="code"><pre>cr.translate(<span class="integer">68</span>, <span class="integer">68</span>)
+<span class="keyword">for</span> i <span class="keyword">in</span> <span class="predefined">xrange</span>(<span class="integer">6</span>):
+    cr.<span class="highlight">save</span>()
+    cr.<span class="highlight">rotate</span>(<span class="integer">2</span> * math.pi * i / <span class="integer">6</span>)
+    cr.rectangle(-<span class="integer">25</span>, -<span class="integer">60</span>, <span class="integer">50</span>, <span class="integer">40</span>)
+    cr.stroke()
+    cr.<span class="highlight">restore</span>()
+</pre></div>
+</div>
+</div>
+
+<p><img class="center" src="/images/six-rectangles.png" /></p>
+
+<p>That&rsquo;s a fairly simple example, but for larger scripts, it can become cumbersome to keep track of which <code>save</code> goes with which <code>restore</code>, and to keep them correctly matched. The <code>with</code> statement can help tidy things up a bit.</p>
+
+<p>By themselves, pycairo&rsquo;s <code>save</code> and <code>restore</code> methods do not support the <code>with</code> statement, so we&rsquo;ll have to add the support on our own. There are two ways to support the <code>with</code> statement: by implementing a context manager class, or by writing a generator function. I&rsquo;ll demonstrate both approaches.</p>
+
+<h2 id="implementing-the-context-manager-as-a-class">Implementing the Context Manager as a Class</h2>
+
+<p>Here&rsquo;s the first approach. To implement a context manager, we define a class containing an <code>__enter__</code> and <code>__exit__</code> method. The class below accepts a cairo context, <code>cr</code>, in its constructor:</p>
+
+<div><div class="CodeRay">
+  <div class="code"><pre><span class="keyword">class</span> <span class="class">Saved</span>():
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="predefined-constant">self</span>, cr):
+        <span class="predefined-constant">self</span>.cr = cr
+    <span class="keyword">def</span> <span class="highlight">__enter__</span>(<span class="predefined-constant">self</span>):
+        <span class="predefined-constant">self</span>.cr.save()
+        <span class="keyword">return</span> <span class="predefined-constant">self</span>.cr
+    <span class="keyword">def</span> <span class="highlight">__exit__</span>(<span class="predefined-constant">self</span>, <span class="predefined">type</span>, value, traceback):
+        <span class="predefined-constant">self</span>.cr.restore()
+</pre></div>
+</div>
+</div>
+
+<p>Thanks to those two methods, it&rsquo;s valid to instantiate a <code>Saved</code> object and use it in a <code>with</code> statement. The <code>Saved</code> object is considered to be the <a href="http://docs.python.org/reference/datamodel.html#context-managers">context manager</a>.</p>
+
+<div><div class="CodeRay">
+  <div class="code"><pre>cr.translate(<span class="integer">68</span>, <span class="integer">68</span>)
+<span class="keyword">for</span> i <span class="keyword">in</span> <span class="predefined">xrange</span>(<span class="integer">6</span>):
+    <span class="highlight"><span class="keyword">with</span> Saved(cr):</span>
+        cr.rotate(<span class="integer">2</span> * math.pi * i / <span class="integer">6</span>)
+        cr.rectangle(-<span class="integer">25</span>, -<span class="integer">60</span>, <span class="integer">50</span>, <span class="integer">40</span>)
+        cr.stroke()
+</pre></div>
+</div>
+</div>
+
+<p>Here are the exact steps taken by the Python interpreter when it reaches the <code>with</code> statement:</p>
+
+<ol>
+  <li>The <code>with</code> statement stores the <code>Saved</code> object in a temporary, hidden variable, since it&rsquo;ll be needed later. (Actually, it only stores the bound <code>__exit__</code> method, but that&rsquo;s a detail.)</li>
+  <li>The <code>with</code> statement calls <code>__enter__</code> on the <code>Saved</code> object, giving the context manager a chance to do its job.</li>
+  <li>The <code>__enter__</code> method calls <code>save</code> on the cairo context.</li>
+  <li>The <code>__enter__</code> method returns the cairo context, but as you can see, we have not specified the optional <a href="http://docs.python.org/reference/compound_stmts.html#the-with-statement"><code>"as" target</code></a> part of the <code>with</code> statement. Therefore, the return value is not saved anywhere. We don&rsquo;t need it; we know it&rsquo;s the same cairo context that we passed in.</li>
+  <li>The nested block of code is executed. It sets up the rotation and draws a rectangle.</li>
+  <li>At the end of the nested block, the <code>with</code> statement calls the <code>Saved</code> object&rsquo;s <code>__exit__</code> method, passing the arguments <code>(None, None, None)</code> to indicate that no exception occured.</li>
+  <li>The <code>__exit__</code> method calls <code>restore</code> on the cairo context.</li>
+</ol>
+
+<p>Once we understand what the Python interpreter is doing, we can make better sense of the example at the beginning of this blog post, where we opened a file in the <code>with</code> statement: File objects expose their own <code>__enter__</code> and <code>__exit__</code> methods, and can therefore act as their own context managers. Specifically, the <code>__exit__</code> method closes the file.</p>
+
+<h3 id="exception-handling">Exception Handling</h3>
+
+<p>Returning to the drawing example, what happens if an exception occurs within the nested code block? For example, suppose we mistakenly passed the wrong number of arguments to the <code>rectangle</code> call. In that case, the steps taken by the Python interpreter would be:</p>
+
+<ol>
+  <li>The <code>rectangle</code> method raises a <code>TypeError</code> exception: &ldquo;Context.rectangle() takes exactly 4 arguments.&rdquo;</li>
+  <li>The <code>with</code> statement catches this exception.</li>
+  <li>The <code>with</code> statement calls <code>__exit__</code> on the <code>Saved</code> object. It passes information about the exception in three arguments: (<em>type</em>, <em>value</em>, <em>traceback</em>) &ndash; the same values you&rsquo;d get by calling <a href="http://docs.python.org/library/sys.html#sys.exc_info"><code>sys.exc_info</code></a>. This tells the <code>__exit__</code> method everything it could possibly need to know about the exception that occurred.</li>
+  <li>In this case, our <code>__exit__</code> method doesn&rsquo;t particularly care. It calls <code>restore</code> on the cairo context anyway, and returns <code>None</code>. (In Python, when no <code>return</code> statement is specified, the function actually returns <code>None</code>.)</li>
+  <li>The <code>with</code> statement checks to see whether this return value is true. Since it isn&rsquo;t, the <code>with</code> statement re-raises the <code>TypeError</code> exception to be handled by someone else.</li>
+</ol>
+
+<p>In this manner, we can guarantee that <code>restore</code> will always be called on the cairo context, whether an exception occurs or not.</p>
+
+<h2 id="implementing-the-context-manager-as-a-generator">Implementing the Context Manager as a Generator</h2>
+
+<p>That brings us to the second approach for supporting the <code>with</code> statement. Instead of implementing a class for the context manager, we can write a <a href="http://docs.python.org/tutorial/classes.html#generators">generator function</a>. Here&rsquo;s a simplified example of such a generator function. Let me point out right away that this example is incomplete, since it does not handle exceptions very well. Read on for more details:</p>
+
+<div><div class="CodeRay">
+  <div class="code"><pre><span class="keyword">from</span> <span class="include">contextlib</span> <span class="keyword">import</span> <span class="include">contextmanager</span>
+
+<span class="decorator">@contextmanager</span>
+<span class="keyword">def</span> <span class="function">saved</span>(cr):
+    cr.save()
+    <span class="highlight"><span class="keyword">yield</span></span> cr
+    cr.restore()
+</pre></div>
+</div>
+</div>
+
+<p>There is a certain charm to writing a generator like this one. At first glance, it appears simpler than the previous approach: A single function takes the place of an entire class definition. But don&rsquo;t be fooled! This approach involves many more steps, and a lot more complexity than the previous approach. It took me several reads of <a href="http://www.python.org/dev/peps/pep-0343/">PEP 343</a> &ndash;  which is more of a historical document than a reference &ndash; before I could claim to understand it completely. It requires familiarity with Python decorators, generators, iterators and functions-returning-functions, in addition to the object-oriented programming and exception handling we&rsquo;ve already seen.</p>
+
+<p>To make this generator work, two entities from <a href="http://docs.python.org/library/contextlib.html"><code>contextlib</code></a>, a standard Python module, are required: the <code>contextmanager</code> function, and an internal class named <code>GeneratorContextManager</code>. The source code, <a href="http://hg.python.org/cpython/file/2.7/Lib/contextlib.py"><code>contextlib.py</code></a>, is a bit hairy, but at least it&rsquo;s short. I&rsquo;ll simply describe what happens, and you are free to refer to the source code, and any other supplementary materials, as needed.</p>
+
+<p>Let&rsquo;s start with the generator itself. Here&rsquo;s what happens when the above code snippet runs:</p>
+
+<ol>
+  <li>The Python interpreter recognizes the <a href="http://docs.python.org/reference/expressions.html#yield-expressions"><code>yield</code></a> statement in the middle of the function definition. As a result, the <code>def</code> statement does not create a normal function; it creates a generator function.</li>
+  <li>Because of the presence of the <code>@contextmanager</code> <a href="http://docs.python.org/glossary.html#term-decorator">decorator</a>, <code>contextmanager</code> is called with the generator function as its argument.</li>
+  <li>The <code>contextmanager</code> function returns a &ldquo;factory&rdquo; function, which creates <code>GeneratorContextManager</code> objects wrapped around the provided generator. (line 83 of <code>contextlib.py</code>)</li>
+  <li>Finally, the factory function is assigned to <code>saved</code>. From this point on, when we call <code>saved</code>, we&rsquo;ll actually be calling the factory function.</li>
+</ol>
+
+<p>Equipped with all that good stuff, we can now write:</p>
+
+<div><div class="CodeRay">
+  <div class="code"><pre><span class="keyword">for</span> i <span class="keyword">in</span> <span class="predefined">xrange</span>(<span class="integer">6</span>):
+    <span class="highlight"><span class="keyword">with</span> saved(cr):</span>
+        cr.rotate(<span class="integer">2</span> * math.pi * i / <span class="integer">6</span>)
+        cr.rectangle(-<span class="integer">25</span>, -<span class="integer">60</span>, <span class="integer">50</span>, <span class="integer">40</span>)
+        cr.stroke()
+</pre></div>
+</div>
+</div>
+
+<p>Here are all the steps taken by the Python interpreter when it reaches the <code>with</code> statement.</p>
+
+<ol>
+  <li>The <code>with</code> statement calls <code>saved</code>, which of course, calls the factory function, passing <code>cr</code>, a cairo context, as its only argument.</li>
+  <li>The factory function passes the cairo context to our generator function, creating a <a href="http://docs.python.org/reference/expressions.html#yield-expressions">generator</a>.</li>
+  <li>The generator is passed to the constructor of <code>GeneratorContextManager</code>, an internal class which will act as our context manager.</li>
+  <li>The <code>with</code> statement saves the <code>GeneratorContextManager</code> object in a temporary hidden variable. (Actually, it only stores the bound <code>__exit__</code> method, but that&rsquo;s a detail.)</li>
+  <li>The <code>with</code> statement calls <code>__enter__</code> on the <code>GeneratorContextManager</code> object.</li>
+  <li><code>__enter__</code> calls <a href="http://docs.python.org/reference/expressions.html#generator.next"><code>next</code></a> on the generator.</li>
+  <li>Our generator function &ndash; the block of code we defined under <code>def saved(cr)</code> &ndash; runs up until the <code>yield</code> statement. This calls <code>save</code> on the cairo context.</li>
+  <li>The <code>yield</code> statement yields the cairo context, which becomes the return value for the call to <code>next</code> on the iterator.</li>
+  <li>The <code>__enter__</code> method returns the cairo context, but as you can see, we have not specified the optional <code>"as" target</code> part of the <code>with</code> statement. Therefore, the return value is not saved anywhere. We don&rsquo;t need it; we know it&rsquo;s the same cairo context that we passed in.</li>
+  <li>The nested code block is executed. It sets up the rotation and draws a rectangle.</li>
+  <li>At the end of the nested block, the <code>with</code> statement calls the <code>__exit__</code> method on the <code>GeneratorContextManager</code> object, passing the arguments <code>(None, None, None)</code> to indicate that no exception occured.</li>
+  <li>The <code>__exit__</code> method calls <code>next</code> on the iterator (expecting a <code>StopIteration</code> exception).</li>
+  <li>Our generator resumes execution after the <code>yield</code> statement. This calls <code>restore</code> on the cairo context.</li>
+  <li>The generator returns, raising a <code>StopIteration</code> exception (as expected).</li>
+  <li>The <code>__exit__</code> method catches the <code>StopIteration</code> exception, and returns normally.</li>
+</ol>
+
+<p>And that&rsquo;s it! We&rsquo;ve successfully used this generator function as a <code>with</code> statement context manager. In this example, it helped that no exceptions occured. To correctly deal with exceptions, we&rsquo;ll have to improve the generator function a little bit.</p>
+
+<h3 id="exception-handling-1">Exception Handling</h3>
+
+<p>Now, what happens if an exception occurs within the nested block while using this approach? Again, let&rsquo;s suppose we&rsquo;ve mistakenly passed the wrong number of arguments to the <code>rectangle</code> call. Here&rsquo;s what would happen:</p>
+
+<ol>
+  <li>The <code>rectangle</code> method raises a <code>TypeError</code> exception: &ldquo;Context.rectangle() takes exactly 4 arguments.&rdquo;</li>
+  <li>The <code>with</code> statement catches this exception.</li>
+  <li>The <code>with</code> statement calls <code>__exit__</code> on the <code>GeneratorContextManager</code> object. It passes information about the exception in three arguments: (<em>type</em>, <em>value</em>, <em>traceback</em>).</li>
+  <li><code>__exit__</code> calls <a href="http://docs.python.org/reference/expressions.html#generator.throw"><code>throw</code></a> on the iterator, passing the same three arguments.</li>
+  <li>The <code>TypeError</code> exception is raised in the context of our generator function, on the line containing the <code>yield</code> statement.</li>
+</ol>
+
+<p>Uh oh! At this point, our current generator function has a problem: <code>restore</code> will <em>not</em> be called on the cairo context. An exception has been raised on the line containing the <code>yield</code> statement, so the rest of the generator function will not be executed. We need to make the generator more robust, by inserting a <a href="http://docs.python.org/tutorial/errors.html#defining-clean-up-actions"><code>try/finally</code></a> block around the <code>yield</code>:</p>
+
+<div><div class="CodeRay">
+  <div class="code"><pre><span class="decorator">@contextmanager</span>
+<span class="keyword">def</span> <span class="function">saved</span>(cr):
+    cr.save()
+    <span class="highlight"><span class="keyword">try</span></span>:
+        <span class="keyword">yield</span> cr
+    <span class="highlight"><span class="keyword">finally</span></span>:
+        cr.restore()
+</pre></div>
+</div>
+</div>
+
+<p>Continuing where we left off:</p>
+
+<ol>
+  <li>Inside our generator, the <code>finally</code> block executes. This calls <code>restore</code> on the cairo context.</li>
+  <li>The <code>TypeError</code> exception went unhandled by the generator, so it is re-raised in the <code>__exit__</code> method, on the line containing the call to <code>throw</code> on the iterator. (line 35 of <code>contextlib.py</code>)</li>
+  <li>The <code>TypeError</code> exception is caught by <code>__exit__</code>.</li>
+  <li><code>__exit__</code> sees that the exception caught is the same exception that was passed in, and as a result, returns <code>None</code>.</li>
+  <li>The <code>with</code> statement checks to see whether this return value is true. Since it isn&rsquo;t, the <code>with</code> statement re-raises the <code>TypeError</code> exception, to be handled by someone else.</li>
+</ol>
+
+<p>Thus concludes our journey through the Python <code>with</code> statement. If, like me, you&rsquo;ve had a hard time understanding this statement completely &ndash; especially if you were attracted to the generator form of writing context managers &ndash; don&rsquo;t feel bad. It&rsquo;s complicated! It cleverly ties together several of Python&rsquo;s language features, many of which were themselves introduced fairly recently in Python&rsquo;s history. If any Pythonistas out there spot an error or oversight in the above explanation, please let me know in the comments.</p>
+
+<h2 id="drawing-a-fractal-tree">Drawing a Fractal Tree</h2>
+
+<p>For those of you who have endured the entire blog post up to this point, here&rsquo;s a small bonus script. It uses our newly minted cairo context manager to recursively draw a fractal tree.</p>
+
+<div><div class="CodeRay">
+  <div class="code"><pre><span class="keyword">import</span> <span class="include">cairo</span>
+<span class="keyword">from</span> <span class="include">contextlib</span> <span class="keyword">import</span> <span class="include">contextmanager</span>
+
+<span class="decorator">@contextmanager</span>
+<span class="keyword">def</span> <span class="function">saved</span>(cr):
+    cr.save()
+    <span class="keyword">try</span>:
+        <span class="keyword">yield</span> cr
+    <span class="keyword">finally</span>:
+        cr.restore()
+
+<span class="keyword">def</span> <span class="function">Tree</span>(angle):
+    cr.move_to(<span class="integer">0</span>, <span class="integer">0</span>)
+    cr.translate(<span class="integer">0</span>, -<span class="integer">65</span>)
+    cr.line_to(<span class="integer">0</span>, <span class="integer">0</span>)
+    cr.stroke()
+    cr.scale(<span class="float">0.72</span>, <span class="float">0.72</span>)
+    <span class="keyword">if</span> angle &gt; <span class="float">0.12</span>:
+        <span class="keyword">for</span> a <span class="keyword">in</span> [-angle, angle]:
+            <span class="highlight"><span class="keyword">with</span> saved(cr):</span>
+                cr.rotate(a)
+                Tree(angle * <span class="float">0.75</span>)
+
+surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, <span class="integer">280</span>, <span class="integer">204</span>)
+cr = cairo.Context(surf)
+cr.translate(<span class="integer">140</span>, <span class="integer">203</span>)
+cr.set_line_width(<span class="integer">5</span>)
+Tree(<span class="float">0.75</span>)
+surf.write_to_png(<span class="string"><span class="delimiter">'</span><span class="content">fractal-tree.png</span><span class="delimiter">'</span></span>)
+</pre></div>
+</div>
+</div>
+
+<p><img class="center" src="/images/tree.png" /></p>
+
+<p>For yet another example of <code>with</code> statement usage in Python, see <a href="http://preshing.com/20110924/timing-your-code-using-pythons-with-statement">Timing Your Code Using Pythonâs &ldquo;with&rdquo; Statement</a>.</p>
+</div>
+
+
+
+  
+
+  <footer>
+    <p class="meta">
+    </p>
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/20110831/penrose-tiling-explained" title="Previous Post: Penrose Tiling Explained">&laquo; Penrose Tiling Explained</a>
+      
+      
+        <a class="basic-alignment right" href="/20110924/timing-your-code-using-pythons-with-statement" title="Next Post: Timing Your Code Using Python's "with" Statement">Timing Your Code Using Python's "with" Statement &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+<section>
+<div id="comment-section">
+<script>
+var idcomments_acct = 'b741f3bade873745e10e70447d732c8c';
+var idcomments_post_id = '1651';
+var idcomments_post_url;
+</script>
+<span id="IDCommentsPostTitle" style="display:none"></span>
+<script type='text/javascript' src='http://www.intensedebate.com/js/genericCommentWrapperV2.js'></script>
+</div>
+</section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section class="centered">
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Preshing.com square -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:200px;height:200px"
+     data-ad-client="ca-pub-4405337903919609"
+     data-ad-slot="8868121895"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/20140127/what-is-a-bitcoin-really">What Is a Bitcoin, Really?</a>
+      </li>
+    
+      <li class="post">
+        <a href="/20131219/bitcoin-address-generator-in-obfuscated-python">Bitcoin Address Generator in Obfuscated Python</a>
+      </li>
+    
+      <li class="post">
+        <a href="/20131125/acquire-and-release-fences-dont-work-the-way-youd-expect">Acquire and Release Fences Don't Work the Way You'd Expect</a>
+      </li>
+    
+      <li class="post">
+        <a href="/20130930/double-checked-locking-is-fixed-in-cpp11">Double-Checked Locking Is Fixed In C++11</a>
+      </li>
+    
+      <li class="post">
+        <a href="/20130922/acquire-and-release-fences">Acquire and Release Fences</a>
+      </li>
+    
+      <li class="post">
+        <a href="/20130823/the-synchronizes-with-relation">The Synchronizes-With Relation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/20130702/the-happens-before-relation">The Happens-Before Relation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/20130618/atomic-vs-non-atomic-operations">Atomic vs. Non-Atomic Operations</a>
+      </li>
+    
+      <li class="post">
+        <a href="/20130605/the-worlds-simplest-lock-free-hash-table">The World's Simplest Lock-Free Hash Table</a>
+      </li>
+    
+      <li class="post">
+        <a href="/20130529/a-lock-free-linear-search">A Lock-Free... Linear Search?</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Tip Jar</h1>
+
+  <p class="tip-hint">If you like this blog, and you've found the posts valuable to you in some way, consider <a href="/tip-jar">leaving a tip!</a></p>
+  <a href="/tip-jar"><div id="tipjar-div"><img id="tip-hand" src="/images/tip-hand.png" width="76" height="54"/><img src="/images/tip-jar.png" width="83" height="104"/></div></a>
+
+  <div class="donate-qr">
+    <a href="bitcoin:1PreshX6QrHmsWbSs8pHpz6kLRcj9kdPy6?label=Preshing%20on%20Programming"><img src="/images/qr-code-small.png" /></a><br />1PreshX6QrHmsWbSs8pHpz6kLRcj9kdPy6
+  </div>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 Jeff Preshing -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

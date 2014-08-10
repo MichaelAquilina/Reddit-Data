@@ -1,0 +1,1137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head profile="http://gmpg.org/xfn/11">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<title>  How FPGAs work, and why you'll buy one</title>
+
+	<meta name="generator" content="WordPress 3.9.1" /> <!-- leave this for stats -->
+
+	<link rel="stylesheet" href="http://yosefk.com/blog/wp-content/themes/copyblogger/style.css" type="text/css" media="screen" />
+	<link rel="stylesheet" href="http://yosefk.com/blog/wp-content/themes/copyblogger/custom.css" type="text/css" media="screen" />
+	<!--[if lte IE 7]>
+	<link rel="stylesheet" type="text/css" href="http://yosefk.com/blog/wp-content/themes/copyblogger/ie7.css" />
+	<![endif]-->
+	<!--[if lte IE 6]>
+	<link rel="stylesheet" type="text/css" href="http://yosefk.com/blog/wp-content/themes/copyblogger/ie6.css" />
+	<![endif]-->
+	<link rel="alternate" type="application/rss+xml" title="Proper Fixation RSS Feed" href="http://yosefk.com/blog/feed" />
+	<link rel="pingback" href="http://yosefk.com/blog/xmlrpc.php" />
+
+<link rel="canonical" href="http://www.embeddedrelated.com/showarticle/195.php"/>
+	<link rel="alternate" type="application/rss+xml" title="Proper Fixation &raquo; How FPGAs work, and why you&#039;ll buy one Comments Feed" href="http://yosefk.com/blog/how-fpgas-work-and-why-youll-buy-one.html/feed" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://yosefk.com/blog/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://yosefk.com/blog/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='The bright side of dark silicon' href='http://yosefk.com/blog/the-bright-side-of-dark-silicon.html' />
+<link rel='next' title='Do call yourself a programmer, and other career advice' href='http://yosefk.com/blog/do-call-yourself-a-programmer-and-other-career-advice.html' />
+<meta name="generator" content="WordPress 3.9.1" />
+</head>
+<body class="custom">
+
+<div id="header">
+	<div id="logo">
+		<a href="http://yosefk.com/blog" title="Proper Fixation">Proper Fixation</a>
+		<p id="tagline">a substitute for anaesthesia</p>
+	</div>
+</div>
+	
+<div id="container">
+	<div id="nav">
+		<ul>
+			<li><a href="http://yosefk.com/blog">blog</a></li>
+<li><a href="http://yosefk.com/blog?page_id=2">about</a></li>
+<li><a href="http://yosefk.com">yosefk.com</a></li>
+		</ul>
+	</div>
+
+	<div id="content_box">
+		
+		<div id="content" class="posts single">
+			
+					
+			
+<div class="navigation">
+	<p>&larr; <a href="http://yosefk.com/blog/the-bright-side-of-dark-silicon.html" rel="prev">The bright side of dark silicon</a></p>
+	<p class="next"><a href="http://yosefk.com/blog/do-call-yourself-a-programmer-and-other-career-advice.html" rel="next">Do call yourself a programmer, and other career advice</a> &rarr;</p>
+</div>
+
+			
+			<h1>How FPGAs work, and why you'll buy one</h1>
+			<p class="post_date">June 17th, 2013 | <a href="http://yosefk.com/blog/category/hardware" title="View all posts in hardware" rel="category tag">hardware</a></p>
+			<div class="entry">
+				<p><strong>Update</strong> (June 21): this article has been published at <a href="http://www.embeddedrelated.com/showarticle/195.php">embeddedrelated.com</a>, where I hope to publish a follow-up soon.</p>
+<p>Today, pretty much everyone has a CPU, a DSP and a GPU, buried somewhere in their PC, phone, car, etc. Most don't know or care that they bought any of these, but they did.</p>
+<p>Will everyone, at some future point, also buy an FPGA? The market size of FPGAs today is about 1% of the annual global semiconductor sales (<a href="http://en.wikipedia.org/wiki/Field-programmable_gate_array#Market_size">~$3B</a> vs <a href="http://www.semiconductors.org/news/2012/06/05/global-sales-report-2012/global-semiconductor-sales-grow-at-fastest-rate-in-almost-two-years-on-sequential-monthly-basis-top-24-billion-for-first-time-in-2012/">~$300B</a>). Will FPGA eventually become a must-have, or will its volume remain relatively low?</p>
+<p>We'll try to answer this question below. In order to see how popular FPGAs could become, we'll need to discuss what FPGAs are. FPGAs are a programmable platform, but one designed by EEs for EEs rather than for programmers. So for many programmers, FPGAs are exciting yet mysterious; I hope our discussion will help demystify them.</p>
+<p>We'll start with a common explanation of FPGAs' relatively low popularity. We'll see why that explanation is wrong &#8211; and why, if we take a closer look, we actually come to expect FPGAs to blow the competition out of the water!</p>
+<p>This will conclude today's installment, "Why you'll buy an FPGA". A sequel is in the making, titled "Why you <em>won't</em> buy an FPGA". There, we'll see some of the major obstacles standing between FPGAs and world domination.</p>
+<p><strong>The oft-repeated wrong answer</strong></p>
+<p>&#8230;to the question of "why aren't FPGAs more popular?" is, "FPGA is a poor man's alternative to making chips. You can implement any circuit design in an FPGA, but less efficiently than you could in an ASIC or a custom design. So it's great for prototyping, and for low-volume products where you can't afford to make your own chips. But it makes no sense for the highest-volume devices &#8211; which happen to add up to 99% of sales, leaving 1% to FPGAs."</p>
+<p>This is wrong because programmability is a feature, not just a tax on efficiency.</p>
+<p>Of course a Verilog program doing convolution on an FPGA would run faster if you made a chip that runs just that program. But you typically don't want to do this, even for the highest-volume products, any more than you want to convert your C programs running on CPUs into dedicated hardware! Because you want to change your code, run other programs, etc. etc.</p>
+<p>When programmability is required &#8211; which is extremely often &#8211; then the right thing to compare FPGAs to is another programmable platform: a DSP, a GPU, etc. And, just like FPGAs, all of these necessarily introduce some overhead for programmability. So we can no longer assume, a priori, that any one option is more efficient than another &#8211; as we did when comparing FPGAs to single-purpose ASICs.</p>
+<p>We need benchmarks &#8211; and FPGAs' performance appears very competitive in some benchmarks. Here's what <a href="http://www.bdti.com/InsideDSP/2007/03/06/Bdti">BDTI's report</a> from 2007 says:</p>
+<blockquote><p>&#8230;we estimated that high-end FPGAs implementing demanding DSP  applications &#8230; consume on the order of 10 watts, while high-end DSPs consume  roughly 2-3 watts. Our benchmark results have shown that high-end FPGAs  can support roughly <strong>10 to 100 times</strong> more channels on this benchmark than  high-end DSPs&#8230;</p></blockquote>
+<p>So for that benchmark, FPGAs offer 10x-100x the runtime performance, and 2x-30x the energy efficiency of DSPs &#8211; quite impressive!</p>
+<p>But wait &#8211; how are they so efficient?</p>
+<p><strong>FPGAs are no longer FPGAs<br />
+</strong></p>
+<p>Aren't FPGAs Field-Programmable Gate Arrays?</p>
+<p>Programmable gate arrays can't multiply as efficiently as dedicated multipliers, can they? A dedicated multiplier is a bunch of gates connected with wires &#8211; the <em>specific</em> gates that you need for multiplying, connected <em>specifically </em>to the right other gates as required for multiplication.</p>
+<p>A programmable gate array is when your gates are <em>generic</em>. They index into a truth table (called a look-up table or LUT) with their inputs, and fetch the answer. With a 2-input LUT, you get an OR gate or an AND gate or whatever, depending on the truth table you programmed. With 3-input LUTs, you can have a single gate computing, say, (a&amp;b)|c, but the principle is the same:</p>
+<p><img src="http://yosefk.com/img/n/lut3.png" alt="" /></p>
+<p>This absolutely must be bigger and slower than just an OR gate or an AND gate!</p>
+<p>Likewise, wires go through programmable switch boxes, which connect wires as instructed by programmable bits:</p>
+<p><img src="http://yosefk.com/img/n/routing.png" alt="" /></p>
+<p>There are several switch box topologies determining which wires can be connected to which. But whatever the topology, this must be bigger and slower than wires going directly to the right gates.</p>
+<p>All this is indeed true, and a "bare" FPGA having nothing but programmable gates and routers cannot compete with a DSP. However, today's FPGAs come with <em>DSP slices</em> &#8211; specialized hardware blocks placed amidst the gates and routers, which do things like multiply-accumulate in "hard", dedicated gates.</p>
+<p>So <em>that's</em> how FPGAs compete with DSPs &#8211; they have DSP hardware in them! <em>Cheating, </em>isn't it?</p>
+<p>Well, yes and no.</p>
+<p>It's "cheating" in the sense that FPGAs aren't really FPGAs any more &#8211; instead, they're arrays of programmable gates <em>plus all that other stuff</em>. A "true FPGA" would look like this:</p>
+<p><img src="http://yosefk.com/img/n/fpga-clean.png" alt="" /></p>
+<p>Instead, a high-end modern FPGA looks like this:</p>
+<p><img src="http://yosefk.com/img/n/fpga-real.png" alt="" /></p>
+<p>To be competitive in DSP applications, FPGAs need DSP slices &#8211; ALUs doing things like multiply-accumulates.</p>
+<p>To be competitive in applications needing a CPU &#8211; which is most of them &#8211; today's FPGAs have more than just specialized ALUs. They have full-blown ARM cores  implemented using "hard", non-programmable gates!</p>
+<p>So you've been "cheated" if you thought of FPGAs as "clean slates" suitable for any design. In reality, FPGAs have specialized hardware to make them competitive in specific areas.</p>
+<p>And you can sometimes guess where they're less competitive by observing which specializations they lack. For instance, there are no "GPU slices", and indeed I don't believe FPGAs can compete with GPUs in their own domain as they compete with DSPs. (Why not simply add GPU slices then? Here the plot thickens, as we'll see in the follow-up article.)</p>
+<p>But of course having DSP slices is more than just "cheating" &#8211; because look at just how many DSP slices FPGAs have. The cheapest FPGAs can do <strong>hundreds</strong> of mutliply-accumulates simultaneously! (My drawing above has the wrong scale &#8211; imagine hundreds of small DSP slices near a couple of much larger CPUs.)</p>
+<p>And hundreds of MACs is a big deal, because while anyone can cram a load of multipliers into a chip, the hard part is to connect it all together, letting a meaningful program actually <em>use </em>these multipliers in parallel.</p>
+<p>For instance, TI's C64 DSPs can do 8 MACs per cycle &#8211; but only if it's a dot product. TI's C66 DSPs can do 32 MACs/cycle &#8211; but only if you're multiplying complex numbers. You only get the highest throughput for very specific data flows.</p>
+<p>To the extent that the FPGA architecture lets you actually use an order of magnitude more resources at a time, and do that in more real-life examples, it is a rather unique achievement. And this is how they actually <em>beat </em>dedicated DSPs with their DSP slices, not just reach the same performance.</p>
+<p><strong>FPGA as a programmable accelerator architecture</strong></p>
+<p>So what makes FPGAs such an efficient architecture? There's no simple answer, but here are some things that FPGAs can use to their advantage:</p>
+<ul>
+<li><strong>No need for full-blown ALUs for simple operations</strong>: a 2-bit adder doesn't need to be mapped to a large, "hard" DSP slice &#8211; it can fit comfortably in a small piece of "soft" logic. With most processors, you'd "burn" a full-blown ALU to do the simplest thing.</li>
+<li><strong>No need for a full <em>cycle</em> for simple operations</strong>: on FPGAs, you don't have to sacrifice a full cycle to do a simple operation, like an OR, which has a delay much shorter than a full cycle. Instead, you can feed OR's output immediately to the next operation, say, AND, without going through registers. You can chain quite a few of these, as long as their delays add up to less than a cycle. With most processors, you'd end up "burning" a full cycle on each of these operations.</li>
+<li><strong>Distributed operand routing</strong>: most processors have their ALUs communicate through register files. With all the ALUs connected to all the registers, there's a bottleneck &#8211; this interconnect grows as the product of the number of ALUs and registers, so you can't have too many of either. FPGAs spread ALUs and registers throughout the chip, and you can connect them in ways not creating such bottlenecks &#8211; say, as a long chain, as a tree, and in many other ways. Of course you can also route everything through a bottleneck, and then your design will run at a low frequency &#8211; but you don't have to. With CPUs or DSPs, they run at a high frequency &#8211; because the amount of ALUs and registers was limited to make that frequency possible. But in FPGAs you can get <em>both </em>high frequencies and a lot of resources used in parallel.</li>
+<li><strong>Distributed command dispatching</strong>: a 2-issue or a 6-issue processor is common, but 100-issue processors are virtually unheard of. Partly it's because of the above-mentioned operand routing, and partly it's because of command dispatching &#8211; you'd have to fetch all those commands from memory, another bottleneck. In FPGAs, you can implement command-generating logic in simple state machines residing near your ALUs &#8211; and in the simplest case, commands are constants kept in registers residing near ALUs. This lets you easily issue 100 parallel instructions.</li>
+</ul>
+<p>This "distributed" business is easier to appreciate by looking at an example. Here's a schematic implementation of a 1D convolution on an FPGA &#8211; you convolve a long vector v with an N-coefficient filter f, computing, at every i, f0*v[i] + f1*v[i-1] + f2*v[i-2] + &#8230; + fN-1*v[i-N-1]:</p>
+<p><img src="http://yosefk.com/img/n/fpga-tree.png" alt="" /></p>
+<p>In this drawing, N=8, but it scales easily to arbitrary N, producing results at a slightly larger latency &#8211; the summation tree depth being log(N).</p>
+<p>The orange boxes are registers; commands like + and * are stored in registers, as are inputs and outputs. (I'm feeding the output of * to + directly without going through a register to save screen space.) Every clock cycle, inputs are fed to ALUs, and the outputs become the new register values.</p>
+<p>Orange boxes (registers) spread amongst green boxes (ALUs) illustrate "distributed operand and command routing". If you wonder how it all looks like in code, Verilog source code corresponding to this drawing appears near the end of the article.</p>
+<p>And here's a linear pipeline without a summation tree:</p>
+<p><img src="http://yosefk.com/img/n/fpga-conv.png" alt="" /></p>
+<p>This is a little trickier, at least to me (I had a bug in my first drawing, hopefully it's fixed). The idea is, every pair of ALUs computes a product of fk with v[i-k], adds it to the partial sum accumulated thus far, and sends the updated partial sum downstream to the next pair of ALUs.</p>
+<p>The trick is this. The elements of v are also moving downstream, together with the sums. But after v[i] got multiplied by f0, you <em>don't</em> want to multiply it by f1 in the next cycle. Instead, you want to multiply <em>v[i-1]</em> by f1 &#8211; that's the product that we need for the convolution at index i. And then you <em>do </em>want to multiply v[i] by f1 <em>once cycle later</em> &#8211; for the convolution at index i+1. I hope that my sampling of v[i] to an intermediate register, which delays its downstream motion, does the trick.</p>
+<p>So these two examples show how FPGA programming is different from programming most kinds of processors &#8211; and how it can be more efficient. More efficient, because you can use a lot of ALUs simultaneously with little overhead spent on dispatching commands and moving inputs and outputs between ALUs. An argument can be made that:</p>
+<ul>
+<li><strong>FPGAs are more flexible than SIMD/SIMT</strong>. You can give different instructions to different ALUs, and you can route operands from different places. Contrast this with SIMD instructions like add_16_bytes, with byte i always coming from offset i inside a wide register.</li>
+<li><strong>FPGAs scale better than VLIW/superscalar.</strong> More instructions can be issued simultaneously, because there's no routing bottleneck near the register file, and no instruction memory bandwidth bottleneck.</li>
+<li><strong>FPGAs are more efficient than multiple cores</strong>. Multiple cores are flexible and can scale well. But you pay much more overhead per ALU. Each core would come with its own register files and memories, and then there are communication overheads.</li>
+</ul>
+<p>This gives us a new perspective on LUTs and switch boxes. Yes, they can be an inefficient, cheaper-to-manufacture alternative to dedicated gates and wires. But they are also a mechanism <em>for utilizing the "hard" components </em>spread in between them &#8211; sometimes better than any other mechanism.</p>
+<p>And this is how FPGAs beating DSPs with the help of DSP slices isn't "cheating". (In fact, mature DSPs "cheat" much more by having ugly, specialized instructions. Far more specialized than FPGAs' multiply-accumulate, dot product instructions being among the least ugly. And the reason they need such instructions is they don't have the flexibility of FPGAs, so what FPGAs effectively do in software, they must do in hardware in order to optimize very specific data flows.)</p>
+<p><strong>I/O applications<br />
+</strong></p>
+<p>But wait &#8211; there's more! In addition to being a hardware prototyping platform and an accelerator architecture, FPGAs are also uniquely suited for software-defined I/O.</p>
+<p>"Software-defined I/O" is the opposite of "hardware-defined I/O" &#8211; the common state of things, where you have, for instance, an Ethernet controller implementing some share of TCP or UDP in hardware. Software-defined I/O is when you have some programmable hardware instead of dedicated hardware, and you implement the protocols in software.</p>
+<p>What makes FPGAs good at software-defined I/O?</p>
+<ul>
+<li><strong>Timing control:</strong> Verilog and other hardware description languages give you more precise control over timing than perhaps any other language. If you program it to take 4 cycles, it takes 4 cycles &#8211; no cache misses or interrupts or whatever will get in your way unexpectedly. And you can do a whole lot in these 4 cycles &#8211; FPGAs are good at issuing plenty of instructions in parallel as we've seen. This means you don't have to account for runtime variability by buffering incoming data, etc. &#8211; you know that every 4 cycles, you get a new byte/pixel/etc., and in 4 cycles, you're done with it. This is particularly valuable where "deep" buffering is unacceptable because the latency it introduces is intolerable &#8211; say, in a DRAM controller. You can also do things like generating a clock signal at a desired frequency, or deal with incoming clock signal at a different frequency than yours.</li>
+<li><strong>Fine-grained resource allocation</strong>: you "burn" a share of FPGA resources to handle some peripheral device &#8211; and that's what you've spent. With other processor cores, you'll burn an entire core &#8211; "this DSP handles WiFi" &#8211; even if the core is idle much of the time. (The FPGA resources are also burnt that way &#8211; but you'll often spend less resources than a full processor core takes.) Alternatively, you can time-share that DSP core &#8211; but it's often gnarly. Many kinds of cores expose a lot of resources that must be manually context-switched at an intolerably high latency. Core asymmetry gets in the way of thread migration. And with two I/O tasks, often none can tolerate being suspended for a long while, so you'll definitely burn two cores. (One solution is hardware multithreading.)</li>
+</ul>
+<p>The upshot is that relatively few processors other than FPGAs are suitable for software-defined I/O. The heavily multi-threaded <a href="http://en.wikipedia.org/wiki/XMOS">XMOS</a> is claimed to be one exception. Then there are communication processors such as the hardware-threaded <a href="http://en.wikipedia.org/wiki/Qualcomm_Hexagon">Qualcomm Hexagon DSP</a> and the <a href="http://www.ceva-dsp.com/CEVA-XC-Family">CEVA-XC DSPs</a>. But these are fairly specialized; you couldn't use them to implement a memory controller or an LVDS-to-parallel video bridge, both of which you could do with an FPGA.</p>
+<p>And of course, FPGA's I/O capabilities can be combined with computation acceleration &#8211; get pixels and enhance the image color on the fly, get IP packets with stock info and decide which stocks to trade on the fly.</p>
+<p>Programmable, efficient, and versatile, FPGAs are starting to sound like a great delivery platform.</p>
+<p><strong>Summary</strong></p>
+<p>There are several points that I tried to make. Some are well-known truisms, and others are my own way of looking at things, which others might find debatable or at least unusually put.</p>
+<ul>
+<li>While FPGA are a great <strong>small-scale circuit delivery platform</strong>, they can also be a <strong>large-scale software delivery</strong> <strong>platform</strong>. You can think of FPGAs as "inefficiently simulating circuits". But in other contexts, you can also think of them as "efficiently executing programs"!</li>
+<li>Instead of fixed-function gates and wires connecting specific gates to each other, FPGAs use programmable gates &#8211; configured by setting a truth table of choice &#8211; and programmable switch boxes, where incoming wires are connected to some of the other wires based on configuration bits. By itself, it's very inefficient compared to a "direct" implementation of a circuit.</li>
+<li>Then how can FPGAs beat, not just CPUs, but specialized accelerators like DSPs in their own game? The trick is, <strong>they're no longer FPGAs</strong> &#8211; gate arrays. Instead, they're also arrays of RAMs and DSP slices. And then they have full-blown CPUs, Ethernet controllers, etc. implemented in fixed-function hardware, just like any other chip.</li>
+<li>In such modern FPGAs, the sea of LUTs and switch boxes can be used not instead of fixed-function circuits, but as <strong>a force multiplier</strong> letting you make full use of your fixed-function circuits. LUTs and switch boxes give two things no other processor architecture has. First, the ability to use <strong>less than a full-blown ALU </strong>for simple things &#8211; and <strong>less than a full clock cycle</strong>. Second, <strong>distributed routing of commands and operands</strong> &#8211; arguably more flexible than SIMD, more scalable than superscalar execution, and more efficient than multiple instruction streams.</li>
+<li>FPGAs are the ultimate platform for <strong>software-defined I/O</strong> because of their timing control (if I said 4 cycles, it takes 4 cycles) and fine-grained resource allocation (spend so many registers and ALUs per asynchronous task instead of dedicating a full core or having to time-share it).</li>
+</ul>
+<p>With all these advantages, why just 1% of the global semiconductor sales? One reasonable answer is that it took FPGAs a long time to evolve into their current state. Things FPGAs have today that they didn't have in the past include:</p>
+<ul>
+<li><strong>Fixed-function hardware</strong> essential for performance &#8211; this gradually progressed from RAM to DSP slices to complete CPUs.</li>
+<li><strong>Quick runtime reconfiguration</strong>, so that you can run convolution and then replace it with FFT &#8211; which you can't, and shouldn't be able to do, if you're thinking of FPGA as simulating one circuit.</li>
+<li><strong>Practically useable C-to-Verilog compilers</strong>, letting programmers, at least reasonably hardcore ones, who nonetheless aren't circuit designers, to approach FPGA programming easily enough.</li>
+</ul>
+<p>All of these things cater to programmers as much or more than they cater to circuit designers. This shows that FPGAs are gunning for a position in the large-scale software delivery market, outside their traditional small-scale circuit implementation niche. (Marketing material by FPGA vendors confirms their intentions more directly.)</p>
+<p>So from this angle, <strong>FPGAs evolved from a circuit implementation platform into a software delivery platform</strong>. Being a strong programmable architecture, they're expected to rise greatly in popularity, and, like other programmable architectures, end up everywhere.</p>
+<p><strong>Unanswered questions</strong></p>
+<p>As a teaser for the sequel, I'll conclude with some questions which our discussion left unanswered.</p>
+<p>Why do FPGAs have DSP slices and full-blown "hard" CPUs? Why not the other way around &#8211; full-blown DSP cores, and some sort of smaller "CPU slices"? Where are the GPU slices? And if rationing individual gates, flip-flops and picoseconds instead of full ALUs, registers and clock cycles is so great, why doesn't everyone else do it? Why do they all break up resources into those larger chunks and only give software control over that?</p>
+<p>Stay tuned for the sequel &#8211; "How FPGAs work, and why you won't buy one".</p>
+<p><strong>P.S. Programmable &#8211; how?</strong></p>
+<p>So how do you program the programmable gate array? Talk is cheap, and so are Microsoft Paint drawings. Show me the code!</p>
+<p>The native programming interface is a hardware description language  like Verilog. Here's an implementation of the tree-like convolution  pipeline in Verilog &#8211; first the drawing and then the code:</p>
+<p><img src="http://yosefk.com/img/n/fpga-tree.png" alt="" /></p>
+<pre><strong>module </strong>conv8(clk, in_v, out_conv);
+  <em>//inputs &amp; outputs:</em>
+  <strong>input</strong> clk; <em>//clock</em>
+  <strong>input </strong>[7:0] in_v; <em>//1 8-bit vector element</em>
+  <strong>output </strong><strong>reg </strong>[18:0] out_conv; <em>//1 19-bit result</em>
+
+  <em>//internal state:</em>
+  <strong>reg </strong>[7:0] f[0:7]; <em>//8 8-bit coefficients</em>
+  <strong>reg </strong>[7:0] v[0:7]; <em>//8 8-bit vector elements</em>
+  <strong>reg </strong>[15:0] prod[0:7]; <em>//8 16-bit products</em>
+  <strong>reg </strong>[16:0] sum0[0:3]; <em>//4 17-bit level 0 sums</em>
+  <strong>reg </strong>[17:0] sum1[0:1]; <em>//2 18-bit level 1 sums</em>
+
+  <strong>integer </strong>i; <em>//index for loops unrolled at compile time</em>
+
+  <strong>always </strong>@(<strong>posedge </strong>clk) <strong>begin </strong><em>//when clk goes from 0 to 1</em>
+    v[0] &lt;= in_v;
+    <strong>for</strong>(i=1; i&lt;8; i=i+1)
+      v[i] &lt;= v[i-1];
+    <strong>for</strong>(i=0; i&lt;8; i=i+1)
+      prod[i] &lt;= f[i] * v[i];
+    <strong>for</strong>(i=0; i&lt;4; i=i+1)
+      sum0[i] &lt;= prod[i*2] + prod[i*2+1];
+    <strong>for</strong>(i=0; i&lt;2; i=i+1)
+      sum1[i] &lt;= sum0[i*2] + sum0[i*2+1];
+    out_conv &lt;= sum1[0] + sum1[1];
+  <strong>end</strong>
+<strong>endmodule</strong></pre>
+<p>This example shows how "distributed routing" actually looks in code &#8211; and the fine-grained control over resources, defining things like 17-bit registers.</p>
+<p>And it's fairly readable, isn't it? Definitely prettier than a SIMD program  spelled with intrinsics &#8211; and more portable (you can target FPGAs by  different vendors as well as an ASIC implementation using the same  source code; it's not trivial, but not hopeless unlike with SIMD  intrinsics, and probably not harder than writing actually portable  OpenCL kernels.)</p>
+<p>Incidentally, Verilog is perhaps the quintessential object-oriented language &#8211;  everything is an object, as in a physical object: a register, a wire, a  gate, or a collection of simpler objects. A module is like a class,  except you can't create objects (called instantiations) dynamically &#8211;  all objects are known at compile time and mapped to physical resources.</p>
+<p>Verilog insists on <em>encapsulation </em>as strictly as it possibly could: there's simply no way to set an object's internal state. Because how could you affect that state, physically, without a wire going in? Actually, there <em>is</em> a way to do that &#8211; the usual instance.member syntax; hardware hackers call this "an antenna", because it's "wireless" communication with the object's innards. But it doesn't synthesize &#8211; that is, you can do it in a simulation, but not in an actual circuit.</p>
+<p>Which means that our example module is busted, because we can't initialize the  filter  coefficients, f. In simulations, we can use antennas. But on an FPGA, we'd need to add, say, an init_f input, and then when it's set to 1, we could read the coefficients from the same port we normally use to read v's elements. (BTW, not that it adds much efficiency here, but the "if" test below is an example of an operation taking less than a cycle.)</p>
+<pre><strong>always </strong>@(<strong>posedge </strong>clk) <strong>begin</strong>
+  <strong>if</strong>(init_f) <strong>begin</strong>
+    f[0] &lt;= in_v;
+    <strong>for</strong>(i=1; i&lt;8; i=i+1)
+      f[i] &lt;= f[i-1];
+  <strong>end</strong>
+<strong>end</strong></pre>
+<p>A triumph of encapsulation, it's also a bit of a pity, because there are now actual wires and some control logic sitting near our coefficient registers, enlarging the circuit, only to be used upon initialization. We're used to class constructors "burning" a few memory bits; who cares &#8211; the bits are quickly swapped out from the instruction cache, so you haven't wasted resources <em>of your computational core</em>. But Verilog module initialization "burns" LUTs and wires, and it's not nearly as easy to reuse them for something else. We'll elaborate on this point in the upcoming sequel.</p>
+<p>Not only is Verilog object-oriented, but it's also the quintessential language for event-driven  programming: things are either entirely static (these here bits go into  this OR gate), or triggered by events (changes of signals, very commonly  a clock signal which oscillates between 0 and 1 at some frequency).  "always @(event-list)" is how you say what events should cause your  statements to execute.</p>
+<p>Finally, Verilog is a parallel language. The "static" processes, like  bits going into OR gates, as well as "event-driven processes", like  statements executing when the clock goes from 0 to 1, all happen in  parallel. Within a list of statements, "A &lt;= B; C &lt;= A;" are  non-blocking assignments. They happen in parallel, so that A is  assigned the value of B, and C is simultaneously assigned the (old)  value of A.</p>
+<p>So, for example, prod[i]&lt;=f[i]*v[i] sets the new value of prod, and in  parallel, sums are computed from the old values of prod, making it a  pipeline and not a serial computation. (Alternatively, we could use  blocking assignments, "=" instead of "&lt;=", to do it all serially. But  then it would take more time to execute our series of statements,  lowering our frequency, as clk couldn't switch from 0 to 1 again until the whole serial thing completes. Synthesis tools tell you the maximal frequency of your design when they're done compiling it.)</p>
+<p>On top of its object-oriented, event-based, parallel core, Verilog delivers a ton of sweet, sweet syntactic sugar. You  can write + and * instead of having to instantiate modules with "adder myadd(a,b)" or "multiplier mymul(a,b)" &#8211; though + and * are ultimately compiled down to module instances (on FPGAs, these are often DSP slice instances). You can use if statements and array  indexing operators instead of instantiating multiplexors. And you can  write loops to be unrolled by the compiler, generate instantiations  using loop syntax, parameterize your designs so that constants can be  configured by whoever instantiates them, etc. etc.</p>
+<p>If all this doesn't excite you and you'd rather program in C, you  can, sort of. There's been loads of "high-level synthesis tools" &#8211;  basically C to Verilog compilers &#8211; and their quality increased over the  years.</p>
+<p>You'd be using a weird C dialect &#8211; no function pointers or recursion,  extensions to specify the exact number of bits in your integers, etc. You'd have to use various #pragmas to guide the compilation  process. And you'd have things like array[index++] not actually working  with a memory array &#8211; and index++ not actually doing anything &#8211; because  you're getting values, not from memory, but from a FIFO, or directly from the  output of another module (just like in_v in our Verilog code doesn't  have to come from memory, and out_conv doesn't have to go to memory.)</p>
+<p>But you can use C, sort of &#8211; or Verilog, for real. Either way, you can write fairly readable FPGA programs.</p>
+							</div>
+			
+			
+<!-- You can start editing here. -->
+
+
+<div id="comments">
+
+	<h3 class="comment_intro">48 comments &darr;</h3>
+
+	
+	<dl id="comment_list">
+
+			
+		<dt id="comment-2040">
+			<span class="comment_num"><a href="#comment-2040" title="Permalink to this comment">#1</a></span>
+			<strong><a href='http://adammenges.com' rel='external nofollow' class='url'>Adam Menges</a> </strong>on 06.17.13 at 1:09 pm		</dt>
+		<dd class="entry">
+			<p>Wow, long read. Well worth it.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2041">
+			<span class="comment_num"><a href="#comment-2041" title="Permalink to this comment">#2</a></span>
+			<strong><a href='http://flagrantsystemerror.com' rel='external nofollow' class='url'>Jay K.</a> </strong>on 06.17.13 at 1:21 pm		</dt>
+		<dd class="entry">
+			<p>For someone wanting to learn FPGA, what would you recommend?</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2042">
+			<span class="comment_num"><a href="#comment-2042" title="Permalink to this comment">#3</a></span>
+			<strong>Bob McFPGA </strong>on 06.17.13 at 1:31 pm		</dt>
+		<dd class="entry">
+			<p>Nice.  I've worked in R&amp;D for one of the two big FPGA vendors for almost twenty years and this is one of the few articles for an uninitiated audience I've seen that's worth a damn.  I'll be interested in part two.  Hopfully (for my sake) it will be much less persuasive.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2043" class="author">
+			<span class="comment_num"><a href="#comment-2043" title="Permalink to this comment">#4</a></span>
+			<strong><a href='http://yosefk.com' rel='external nofollow' class='url'>Yossi Kreinin</a> </strong>on 06.17.13 at 1:45 pm		</dt>
+		<dd class="entry author">
+			<p>@Bob McFPGA, Adam Menges: thanks!</p>
+<p>@Jay K: I suggest you ask Bob McFPGA, as he's really much more knowledgeable than me <img src="http://yosefk.com/blog/wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley" />  In my case I never studied this stuff in a structured way. What I'd do is I'd learn Verilog, then when things work for me in say iverilog and look nice in gtkwave and I'm comfortable with the waveform viewer, I'd lay my hands on an FPGA and see if I can make it do what I want. But there might be a better way perhaps. Another approach I'd take in some cases is ask my employer to pay $1K or so for a training by Xilinx or Altera &#8211; again I'd first play with Verilog on my own and be comfortable with it to be sure that I'll be ahead of the class and not behind it. $1K trainings paid off nicely for me when I was generally on top of things but didn't know the particulars. (Of course I won't list this type of thing on my resume &#8211; it's not like academic courses, it's a joke &#8211; no exam, random curriculum, etc. but it can be effective when learning platforms and platform details while understanding things in general.)</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2044">
+			<span class="comment_num"><a href="#comment-2044" title="Permalink to this comment">#5</a></span>
+			<strong><a href='http://www.exolabs.com' rel='external nofollow' class='url'>Jeff Stewart</a> </strong>on 06.17.13 at 2:11 pm		</dt>
+		<dd class="entry">
+			<p>I have been developing with FPGAs for a long time and I love the flexibility of them.  I would recommend the tools and dev kits from Digilent if you want get up and running with a powerful setup.  I like the Spartan 6 from Xilinx.  <a href="http://www.digilentinc.com/Products/Detail.cfm?NavPath=2,400,836&#038;Prod=ATLYS" rel="nofollow">http://www.digilentinc.com/Products/Detail.cfm?NavPath=2,400,836&#038;Prod=ATLYS</a>  Full disclosure, I worked for Digilent when I was in college.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2045">
+			<span class="comment_num"><a href="#comment-2045" title="Permalink to this comment">#6</a></span>
+			<strong>Anthony </strong>on 06.17.13 at 2:14 pm		</dt>
+		<dd class="entry">
+			<p>FWIW, there is this awesome project : <a href="https://github.com/milkymist/migen" rel="nofollow">https://github.com/milkymist/migen</a><br />
+that allow you to program in python.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2046">
+			<span class="comment_num"><a href="#comment-2046" title="Permalink to this comment">#7</a></span>
+			<strong>Zvi </strong>on 06.17.13 at 2:39 pm		</dt>
+		<dd class="entry">
+			<p>The generalization of FPGA approach for CPU design is something called NISC &#8211; No Istruction Set Computer</p>
+<p><a href="https://en.wikipedia.org/wiki/No_instruction_set_computing" rel="nofollow">https://en.wikipedia.org/wiki/No_instruction_set_computing</a></p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2047">
+			<span class="comment_num"><a href="#comment-2047" title="Permalink to this comment">#8</a></span>
+			<strong>Efren </strong>on 06.17.13 at 2:53 pm		</dt>
+		<dd class="entry">
+			<p>Excellent article. One doubt on the consumption numbers, are they swapped for DSP?</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2048">
+			<span class="comment_num"><a href="#comment-2048" title="Permalink to this comment">#9</a></span>
+			<strong>Anonymous </strong>on 06.17.13 at 3:20 pm		</dt>
+		<dd class="entry">
+			<p>I just wanted to point out that your image for the "Modern FPGA" is not all that correct. Multiple FPGA companies do have dedicated Intellectual Property (IP) Blocks like USB and ethernet, but generally special, they don't exist. However, the block is fairly accurate to the Zynq Processor (www.xilinx.com/zynq).</p>
+<p>Overall good article.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2049">
+			<span class="comment_num"><a href="#comment-2049" title="Permalink to this comment">#10</a></span>
+			<strong>Steve </strong>on 06.17.13 at 3:24 pm		</dt>
+		<dd class="entry">
+			<p>Xilinx has a program called "Vivado HLS" or "Vivado High Level Synthesis" It will take C/C++/SystemC code and convert it to HDL (Verilog/VHDL) for you. So your "Practically C-to-HDL" should be changed to, "C-to-HDL Compilers"</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2050">
+			<span class="comment_num"><a href="#comment-2050" title="Permalink to this comment">#11</a></span>
+			<strong>Scott M </strong>on 06.17.13 at 3:56 pm		</dt>
+		<dd class="entry">
+			<p>I've been hoping for quite some time that someone would start to integrate FPGAs into the standard PC setup, and it would catch on.  I thought maybe someone would make a clever Linux distro that made use of an FPGA to make super efficient IO and hopefully provide a platform for software to define chunks of (optional) Verilog to throw on the FPGA to make the software run better&#8230;  Photoshop or video effect software seemed like an obvious place where gains could be found.  I'm going to keep my fingers crossed, but not holding my breath after 10 years of waiting.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2051">
+			<span class="comment_num"><a href="#comment-2051" title="Permalink to this comment">#12</a></span>
+			<strong><a href='http://gbraad.nl' rel='external nofollow' class='url'>Gerard Braad</a> </strong>on 06.17.13 at 4:14 pm		</dt>
+		<dd class="entry">
+			<p>Actually, USRobotics used FPGA's to allow your modem to be updated and remain usable when standards evolved/changed.</p>
+<p>Besides Milkymist, also OpenRISC is an interesting project to look at.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2052">
+			<span class="comment_num"><a href="#comment-2052" title="Permalink to this comment">#13</a></span>
+			<strong>csirac2 </strong>on 06.17.13 at 6:51 pm		</dt>
+		<dd class="entry">
+			<p>My graduate project at university was an FPGA image processor on Virtex2 which aimed to accelerate an edge/vectorization algorithm. Comparing the partial (but equivalent) parts of the algorithm did indeed result in a huge speedup &#8211; well over 100x vs a fast Pentium 4 IIRC &#8211; just using HandelC (an C-like HDL) over USB was huge fun.</p>
+<p>Fast-forward many years to now, where I've spent some time in scientific and technical computing &#8211; nobody cares about FPGAs for difficult CPU-bound tasks. That's all "solved" in GPUs now. People seem to care even less about FPGAs for advanced/high-performance computing than 8 years ago.</p>
+<p>Which is a shame &#8211; I loved working with the Virtex2, I bet the modern chips are a dream by comparison.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2053">
+			<span class="comment_num"><a href="#comment-2053" title="Permalink to this comment">#14</a></span>
+			<strong>iOne </strong>on 06.17.13 at 10:59 pm		</dt>
+		<dd class="entry">
+			<p>Yes, FPGAs are powerful. However, tools suck. Really, they suck a lot. I have 5+ years of FPGA development and debuging is a completely nightmare. Plug&amp;Play is simple an utopy and compatibility is inexistent. I hope Vivado HLS or other C-to-HDL tools could simplify the process, but I'm very skeptical. Despite of this, I love what you can do with this pieces of hardware&#8230;</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2054">
+			<span class="comment_num"><a href="#comment-2054" title="Permalink to this comment">#15</a></span>
+			<strong>bayesiansandwich </strong>on 06.17.13 at 11:21 pm		</dt>
+		<dd class="entry">
+			<p>FPGAs are nice if you like to wait 5 minutes for it to compile, only to find out there's a bug. 'Somewhere'.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2055">
+			<span class="comment_num"><a href="#comment-2055" title="Permalink to this comment">#16</a></span>
+			<strong>paul </strong>on 06.18.13 at 12:03 am		</dt>
+		<dd class="entry">
+			<p>Very nice post.  I'd be interested to know the percentage of die area used by the different stuff on the FPGA: DSP slices, ram blocks, hard cpu's, etc.  Any idea?  And do the notions in the post apply to lower cost FPGA's?  I've been thinking of getting an entry level development kit, e.g. with Spartan-6, which don't have nearly as many resources as the big stuff.  Thanks.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2056">
+			<span class="comment_num"><a href="#comment-2056" title="Permalink to this comment">#17</a></span>
+			<strong><a href='http://www.lelala.de' rel='external nofollow' class='url'>Lelala</a> </strong>on 06.18.13 at 12:28 am		</dt>
+		<dd class="entry">
+			<p>Wow, huge explanation &#8211; that one should go to my prof for the freshmen at university!<br />
+Thanks</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2057">
+			<span class="comment_num"><a href="#comment-2057" title="Permalink to this comment">#18</a></span>
+			<strong>Philip K </strong>on 06.18.13 at 2:08 am		</dt>
+		<dd class="entry">
+			<p>Not sure whether this will be of interest to anyone. There was a Kickstarter project earlier this year to produce a FPGA development board aimed at the hobbyist.<br />
+<a href="http://www.kickstarter.com/projects/1106670630/mojo-digital-design-for-the-hobbyist" rel="nofollow">http://www.kickstarter.com/projects/1106670630/mojo-digital-design-for-the-hobbyist</a></p>
+<p>The Kickstarter is long finished, but I notice that he's taking orders through his website. At $75 a board, it's not exactly speculatively have-a-play cheap, but it doesn't feel like it's exactly silly money either.</p>
+<p>His website is: <a href="http://embeddedmicro.com/" rel="nofollow">http://embeddedmicro.com/</a></p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2058">
+			<span class="comment_num"><a href="#comment-2058" title="Permalink to this comment">#19</a></span>
+			<strong>c31ine </strong>on 06.18.13 at 6:34 am		</dt>
+		<dd class="entry">
+			<p>Great post. I am an FPGA designer since 10 years and I have dealt with many designs, including signal processing and even running a LEON processor as an IP in an FPGA. The choice between FPGA and DSP, and now between FPGA and processors has always been there, hidden in the back of our minds or in plain sight.<br />
+I find your presentation very accurate. Looking forward for part 2 !</p>
+<p>About FPGA design from C or other non HDL I would be very careful or you'll end up designing FPGA like I design my C programs. I am perfectly able to write a software code for a simple application to communicate with my FPGAs but I will never pretend to be a software designer and write effective code for a real-time application for instance.<br />
+Non HDL languages are great to play around but if you want to go further you'll have to understand accurately what's going on and as far as I now, only HDL can give you enough control on what you really do.</p>
+<p>@Jay K: Xilinx sponsors a community called "All programmable Planet" that I found very instructive, for beginners as for more experienced designers. They have dedicated posts for newbies, search for "Ask Max" and "Ask Adam VHDL".<br />
+Otherwise my big reference is this:<br />
+<a href="http://vhdl.org/comp.lang.vhdl/FAQ1.html" rel="nofollow">http://vhdl.org/comp.lang.vhdl/FAQ1.html</a><br />
+But it is in a lot more "raw" style.<br />
+And if you give it a try and have specific problems you'll find useful help there:<br />
+<a href="https://groups.google.com/forum/?fromgroups=#!forum/comp.lang.vhdl" rel="nofollow">https://groups.google.com/forum/?fromgroups=#!forum/comp.lang.vhdl</a></p>
+<p>@iOne and @bayesiansandwich: that's what simulation is for. A standard FPGA development process always include simulation before generating any binary. It seems to me that with simulation FPGA debugging possibilities are much higher than for processors as you can create test cases that are very difficult to recreate in the real world (and so cover corner cases very easily).</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2059">
+			<span class="comment_num"><a href="#comment-2059" title="Permalink to this comment">#20</a></span>
+			<strong>Thomas Fitzpatrick </strong>on 06.18.13 at 7:46 am		</dt>
+		<dd class="entry">
+			<p>For any one trying to learn FPGA's &#8211; check out fpgalink &#8211; it is the easiest workflow for programming fpga's and supports most of the most popular dev boards out of the box. It has command utilities for turning vhdl to verilog &#8211; avoiding the ISE/Altera tools nightmare and another for programming your FPGA with usb &#8211; jtag is not required.</p>
+<p>Myhdl is used for writing python that compiles to vhdl or verilog if you want to avoid C</p>
+<p><a href="http://www.makestuff.eu/wordpress/software/fpgalink/" rel="nofollow">http://www.makestuff.eu/wordpress/software/fpgalink/</a><br />
+<a href="http://www.myhdl.org/doku.php" rel="nofollow">http://www.myhdl.org/doku.php</a></p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2060">
+			<span class="comment_num"><a href="#comment-2060" title="Permalink to this comment">#21</a></span>
+			<strong>gus3 </strong>on 06.18.13 at 9:54 am		</dt>
+		<dd class="entry">
+			<p>Wouldn't 10W for FPGA, vs. 2-3W for dedicated DSP, make the FPGA 3-5 times more power hungry than DSP? That is to say, 1/3 to 1/5 as efficient on the chip level as a DSP?</p>
+<p>Of course, if you take a look at the watts per channel, then FPGA comes out on top: worst case, 1/2 the power per channel as the DSP; best case, FPGA uses 1/33 the power per channel.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2061">
+			<span class="comment_num"><a href="#comment-2061" title="Permalink to this comment">#22</a></span>
+			<strong><a href='http://www.nkavvadias.com' rel='external nofollow' class='url'>Nikolaos Kavvadias</a> </strong>on 06.18.13 at 12:36 pm		</dt>
+		<dd class="entry">
+			<p>Hi yosefk,</p>
+<p>great article and blog overall.</p>
+<p>It is true that C-to-HDL tools donnot intuitive GUIs (as someone put it, "they suck"). I personally hate "bloated goats", massive GUIs and libraries counting the hundreds of MBs and GBs, especially when this is not necessary. I also dislike Eclipse, cannot be tailored and fitted to specific needs without much of the bloat.</p>
+<p>My attempt to both a new HLS engine (called HercuLeS) and a light HLS GUI, incorporating simulation and synthesis can be seen here: <a href="http://www.nkavvadias.com" rel="nofollow">http://www.nkavvadias.com</a></p>
+<p>HercuLeS engine: <a href="http://www.nkavvadias.com/hercules/" rel="nofollow">http://www.nkavvadias.com/hercules/</a></p>
+<p>HercuLeS GUI tech demo (testing version, will be updated in a few days, a couple of issues reported <img src="http://yosefk.com/blog/wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley" /> </p>
+<p><a href="http://www.nkavvadias.com/temp" rel="nofollow">http://www.nkavvadias.com/temp</a></p>
+<p>This is a commercial project, and we currently investigate a three-stage commercialization model, "Freemium", "Basic" and "Advanced/Full" version.</p>
+<p>The tech. demo is free, no strings attached. The GUI has been written in Tcl/Tk. HercuLeS engine ports to Linux 32-bit, and Windows XP/MinGW are available. Windows 7 port under works.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2062">
+			<span class="comment_num"><a href="#comment-2062" title="Permalink to this comment">#23</a></span>
+			<strong>David </strong>on 06.18.13 at 12:44 pm		</dt>
+		<dd class="entry">
+			<p>Did you ever look at this:</p>
+<p><a href="http://www.c-to-verilog.com/" rel="nofollow">http://www.c-to-verilog.com/</a></p>
+<p>(sadly somewhat unmaintained)</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2063">
+			<span class="comment_num"><a href="#comment-2063" title="Permalink to this comment">#24</a></span>
+			<strong><a href='http://www.nkavvadias.com' rel='external nofollow' class='url'>Nikolaos Kavvadias</a> </strong>on 06.18.13 at 1:03 pm		</dt>
+		<dd class="entry">
+			<p>@David: yes, I'm aware of the C-to-Verilog site. What's behind the scenes is a version of SystemRacer, an HLS engine implemented as an LLVM Verilog backend.</p>
+<p>I think that it has some frontend problems (the supported C subset is quite limited). I'm not sure if this is maintained, there are no major updates since some time. There is also no testbench generation, no script file generation, no tool integration, etc. It seems more like a proof-of-concept of SystemRacer (?)</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2064">
+			<span class="comment_num"><a href="#comment-2064" title="Permalink to this comment">#25</a></span>
+			<strong>Jim </strong>on 06.18.13 at 1:18 pm		</dt>
+		<dd class="entry">
+			<p>[QUOTE]</p>
+<p>…we estimated that high-end FPGAs implementing demanding DSP applications … consume on the order of 10 watts, while high-end DSPs consume roughly 2-3 watts. Our benchmark results have shown that high-end FPGAs can support roughly 10 to 100 times more channels on this benchmark than high-end DSPs…</p>
+<p>So for that benchmark, FPGAs offer 10x-100x the runtime performance, and 2x-30x the energy efficiency of DSPs &#8211; quite impressive!</p>
+<p>[/QUOTE]</p>
+<p>Re-read the first sentence. It says FPGAs consume more power than DSPs.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2065">
+			<span class="comment_num"><a href="#comment-2065" title="Permalink to this comment">#26</a></span>
+			<strong><a href='http://www.nkavvadias.com' rel='external nofollow' class='url'>Nikolaos Kavvadias</a> </strong>on 06.18.13 at 1:26 pm		</dt>
+		<dd class="entry">
+			<p>@Jim: I think the proposition is valid, energy-wise (Energy = Power x Time).</p>
+<p>FPGA energy = between 10W * (1/100)T and 10W * (1/10)T<br />
+DSP energy = between 2W * T and 3W * T</p>
+<p>So a 2x-30x (hard) estimate is reasonable. Energy consumption is important to battery-operated apparatus. On the contrary, power consumption is the metric of importance if you operate under constant power.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2066" class="author">
+			<span class="comment_num"><a href="#comment-2066" title="Permalink to this comment">#27</a></span>
+			<strong><a href='http://yosefk.com' rel='external nofollow' class='url'>Yossi Kreinin</a> </strong>on 06.18.13 at 1:35 pm		</dt>
+		<dd class="entry author">
+			<p>Thanks for all the comments. @paul: to tell the sizes you'd need to tear it down chipworks-style <img src="http://yosefk.com/blog/wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley" />  They obviously don't publish the numbers&#8230; How enlightening it would be I don't know, because the mix of resources is reflecting someone's estimation of some averaged market needs, and it can change over time.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2067">
+			<span class="comment_num"><a href="#comment-2067" title="Permalink to this comment">#28</a></span>
+			<strong>Roy Bunce </strong>on 06.19.13 at 12:04 am		</dt>
+		<dd class="entry">
+			<p>Excellent post. FPGA designs have been around for a while, but it's only recently that they have become available at a reasonable price.</p>
+<p>For an easy introduction into FPGA design, there is an Arduino compatible development board currently on kickstarter (short URL <a href="http://kck.st/164ObLg" rel="nofollow">http://kck.st/164ObLg</a> ) . As supplied it is programmed with a 58 bit I/O expander, but is reprogrammable with Verilog or VHDL code using the free Diamond software package from Lattice. It can be used stand-alone or controlled by any host processor with an I2C port. The associated web site will include tutorials and example code to guide the new FPGA programmer through the design process.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2068">
+			<span class="comment_num"><a href="#comment-2068" title="Permalink to this comment">#29</a></span>
+			<strong>Jochen Hebeler </strong>on 06.19.13 at 4:36 am		</dt>
+		<dd class="entry">
+			<p>FPGA are cool devices with great potential, but you have to acknowledge, that they are complicated to be programmed. A simple programm for generating a PWM on a AVR is just some lines in C. Generating a PWM on a FPGA is more complicated and you have to check your module for nearly every possible state and input combination. The development-cycle of a FPGA design takes much more time than the average time on a common MCU. Programming sequential operations on a FPGA is a real pain in the arse and requieres a lot of evaluation. Therefore the usage of the Devices is limited to those matters, where the qualities of the FPGAs are needed and the extra money for development can be justified, for example in high-end test gear.<br />
+Also you will come over a lot of problems concerning timing-issues and temperature-related mess.<br />
+All in all, modern FPGAs are very potent and usefull, but they are complicated and need a lot of testing.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2069">
+			<span class="comment_num"><a href="#comment-2069" title="Permalink to this comment">#30</a></span>
+			<strong>Matt </strong>on 06.19.13 at 5:31 am		</dt>
+		<dd class="entry">
+			<p>Great article but, what is a FPGA?</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2070">
+			<span class="comment_num"><a href="#comment-2070" title="Permalink to this comment">#31</a></span>
+			<strong><a href='http://www.opwernby.com' rel='external nofollow' class='url'>Dan Sutton</a> </strong>on 06.19.13 at 8:17 am		</dt>
+		<dd class="entry">
+			<p>This is a great article &#8212; I love the whole concept of FPGAs &#8211; back in the '80s, I did a good amount of work with PALs and GPLs; the FPGA, of course, is the logical extension of that technology&#8230; this article makes me want to get back into it again. Such fun.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2071">
+			<span class="comment_num"><a href="#comment-2071" title="Permalink to this comment">#32</a></span>
+			<strong>Mark </strong>on 06.19.13 at 9:51 am		</dt>
+		<dd class="entry">
+			<p>I haven't figured out why, but the world of HDL programming (Verilog, VHDL, etc) and the world of procedural programming (C/C++/C#/Java,etc) are so different and the expectations of the tools are so different.  The tools in the procedural world as so much nicer than the crappy tools that exist for FPGA development.  I can crank out a user interface in C# in a few minutes, that will do sophisticated image transforms and host a TCP server. In the same amount of time, I might be able to write a Verilog program that multiplies 2 numbers together and blinks an LED if the value is zero.  On a CPU processor, I can scale up everything to almost infinity and will just have to deal with everything running slower. On an HDL project, if I scale things up, then all of a sudden things start subtly breaking (ie the multiplication results starts getting intermittent bit errors), until you get to the point where it doesn't even compile.</p>
+<p>You can use "soft cores" as part of your HDL project (like picoblaze or microblaze) but these don't run as well as a hard microcontroller core.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2072">
+			<span class="comment_num"><a href="#comment-2072" title="Permalink to this comment">#33</a></span>
+			<strong>Sicaine </strong>on 06.19.13 at 12:09 pm		</dt>
+		<dd class="entry">
+			<p>thank your for that great article <img src="http://yosefk.com/blog/wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley" /> </p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2073">
+			<span class="comment_num"><a href="#comment-2073" title="Permalink to this comment">#34</a></span>
+			<strong>tz </strong>on 06.20.13 at 2:49 am		</dt>
+		<dd class="entry">
+			<p>Very good intro, but where is a simple, inexpensive board with dev environment and "blink a LED" example.  Something like the Arduino or raspberry pi.</p>
+<p>I can handle the logic, but a tube of fine-pitched parts isn't something I can work with, nor several hundred dollars for a set of development boards &#8211; most of which are already pre-wired and not for breadboards.</p>
+<p>I think the pieces are there.  But there isn't a FPGA one yet.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2074">
+			<span class="comment_num"><a href="#comment-2074" title="Permalink to this comment">#35</a></span>
+			<strong>trombone </strong>on 06.20.13 at 5:18 am		</dt>
+		<dd class="entry">
+			<p>@iOne: I found your comment rather funny, and completely wrong! I spent 8 years working with FPGA development tools, and then the last 2.5 years working with digital ASIC implementation tools. The FPGA tools are an ABSOLUTE DREAM compared to the ASIC tools. This, I think, is due to the number of users.</p>
+<p>I expect the "debugging is a complete nightmare" because you don't simulate enough, or haven't properly constrained the design prior to the implementation.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2075">
+			<span class="comment_num"><a href="#comment-2075" title="Permalink to this comment">#36</a></span>
+			<strong>rob </strong>on 06.21.13 at 10:30 pm		</dt>
+		<dd class="entry">
+			<p>@ty: <a href="http://papilio.cc/" rel="nofollow">http://papilio.cc/</a></p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2076">
+			<span class="comment_num"><a href="#comment-2076" title="Permalink to this comment">#37</a></span>
+			<strong>rob </strong>on 06.21.13 at 11:35 pm		</dt>
+		<dd class="entry">
+			<p>(Sorry, that was supposed to be @tz.) Great article.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2077">
+			<span class="comment_num"><a href="#comment-2077" title="Permalink to this comment">#38</a></span>
+			<strong>Johan Ouwerkerk </strong>on 07.03.13 at 6:20 am		</dt>
+		<dd class="entry">
+			<p>FPGA's are quite nice, but the first thing to ditch is the concept of  programming them as such. Problem is: if you structure your hardware like you do your software you'll run out of "space" pretty quickly. That's the subtle issue hinted at with the talk about a "constructor" after the article summary.</p>
+<p>Secondly the routing looks like magic, until it isn't. Lot's of seemingly inexplicable issues may crop up and there are lot's of subtle issues in that if things can't be statically verified (despite being "correct") code will not synthesize properly. An example: suppose you have a stream of data input wherein you may have two types of "objects" which need to be processed differently but yield same output types, those outputs need to be sorted in some order and some total needs to be computed (map/reduce flow in software/math). You know in advance the total number of objects, the total number of objects for each type etc.</p>
+<p>In that example you can't simply (straightforwardly) "put" objects of type 1 in a "vector/array" of type 1 of length Y, and objects of type 2 in a "vector/array" of type 2 of length Z when the total number of objects is X, where Z != X != Y. That's because the synthesizer cannot verify in advance that the partitioning of X objects into two arrays of length Z/Y is actually correct (in a naive/software implementation it sees X assignments but it cannot know that only Z assignments go to the vector of type 2, and Y go to the vector of type 1).</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2078">
+			<span class="comment_num"><a href="#comment-2078" title="Permalink to this comment">#39</a></span>
+			<strong><a href='http://www.ostr.fi' rel='external nofollow' class='url'>Oskari Teeri</a> </strong>on 07.06.13 at 7:10 pm		</dt>
+		<dd class="entry">
+			<p>Best FPGA introduction I've read so far.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2079">
+			<span class="comment_num"><a href="#comment-2079" title="Permalink to this comment">#40</a></span>
+			<strong>Mark </strong>on 08.08.13 at 7:58 am		</dt>
+		<dd class="entry">
+			<p>The v2 Mojo FPGA hobby boards are on sale this month (August 2013) &#8211;since they came out with the v3 they are blowing out the v2.  I bought one and started working through the VHDL examples in "HamsterNZ's" IntroToSpartanFPGABook.pdf eBook course.  Obviously I had to use the mojo.ucf constraints file, but it works great so far.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2080">
+			<span class="comment_num"><a href="#comment-2080" title="Permalink to this comment">#41</a></span>
+			<strong>Lev Serebryakov </strong>on 09.21.13 at 9:32 am		</dt>
+		<dd class="entry">
+			<p>FPGA have one big problem for now: they are mostly vendor locked-in.</p>
+<p>For example, if I target "ordinary" CPU with my program, which should be re-configurable but very effective (like calculating user-configured formulas in some expression language) I could take LLVM or ORC or write several codegens by myself for several architectures (x86, x86-64, ARM &#8212; and it covers most of consumer and commodity hardware, add MIPS and a huge slab of embedded hardware is covered too). Maybe, it will be not state-of-art "compilers", but result will be much faster than interpretation. Instruction sets are known, tools (like assemblers) are available, and now, with rise of LLVM, it is rather high-level tools.</p>
+<p>But what should I do if I want target hypothetical FPGA companion to CPU? Both Xilinx and Altera have all formats and details closed. I could not redistribute their synthesis tools with my software. Even worse, I could not get any free tools for my project! Free synthesis tools are limited to low-level devices&#8230;</p>
+<p>GPU is somewhere in-between, IMHO.</p>
+<p>IMHO, to see FPGAs in "commodity" hardware, available to application programmers as reconfigurable coprocessors, FPGA vendors need to change their mind about synthesis tools and bitstream formats. Without such changes, it could not become reality.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2081" class="author">
+			<span class="comment_num"><a href="#comment-2081" title="Permalink to this comment">#42</a></span>
+			<strong><a href='http://yosefk.com' rel='external nofollow' class='url'>Yossi Kreinin</a> </strong>on 09.21.13 at 9:40 am		</dt>
+		<dd class="entry author">
+			<p>It's a valid point, and I plan to expand on this in the follow-up; for now, one possible answer is, you can distribute VHDL or Verilog code &#8211; as many, many IP vendors do and make handsome profits, and as everyone does with JavaScript, lacking any binary instruction encoding that will run in all the web browsers out there. And, certainly the vast majority of software targeting CPUs is written in portable HLLs without knowing a thing about the instruction set, not to mention its binary encoding.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2082">
+			<span class="comment_num"><a href="#comment-2082" title="Permalink to this comment">#43</a></span>
+			<strong>Lev Serebryakov </strong>on 09.21.13 at 10:23 am		</dt>
+		<dd class="entry">
+			<p>What end-user will do with my verilog code? Not hardware/software designer, who buy IP, as now programmers (not end-users!) buy software libraries, but user of my software package, which I want to take advantage of configurability of FPGA.</p>
+<p>I speak more about case "user configure filter in high-level domain-specific language (maybe, even in some graphical tool) and my software run it on CPU, GPU or FPGA &#8212; what is best available on user's hardware."<br />
+I could write such system for CPU for sure. I could write such system for GPU, as every GPU installation contains compiler in drivers (free of charge and transparently for user!). FPGA? As long as FPGA vendors think about synthesis tools as "expensive developers tools" and not "free drivers" it is not possible, as it forces user to BUY Quartus or ISE Design Suite, or what-is-the-name-of-Lattice-design-software.</p>
+<p>Yes, JavaScript is distributed in source form, but here are several free JavaScript VMs on "each" device already. But not FPGA synthesis tool, even if user buy FPGA card, because synthesis tool is separate product, which costs a lot of money.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2083">
+			<span class="comment_num"><a href="#comment-2083" title="Permalink to this comment">#44</a></span>
+			<strong>Lev Serebryakov </strong>on 09.21.13 at 10:27 am		</dt>
+		<dd class="entry">
+			<p>It looks like situation with DSP cores on ARM SoCs now: you could buy SnapDragon SoC and build your device around it, but you essentially could not use DSP companion for anything but videodecoding, because DSP is not-documented, closed, and only thing you could get for it is some binary blob ("firmware") which implements H.264 en/decoding, that's all. You want to use this DSP and mobile GPU for something else? Sorry, you don't have documentation for it, even if you are ready to sign NDA, not to mention open-source projects&#8230;<br />
+FPGAs looks even more closed, than that.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2084">
+			<span class="comment_num"><a href="#comment-2084" title="Permalink to this comment">#45</a></span>
+			<strong>Lev Serebryakov </strong>on 09.21.13 at 10:54 am		</dt>
+		<dd class="entry">
+			<p>Oh! I went to this good example:</p>
+<p>SDR. Software Defined Radio. Not exactly end-user kind of stuff, but it allows geeks to experiment with cool stuff without soldering high-freq analog schemes (so, level of geekness to enter is greatly reduced, same thing as Arduino reduces this level for embedded and robotics). You could buy one board, and get full-spectrum coverage.<br />
+Many of these boards contains FPGA, which is cool, too.<br />
+But if you want to change something to in latest stage (which is run on PC), but in FPGA, you need to use full-featured vendor design suits, and if you are lucky, limits of free versions of these suits are enough for you. Or you need to buy tools, which costs 10x-100x compared to board itself.<br />
+There is NO good way for board designers to provide something like Arduino IDE for such SDR device &#8212; because vendor synthesis tools are so restricted, closed, etc.</p>
+<p>And I don't think FPGAs will widespread as companion devices till tools will be free, redistributable, and simple to embed and use, as C/C++ compilers for common architectures are now.</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2085">
+			<span class="comment_num"><a href="#comment-2085" title="Permalink to this comment">#46</a></span>
+			<strong>uriW </strong>on 01.08.14 at 12:51 pm		</dt>
+		<dd class="entry">
+			<p>Thanks Yossi.<br />
+It gives me the appetite to leave the corrupted world and start thinking again, and actually be DOING  things.</p>
+<p>Interesting as hell.<br />
+If only there was the ability to take very high level code and to compile it to something kike 20% optimized &#8230;</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2086">
+			<span class="comment_num"><a href="#comment-2086" title="Permalink to this comment">#47</a></span>
+			<strong><a href='http://yosefk.com' rel='external nofollow' class='url'>Yossi Kreinin</a> </strong>on 01.08.14 at 10:58 pm		</dt>
+		<dd class="entry">
+			<p>Resist the temptation to leave the world of easy money for the hell of hopeless fucking with barely working machinery!</p>
+<p>As to FPGAs &#8211; I need to write the follow-up sometime. I think hacking on FPGAs can be fun but the full picture is not half as rosy as I painted it here IMO&#8230;</p>
+ 
+					</dd>
+		
+			
+		<dt id="comment-2087">
+			<span class="comment_num"><a href="#comment-2087" title="Permalink to this comment">#48</a></span>
+			<strong>AlbertR </strong>on 01.14.14 at 6:48 pm		</dt>
+		<dd class="entry">
+			<p>@Scott M: There is a company that does what you suggest &#8211; allow the programmer/user to download code to one or more FPGAs to accelerate certain computational kernels. And this can be done in the midst of your conventional CPU code execution. The company is Convey Computer: <a href="http://www.conveycomputer.com/" rel="nofollow">http://www.conveycomputer.com/</a>. They call these kernels Personalities and you can trade out personalities on the FPGAs in fairly quick succession. However, these are rather expensive computers; definitely not at the price point that you are suggesting.</p>
+ 
+					</dd>
+		
+		
+	</dl>
+		
+	
+	<!-- Comment Form -->
+		
+		
+			<h3 id="respond">Leave a Comment</h3>
+			<form action="http://yosefk.com/blog/wp-comments-post.php" method="post" id="comment_form">
+			
+										<p><input class="text_input" type="text" name="author" id="author" value="" tabindex="1" /><label for="author"><strong>Name</strong></label></p>
+				<p><input class="text_input" type="text" name="droid" id="droid" value="" tabindex="2" /><label for="author"><strong><a href="http://yosefk.com/human.html">Human?</a> (Just type "yes" or "y")</strong></label></p>
+				<input class="text_input" type="hidden" name="email" id="email" value="" tabindex="4" />
+				<p><input class="text_input" type="text" name="url" id="url" value="" tabindex="3" /><label for="url"><strong>Website (optional)</strong></label></p>
+							<!--<p><small><strong>XHTML:</strong> You can use these tags: &lt;a href=&quot;&quot; title=&quot;&quot;&gt; &lt;abbr title=&quot;&quot;&gt; &lt;acronym title=&quot;&quot;&gt; &lt;b&gt; &lt;blockquote cite=&quot;&quot;&gt; &lt;cite&gt; &lt;code&gt; &lt;del datetime=&quot;&quot;&gt; &lt;em&gt; &lt;i&gt; &lt;q cite=&quot;&quot;&gt; &lt;strike&gt; &lt;strong&gt; </small></p>-->
+			
+				<p><textarea class="text_input text_area" name="comment" id="comment" rows="7" tabindex="4"></textarea></p>
+			
+							
+				<p>
+					<input name="submit" class="form_submit" type="submit" id="submit" tabindex="5" value="Submit" />
+					<input type="hidden" name="comment_post_ID" value="238" />
+				</p>
+		
+					
+			</form>
+		
+</div> <!-- Close #comments container -->
+			
+				
+		</div>
+		
+		<div id="sidebar">
+	<p id="rss"><a href="http://yosefk.com/blog/feed" title="Subscribe to this site's feed"></a></p>
+	<ul class="sidebar_list">
+		<li class="widget">
+			<h2>Search</h2>
+			<form method="get" id="search_form" action="http://yosefk.com/blog/">
+	<input type="text" class="search_input" value="To search, type and hit enter" name="s" id="s" onfocus="if (this.value == 'To search, type and hit enter') {this.value = '';}" onblur="if (this.value == '') {this.value = 'To search, type and hit enter';}" />
+	<input type="hidden" id="searchsubmit" value="Search" />
+</form>
+		</li>
+				<li id="recent-posts-2" class="widget widget_recent_entries">		<h2 class="widgettitle">Posts</h2>
+		<ul>
+					<li>
+				<a href="http://yosefk.com/blog/things-from-python-id-miss-in-go.html">Things from Python I'd miss in Go</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/how-to-make-a-heap-profiler.html">How to make a heap profiler</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/why-bad-scientific-code-beats-code-following-best-practices.html">Why bad scientific code beats code following "best practices"</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/working-simultaneously-vs-waiting-simultaneously.html">Working simultaneously vs waiting simultaneously</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/can-your-static-type-system-handle-linear-algebra.html">Can your static type system handle linear algebra?</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/c11-fqa-anyone.html">C++11 FQA anyone?</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/a-simple-way-to-get-more-people-to-code.html">A simple way to "get more people to code"</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/very-funny-gdb-ve-ery-funny.html">Very funny, gdb. Ve-ery funny.</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/delayed-printf-for-real-time-logging.html">Delayed printf for real-time logging</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/coroutines-in-one-page-of-c.html">Coroutines in one page of C</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/do-call-yourself-a-programmer-and-other-career-advice.html">Do call yourself a programmer, and other career advice</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/how-fpgas-work-and-why-youll-buy-one.html">How FPGAs work, and why you'll buy one</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/the-bright-side-of-dark-silicon.html">The bright side of dark silicon</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/parallelism-and-concurrency-need-different-tools.html">Parallelism and concurrency need different tools</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/10x-more-selective.html">10x more selective</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/checkedthreads-bug-free-shared-memory-parallelism.html">checkedthreads: bug-free shared memory parallelism</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/amdahls-law-in-reverse-the-wimpy-core-advantage.html">Amdahl's law in reverse: the wimpy core advantage</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/is-program-speed-less-important-than-x.html">Is program speed less important than X?</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/efficiency-is-fundamentally-at-odds-with-elegance.html">Efficiency is fundamentally at odds with elegance</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/how-profilers-lie-the-cases-of-gprof-and-kcachegrind.html">How profilers lie: the cases of gprof and KCachegrind</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/its-locking-if-its-blocking.html">It's "locking" if it's blocking</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/c-template-fuckwittery.html">C++ template fuckwittery</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/why-custom-allocatorspools-are-hard.html">Why custom allocators/pools are hard</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/value-the-irksome-euphemism.html">"Value", the irksome euphemism</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/will-opencl-help-displace-gpgpu-parallella-p2012.html">Will OpenCL help displace GPGPU? Parallella, P2012, &#8230;</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/do-you-really-want-to-be-making-this-much-money-when-youre-50.html">Do you really want to be making this much money when you're 50?</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/c-as-an-intermediate-language.html">C as an intermediate language</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/error-codes-vs-exceptions-critical-code-vs-typical-code.html">Error codes vs exceptions: critical code vs typical code</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/arent-side-effects-fundamental-on-von-neumann-machines.html">Aren't side effects fundamental in complexity analysis?</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/what-worse-is-better-vs-the-right-thing-is-really-about.html">What "Worse is Better vs The Right Thing" is really about</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/its-done-in-hardware-so-its-cheap.html">"It's done in hardware so it's cheap"</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/work-on-unimportant-problems.html">Work on unimportant problems</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/hardware-macroarchitecture-vs-mircoarchitecture.html">Hardware macroarchitecture vs mircoarchitecture</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/email-is-evil.html">Email is evil</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/which-of-those-would-you-like-me-to-write.html">Which of those would you like me to write?</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/passing-shell-script-arguments-to-a-subprocess.html">Passing shell script arguments to a subprocess</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/why-programming-isnt-for-everyone.html">Why programming isn't for everyone</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/compensation-rationality-and-the-projectperson-fit.html">Compensation, rationality and the project/person fit</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/cycles-memory-fuel-and-parking.html">Cycles, memory, fuel and parking</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/could-sopa-give-us-back-a-decentralized-internet.html">Could SOPA give us back a decentralized Internet?</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/coding-standards-is-consistency-prettier-than-freedom.html">Coding standards: is consistency prettier than freedom?</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/graham-coase-when-big-companies-are-a-good-idea.html">Graham &#038; Coase: when big companies are a good idea</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/engineers-vs-managers-economics-vs-business.html">Engineers vs managers: economics vs business</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/simd-simt-smt-parallelism-in-nvidia-gpus.html">SIMD &lt; SIMT &lt; SMT: parallelism in NVIDIA GPUs</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/an-unusual-hardware-architecture-apa-associative-processing-array.html">An unusual hardware architecture: APA (Associative Processing Array)</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/were-hiring.html">We're hiring</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/machine-code-monkey-patching.html">Machine code monkey patching</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/making-data-races-manifest-themselves.html">Making data races manifest themselves</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/leaf-upside-down.html">Leaf (upside down)</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/the-iron-fist-coding-standard.html">The Iron Fist Coding Standard</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/my-history-with-forth-stack-machines.html">My history with Forth &#038; stack machines</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/the-internet-agereputation-paradox.html">The Internet age/reputation paradox</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/if-a-tree-falls-in-a-forest-it-kills-schrodingers-cat.html">If a tree falls in a forest, it kills Schrödinger's cat</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/applied-mathematics-in-business-consulting.html">Applied mathematics in business consulting</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/swimming-beaver.html">Swimming beaver</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/lack-of-wealth-through-lack-of-empathy.html">Lack of wealth through lack of empathy</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/api-users-api-wrappers.html">API users &#038; API wrappers</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/digital-asses-in-the-computing-industry.html">Digital asses in the computing industry</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/the-virtue-of-a-manager.html">The Virtue of a Manager</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/duck-takeoff-2.html">Duck (takeoff 2)</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/fish-front.html">Fish (front)</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/getting-the-call-stack-without-a-frame-pointer.html">Getting the call stack without a frame pointer</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/what-makes-cover-up-preferable-to-error-handling.html">What makes cover-up preferable to error handling</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/the-c-sucks-series-petrifying-functions.html">The C++ Sucks Series: petrifying functions</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/coding-standards-having-more-errors-in-code-than-code.html">Coding standards: having more errors in code than code</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/the-nomadic-programmer.html">The nomadic programmer</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/humans-and-compilers-need-each-other-the-vliw-simd-case.html">Humans and compilers need each other: the VLIW SIMD case</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/halved-pepper.html">Halved pepper</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/leaf-yellow.html">Leaf (yellow)</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/aloe.html">Aloe</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/pearls-of-wisdom.html">Pearls of wisdom</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/the-c-sucks-series-the-quest-for-the-entry-point.html">The C++ Sucks Series: the quest for the entry point</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/leaf.html">Leaf</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/the-internal-free-market.html">The internal free market</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/abstract-august-1999.html">Abstract (August 1999)</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/consistency-how-to-defeat-the-purpose-of-ieee-floating-point.html">Consistency: how to defeat the purpose of IEEE floating point</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/off-topic.html">Off topic</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/eyes.html">Eyes</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/underwear.html">Underwear</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/lake.html">Lake</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/duck-takeoff.html">Duck (takeoff)</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/fish.html">Fish</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/i-want-a-struct-linker.html">I want a struct linker</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/the-cardinal-programming-jokes.html">The cardinal programming jokes</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/i-love-globals-or-google-core-dump.html">I love globals, or Google Core Dump</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/ahem.html">Ahem</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/dvcs-and-its-most-vexing-merge.html">DVCS and its most vexing merge</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/extreme-programming-explained.html">Extreme Programming Explained</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/oo-c-is-passable.html">OO C is passable</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/redundancy-vs-dependencies-which-is-worse.html">Redundancy vs dependencies: which is worse?</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/i-cant-believe-im-praising-tcl.html">I can't believe I'm praising Tcl</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/python-teaching-kids-and-biting-bits-dont-mix.html">Python: teaching kids and biting bits don't mix</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/side-effects-or-not-aliasing-kills-you.html">Side effects or not, aliasing kills you</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/optimal-processor-size.html">Optimal processor size</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/ihatecamelcase.html">IHateCamelCase</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/code-data-and-interactive-programming.html">Code, data and interactive programming</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/the-algorithmic-virtual-machine.html">The Algorithmic Virtual Machine</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/high-level-cpu-follow-up.html">"High-level CPU": follow-up</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/the-high-level-cpu-challenge.html">The "high-level CPU" challenge</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/everybody-agrees-with-yosefk.html">Everybody agrees with yosefk</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/fun-at-the-turing-tar-pit.html">Fun at the Turing tar pit</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/interrupt-let-the-bastard-handle-it.html">Interrupt? Let the Bastard handle it!</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/why-dont-we-have-a-word-for-it.html">Why don't we have a word for it?</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/teeth-marks-at-the-rear-end.html">Teeth marks at the rear end</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/ai-problems.html">AI problems</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/a-writer-of-the-lame-kind.html">A writer of the lame kind</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/low-level-is-easy.html">Low-level is easy</a>
+						</li>
+					<li>
+				<a href="http://yosefk.com/blog/blogging-is-hard.html">Blogging is hard</a>
+						</li>
+				</ul>
+		</li>
+<li id="categories-2" class="widget widget_categories"><h2 class="widgettitle">Tags</h2>
+		<ul>
+	<li class="cat-item cat-item-2"><a href="http://yosefk.com/blog/category/bastard" title="View all posts filed under bastard">bastard</a> (1)
+</li>
+	<li class="cat-item cat-item-8"><a href="http://yosefk.com/blog/category/celacrylic" title="View all posts filed under cel/acrylic">cel/acrylic</a> (1)
+</li>
+	<li class="cat-item cat-item-9"><a href="http://yosefk.com/blog/category/ceramics" title="View all posts filed under ceramics">ceramics</a> (13)
+</li>
+	<li class="cat-item cat-item-3"><a href="http://yosefk.com/blog/category/hardware" title="View all posts filed under hardware">hardware</a> (15)
+</li>
+	<li class="cat-item cat-item-4"><a href="http://yosefk.com/blog/category/numerical" title="View all posts filed under numerical">numerical</a> (1)
+</li>
+	<li class="cat-item cat-item-5"><a href="http://yosefk.com/blog/category/ot" title="View all posts filed under OT">OT</a> (6)
+</li>
+	<li class="cat-item cat-item-6"><a href="http://yosefk.com/blog/category/software" title="View all posts filed under software">software</a> (58)
+</li>
+	<li class="cat-item cat-item-7"><a href="http://yosefk.com/blog/category/wetware" title="View all posts filed under wetware">wetware</a> (26)
+</li>
+		</ul>
+</li>
+	</ul>
+</div>
+			
+	</div>
+
+</div><div id="footer">	<p>&copy; Proper Fixation - a <a href="http://wordpress.org">WordPress</a> blog, <a href="http://www.copyblogger.com">Copyblogger</a> theme design by <a href="http://pearsonified.com">Chris Pearson</a>, patched by <a href="http://yosefk.com">Yossi Kreinin</a></p>	</div>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-11102124-1");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+</body></html>
+
+<!-- Dynamic page generated in 1.553 seconds. -->
+<!-- Cached page generated by WP-Super-Cache on 2014-07-01 04:47:36 -->
+
+<!-- Compression = gzip -->

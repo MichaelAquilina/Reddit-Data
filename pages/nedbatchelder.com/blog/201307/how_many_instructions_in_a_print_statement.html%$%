@@ -1,0 +1,345 @@
+<!DOCTYPE HTML>
+
+
+<html lang='en'><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width"><title>Ned Batchelder: How many instructions in a print statement?</title><link rel='stylesheet' href='http://nedbatchelder.com/style.css' type='text/css'><link rel='stylesheet' href='http://nedbatchelder.com/printstyle.css' type='text/css' media='print'><link rel="alternate" type="application/rss+xml" href="http://nedbatchelder.com/blog/rss.xml" title="RSS feed for Ned's blog"><script type='text/javascript' src='http://nedbatchelder.com/nedbatchelder.js'></script><script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-32134006-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script></head><body><table id='logo_banner'><tr><td id='logo'><a href='/'><img src='/dodeca3_100.gif' width='100' height='120' alt='[*]'></a></td><td id='banner'><span class='path'><a href='/'>Ned Batchelder</a> : <a href='/blog'>Blog</a> | <a href='/code'>Code</a> | <a href='/text'>Text</a> | <a href='/site'>Site</a></span><br><span class='headslug'>How many instructions in a print statement?</span><br><span class='path'>
+                    &#xbb; <a href='/'>Home</a> : <a href='/blog'>Blog</a> : <a href='/blog/201307.html'>July 2013</a></span></td></tr></table><table id='content_menu'><tr><td id='content'><div class='body'><div id='searchwelcome'></div><div class='blog-entry' id='e20130716T214210'><div class='head'><h3 class='title'><a class='s' href='/blog/201307/how_many_instructions_in_a_print_statement.html' rel='bookmark' title='Link to this post'>How many instructions in a print statement?</a></h3><p class='date'>Tuesday 16 <a class='s' href='/blog/201307.html'>July 2013</a></p></div><p>Hanging out in IRC channels, you see a lot of the same discussions pop
+        up over and over again.  One involves people who want to be "close to
+        the metal."  Either they want "no dependencies" (other than Python
+        itself, which is a large dependency), or they feel like they need to
+        know how things "really work" so they want to use sockets instead of
+        Flask, or something.</p><p>Today that topic came up again, and the low-level proponent said it was
+        important to know what's happening in the CPU when you do "print x".
+        My feeling is, modern CPUs are hella-complicated beasts, I have no idea
+        how they work, and it hasn't hindered me.</p><p>He thought you should at least have a rough idea of the instruction
+        count for something like that.  I asked him to tell me what he thought
+        it was.  He guessed 500 instructions for "print x" if x was an integer.
+        I guessed that a) he was off by a factor of at least 10, and b) that we
+        were both making incredibly wild guesses.</p><p>Conceptually, printing an integer isn't much work, but keep in mind that
+        print has to find sys.stdout, and manipulate reference counts, and
+        convert the int to a string, and deal with output buffering, etc, not
+        to mention the general mechanisms of Python bytecode interpretation,
+        memory management, and so on.</p><p>OK, so we had our two guesses, how to actually measure?  Linux has "perf
+        stat" which can measure all sorts of performance statistics, including
+        number of instructions executed.</p><p>I wrote a simple Python program:</p><blockquote class="code"><code><span class="kn">import</span>&#xA0;<span class="nn">sys</span><br><span class="n">x</span>&#xA0;<span class="o">=</span>&#xA0;<span class="mi">1</span><br><span class="k">for</span>&#xA0;<span class="n">i</span>&#xA0;<span class="ow">in</span>&#xA0;<span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="k">print</span>&#xA0;<span class="n">x</span><br></code></blockquote><p>Running this, I can change the number of print statements from the
+        command line, and see how many instructions result by running it under
+        perf stat:</p><blockquote class="code"><code>ned@ubuntu:~$Â perfÂ statÂ pythonÂ foo.pyÂ 10<br>1<br>1<br>1<br>1<br>1<br>1<br>1<br>1<br>1<br>1<br><br>Â PerformanceÂ counterÂ statsÂ forÂ 'pythonÂ foo.pyÂ 10':<br><br>Â Â Â Â Â Â Â Â Â 11.913667Â task-clockÂ Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â #Â Â Â Â 0.883Â CPUsÂ utilizedÂ Â Â Â Â Â Â Â Â Â <br>Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â 21Â context-switchesÂ Â Â Â Â Â Â Â Â Â #Â Â Â Â 0.002Â M/secÂ Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â <br>Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â 0Â cpu-migrationsÂ Â Â Â Â Â Â Â Â Â Â Â #Â Â Â Â 0.000Â K/secÂ Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â <br>Â Â Â Â Â Â Â Â Â Â Â Â Â 1,221Â page-faultsÂ Â Â Â Â Â Â Â Â Â Â Â Â Â Â #Â Â Â Â 0.102Â M/secÂ Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â <br>Â Â Â Â Â Â Â Â 33,379,047Â cyclesÂ Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â #Â Â Â Â 2.802Â GHzÂ Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â <br>Â Â Â Â Â Â Â Â 19,506,536Â stalled-cycles-frontendÂ Â Â #Â Â Â 58.44%Â frontendÂ cyclesÂ idleÂ Â Â <br>Â Â Â &lt;notÂ supported&gt;Â stalled-cycles-backendÂ Â <br>Â Â Â Â Â Â Â Â 28,821,962Â instructionsÂ Â Â Â Â Â Â Â Â Â Â Â Â Â #Â Â Â Â 0.86Â Â insnsÂ perÂ cycleÂ Â Â Â Â Â Â Â <br>Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â #Â Â Â Â 0.68Â Â stalledÂ cyclesÂ perÂ insn<br>Â Â Â Â Â Â Â Â Â 6,345,082Â branchesÂ Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â #Â Â 532.588Â M/secÂ Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â <br>Â Â Â Â Â Â Â Â Â Â Â 292,467Â branch-missesÂ Â Â Â Â Â Â Â Â Â Â Â Â #Â Â Â Â 4.61%Â ofÂ allÂ branchesÂ Â Â Â Â Â Â Â <br><br>Â Â Â Â Â Â Â 0.013497566Â secondsÂ timeÂ elapsed<br></code></blockquote><p>So, 28 million instructions for that program.  Running it again, I saw
+        that the total instruction count fluctuates quite a bit.  So I ran it
+        10 times to get an average: 28,696,694 instructions for 10 print
+        statements.</p><p>Then I ran it 10 times with 11 print statements, for an average of
+        28,705,257, or a difference of 8,563 instructions for the one extra
+        print statement.</p><p>Then I ran it 10 times with 30 print statements, averaged, subtracted,
+        and divided by 20, which should give me another per-print statement
+        instruction count.  This time it came out to 10,518 instructions per
+        additional print statement.</p><p>What did we learn?</p><ul><li>Linux has some cool tools.</li><li>Measuring instruction counts is an inexact science.</li><li>There's a lot more going on in a print statement than some people think.</li><li>Printing an integer in Python takes roughly 10,000 instructions.</li></ul><p>Finally, does this matter? I claim that if you want to think about
+        numbers of instructions, then Python (or any other language of its
+        kind) is not for you.  Sure, it's useful to understand the big picture
+        of what goes into Python execution, but tomorrow when I go to work, how
+        does this help me?  It's important to know things like the
+        performance characteristics of data structures, and have an idea of the
+        forces at work on your system.</p><p>But number of instructions? Meh.</p><div class='foot'><span class='via'>
+
+    
+    
+        tagged: 
+        <a href='/blog/tag/python.html' rel='tag'>python</a></span><span class='react'>&#xbb;&#xa0;12 reactions</span></div></div><div class='comments' id='comments'>
+<h1>Comments</h1>
+
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/66a7a87c4ec02e70b4fbfc81e5655769.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa53.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>bob</b></span>
+			<span class='when'><span class='adminlink'></span> 6:15 AM on 17 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			- Linux has some cool tools.<br><br>These are not Linux specific: hwpmc works on other OSes too.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/267cfaf8c1f76da3d8b3c7576a903613.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa264.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Michael Kohne</b></span>
+			<span class='when'><span class='adminlink'></span> 12:45 PM on 17 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			I'm astounded that there are people who think about such things. The whole point of python is to NOT worry about such stuff. If it's time critical, profile (don't guess-you'll guess wrong) and then deal with the results. Same as any other environment.<br><br>Knowing in general how things work IS a good idea (because when you don't, you tend to do pathological things), but trying to know what python does to print an integer? Not useful beyond knowing that I/O isn't cheap.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/678b82d72954f3cf98c29bc75d4db40e.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa281.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>johnny</b></span>
+			<span class='when'><span class='adminlink'></span> 2:45 PM on 17 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Bob<br><br>Yes but this does not negate the fact that Linux has cool tools<br><br>@Michael Kohne<br><br>It astonishes you that people writing programs are curious how things work under the hood?  That astonishes me :). I don't think this curiosity misses the point of working with python.  Not all knowledge is immediately useful on its own but taken as a whole this knowledge adds to the ability to make informed decisions.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/c494fd4b406a2c066054ad17d30ae73b.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa161.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://www.lattyware.co.uk' rel='nofollow' target='_blank'>Latty</a></b></span>
+			<span class='when'><span class='adminlink'></span> 3:45 PM on 17 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			It's not weird programmers are interested in how something works, it is weird for programmers to feel that it's going to make a blind bit of difference to their usage of it.<br><br>Knowing how many instructions a print in Python is is interesting. Finding it out is kinda interesting too. Trying to use that knowledge in your day to day programming is pointless and it's likely to cause you to draw bad conclusions.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/1d2ab164559aaf8a30eebf516d2f63ad.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa134.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Nath</b></span>
+			<span class='when'><span class='adminlink'></span> 3:48 PM on 17 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			It could be cool to compare with "hardcoded print" because your example uses a 'for loop' and so deals with more stuff that just the print (list, jump, iterator)<br><br>Anyway the question itself is really interesting.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/8988285911e50fbe248b659d43bccf83.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa240.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Michael Droettboom</b></span>
+			<span class='when'><span class='adminlink'></span> 4:36 PM on 17 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Interesting post, and I basically agree with the conclusion.<br><br>However, by pure intellectual curiosity, I couldn't resist comparing to the following more-or-less-equivalent program in C:<pre>
+#include 
+
+#define NUM_LOOPS 30
+
+int main(int argc, char **argv)
+{
+    int i;
+    for (i = 0; i < NUM_LOOPS; ++i) {
+        printf("%d\n", i);
+    }
+}
+</pre>And the same methodology of running 10 times, once with 10 loops and then with 30 loops, I get 11,502 instructions per print statement.  More or less a tie with your Python result.  Suggests to me that this number of instructions is dominated by the system I/O (which should fundamentally be the same in both cases).<br><br>EDIT: Note however, when trying to reproduce your original Python example on my machine, I got 55,000 instructions per Python print, so there's obviously some environmental/platform difference such that my numbers shouldn't be directly compared to yours.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0d235d4094b8dbf2cd9932667d828795.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa261.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Joe Abbate</b></span>
+			<span class='when'><span class='adminlink'></span> 6:13 PM on 17 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			With all due respect, running a performance benchmark for 10s of times isn't going to give you reasonable numbers.  You need to run it for, say, a million iterations, or so that it lasts a few seconds, and probably run the benchmark, say, three times.  I didn't do the latter, but my benchmarks show that 'print x' (where x is 1), takes about 13000 instructions using Python 2.7, almost 20000 on Python 3.2, and about 11000 using C (gcc -O2).  Nevertheless, I agree with the conclusion that knowing these numbers isn't going to affect day-to-day coding.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/066e934640d4d7231cbe104a34a16cf0.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa236.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>John</b></span>
+			<span class='when'><span class='adminlink'></span> 7:05 PM on 17 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			I'd be interested in knowing more about CPU cache hit rate versus various Python programming constructs.  Is it possible to increase the effectiveness of a CPU cache in a dynamic language like Python?
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/b4c942177e30eecc752d777a1f6c08f4.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa254.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://an.ton.io/' rel='nofollow' target='_blank'>Antonio</a></b></span>
+			<span class='when'><span class='adminlink'></span> 5:41 PM on 20 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			I enjoyed this post even though the original question is as silly as asking: if I am traveling at 60MPH in my car, how many times do the pistons have to have to cover 1 mile? And modern fuel injection multi-cylinder engines are much less complicated than your run of the mill Intel CPU!
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/9ee64c9625188bf8fa39bbf358dfcbde.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa70.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Kevin</b></span>
+			<span class='when'><span class='adminlink'></span> 2:37 PM on 22 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			Kind of disappointing that you didn't get into a debugger and look under the hood to see what happens. From what I recall during my assembly language classes, setting up a print statement to stdout was only a few instructions. I would be very interested to know what exactly is happening in python that it requires 4 orders of magnitude more instructions to do the same thing.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa107.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 8:36 PM on 22 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Kevin: the goal here was not to figure out exactly what is going on. I was discussing the idea of having a general sense of the magnitude of the number of operations, I made the point that I had no idea, and when the other guy made a guess, I wanted to see how close each of us was.<br><br>Also, I already mentioned what I thought Python was doing under the covers: "print has to find sys.stdout, and manipulate reference counts, and convert the int to a string, and deal with output buffering, etc, not to mention the general mechanisms of Python bytecode interpretation, memory management, and so on."<br><br>Python does much more to accomplish the same thing than assembly code does.  The tradeoff is that it can do much of the work for you. For most code, it's a good tradeoff.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/3b3f104229fa6d1b669f579e3b350fb2.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa221.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Rarrikins</b></span>
+			<span class='when'><span class='adminlink'></span> 1:37 AM on 25 Jul 2013</span>
+		</div>
+		
+		<p class='commenttext'>
+			@Kevin, you're measuring only the instructions used in your program. You almost surely made a system call to do the actual output, and the system might have executed thousands of instructions before it returned to the next instruction in your program.
+		</p>
+	</div>
+
+<div id='commentform'>
+<h2>Add a comment:</h2>
+<div>
+	<form method="post" action="http://nedbatchelder.com/blog/201307/how_many_instructions_in_a_print_statement.html#commentform" id="commentformform">
+		<table>
+			<tr>
+				<td class="labels">
+					<div class='label'>name</div>
+				</td>
+				<td class="inputs">
+					<input class='edit' type="text" name="fc69530b1228b2528874ae1ba69484a9b" id="fc69530b1228b2528874ae1ba69484a9b" size="40" value="">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class='label'>email</div>
+				</td>
+				<td>
+					<div class="dn">
+                        Ignore this:
+                        <input class='edit' type="email" name="fe58b24ceb453050122e832aff4814479" id="fe58b24ceb453050122e832aff4814479" size="40">
+					</div>
+					<input class='edit' type="email" name="f0056b92b601884a80d9567a759bbfae0" id="f0056b92b601884a80d9567a759bbfae0" size="40" value="">
+					<span class='notice'>not displayed and no spam.</span>
+					<div class="dn">
+                        Leave this empty:
+                        <input class='edit' type="email" name="fb353c7496df73ad7c9ccef6a5946e886" id="fb353c7496df73ad7c9ccef6a5946e886" size="40">
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class='label'>www</div>
+				</td>
+				<td>
+					<input class='edit' type="url" name="fea2afcc652f2026037e0bf6c29968e33" id="fea2afcc652f2026037e0bf6c29968e33" size="40" value="">
+					<span class='notice'>not searched.</span>
+				</td>
+			</tr>
+			<tr>
+				<td>&nbsp;</td>
+				<td>
+					<div class="notice">Name and either email or www are required.</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="dn">
+						Don't put anything here:
+						<textarea name="f760bff5a0c9b7fd5ed629fe7d572fb36" id="f760bff5a0c9b7fd5ed629fe7d572fb36" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+					<div>
+						<textarea name="f6c3b0afd375d63e31dda74e888abec20" id="f6c3b0afd375d63e31dda74e888abec20" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+					<div class="dn">
+						Leave this empty:
+						<textarea name="f30a0e710fbb8e3c6df03247fb385f524" id="f30a0e710fbb8e3c6df03247fb385f524" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="notice right">
+					URLs auto-link and some tags are allowed: &lt;a&gt;&lt;b&gt;&lt;i&gt;&lt;p&gt;&lt;br&gt;&lt;pre&gt;.
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="notice right">
+						<label for="cbnotify">
+							<input type="checkbox" name="fad1a6d308ef327116e75b97c0f1034d3" id="cbnotify" >
+							<span class='label'>Email me future comments</span>
+						</label>&#160;&#160;
+						<input id="previewbtn" type="submit" name="faa556835ae3029ef977f8d72a0086a5d" value="preview >>">
+						<span class="dn">
+                            <input type="submit" name="f639b9d30cbae95acdd8e8ad6f3062a5e" value="I'm a spambot">
+						</span>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<input type='hidden' name='fbe723730b0e43ca3f3d5fa1b4d7718bb' value='e20130716T214210'>
+		<input type='hidden' name='spinner' value='0bf5f14953f358477e6b66798d950620'>
+		<input type='hidden' name='f6170a66391c9f3c71f9a85b31bd70777' value='1404132092'>
+
+
+	</form>
+</div>
+</div>
+
+</div>
+</div></td><td id='menu'><div class='sidebar'>
+
+
+<div class='blogroll'><ul class='first'><li class='first'>Search this site:
+            
+<form action="http://www.google.com/cse" id="searchbox_007818501792991951010:s9hiibxg-ty" style="margin-top:6px;"><input type="hidden" name="cx" value="007818501792991951010:s9hiibxg-ty"><table><tr><td class="vmid"><input type="text" name="q" style='border:1px solid #7e9db9;padding:2px;width:144px;height:16px;'></td><td class="vmid"><input id="submit" class="vmid" type="image" title="Search" alt="Search" src="/pix/search.png"></td></tr></table></form><script type="text/javascript">
+    (function() {
+        var f = document.getElementById('searchbox_007818501792991951010:s9hiibxg-ty');
+        if (f && f.q) {
+            var q = f.q;
+            var b = function() {
+                if (q.value == '') {
+                    q.style.background = '#fff url(http:\x2F\x2Fwww.google.com\x2Fcoop\x2Fintl\x2Fen\x2Fimages\x2Fgoogle_custom_search_watermark.gif) left no-repeat';
+                }
+            };
+            var f = function() {
+                q.style.background = '#fff';
+            };
+            q.onfocus = f;
+            q.onblur = b;
+            if (!/[&?]q=[^&]/.test(location.search)) {
+                b();
+            }
+        }
+    })();
+</script></li><li><a href='/site/aboutned.html' rel='author'>About me</a></li><li class='inline'>Also me:
+            <ul><li><a href='http://twitter.com/nedbat'>twitter</a>&#xa0;&#xb7; </li><li><a href='mailto:ned@nedbatchelder.com'>email</a></li></ul></li><li class='inline'>Tip me:
+            <ul><li><a href='http://gittip.com/nedbat'>gittip</a>&#xa0;&#xb7; </li><li><a href='https://coinbase.com/checkouts/c2a7f9652ecc0f6bf9c240c05109305f'>bitcoin</a></li></ul></li><li>Commerce:
+            <ul class='compact'><li>&#xbb;&#xa0;<a href='http://www.amazon.com/exec/obidos/redirect-home/nedbatchelder-20'>Amazon</a></li><li>&#xbb;&#xa0;<a href='http://susansenator.com/survivalguide.html'>Susan's books</a><br><a href='http://susansenator.com/makingpeace.html'><img src='/pix/makingpeacetiny.png' alt='Making Peace With Autism' width='83' height='127' style='margin: 10px 0 0 0'></a> <a href='http://susansenator.com/dirt.html'><img src='/pix/dirttiny.png' alt='Dirt, a novel' width='86' height='125' style='margin: 10px 0 0 0'></a><!--
+                    <a href='http://susansenator.com/survivalguide.html'><img src='pix/survivalguidetiny.png' alt='Autism Mom&#39;s Survival Guide' width='86' height='121' style='margin: 10px 0 0 0'></a>
+                    --></li></ul></li><li class='inline'>More blog:
+            <ul><li><a href='/blog/tag/python.html'>python</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/art.html'>art</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2014.html'>14</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/funny.html'>funny</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/webpage.html'>web</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2013.html'>13</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/tools.html'>tools</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/parenting.html'>parenting</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2012.html'>12</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/math.html'>math</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/politics.html'>politics</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2011.html'>11</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/movies.html'>movies</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/ling.html'>language</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2010.html'>10</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/mycode.html'>my code</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/history.html'>history</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2009.html'>09</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/books.html'>books</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/type.html'>typography</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2008.html'>08</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/business.html'>business</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/autism.html'>autism</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2007.html'>07</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/howto.html'>how-to</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/coverage.html'>coverage</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2006.html'>06</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/games.html'>games</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/quick.html'>quick links</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2005.html'>05</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/science.html'>science</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/windows.html'>windows</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2004.html'>04</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/friendfam.html'>friends & family</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/work.html'>work</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2003.html'>03</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/online.html'>online</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/photos.html'>photos</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2002.html'>02</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/crafts.html'>crafts</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/music.html'>music</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tags.html'><i>all tags</i></a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archiveall.html'><b><i>everything!</i></b></a></li></ul></li><li><a
+                href='/blog/rss.xml'
+                type='application/rss+xml'
+                style='
+                    padding: 0 .4em;
+                    background: #F60;
+                    color: white;
+                    border: 1px solid;
+                    border-color: #FC9 #630 #330 #F96;
+                    font-weight: bold;
+                    text-decoration: none;
+                    '
+                >RSS</a></li></ul></div>
+
+</div></td></tr><tr><td id='copyright' colspan='2'><p class='copyright'><a rel='copyright license' href='/site/legal.html'>
+                            &#xa9; Copyright
+                            
+                                2013,
+                            
+                            Ned Batchelder
+                        </a></p></td></tr></table></body></html>

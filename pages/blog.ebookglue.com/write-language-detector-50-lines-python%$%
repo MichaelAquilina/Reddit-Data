@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<!--[if IE 7]>
+<html class="ie ie7" lang="en-US" prefix="og: http://ogp.me/ns#">
+<![endif]-->
+<!--[if IE 8]>
+<html class="ie ie8" lang="en-US" prefix="og: http://ogp.me/ns#">
+<![endif]-->
+<!--[if !(IE 7) | !(IE 8) ]><!-->
+<html lang="en-US" prefix="og: http://ogp.me/ns#">
+<!--<![endif]-->
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width">
+	<title>How to Write a Language Detector in 50 Lines of Python | Ebook Glue Blog</title>
+	<link rel="profile" href="http://gmpg.org/xfn/11">
+	<link rel="pingback" href="http://blog.ebookglue.com/xmlrpc.php">
+	<!--[if lt IE 9]>
+	<script src="http://blog.ebookglue.com/wp-content/themes/twentyfourteen/js/html5.js"></script>
+	<![endif]-->
+	
+<!-- This site is optimized with the Yoast WordPress SEO plugin v1.4.24 - http://yoast.com/wordpress/seo/ -->
+<link rel="canonical" href="http://blog.ebookglue.com/write-language-detector-50-lines-python/" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="How to Write a Language Detector in 50 Lines of Python - Ebook Glue Blog" />
+<meta property="og:description" content="Ever wonder how Google Chrome knows the language of a web page and offers to translate it when the page is written in a foreign language? Or how Facebook offers to translate your friends&#8217; posts in a foreign language? Detecting languages is surprisingly easy, and it can be used to improve user interfaces without having &hellip;" />
+<meta property="og:url" content="http://blog.ebookglue.com/write-language-detector-50-lines-python/" />
+<meta property="og:site_name" content="Ebook Glue Blog" />
+<meta property="article:section" content="Programming" />
+<meta property="article:section" content="Tutorial" />
+<meta property="article:published_time" content="2013-12-16T17:01:24+00:00" />
+<meta property="article:modified_time" content="2013-12-18T03:21:52+00:00" />
+<!-- / Yoast WordPress SEO plugin. -->
+
+<link rel="alternate" type="application/rss+xml" title="Ebook Glue Blog &raquo; Feed" href="http://blog.ebookglue.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Ebook Glue Blog &raquo; Comments Feed" href="http://blog.ebookglue.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Ebook Glue Blog &raquo; How to Write a Language Detector in 50 Lines of Python Comments Feed" href="http://blog.ebookglue.com/write-language-detector-50-lines-python/feed/" />
+<link rel='stylesheet' id='twentyfourteen-lato-css'  href='//fonts.googleapis.com/css?family=Lato%3A300%2C400%2C700%2C900%2C300italic%2C400italic%2C700italic' type='text/css' media='all' />
+<link rel='stylesheet' id='genericons-css'  href='http://blog.ebookglue.com/wp-content/themes/twentyfourteen/genericons/genericons.css?ver=3.0.2' type='text/css' media='all' />
+<link rel='stylesheet' id='twentyfourteen-style-css'  href='http://blog.ebookglue.com/wp-content/themes/twentyfourteen/style.css?ver=3.8.3' type='text/css' media='all' />
+<!--[if lt IE 9]>
+<link rel='stylesheet' id='twentyfourteen-ie-css'  href='http://blog.ebookglue.com/wp-content/themes/twentyfourteen/css/ie.css?ver=20131205' type='text/css' media='all' />
+<![endif]-->
+<script type='text/javascript' src='http://blog.ebookglue.com/wp-includes/js/comment-reply.min.js?ver=3.8.3'></script>
+<script type='text/javascript' src='http://blog.ebookglue.com/wp-includes/js/jquery/jquery.js?ver=1.10.2'></script>
+<script type='text/javascript' src='http://blog.ebookglue.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=1.2.1'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://blog.ebookglue.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://blog.ebookglue.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress 3.8.3" />
+<link rel='shortlink' href='http://blog.ebookglue.com/?p=69' />
+<!-- Tracking code easily added by NK Google Analytics -->
+<script> 
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ 
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), 
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) 
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga'); 
+ga('create', 'UA-37064965-1', 'ebookglue.com'); 
+ga('send', 'pageview'); 
+</script> 
+</head>
+
+<body class="single single-post postid-69 single-format-standard masthead-fixed full-width singular">
+<div id="page" class="hfeed site">
+	
+	<header id="masthead" class="site-header" role="banner">
+		<div class="header-main">
+			<h1 class="site-title"><a href="http://blog.ebookglue.com/" rel="home">Ebook Glue Blog</a></h1>
+
+			<div class="search-toggle">
+				<a href="#search-container" class="screen-reader-text">Search</a>
+			</div>
+
+			<nav id="primary-navigation" class="site-navigation primary-navigation" role="navigation">
+				<h1 class="menu-toggle">Primary Menu</h1>
+				<a class="screen-reader-text skip-link" href="#content">Skip to content</a>
+				<div class="menu-menu-1-container"><ul id="menu-menu-1" class="nav-menu"><li id="menu-item-12" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12"><a href="https://ebookglue.com/">Try Ebook Glue for Free!</a></li>
+</ul></div>			</nav>
+		</div>
+
+		<div id="search-container" class="search-box-wrapper hide">
+			<div class="search-box">
+				<form role="search" method="get" class="search-form" action="http://blog.ebookglue.com/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search &hellip;" value="" name="s" title="Search for:" />
+				</label>
+				<input type="submit" class="search-submit" value="Search" />
+			</form>			</div>
+		</div>
+	</header><!-- #masthead -->
+
+	<div id="main" class="site-main">
+
+	<div id="primary" class="content-area">
+		<div id="content" class="site-content" role="main">
+			
+<article id="post-69" class="post-69 post type-post status-publish format-standard hentry category-programming category-tutorial">
+	
+	<header class="entry-header">
+				<div class="entry-meta">
+			<span class="cat-links"><a href="http://blog.ebookglue.com/category/programming/" title="View all posts in Programming" rel="category tag">Programming</a>, <a href="http://blog.ebookglue.com/category/tutorial/" title="View all posts in Tutorial" rel="category tag">Tutorial</a></span>
+		</div>
+		<h1 class="entry-title">How to Write a Language Detector in 50 Lines of Python</h1>
+		<div class="entry-meta">
+			<span class="entry-date"><a href="http://blog.ebookglue.com/write-language-detector-50-lines-python/" rel="bookmark"><time class="entry-date" datetime="2013-12-16T17:01:24+00:00">December 16, 2013</time></a></span> <span class="byline"><span class="author vcard"><a class="url fn n" href="http://blog.ebookglue.com/author/shantanu/" rel="author">shantanu</a></span></span>			<span class="comments-link"><a href="http://blog.ebookglue.com/write-language-detector-50-lines-python/#comments" title="Comment on How to Write a Language Detector in 50 Lines of Python">10 Comments</a></span>
+					</div><!-- .entry-meta -->
+	</header><!-- .entry-header -->
+
+		<div class="entry-content">
+		<p>Ever wonder how Google Chrome knows the language of a web page and offers to translate it when the page is written in a foreign language? Or how Facebook offers to translate your friends&#8217; posts in a foreign language? Detecting languages is surprisingly easy, and it can be used to improve user interfaces without having the user do any work.</p>
+<p>I stumbled across this <a title="Language detection using character trigrams (Python recipe)" href="http://code.activestate.com/recipes/326576-language-detection-using-character-trigrams/" target="_blank">ActiveState recipe for a language detector in Python</a>. It&#8217;s a fantastic code snippet, but I decided to make a slightly improved version with a little more background information for anyone who isn&#8217;t familiar with natural language processing or computational linguistics.</p>
+<p>If you&#8217;re an experienced programmer, you may want to jump directly to the code at the bottom of this post. It is surprisingly straightforward.</p>
+<p>You will need to be familiar with the syntax of the Python programming language. If you haven&#8217;t worked with Python before, I would recommend reading <a title="Learn Python the Hard Way" href="http://learnpythonthehardway.org/" target="_blank">Zed Shaw&#8217;s <em>Learn Python the Hard Way</em></a>.</p>
+<p>Make sure you <a title="Download Python" href="http://www.python.org/getit/" target="_blank">download and install Python on your computer</a> and are able to run code. The code in this tutorial is not very long, so you can use any text editor like Notepad without needing to install any other software.</p>
+<h2>Part 1: What identifies a language?</h2>
+<p>Before you write a program that can figure out the language of a given piece of text, you will need to answer the question: what separates two languages?</p>
+<p>Interestingly, these answers can be slightly different depending on the language. For example, look at the following sentence:</p>
+<p style="padding-left: 30px;">女性が牛乳を飲んだ。</p>
+<p>How do you know that sentence isn&#8217;t written in English? Though you may not be familiar with Japanese, it is clear that those letters are not English characters. You don&#8217;t even need to know <em>which</em> letters they are aside from the fact that they are not characters present within the English language.</p>
+<p style="padding-left: 30px;">La femme boit du lait.</p>
+<p>How do you know that sentence isn&#8217;t English? This is a little trickier. All of the characters are present in the English language. Even the words are of similar length and structure to the corresponding English translation, &#8220;The woman drank milk.&#8221; There is another characteristic that your brain is likely using: despite using the same characters as English, the pronunciation of those words <em>sounds</em> nothing like English even when pronounced by an English speaker.</p>
+<p>Though there are more complicated features that distinguish two languages (e.g. syntax, grammar, etc.), the two aforementioned characteristics seem to be <em>good enough</em> for distinguishing most written text.</p>
+<p><strong>Quick Exercise: </strong>Can you think of any counterexamples? Are there any languages that cannot be separated by the characters used in the language or the pronunciation of words?</p>
+<h2>Part 2: How can a computer detect those features?</h2>
+<p>The first feature is already present in any modern computer &#8211; <a title="The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets" href="http://www.joelonsoftware.com/articles/Unicode.html" target="_blank">character encodings</a> allow a computer to know which character is being represented by a sequence of bits. The Python code we will be writing will be using Unicode &#8211; the international standard character encoding.</p>
+<p>The second feature is a little more interesting. How can a computer detect the sequences of sounds required to pronounce a particular string of text? The answer to this question is a lot simpler than it may seem at first: sequences of characters <em>are</em> encodings of sounds! They have a direct mapping to speech that is mostly stable &#8211; language changes very slowly.</p>
+<p>As a result, you can detect the language of text by looking at these two features:</p>
+<ul>
+<li>The frequency of individual characters within the text</li>
+<li>The frequency of character sequences within the text</li>
+</ul>
+<p>But in reality, the two features reduce down to a single feature: sequences of characters. The frequency of individual characters is really just a frequency of a sequence of length 1.</p>
+<p><strong>Quick Terminology: </strong>In computational linguistics, <a title="N-Grams on Wikipedia" href="http://en.wikipedia.org/wiki/N-gram" target="_blank">a sequence of length <em>n</em> is called an n-gram</a>. The string <em>&#8220;c&#8221;</em> is a 1-gram or unigram, the string <em>&#8220;bc&#8221;</em> is a 2-gram or bigram, the string <em>&#8220;abc&#8221;</em> is a 3-gram or trigram, and so on.</p>
+<h2>Part 3: How does that look in Python?</h2>
+<p>First, we need to compute the frequencies of sequences of characters within a given text. To encapsulate the results, we&#8217;ll create a class <em>NGram</em> in Python.</p>
+<script src="https://gist.github.com/4b38bc88097644421a7d.js"></script>
+<p>This code snippet is very short. It defines a class <em>NGram</em> with a constructor that accepts a unicode string as a parameter. It also accepts an optional parameter <em>n</em> that defines the length of the character sequences examined. It then reads every character from the text and builds a Python <em>dict</em> object containing the number of occurrences of all of the character sequences of length <em>n</em> within the text. For example, the input string <em>&#8220;Snail Mail.&#8221;</em> would result in the following trigram dictionary:</p>
+<pre>{
+  '  S': 1,
+  ' Sn': 1,
+  'Sna': 1,
+  'nai': 1,
+  'ail': 2,
+  'il ': 1,
+  'l M': 1,
+  ' Ma': 1,
+  'Mai': 1,
+  'il.': 1
+}</pre>
+<h2>Part 4: How do we compare two NGrams?</h2>
+<p>Though the <em>NGram</em> class above is able to calculate the frequency distributions of any character sequences of length <em>n</em> within the given text, we still don&#8217;t have methods for comparing NGrams and searching through them. We want to be able to find the <em>closest match</em> for a string of text given a set of <em>NGram</em> objects that represent different languages. To accommodate the ability to search through a list of <em>NGram</em> models to find the best match, we introduce two new methods in the code: <em>calculate_length</em><em>()</em> and <em>__sub__()</em>. The <em>__sub__()</em> method allows Python to perform subtraction between two <em>NGram</em> objects.</p>
+<p>The subtraction works by treating the <em>NGram</em> as a multidimensional vector with each individual sequence of <em>n</em> characters representing a dimension of the vector. The <em>calculate_length()</em> function calculates the scalar magnitude of the vector (the length of the vector). By finding the angle between two <em>NGram</em> vectors, you can get a measurement of the similarity of the two vectors. This technique is known as a <a title="Vector-Based Search Engine in Perl" href="http://www.perl.com/pub/2003/02/19/engine.html" target="_blank">vector-based search</a>.</p>
+<script src="https://gist.github.com/9f79b71bd7ff3972e2e4.js"></script>
+<h2>Part 5: How do I train the <em>NGram</em>?</h2>
+<p>Training the <em>NGram</em> model is surprisingly easy as well. You just have to pass <em>unicode</em> text in Python to the constructor for each language you would like to train.</p>
+<p style="padding-left: 30px;"><code>english = NGram(training_text, n=3) #trigram</code></p>
+<p>When you want to compare two <em>NGram</em> models, you can use subtraction (enabled by the <em>__sub__()</em> method in the <em>NGram</em> class) to find the similarity between the two models.</p>
+<p style="padding-left: 30px;"><code>similarity = english - NGram(text, n=3)</code></p>
+<p>If you want to perform a simple vector-based search over a Python <em>list</em> or <em>iterator</em>, you should use the <em>find_match(languages)</em> method of the <em>NGram</em> class. The search will be performed over the parameter <em>languages</em>, which must be an iterable of <em>NGram</em> objects.</p>
+<pre>languages = [english, spanish, french]
+NGram(text, n=3).best_match(languages)</pre>
+<p>As you can see, the main barrier to getting started with using the <em>NGram</em> class in production-ready code is finding the correct data to train the NGram model. If you want to build a successful language detector, you will need a representative sample of text from every language you would like to use. <a title="All Wikipedias Ordered by Number of Articles" href="http://meta.wikimedia.org/wiki/List_of_Wikipedias#All_Wikipedias_ordered_by_number_of_articles" target="_blank">Wikipedia has a list of the languages with the most articles</a>, which can be an interesting source of training data.</p>
+<p>Aside from language detection, you can do other interesting things with the <em>NGram</em> class. The <a title="Google N-Gram Viewer" href="https://books.google.com/ngrams" target="_blank">Google N-Gram Viewer</a> is an excellent example of the kinds of statistics you can collect using the Python code we just created. Google has also <a title="Google N-Gram Corpus" href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html" target="_blank">released the training data used to create the N-Gram Viewer</a>.</p>
+<h2>Part 6: Where do I go from here?</h2>
+<p>There are a surprising number of directions you can take this. Although we started off with the intent of creating a language detector, the methodology can be used in a variety of ways. For example, it is possible to modify the <em>NGram</em> class so that instead of building a table of character sequences, it builds a table of word sequences. This table of word sequences could be used (in theory) to fingerprint an author and identify his or her writing.</p>
+<p>The concept of N-grams can be used in a variety of applications. Here are a few starting points:</p>
+<ul>
+<li>Building a spelling suggester (suggests correct spellings for incorrect words)</li>
+<li>Identify the species from which a sequence of DNA was derived</li>
+<li>Improve the efficiency of compression algorithms</li>
+<li>Improve search results in a search engine</li>
+<li>Improve the effectiveness of speech recognition and character recognition by having a measurement of the probability that a given word or character will appear after others</li>
+</ul>
+<p>Though the exact format of the problem changes with each application, the underlying similarity between all of these applications is a need for comparing sequences of unique objects. Whenever you find yourself working with sequences, consider using <em>NGram</em> in your code.</p>
+	</div><!-- .entry-content -->
+	
+	</article><!-- #post-## -->
+	<nav class="navigation post-navigation" role="navigation">
+		<h1 class="screen-reader-text">Post navigation</h1>
+		<div class="nav-links">
+			<a href="http://blog.ebookglue.com/open-source-desktop-publishing-scribus/" rel="prev"><span class="meta-nav">Previous Post</span>Open Source Desktop Publishing with Scribus</a><a href="http://blog.ebookglue.com/oyster-ebook-subscriptions/" rel="next"><span class="meta-nav">Next Post</span>Oyster Ebook Subscriptions</a>		</div><!-- .nav-links -->
+	</nav><!-- .navigation -->
+	
+<div id="comments" class="comments-area">
+
+	
+	<h2 class="comments-title">
+		10 thoughts on &ldquo;How to Write a Language Detector in 50 Lines of Python&rdquo;	</h2>
+
+	
+	<ol class="comment-list">
+				<li id="comment-55" class="comment even thread-even depth-1 parent">
+			<article id="div-comment-55" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/e9e2c188bbedd801210b37f8e9911e20?s=34&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D34&amp;r=G' class='avatar avatar-34 photo' height='34' width='34' />						<b class="fn">nexx</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://blog.ebookglue.com/write-language-detector-50-lines-python/#comment-55">
+							<time datetime="2013-12-19T17:16:39+00:00">
+								December 19, 2013 at 5:16 pm							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Quick Exercise: Can you think of any counterexamples? Are there any languages that cannot be separated by the characters used in the language or the pronunciation of words?</p>
+<p>I don&#8217;t speak those languages, but I think they sound very similar:<br />
+Dutch and Afrikaans</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/write-language-detector-50-lines-python/?replytocom=55#respond' onclick='return addComment.moveForm("div-comment-55", "55", "respond", "69")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-56" class="comment byuser comment-author-shantanu bypostauthor odd alt depth-2 parent">
+			<article id="div-comment-56" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://1.gravatar.com/avatar/5f38af55f7e84d9dfba63327593c3642?s=34&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D34&amp;r=G' class='avatar avatar-34 photo' height='34' width='34' />						<b class="fn">shantanu</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://blog.ebookglue.com/write-language-detector-50-lines-python/#comment-56">
+							<time datetime="2013-12-19T19:41:15+00:00">
+								December 19, 2013 at 7:41 pm							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Interestingly, Wikipedia has a very in-depth comparison of Afrikaans and Dutch &#8211; <a href="http://en.wikipedia.org/wiki/Comparison_of_Afrikaans_and_Dutch" rel="nofollow">http://en.wikipedia.org/wiki/Comparison_of_Afrikaans_and_Dutch</a></p>
+<p>They share up to 95% of the same vocabulary, and are somewhat mutually intelligible.</p>
+<p>Have you tried creating an N-Gram model with both of those languages?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/write-language-detector-50-lines-python/?replytocom=56#respond' onclick='return addComment.moveForm("div-comment-56", "56", "respond", "69")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-180" class="comment even depth-3">
+			<article id="div-comment-180" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/e9e2c188bbedd801210b37f8e9911e20?s=34&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D34&amp;r=G' class='avatar avatar-34 photo' height='34' width='34' />						<b class="fn">nexx</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://blog.ebookglue.com/write-language-detector-50-lines-python/#comment-180">
+							<time datetime="2014-01-06T13:25:12+00:00">
+								January 6, 2014 at 1:25 pm							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>No, currently I don&#8217;t have the time. It just came into my mind as I read your articel.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/write-language-detector-50-lines-python/?replytocom=180#respond' onclick='return addComment.moveForm("div-comment-180", "180", "respond", "69")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-67" class="comment odd alt thread-odd thread-alt depth-1">
+			<article id="div-comment-67" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/4b272369458cf77cb33b52b651e84ab6?s=34&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D34&amp;r=G' class='avatar avatar-34 photo' height='34' width='34' />						<b class="fn"><a href='http://boubakr92.wordpress.com/' rel='external nofollow' class='url'>Boubakr</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://blog.ebookglue.com/write-language-detector-50-lines-python/#comment-67">
+							<time datetime="2013-12-21T18:06:44+00:00">
+								December 21, 2013 at 6:06 pm							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>So interesting, I checked it using Arabic and Persian but I wasn&#8217;t satisfied with the result, however in French and English it was good.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/write-language-detector-50-lines-python/?replytocom=67#respond' onclick='return addComment.moveForm("div-comment-67", "67", "respond", "69")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-126" class="pingback even thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href='http://demo.zengine.info/?p=305' rel='external nofollow' class='url'>Python热点回顾第一期 | zengine</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-148" class="pingback odd alt thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href='http://potatoming.wordpress.com/2014/01/02/language-detector-in-python/' rel='external nofollow' class='url'>LANGUAGE DETECTOR IN PYTHON | About My Work</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-212" class="comment even thread-even depth-1 parent">
+			<article id="div-comment-212" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://0.gravatar.com/avatar/256dcc52f31a84a5f2a29ca7bcdc596f?s=34&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D34&amp;r=G' class='avatar avatar-34 photo' height='34' width='34' />						<b class="fn">kiddingmu</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://blog.ebookglue.com/write-language-detector-50-lines-python/#comment-212">
+							<time datetime="2014-01-13T09:13:00+00:00">
+								January 13, 2014 at 9:13 am							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Nice article!</p>
+<p>But there is some literal error.<br />
+&#8220;best_match&#8221; should  change to &#8220;find_match&#8221;.</p>
+<p>def find_match(self, languages):<br />
+     &#8220;&#8221;" Out of a list of NGrams that represent individual        languages, return<br />
+the best match.<br />
+    &#8220;&#8221;"<br />
+     return min(languages, lambda n: self &#8211; n)</p>
+<p>return the NGram object. It don&#8217;t work in my python environment.<br />
+change the return statement with the follwing work:<br />
+     return min(languages, key=lambda n: self-n)</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/write-language-detector-50-lines-python/?replytocom=212#respond' onclick='return addComment.moveForm("div-comment-212", "212", "respond", "69")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-236" class="comment byuser comment-author-shantanu bypostauthor odd alt depth-2">
+			<article id="div-comment-236" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://1.gravatar.com/avatar/5f38af55f7e84d9dfba63327593c3642?s=34&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D34&amp;r=G' class='avatar avatar-34 photo' height='34' width='34' />						<b class="fn">shantanu</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://blog.ebookglue.com/write-language-detector-50-lines-python/#comment-236">
+							<time datetime="2014-01-15T18:13:31+00:00">
+								January 15, 2014 at 6:13 pm							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Thanks for the fix!</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/write-language-detector-50-lines-python/?replytocom=236#respond' onclick='return addComment.moveForm("div-comment-236", "236", "respond", "69")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-357" class="comment even thread-odd thread-alt depth-1 parent">
+			<article id="div-comment-357" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://1.gravatar.com/avatar/9fb9586435ec5e33d50a94e30738a898?s=34&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D34&amp;r=G' class='avatar avatar-34 photo' height='34' width='34' />						<b class="fn">harry</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://blog.ebookglue.com/write-language-detector-50-lines-python/#comment-357">
+							<time datetime="2014-01-18T09:47:11+00:00">
+								January 18, 2014 at 9:47 am							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>hi , it turns out to be a problem in function parse_text(self, text) the statement below:</p>
+<p>		for letter in (&#8221; &#8220;.join(text.split()) + &#8221; &#8220;):</p>
+<p>only when I use </p>
+<p>		for letter in (&#8221; &#8220;.join(text.split()) ):</p>
+<p>the result is same to you .</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/write-language-detector-50-lines-python/?replytocom=357#respond' onclick='return addComment.moveForm("div-comment-357", "357", "respond", "69")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-625" class="comment byuser comment-author-shantanu bypostauthor odd alt depth-2">
+			<article id="div-comment-625" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src='http://1.gravatar.com/avatar/5f38af55f7e84d9dfba63327593c3642?s=34&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D34&amp;r=G' class='avatar avatar-34 photo' height='34' width='34' />						<b class="fn">shantanu</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://blog.ebookglue.com/write-language-detector-50-lines-python/#comment-625">
+							<time datetime="2014-01-22T22:29:59+00:00">
+								January 22, 2014 at 10:29 pm							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Thanks for the note! I&#8217;ve fixed the example.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply">
+					<a class='comment-reply-link' href='/write-language-detector-50-lines-python/?replytocom=625#respond' onclick='return addComment.moveForm("div-comment-625", "625", "respond", "69")'>Reply</a>				</div><!-- .reply -->
+			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+	</ol><!-- .comment-list -->
+
+	
+	
+	
+									<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/write-language-detector-50-lines-python/#respond" style="display:none;">Cancel reply</a></small></h3>
+									<form action="http://blog.ebookglue.com/wp-comments-post.php" method="post" id="commentform" class="comment-form" novalidate>
+																			<p class="comment-notes">Your email address will not be published. Required fields are marked <span class="required">*</span></p>							<p class="comment-form-author"><label for="author">Name <span class="required">*</span></label> <input id="author" name="author" type="text" value="" size="30" aria-required='true' /></p>
+<p class="comment-form-email"><label for="email">Email <span class="required">*</span></label> <input id="email" name="email" type="email" value="" size="30" aria-required='true' /></p>
+<p class="comment-form-url"><label for="url">Website</label> <input id="url" name="url" type="url" value="" size="30" /></p>
+												<p class="comment-form-comment"><label for="comment">Comment</label> <textarea id="comment" name="comment" cols="45" rows="8" aria-required="true"></textarea></p>						<p class="form-allowed-tags">You may use these <abbr title="HyperText Markup Language">HTML</abbr> tags and attributes:  <code>&lt;a href=&quot;&quot; title=&quot;&quot;&gt; &lt;abbr title=&quot;&quot;&gt; &lt;acronym title=&quot;&quot;&gt; &lt;b&gt; &lt;blockquote cite=&quot;&quot;&gt; &lt;cite&gt; &lt;code&gt; &lt;del datetime=&quot;&quot;&gt; &lt;em&gt; &lt;i&gt; &lt;q cite=&quot;&quot;&gt; &lt;strike&gt; &lt;strong&gt; </code></p>						<p class="form-submit">
+							<input name="submit" type="submit" id="submit" value="Post Comment" />
+							<input type='hidden' name='comment_post_ID' value='69' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+						</p>
+						<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="81d580733e" /></p>					</form>
+							</div><!-- #respond -->
+			
+</div><!-- #comments -->
+		</div><!-- #content -->
+	</div><!-- #primary -->
+
+<div id="secondary">
+		<h2 class="site-description">Ebook Glue helps you turn anything into a digital book.</h2>
+	
+	
+		<div id="primary-sidebar" class="primary-sidebar widget-area" role="complementary">
+		<aside id="categories-2" class="widget widget_categories"><h1 class="widget-title">Categories</h1>		<ul>
+	<li class="cat-item cat-item-4"><a href="http://blog.ebookglue.com/category/book-production/" title="View all posts filed under Book Production">Book Production</a>
+</li>
+	<li class="cat-item cat-item-3"><a href="http://blog.ebookglue.com/category/design/" title="View all posts filed under Design">Design</a>
+</li>
+	<li class="cat-item cat-item-5"><a href="http://blog.ebookglue.com/category/history/" title="View all posts filed under History">History</a>
+</li>
+	<li class="cat-item cat-item-7"><a href="http://blog.ebookglue.com/category/inspiration/" title="View all posts filed under Inspiration">Inspiration</a>
+</li>
+	<li class="cat-item cat-item-10"><a href="http://blog.ebookglue.com/category/product-news/" title="View all posts filed under Product News">Product News</a>
+</li>
+	<li class="cat-item cat-item-14"><a href="http://blog.ebookglue.com/category/programming/" title="View all posts filed under Programming">Programming</a>
+</li>
+	<li class="cat-item cat-item-16"><a href="http://blog.ebookglue.com/category/publishing-news/" title="View all posts filed under Publishing News">Publishing News</a>
+</li>
+	<li class="cat-item cat-item-8"><a href="http://blog.ebookglue.com/category/quick-tips/" title="View all posts filed under Quick Tips">Quick Tips</a>
+</li>
+	<li class="cat-item cat-item-9"><a href="http://blog.ebookglue.com/category/resources/" title="View all posts filed under Resources">Resources</a>
+</li>
+	<li class="cat-item cat-item-15"><a href="http://blog.ebookglue.com/category/tutorial/" title="View all posts filed under Tutorial">Tutorial</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="http://blog.ebookglue.com/category/uncategorized/" title="View all posts filed under Uncategorized">Uncategorized</a>
+</li>
+		</ul>
+</aside><aside id="archives-2" class="widget widget_archive"><h1 class="widget-title">Archives</h1>		<ul>
+			<li><a href='http://blog.ebookglue.com/2014/01/'>January 2014</a></li>
+	<li><a href='http://blog.ebookglue.com/2013/12/'>December 2013</a></li>
+	<li><a href='http://blog.ebookglue.com/2013/11/'>November 2013</a></li>
+	<li><a href='http://blog.ebookglue.com/2013/10/'>October 2013</a></li>
+		</ul>
+</aside>		<aside id="recent-posts-2" class="widget widget_recent_entries">		<h1 class="widget-title">Recent Posts</h1>		<ul>
+					<li>
+				<a href="http://blog.ebookglue.com/amazon-uses-mobipocket-file-format-2/">Why Amazon Uses the Mobipocket File Format</a>
+						</li>
+					<li>
+				<a href="http://blog.ebookglue.com/oyster-ebook-subscriptions/">Oyster Ebook Subscriptions</a>
+						</li>
+					<li>
+				<a href="http://blog.ebookglue.com/write-language-detector-50-lines-python/">How to Write a Language Detector in 50 Lines of Python</a>
+						</li>
+					<li>
+				<a href="http://blog.ebookglue.com/open-source-desktop-publishing-scribus/">Open Source Desktop Publishing with Scribus</a>
+						</li>
+					<li>
+				<a href="http://blog.ebookglue.com/epub-zen-garden/">The ePub Zen Garden</a>
+						</li>
+				</ul>
+		</aside><aside id="search-2" class="widget widget_search"><form role="search" method="get" class="search-form" action="http://blog.ebookglue.com/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search &hellip;" value="" name="s" title="Search for:" />
+				</label>
+				<input type="submit" class="search-submit" value="Search" />
+			</form></aside>	</div><!-- #primary-sidebar -->
+	</div><!-- #secondary -->
+
+		</div><!-- #main -->
+
+		<footer id="colophon" class="site-footer" role="contentinfo">
+
+			
+			<div class="site-info">
+								<a href="http://wordpress.org/">Proudly powered by WordPress</a>
+			</div><!-- .site-info -->
+		</footer><!-- #colophon -->
+	</div><!-- #page -->
+
+	<script type='text/javascript' src='http://blog.ebookglue.com/wp-content/themes/twentyfourteen/js/functions.js?ver=20131209'></script>
+</body>
+</html>

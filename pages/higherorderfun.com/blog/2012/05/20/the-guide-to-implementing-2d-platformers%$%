@@ -1,0 +1,1309 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head profile="http://gmpg.org/xfn/11">
+	<title>The guide to implementing 2D platformers | Higher-Order Fun</title>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<link rel="alternate" type="application/rss+xml" title="Higher-Order Fun RSS Feed" href="http://higherorderfun.com/blog/feed/" />
+	<link rel="pingback" href="http://higherorderfun.com/blog/xmlrpc.php" />
+
+	<link rel="SHORTCUT ICON" href="http://higherorderfun.com/blog/wp-content/themes/renegade/favicon.ico"/>
+	<link rel="icon" type="image/vnd.microsoft.icon" href="http://higherorderfun.com/blog/wp-content/themes/renegade/favicon.ico" /> 
+
+	<link rel="stylesheet" href="http://higherorderfun.com/blog/wp-content/themes/renegade/style.css" type="text/css" media="all" />
+	<!--[if lte IE 7]>
+	<link rel="stylesheet" href="http://higherorderfun.com/blog/wp-content/themes/renegade/ie.css" type="text/css" media="all" />
+	<![endif]-->
+
+	<script type='text/javascript' src='http://higherorderfun.com/blog/wp-content/themes/renegade/scripts/quote-comments.js'></script>
+
+	<style type='text/css'>
+		body { font:14px/150% Georgia, serif; }
+	</style>
+	
+	
+            <script type="text/javascript">//<![CDATA[
+            // Google Analytics for WordPress by Yoast v4.3.5 | http://yoast.com/wordpress/google-analytics/
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-21437146-1']);
+				            _gaq.push(['_trackPageview']);
+            (function () {
+                var ga = document.createElement('script');
+                ga.type = 'text/javascript';
+                ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ga, s);
+            })();
+            //]]></script>
+			<link rel="alternate" type="application/rss+xml" title="Higher-Order Fun &raquo; The guide to implementing 2D platformers Comments Feed" href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/feed/" />
+<script type='text/javascript' src='http://higherorderfun.com/blog/wp-includes/js/comment-reply.min.js?ver=3.8.3'></script>
+<script type='text/javascript' src='http://higherorderfun.com/blog/wp-includes/js/jquery/jquery.js?ver=1.10.2'></script>
+<script type='text/javascript' src='http://higherorderfun.com/blog/wp-includes/js/jquery/jquery-migrate.min.js?ver=1.2.1'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://higherorderfun.com/blog/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://higherorderfun.com/blog/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='On how Diablo III fails to live up to the Diablo legacy' href='http://higherorderfun.com/blog/2012/05/17/on-how-diablo-iii-fails-to-live-up-to-the-diablo-legacy/' />
+<link rel='next' title='Math for Game Programmers 05 &#8211; Vector Cheat Sheet' href='http://higherorderfun.com/blog/2012/06/03/math-for-game-programmers-05-vector-cheat-sheet/' />
+<meta name="generator" content="WordPress 3.8.3" />
+<link rel='canonical' href='http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/' />
+<link rel='shortlink' href='http://higherorderfun.com/blog/?p=99' />
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+
+</head>
+<body class="single single-post postid-99 single-format-standard">
+
+<!--[if lt IE 7]>  <div style='border: 1px solid #F7941D; background: #FEEFDA; text-align: center; clear: both; height: 75px; position: relative;'>    <div style='position: absolute; right: 3px; top: 3px; font-family: courier new; font-weight: bold;'><a href='#' onclick='javascript:this.parentNode.parentNode.style.display="none"; return false;'><img src='http://www.ie6nomore.com/files/theme/ie6nomore-cornerx.jpg' style='border: none;' alt='Close this notice'/></a></div>    <div style='width: 640px; margin: 0 auto; text-align: left; padding: 0; overflow: hidden; color: black;'>      <div style='width: 75px; float: left;'><img src='http://www.ie6nomore.com/files/theme/ie6nomore-warning.jpg' alt='Warning!'/></div>      <div style='width: 275px; float: left; font-family: Arial, sans-serif;'>        <div style='font-size: 14px; font-weight: bold; margin-top: 12px;'>You are using an outdated browser</div>        <div style='font-size: 12px; margin-top: 6px; line-height: 12px;'>For a better experience using this site, please upgrade to a modern web browser.</div>      </div>      <div style='width: 75px; float: left;'><a href='http://www.firefox.com' target='_blank'><img src='http://www.ie6nomore.com/files/theme/ie6nomore-firefox.jpg' style='border: none;' alt='Get Firefox 3.5'/></a></div>      <div style='width: 75px; float: left;'><a href='http://www.browserforthebetter.com/download.html' target='_blank'><img src='http://www.ie6nomore.com/files/theme/ie6nomore-ie8.jpg' style='border: none;' alt='Get Internet Explorer 8'/></a></div>      <div style='width: 73px; float: left;'><a href='http://www.apple.com/safari/download/' target='_blank'><img src='http://www.ie6nomore.com/files/theme/ie6nomore-safari.jpg' style='border: none;' alt='Get Safari 4'/></a></div>      <div style='float: left;'><a href='http://www.google.com/chrome' target='_blank'><img src='http://www.ie6nomore.com/files/theme/ie6nomore-chrome.jpg' style='border: none;' alt='Get Google Chrome'/></a></div>    </div>  </div>  <![endif]-->
+
+<div class="bgBar">
+	<div class="bgBarInner"></div>
+</div>
+
+<div class="wrap">
+
+	<div class="topbar">
+
+		<div class="menu">
+			<ul>
+				<li class='subscribe'><a href='http://higherorderfun.com/blog/feed/' target='_blank'><img src='http://higherorderfun.com/blog/wp-content/themes/renegade/images/rss.png' alt='' />Subscribe</a></li>				<li class="home-link"><a href="http://higherorderfun.com/blog">Home</a></li>
+				<li class="page_item page-item-37"><a href="http://higherorderfun.com/blog/about/">About</a></li>
+<li class="page_item page-item-43"><a href="http://higherorderfun.com/blog/articles/">Articles</a></li>
+<li class="page_item page-item-66"><a href="http://higherorderfun.com/blog/contact/">Contact</a></li>
+<li class="page_item page-item-47"><a href="http://higherorderfun.com/blog/portfolio/">Portfolio</a></li>
+	
+			</ul>
+		</div><!-- /menu -->
+
+	</div><!-- /topbar -->
+
+	<div class="header">
+
+		<h1><a href='http://higherorderfun.com/blog'>Higher-Order Fun</a></h1><h4>Game Design &amp; Game Programming</h4>
+	</div><!-- /header -->
+
+	<div class="content">
+
+		<div class="c1">
+
+			
+  
+	
+	<!-- post -->
+	<div class="post-99 post type-post status-publish format-standard hentry category-articles category-game-design category-programming category-tutorial" id="post-99">
+		<h1 class="post-title"><a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/" rel="bookmark">The guide to implementing 2D platformers</a></h1>
+		<div class="post-text">
+		<p>Having previously been disappointed by the information available on the topic, this is my attempt at categorizing different ways to implement 2D platform games, list their strengths and weaknesses, and discuss some implementation details.</p>
+<p>The long-term goal is to make this an exhaustive and comprehensible guide to the implementation of 2D platform games. If you have any sort of feedback, correction, request, or addition &#8211; please leave it in the comments!</p>
+<p><strong>Disclaimer</strong>: some of the information presented here comes from reverse engineering the behavior of the game, not from its code or programmers. It&#8217;s possible that they are not ACTUALLY implemented in this way, and merely behave in an equivalent way. Also note that tile sizes are for the game logic, graphical tiles might be of a different size.</p>
+<h1>Four Ways of Implementing</h1>
+<p>I can think of four major ways in which a platform game can be implemented. From simplest to most complicated, they are:</p>
+<h2>Type #1: Tile-based (pure)</h2>
+<p>Character movement is limited to tiles, so you can never stand halfway between two tiles. Animations may be used to create the illusion of smooth movement, but as far as the game logic is concerned, the player is always right on top of a specific tile. This is the easiest way to implement a platform game, but it imposes heavy restrictions on the control of character, making it unsuitable for traditional action-based platformers. It is, however, popular with puzzle and &#8220;cinematographic&#8221; platformers.</p>
+<p style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Flashback_tiles_2.png"><img class="aligncenter size-full wp-image-118" title="Flashback_tiles_2" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Flashback_tiles_2.png" alt="" width="512" height="448" /></a><em style="text-align: center;">Flashback, shown with tile boundaries</em></p>
+<p>Examples: Prince of Persia, Toki Tori, Lode Runner, Flashback</p>
+<p><strong>How it works</strong></p>
+<p>The map is a grid of tiles, each one storing information such as whether it&#8217;s an obstacle or not, what image to use, what kind of footstep sound to use, and so on. The player and other characters are represented by a set of one or more tiles that move together. In Lode Runner, for example, the player is a single tile. In Toki Tori, the player is 2&#215;2 tiles. In Flashback, which is unusual due to the smaller size of its tiles, the player is two tiles wide and five tiles tall (see image above) when standing, but only three tiles tall when crouching.</p>
+<p>In this kind of game, the player will rarely &#8211; if ever &#8211; be moving diagonally, but, if he is, the movement can be decomposed in two separate steps. Likewise, he will likely only move one tile at once, but multi-tile movement can be done as multiple steps of one tile, if needed (in Flashback, you always move two tiles at once). The algorithm is then as follows:</p>
+<ol>
+<li>Create a copy of the character where he&#8217;d like to move to (e.g., if moving one tile to the right, make a copy where every tile of the character is shifted 1 tile to the right)</li>
+<li>Check that copy for intersection with the background and other characters.</li>
+<li>If an intersection is found, the character&#8217;s movement is blocked. React accordingly.</li>
+<li>Otherwise, the path is clear. Move character there, optionally playing an animation so the transition looks smooth.</li>
+</ol>
+<p>This kind of movement is very ill-suited for traditional arc-shaped jumps &#8211; so games in this genre often have no jump at all (Toki Tori, Lode Runner), or only allow vertical or horizontal jumps (Prince of Persia, Flashback), which are nothing but special cases of linear movement.</p>
+<p>Advantages of this system include simplicity and precision. Since the games are more deterministic, glitches are much less likely, and the gameplay experience is more controlled, with less of a need to tweak values depending on circumstances. Implementing certain mechanics (such as grabbing ledges and one-way platforms) becomes a breeze, compared to more complex movement styles &#8211; all you have to do is check whether the player tiles and the background tiles are aligned in the one specific way that allows for a given action.</p>
+<p>In principle, this system doesn&#8217;t allow steps of less than one tile, but that can be mitigated in a few different ways. For example, the tiles can be a bit smaller than the player (say, a player is 2&#215;6 tiles), or you can allow a visual-only movement to take place inside a given tile, without affecting the logic (which is the solution that I believe that &#8220;Lode Runner &#8211; The Legend Returns&#8221; takes).</p>
+<h2>Type #2: Tile Based (Smooth)</h2>
+<p>Collision is still determined by a tilemap, but characters can move freely around the world (typically with 1px resolution, aligned to integers, but see the note at the end of article regarding smoothing of movement). This is the most common form of implementing platformers in 8-bit and 16-bit consoles, and remains popular today, as it is still easy to implement and makes level editing simpler than more sophisticated techniques. It also allows for slopes and smooth jump arcs.</p>
+<p>If you&#8217;re unsure which type of platformer you want to implement, and you want to do an action game, I suggest going for this one. It&#8217;s very flexible, relatively easy to implement, and gives you the most control of all four types. It&#8217;s no wonder that the majority of the best action platformers of all time are based on this type.</p>
+<p style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Mega_Man_X_tiles.png"><img class="aligncenter size-full wp-image-101" title="Mega_Man_X_tiles" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Mega_Man_X_tiles.png" alt="" width="512" height="448" /></a><em>Mega Man X, shown with tile boundaries and player hitbox.</em></p>
+<p>Examples: Super Mario World, Sonic the Hedgehog, Mega Man, Super Metroid, Contra, Metal Slug, and practically every platformer of the 16-bit era</p>
+<h3>How it works</h3>
+<p>Map information is stored in the same way as with the pure tile technique, the difference is merely in how the characters interact with the background. The character&#8217;s collision hitbox is now an Axis-Aligned Bounding Box (AABB, that is, a rectangle that cannot be rotated), and are typically still an integer multiple of tile size. Common sizes include one tile wide and one (small Mario, morph ball Samus), two (big Mario, Mega Man, crouched Samus) or three (standing Samus) tiles tall. In many cases, the character sprite itself is larger than the logical hitbox, as this makes for a more pleasant visual experience and fairer gameplay (it&#8217;s better for the player to avoid getting hit when he should have than for him to get hit when he should not have). In the image above, you can see that the sprite for X is square-ish (in fact, is two tiles wide), but his hitbox is rectangular (one tile wide).</p>
+<p>Assuming that there are no slopes and one-way platforms, the algorithm is straightforward:</p>
+<ol>
+<li>Decompose movement into X and Y axes, step one at a time. If you&#8217;re planning on implementing slopes afterwards, step X first, then Y. Otherwise, the order shouldn&#8217;t matter much. Then, for each axis:</li>
+<li>Get the coordinate of the forward-facing edge, e.g. : If walking left, the x coordinate of left of bounding box. If walking right, x coordinate of right side. If up, y coordinate of top, etc.</li>
+<li>Figure which lines of tiles the bounding box intersects with &#8211; this will give you a minimum and maximum tile value on the OPPOSITE axis. For example, if we&#8217;re walking left, perhaps the player intersects with horizontal rows 32, 33 and 34 (that is, tiles with y = 32 * TS, y = 33 * TS, and y = 34 * TS, where TS = tile size).</li>
+<li>Scan along those lines of tiles and towards the direction of movement until you find the closest static obstacle. Then loop through every moving obstacle, and determine which is the closest obstacle that is actually on your path.</li>
+<li>The total movement of the player along that direction is then the minimum between the distance to closest obstacle, and the amount that you wanted to move in the first place.</li>
+<li>Move player to the new position. With this new position, step the other coordinate, if still not done.</li>
+</ol>
+<h3>Slopes</h3>
+<div style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Mega_Man_X_tiles_2.png"><img class="aligncenter size-full wp-image-102" title="Mega_Man_X_tiles_2" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Mega_Man_X_tiles_2.png" alt="" width="512" height="448" /></a><em>Mega Man X, with slope tile annotations</em></div>
+<p>Slopes (the tiles pointed by green arrows on the image above) can be very tricky, because they are obstacles, and yet still allow the character to move into their tile. They also cause movement along the X axis to adjust position on the Y axis. One way to deal with them is to have the tile store the &#8220;floor y&#8221; of either side. Assuming a coordinate system where (0, 0) is at top-left, then the tile just left of X (first slope tile) is {0, 3} (left, right), then the one he stands on is {4, 7}, then {8, 11}, then {12, 15}. After that, the tiles repeat, with another {0, 3}, etc, and then we have a steeper slope, composed of two tiles: {0, 7} and {8, 15}.</p>
+<div style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Mega_Man_X_Slope_Tile.png"><img class="aligncenter size-full wp-image-103" title="Mega_Man_X_Slope_Tile" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Mega_Man_X_Slope_Tile.png" alt="" width="256" height="256" /></a><em>Detailed View of the {4, 7} tile</em></div>
+<p>The system that I&#8217;m going to describe allows arbitrary slopes, though for visual reasons, those two slopes are the most common, and result in a total of 12 tiles (the 6 described previously, and their mirrorings). The collision algorithm changes as follows for horizontal movement:</p>
+<div>
+<ul>
+<li>Make sure that you step X position before Y position.</li>
+<li>During collision detection (4 above), the slope only counts as a collision if its closest edge is the taller (smaller y coordinate) one. This will prevent characters from &#8220;popping&#8221; through the slope from the opposite side.</li>
+<li>You might want to forbid slopes to stop &#8220;halfway through&#8221; (e.g. on a {4, 7} tile). This restriction is adopted by Mega Man X and many other games. If you don&#8217;t, you have to deal with the more complicated case of the player attempting to climb from the lower side of the slope tile &#8211; one way to deal with this is to pre-process the level, and flag all such offending tiles. Then, on collision detection, also count it as a collision from the lower side if the player&#8217;s lowest y coordinate is greater (that is, below) the tile&#8217;s offset edge (tile coord * tile size + floor y).</li>
+<li>A full obstacle tile adjacent to the slope the character is currently on should not be considered for collision if it connects to the slope, that is, if the character (that is, his bottom-center pixel) is on a {0, *} slope, ignore left tile, and, if on a {*, 0} slope, ignore the right tile. You may have to do this for more tiles if your character is wider than two tiles &#8211; you might simply skip checking on the entire row if the player is moving towards the upper side of slope. The reason for this is to prevent the character from getting stuck at those tiles (highlighted yellow above) while still climbing the slope, as his foot will still be below the &#8220;surface level&#8221; by the time he comes into contact with the otherwise solid tile.</li>
+</ul>
+</div>
+<p>And for vertical movement:</p>
+<div>
+<ul>
+<li>If you&#8217;re letting gravity do its job for downhill movement, make sure that the minimum gravity displacement is compatible with slope and horizontal velocity. For example, on a 4:1 slope (as {4, 7} above), the gravity displacement must be at least 1/4 of the horizontal velocity, rounded up. On a 2:1 slope (such as {0, 7}), at least 1/2. If you don&#8217;t ensure this, the player will move horizontally right off the ramp for a while, until gravity catches up and drags him down, making him bounce on the ramp, instead of smoothly descending it.</li>
+<li>An alternative to using gravity is to compute how many pixels above floor the player was before movement, and how many it is afterwards (using the formula below), and adjust his position so they&#8217;re the same.</li>
+<li>When moving down, instead of considering a slope tile&#8217;s top edge as its collision boundary, instead, compute its floor coordinate at the current vertical line, and use that. To do that, find the [0, 1] value which represents the player&#8217;s x position on tile (0 = left, 1 = right) and use it to linearly interpolate the floorY values. The code will look something like: 
+<pre class="brush: cpp; title: ; notranslate" title="">float t = float(centerX - tileX) / tileSize;
+float floorY = (1-t) * leftFloorY + t * rightFloorY;</pre>
+</li>
+<li>When moving down, if multiple tiles on the same Y coordinate are obstacle candidates, and the one on the X coordinate of the player&#8217;s center is a slope tile, use that one, and ignore the rest &#8211; even though the others are technically closer. This ensures proper behaviour around the edges of slopes, with the character actually &#8220;sinking&#8221; on a completely solid tile because of the adjacent slope.</li>
+</ul>
+</div>
+<h3>One-way platforms</h3>
+<div><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Super_Mario_World_One_Way.png"><img class="aligncenter size-full wp-image-105" title="Super_Mario_World_One_Way" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Super_Mario_World_One_Way.png" alt="" width="512" height="224" /></a></div>
+<div style="text-align: center;"><em>Super Mario World, showing Mario falling through (left) and standing on (right) the same one-way platform</em></div>
+<p>One-way platforms are platforms that you can step on, but you can also jump through them. In other words, they count as an obstacle if you&#8217;re already on top of them, but are otherwise traversable. That sentence is the key to understanding their behavior. The algorithm changes as follows:</p>
+<div>
+<ul>
+<li>On the x axis, the tile is never an obstacle</li>
+<li>On the y axis, the tile is only an obstacle if, prior to the movement, the player was entirely above it (that is, bottom-most coordinate of player was at least one pixel above top-most coordinate of one-way platform). To check for this, you will probably want to store the original player position before doing any stepping.</li>
+</ul>
+</div>
+<p>It might be tempting to have it act as an obstacle if the player&#8217;s y speed is positive (that is, if the player is falling), but this behavior is wrong: it&#8217;s possible for the player to jump so he overlaps the platform, but then falls down again without having his feet reach the platform. In that case, he should still fall through.</p>
+<p>Some games allow the player to &#8220;jump down&#8221; from such platforms. There are a few ways to do this, but they are all relatively simple. You could, for example, disable one-way platforms for a single frame and ensure that y speed is at least one (so he&#8217;ll be clear of the initial collision condition on the next frame), or you could check if he&#8217;s standing exclusively on one-way platforms, and, if so, manually move the player one pixel to the bottom.</p>
+<h3>Ladders</h3>
+<p style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Mega_Man_7_Ladder.png"><img class="aligncenter size-full wp-image-106" title="Mega_Man_7_Ladder" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Mega_Man_7_Ladder.png" alt="" width="512" height="448" /></a><em>Mega Man 7, with tile boundaries, highlighted ladder tiles, and player ladder hitbox.</em></p>
+<p>Ladders might seem complicated to implement, but they are simply an alternate state &#8211; when you&#8217;re in a ladder, you ignore most of the standard collision system, and replace it with a new set of rules. Ladders are typically one tile wide.</p>
+<p>You can usually enter the ladder state in two ways:</p>
+<ul>
+<li>Have your character hitbox overlap with the ladder, either on ground or on air, and hit up (some games also allow you to hit down)</li>
+<li>Have your character stand on top of a &#8220;ladder top&#8221; tile (which is often a one-way platform tile as well, so you can walk on top of it), and hit down.</li>
+</ul>
+<p>This has the effect of immediately snapping the player&#8217;s x coordinate to align with the ladder tiles, and, if going down from the top of ladder, move y coordinate so player is now inside the actual ladder. At this point, some games will use a different hitbox for the purposes of determining whether the player is still on the ladder. Mega Man, for example, seems to use a single tile (equivalent to top tile of the original character, highlighted in red in the image above).</p>
+<p>There are a few different ways of LEAVING the ladder:</p>
+<ul>
+<li>Reaching the top of the ladder. This will usually prompt an animation and move the player several pixels up in y, so he&#8217;s now standing on top of the ladder.</li>
+<li>Reaching the bottom of a hanging ladder. This will cause the player to simply fall, although some games won&#8217;t let the player leave the ladder in this way.</li>
+<li>Moving left or right. If there is no obstacle on that side, the player may be allowed to leave that way.</li>
+<li>Jumping. Some games allow you to release the ladder by doing this.</li>
+</ul>
+<div>While on the ladder, the character&#8217;s movement changes so, typically, all he can do is move up and down, and sometimes attack.</div>
+<h3>Stairs</h3>
+<p style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Castlevania_Dracula_X_Stairs.png"><img class="aligncenter size-full wp-image-107" title="Castlevania_Dracula_X_Stairs" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Castlevania_Dracula_X_Stairs.png" alt="" width="512" height="448" /></a><em>Castlevania: Dracula X, with tile boundaries</em></p>
+<p>Stairs are a variation of ladders, seen in few games, but notably in the Castlevania series. The actual implementation is very similar to that of ladders, with a few exceptions:</p>
+<ul>
+<li>The player moves tile by tile or half-tile by half-tile (as in Dracula X)</li>
+<li>Each &#8220;step&#8221; causes the player to be shifted simultaneously on X and Y coordinates, by a preset amount.</li>
+<li>Initial overlapping detection when going up might look on the tile ahead instead of just the current overlap one.</li>
+</ul>
+<div>Other games also have stairs that behave like slopes. In that case, they are simply a visual feature.</div>
+<h3>Moving Platforms</h3>
+<p style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Super_Mario_World_Moving_Platform.png"><img class="aligncenter size-full wp-image-109" title="Super_Mario_World_Moving_Platform" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Super_Mario_World_Moving_Platform.png" alt="" width="512" height="448" /></a><em>Super Mario World</em></p>
+<p>Moving platforms can seem a little tricky, but are actually fairly simple. Unlike normal platforms, they cannot be represented by fixed tiles (for obvious reasons), and instead should be represented by an AABB, that is, a rectangle that cannot be rotated. It is a normal obstacle for all collision purposes, and if you stop here, you&#8217;ll have very slippery moving platforms (that is, they work as intended, except that the character does not move along it on his own).</p>
+<p>There are a few different ways to implement that. One algorithm is as follows:</p>
+<ul>
+<li>Before anything on the scene is stepped, determine whether the character is standing on a moving platform. This can be done by checking, for example, whether his center-bottom pixel is just one pixel above the surface of the platform. If it is, store a handle to the platform and its current position inside the character.</li>
+<li>Step all moving platforms. Make sure that this happens before you step characters.</li>
+<li>For every character that&#8217;s standing on a moving platform, figure the delta-position of the platform, that is, how much it has moved along each axis. Now, shift the character by the same amount.</li>
+<li>Step the characters as usual.</li>
+</ul>
+<h3>Other Features</h3>
+<p style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Sonic_2_Loop.jpg"><img class="aligncenter size-full wp-image-108" title="Sonic_2_Loop" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Sonic_2_Loop.jpg" alt="" width="570" height="399" /></a><em>Sonic the Hedgehog 2</em></p>
+<p>Other games have more complicated and exclusive features. Sonic the Hedgehog series is notable for this. Those are beyond the scope of this article (and my knowledge, for that matter!), but might be subject of a future article.</p>
+<h2>Type #3: Bitmask</h2>
+<p>Similar to &#8220;Tile Based (Smooth)&#8221;, but instead of using large tiles, an image is used to determine collision for each pixel. This allows finer detailing, but significantly increases complexity, memory usage, and requires something akin to an image editor to create levels. It also often implies that tiles won&#8217;t be used for visuals, and may therefore require large, individual artwork for each level. Due to those issues, this is a relatively uncommon technique, but can produce higher quality results than tile-based approaches. It is also suitable for dynamic environments &#8211; such as the destructible scenarios in Worms &#8211; as you can &#8220;draw&#8221; into the bitmask to change the scenario.</p>
+<p style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Worms_World_Party.png"><img class="aligncenter size-full wp-image-110" title="Worms_World_Party" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Worms_World_Party.png" alt="" width="512" height="384" /></a><em>Worms World Party, featuring destructible terrain</em></p>
+<p>Examples: Worms, Talbot&#8217;s Odyssey</p>
+<h3>How it works</h3>
+<p>The basic idea is very similar to the tile (smooth) algorithm &#8211; you can simply consider each pixel to be a tile, and implement the exact same algorithm, and everything will work, with one major exception &#8211; slopes. Since slopes are now implicitly defined by the positioning between nearby tiles, the previous technique doesn&#8217;t work, and a much more complex algorithm has to be used in its place. Other things, such as ladders, also become trickier.</p>
+<h3>Slopes</h3>
+<p style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Talbot_Bitmask_2.png"><img class="aligncenter size-full wp-image-113" title="Talbot_Bitmask_2" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Talbot_Bitmask_2.png" alt="" width="512" height="384" /></a><em>Talbot&#8217;s Odyssey, with the collision bitmask overlaid on top of the game.</em></p>
+<p>Slopes are the primary reason why this type of implementation is very hard to get right. Unfortunately, they are also pretty much mandatory, as it&#8217;d make no sense to use this implementation without slopes. Often, they&#8217;re the reason why you&#8217;re even using this system.</p>
+<p>This is, roughly, the algorithm used by Talbot&#8217;s Odyssey:</p>
+<ul>
+<li>Integrate acceleration and velocity to compute the desired delta-position vector (how much to move in each axis).</li>
+<li>Step each axis separately, starting with the one with the largest absolute difference.</li>
+<li>For the horizontal movement, offset the player AABB by 3 pixels to the top, so he can climb slopes.</li>
+<li>Scan ahead, by checking against all valid obstacles and the bitmask itself, to determine how many pixels it is able to move before hitting an obstacle. Move to this new position.</li>
+<li>If this was horizontal movement, move as many pixels up as necessary (which should be up to 3) to make up for slope.</li>
+<li>If, at the end of the movement, any pixel of the character is overlaping with any obstacle, undo the movement on this axis.</li>
+<li>Regardless of result of last condition, proceed to do the same for the other axis.</li>
+</ul>
+<div>Because this system has no distinction between moving down because you&#8217;re going downhill or because you&#8217;re falling, you&#8217;re likely to need a system counting how many frames it&#8217;s been since the character last touched the floor, for purposes of determining whether it can jump and changing animation. For Talbot, this value is 10 frames.</div>
+<div></div>
+<div>Another trick here is efficiently computing how many pixels it can move before hitting something. There are other possible complicating factors, such as one-way platforms (dealt in the exact same way as for tiled (smooth)) and sliding down steep inclines (which is fairly complex and beyond the scope of the article). In general, this technique requires a lot of fine tuning, and is intrinsically less stable than tile-based approaches. I only recommend it if you absolutely must have detailed terrain.</div>
+<h2>Type #4: Vectorial</h2>
+<p>This technique uses vectorial data (lines or polygons) to determine the boundaries of collision areas. Very difficult to implement properly, it is nevertheless increasingly popular due to the ubiquity of physics engines, such as Box2D, which are suitable for implementing this technique. It provides benefits similar to the bitmask technique, but without major memory overhead, and using a very different way of editing levels.</p>
+<p style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/braid11.jpg"><img class="aligncenter size-full wp-image-116" title="braid1" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/braid11.jpg" alt="" width="512" height="261" /></a><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/braid2.png"><img class="aligncenter size-full wp-image-117" title="braid2" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/braid2.png" alt="" width="512" height="261" /></a><em>Braid (level editor), with visible layers (top) and the collision polygons (bottom)</em></p>
+<p>Examples: Braid, Limbo</p>
+<h3>How it works</h3>
+<p>There are two general ways of approaching this:</p>
+<ul>
+<li>Resolve movement and collisions yourself, similar to the bitmask method, but using polygon angles to compute deflection and have proper slopes.</li>
+<li>Use a physics engine (e.g. Box2D)</li>
+</ul>
+<p>Obviously, the second is more popular (though I suspect that Braid went for the first), both because it is easier and because it allows you to do many other things with physics in the game. Unfortunately, in my opinion, one has to be very careful when going this route, to avoid making the game feel like a generic, uninteresting physics-platformer.</p>
+<h3>Compound objects</h3>
+<p>This approach has its own unique problems. It may suddenly be difficult to tell whether the player is actually standing on the floor (due to rounding errors), or whether it&#8217;s hitting a wall or sliding down a steep incline. If using a physics engine, friction can be an issue, as you&#8217;ll want friction to be high on the foot, but low on the sides.</p>
+<p>There are different ways to deal with those, but a popular solution is to divide the character into several different polygons, each with different roles associated: so you&#8217;d (optionally) have the main central body, then a thin rectangle for feet, and two thin rectangles for sides, and another for head or some similar combination. Sometimes they are tapered to avoid getting caught into obstacles. They can have different physics properties, and collision callbacks on those can be used to determine the status of character. For more information, sensors (non-colliding objects that are just used to check for overlap) can be used. Common cases include determinining whether we&#8217;re close enough to the floor to perform a jump, or if the character is pushing against a wall, etc.</p>
+<h1>General Considerations</h1>
+<p>Regardless of the type of platform movement that you have chosen (except perhaps for type #1), a few general considerations apply.</p>
+<h2>Acceleration</h2>
+<p style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Mario_Metroid_Megaman_Acceleration1.png"><img class="aligncenter size-full wp-image-120" title="Mario_Metroid_Megaman_Acceleration" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Mario_Metroid_Megaman_Acceleration1.png" alt="" width="512" height="300" /></a><em>Super Mario World (low acceleration), Super Metroid (mid acceleration), Mega Man 7 (high acceleration)</em></p>
+<p>One of the factors that affects the feel of a platformer the most is the acceleration of the character. Acceleration is the rate of change in speed. When it is low, the character takes a long time to reach its maximum velocity, or to come to a halt after the player lets go of controls. This makes the character feel &#8220;slippery&#8221;, and can be hard to master. This movement is most commonly associated with the Super Mario series of games. When the acceleration is high, the character takes very little (or no time) to go from zero to maximum speed and back, resulting in very fast responding, &#8220;twitchy&#8221; controls, as seen in the Mega Man series (I believe that Mega Man actually employs infinite acceleration, that is, you&#8217;re either stopped or on full speed).</p>
+<p>Even if a game has no acceleration on its horizontal movement, it is likely to have at least some for the jump arcs &#8211; otherwise they will be shaped like triangles.</p>
+<h3>How it works</h3>
+<p>Implementing acceleration is actually fairly simple, but there are a few traps to watch out for.</p>
+<ul>
+<li>Determine xTargetSpeed. This should be 0 if the player is not touching the controls, -maxSpeed if pressing left or +maxSpeed if pressing right.</li>
+<li>Determine yTargetSpeed. This should be 0 if the player is standing on a platform, +terminalSpeed otherwise.</li>
+<li>For each axis, accelerate the current speed towards target speed using either weighted averaging or adding acceleration.</li>
+</ul>
+<div>The two acceleration methods are as follows:</div>
+<div>
+<ul>
+<li>Weighted averaging: acceleration is a number (&#8220;a&#8221;) from 0 (no change) to 1 (instant acceleration). Use that value to linearly interpolate between target and current speed, and set the result as current speed.</li>
+</ul>
+<div>
+<pre class="brush: cpp; title: ; notranslate" title="">
+vector2f curSpeed = a * targetSpeed + (1-a) * curSpeed;
+if (fabs(curSpeed.x) &lt; threshold) curSpeed.x = 0;
+if (fabs(curSpeed.y) &lt; threshold) curSpeed.y = 0;</pre>
+</div>
+<ul>
+<li>Adding acceleration: We&#8217;ll determine which direction to add the acceleration to (using the sign function, which returns 1 for numbers &gt;0 and -1 for &lt;0), then check if we overshot.</li>
+</ul>
+<pre class="brush: cpp; title: ; notranslate" title="">
+vector2f direction = vector2f(sign(targetSpeed.x - curSpeed.x),
+                              sign(targetSpeed.y - curSpeed.y));
+curSpeed += acceleration * direction;
+if (sign(targetSpeed.x - curSpeed.x) != direction.x)
+    curSpeed.x = targetSpeed.x;
+if (sign(targetSpeed.y - curSpeed.y) != direction.y)
+    curSpeed.y = targetSpeed.y;</pre>
+<div>It&#8217;s important to integrate the acceleration into the speed before moving the character, otherwise you&#8217;ll introduce a one-frame lag into character input.</div>
+<div></div>
+<div>When the character hits an obstacle, it&#8217;s a good idea to zero his speed along that axis.</div>
+</div>
+<h2>Jump control</h2>
+<p style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Super_Metroid_Screw_Attack.png"><img class="aligncenter size-full wp-image-121" title="Super_Metroid_Screw_Attack" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Super_Metroid_Screw_Attack.png" alt="" width="512" height="448" /></a><em>Super Metroid, Samus performing the &#8220;Space Jump&#8221; (with &#8220;Screw Attack&#8221; power-up)</em></p>
+<p>Jumping in a platform game can be as simple as checking if the player is on the ground (or, often, whether he was on the ground anytime on the last n frames), and, if so, giving the character an initial negative y speed (in physical terms, an impulse) and letting gravity do the rest.</p>
+<p>There are four general ways in which the player can control the jump:</p>
+<ul>
+<li>Impulse: seen in games such as Super Mario World and Sonic the Hedgehog, the jump preserves the momentum (that is, in implementation terms, the speed) that the character had before the jump. In some games, this is the only way to influence the arc of the jump &#8211; just like in real life. There is nothing to implement here &#8211; it will be like this unless you do something to stop it!</li>
+<li>Aerial acceleration: that is, retaining control of horizontal movement while in mid-air. Though this is physically implausible, it is a very popular feature, as it makes the character much more controllable. Almost every platformer game has it, with exceptions for games similar to Prince of Persia. Generally, the airborne acceleration is greatly reduced, so impulse is important, but some games (like Mega Man) give you full air control. This is generally implemented as merely tweaking the acceleration parameter while you&#8217;re airborne.</li>
+<li>Ascent control: another physically implausible action, but very popular, as it gives you much greater control over the character. The longer you hold the jump button, the higher the character jumps. Typically, this is implemented by continuing to add impulse to the character (though this impulse can incrementally decrease) for as long as the button is held, or alternatively by suppressing gravity while the button is held. A time limit is imposed, unless you want the character to be able to jump infinitely.</li>
+<li>Multiple jumps: once airborne, some games allow the player to jump again, perhaps for an unlimited number of times (as in the Space Jump in Super Metroid or the flight in Talbot&#8217;s Odyssey), or for a limited number of jumps before touching the ground (&#8220;double jump&#8221; being the most common choice). This can be accomplished by keeping a counter that increases for each jump and decreases when you&#8217;re on the ground (be careful when you update this, or you might reset it right after the first jump), and only allowing further jumps if the counter is low enough. Sometimes, the second jump is shorter than the initial one. Other restrictions may apply &#8211; the Space Jump only triggers if you&#8217;re already doing a spin jump and just began to fall.</li>
+</ul>
+<h2>Animations and leading</h2>
+<p style="text-align: center;"><a href="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Black_Thorne_Lead.png"><img class="aligncenter size-full wp-image-122" title="Black_Thorne_Lead" src="http://higherorderfun.com/blog/wp-content/uploads/2012/05/Black_Thorne_Lead.png" alt="" width="512" height="448" /></a><em>Black Thorne, character doing a long animation before shooting backwards (Y button)</em></p>
+<p>In many games, your character will play an animation before actually performing the action you requested. However, on a twitchy action-based game, this will frustrate players &#8211; DON&#8217;T DO THAT! You should still have leading animations for things such as jumping and running, but if you care about how the game responds, make those cosmetic only, with the action taken immediately regardless of the animation.</p>
+<h2>Smoother movement</h2>
+<p>Using integers to represent the position of the characters is wise, as it makes it faster and stable. However, if you use integers for everything, you will end up with some jerky motion. There are multiple solutions to this. These are a few:</p>
+<ul>
+<li>Use a float for all computations and for storing position, and cast to int whenever you&#8217;re rendering or computing collisions. Fast and simple, but it starts losing precision if you move too far away from (0,0). This is probably not relevant unless you have a very large playfield, but it&#8217;s something to keep in mind. If it comes to it, you can use a double instead.</li>
+<li>Use a fixed point number for all computations and position, and again cast to int when you&#8217;re rendering or computing collisions. Less precise than float and with a more limited range, but the precision is uniform and can, on some hardware, be faster (notably, floating point processing is slow on many mobile phones).</li>
+<li>Store position as an integer, but keep a &#8220;remainder&#8221; stored in a float. When integrating position, compute the delta-movement as a float, add the remainder to the delta-movement, then add the integer part of this value to the position, and the fractional part to the &#8220;remainder&#8221; field. On the next frame, the remainder will get added back in. The advantage of this method is that you&#8217;re using an integer everywhere except for movement, ensuring that you won&#8217;t have floating point complications elsewhere, and increasing performance. This technique is also very suitable if you have some framework in which the position of the object has to be an integer, or where it is a float, but that same position is used directly by the rendering system &#8211; in that case, you can use the framework-provided float position to store integer values only, to make sure that the rendering is always aligned to pixels.</li>
+</ul>
+		</div>
+		<div class="post-meta">
+			<div class="row">
+				<div class="alignright">
+					<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/#comments" class="post-comments"  title="Comment on The guide to implementing 2D platformers">132 Comments</a>				</div>
+				<span class="post-author">by <a href="http://higherorderfun.com/blog/author/admin/" title="Posts by amz" rel="author">amz</a> &nbsp;/&nbsp; </span>
+				<span class="post-date">May 20, 2012 &nbsp;/&nbsp; </span>
+				<span class="post-cat">Posted in: <a href="http://higherorderfun.com/blog/category/articles/" title="View all posts in articles" rel="category tag">articles</a>, <a href="http://higherorderfun.com/blog/category/game-design/" title="View all posts in game design" rel="category tag">game design</a>, <a href="http://higherorderfun.com/blog/category/tutorial/programming/" title="View all posts in programming" rel="category tag">programming</a>, <a href="http://higherorderfun.com/blog/category/tutorial/" title="View all posts in tutorial" rel="category tag">tutorial</a></span>
+							</div>
+			<div class="row"></div>
+		</div>
+
+			<div class="post-nav">
+			<div class="alignleft"><span>&laquo; Previous post</span><br /><a href="http://higherorderfun.com/blog/2012/05/17/on-how-diablo-iii-fails-to-live-up-to-the-diablo-legacy/" rel="prev">On how Diablo III fails to live up to the Diablo legacy</a></div>
+			<div class="alignright textalignright"><span>Next post &raquo;</span><br /><a href="http://higherorderfun.com/blog/2012/06/03/math-for-game-programmers-05-vector-cheat-sheet/" rel="next">Math for Game Programmers 05 &#8211; Vector Cheat Sheet</a></div>
+		</div>
+
+		<div class="sep"></div>
+
+		<!-- comments begin here -->
+<div id="comments">
+
+	<h2 class="comment-heading" id="comments">132 Responses<a href="#respond">Leave one &rarr;</a></h2>
+
+	<div class="navigation">
+		<a class="prev page-numbers" href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comments">&laquo; Previous</a>
+<a class='page-numbers' href='http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-1/#comments'>1</a>
+<a class='page-numbers' href='http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comments'>2</a>
+<span class='page-numbers current'>3</span>	</div>
+
+	<ol class="commentlist">
+		<li class="comment even thread-even depth-1" id="comment-609">
+	<div class="comment-body" id="div-comment-609">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/4bb937152f7ed0757bc69d8b520c9f5d?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://www.gemfruit.com' rel='external nofollow' class='url'>Porter</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-609" class="comment-date">2012-09-04</a>
+		<a class="comment-quote-link" href="?replytocom=609#respond" onclick="quote('609', 'Porter', 'comment','div-comment-609', false, false); try { addComment.moveForm('comment-609', '609', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-609'>
+<p>Absolutely amazing write-up. Not only did you touch in an amazing number of key subjects, you also used examples from a large collection of my favorite games. Site bookmarked, keep up the good work.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-622">
+	<div class="comment-body" id="div-comment-622">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/0f77698b15c8b222d1f27fb7edf43b92?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://code.bluedinosaurs.com' rel='external nofollow' class='url'>Jonny D</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-622" class="comment-date">2012-09-05</a>
+		<a class="comment-quote-link" href="?replytocom=622#respond" onclick="quote('622', 'Jonny D', 'comment','div-comment-622', false, false); try { addComment.moveForm('comment-622', '622', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-622'>
+<p>Great article!</p>
+<p>Concerning jump ascent control, I don&#8217;t think games typically &#8220;add impulse&#8221; or &#8220;disable gravity&#8221;.  It&#8217;s simpler and probably more common to chop the vertical velocity down to a low constant value (if vel is higher than that value).  That way there&#8217;s still some arc left in the jump, but it doesn&#8217;t rise much more after you release the button.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-686">
+	<div class="comment-body" id="div-comment-686">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/1d1aa2b6102fc0ceb6f6483f6d8ef1a8?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://java67.blogspot.tw' rel='external nofollow' class='url'>java blog</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-686" class="comment-date">2012-10-03</a>
+		<a class="comment-quote-link" href="?replytocom=686#respond" onclick="quote('686', 'java blog', 'comment','div-comment-686', false, false); try { addComment.moveForm('comment-686', '686', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-686'>
+<p>One of the very best article I have ever seen. So many information which is effectively complemented by cool pictures. Simply amazing. Thanks  a ton to you man.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-692">
+	<div class="comment-body" id="div-comment-692">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/8cd95ea1ab766ceb663ad7ea807a1ad1?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://savingsfunda.blogspot.com' rel='external nofollow' class='url'>Savingfunda</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-692" class="comment-date">2012-10-05</a>
+		<a class="comment-quote-link" href="?replytocom=692#respond" onclick="quote('692', 'Savingfunda', 'comment','div-comment-692', false, false); try { addComment.moveForm('comment-692', '692', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-692'>
+<p>Amazing stuff,  extensive, informative and well written. worth sharing and bookmarking.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-702">
+	<div class="comment-body" id="div-comment-702">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/71378488aa339f4021a1931bc9da5fda?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Greg</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-702" class="comment-date">2012-10-09</a>
+		<a class="comment-quote-link" href="?replytocom=702#respond" onclick="quote('702', 'Greg', 'comment','div-comment-702', false, false); try { addComment.moveForm('comment-702', '702', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-702'>
+<p>Hoping to see many more articles from this site.. really love the way you explain the basic concepts, makes it easy to port to any language..</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-764">
+	<div class="comment-body" id="div-comment-764">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/203cd21d1fe7e6fc39a18e1ffaa95b50?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Guilherme</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-764" class="comment-date">2012-10-23</a>
+		<a class="comment-quote-link" href="?replytocom=764#respond" onclick="quote('764', 'Guilherme', 'comment','div-comment-764', false, false); try { addComment.moveForm('comment-764', '764', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-764'>
+<p>That&#8217;s some great article, bookmarked and will be using it in my first game.<br />
+The only part I got a bit confused was the slope part, and It&#8217;s not your fault, it&#8217;s just that I&#8217;m a beginner.<br />
+Do you know where I could learn more about slopes? I&#8217;m developing a little game for learning purposes and I want to use 45º slopes in it, but I just can&#8217;t seem to think about how i&#8217;ll do it. I&#8217;m using Mappy to edit the tiles and show them in my game.</p>
+<p>Thanks for the article.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-766">
+	<div class="comment-body" id="div-comment-766">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/997d74737c94151a1da7d77191ac4b06?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>DaveB</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-766" class="comment-date">2012-10-23</a>
+		<a class="comment-quote-link" href="?replytocom=766#respond" onclick="quote('766', 'DaveB', 'comment','div-comment-766', false, false); try { addComment.moveForm('comment-766', '766', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-766'>
+<p>Really dig the article, man. Great write-up on any and all of the various things one could implement in a 2D platformer. I&#8217;ve actually been trying to make note of the topics you covered using Mega Man X as an example, though I&#8217;m having trouble translating your process into my existing update loop. Still, very informative!</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-850">
+	<div class="comment-body" id="div-comment-850">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/33c742855f4c28c680a577a4c94a66b6?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Daniel</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-850" class="comment-date">2012-11-01</a>
+		<a class="comment-quote-link" href="?replytocom=850#respond" onclick="quote('850', 'Daniel', 'comment','div-comment-850', false, false); try { addComment.moveForm('comment-850', '850', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-850'>
+<p>cool site, bookmarked !</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-969">
+	<div class="comment-body" id="div-comment-969">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/33b90b4ca85d531299e5a62350a357d6?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Mike</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-969" class="comment-date">2012-11-14</a>
+		<a class="comment-quote-link" href="?replytocom=969#respond" onclick="quote('969', 'Mike', 'comment','div-comment-969', false, false); try { addComment.moveForm('comment-969', '969', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-969'>
+<p>Thank you for this article.  Very informative!</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-1030">
+	<div class="comment-body" id="div-comment-1030">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/8691acc42b019283e62cb78d05c0fe88?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Siro</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-1030" class="comment-date">2012-11-21</a>
+		<a class="comment-quote-link" href="?replytocom=1030#respond" onclick="quote('1030', 'Siro', 'comment','div-comment-1030', false, false); try { addComment.moveForm('comment-1030', '1030', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-1030'>
+<p>Thank you for this guide, it is amazing&#8230;</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-1081">
+	<div class="comment-body" id="div-comment-1081">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/8f8e1999c136a4a6f8b36abf2d04f7ca?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://orktech.blogspot.com/' rel='external nofollow' class='url'>Orktech</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-1081" class="comment-date">2012-11-26</a>
+		<a class="comment-quote-link" href="?replytocom=1081#respond" onclick="quote('1081', 'Orktech', 'comment','div-comment-1081', false, false); try { addComment.moveForm('comment-1081', '1081', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-1081'>
+<p>Vectorial is deffinetly the best way to make levels, I believe.  I&#8217;m using Unity3d and Blender for this stuff &#8211; charming and easier then tiles.<br />
+For those who loves tiles try a <a href="http://www.mapeditor.org/" rel="nofollow">http://www.mapeditor.org/</a> It&#8217;s very simple tile editor for orthogonal and isometric maps. And it supports several level formats which can be read by Cocos2dx.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-1344">
+	<div class="comment-body" id="div-comment-1344">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/2b52bfda5e3c86b296d5bde3be6c89bd?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://domarius.wordpress.com' rel='external nofollow' class='url'>Domarius</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-1344" class="comment-date">2013-01-06</a>
+		<a class="comment-quote-link" href="?replytocom=1344#respond" onclick="quote('1344', 'Domarius', 'comment','div-comment-1344', false, false); try { addComment.moveForm('comment-1344', '1344', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-1344'>
+<p>This is so perfect and thorough, and I know it&#8217;s accurate to the way things were done in the original platformers. This info is still relevant today if we want to push the limits of what the game can do in order for it to run fast, especially on mobile devices.  It&#8217;s a breath of fresh air after wading through various articles made by people who are just fumbling their way through pieces of  hearsay.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-1575">
+	<div class="comment-body" id="div-comment-1575">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/f9419d172ab7c88e7f7e746e4d30b176?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>OmegaWarrior</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-1575" class="comment-date">2013-01-27</a>
+		<a class="comment-quote-link" href="?replytocom=1575#respond" onclick="quote('1575', 'OmegaWarrior', 'comment','div-comment-1575', false, false); try { addComment.moveForm('comment-1575', '1575', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-1575'>
+<p>I found some of the stuff on implementing sloped tiles, to be quite helpful, but if you don&#8217;t mind, I have a few thing to add to the article:</p>
+<p>- Another way to allow the player to fall through a one-way platform is to simply add a condition that they are not pressing the button combination for jumping down when resolving along the Y-Axis (e.g., if(collision == TileType.Platform &amp;&amp; !ButtonPressed(Buttons.Down | Buttons.A)) {&#8230;}<br />
+- There is one other condition in which a sprite typically leaves a Ladder: Taking Damage<br />
+- You mentioned that you didn&#8217;t know how tile checking worked in Sonic the Hedgehog; I&#8217;ve found another page that has an in-depth study on that topic: <a href="http://info.sonicretro.org/Sonic_Physics_Guide" rel="nofollow">http://info.sonicretro.org/Sonic_Physics_Guide</a></p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-1598">
+	<div class="comment-body" id="div-comment-1598">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/0fe4626efa34784453c880f31b6a03d0?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Wonkyth</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-1598" class="comment-date">2013-01-28</a>
+		<a class="comment-quote-link" href="?replytocom=1598#respond" onclick="quote('1598', 'Wonkyth', 'comment','div-comment-1598', false, false); try { addComment.moveForm('comment-1598', '1598', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-1598'>
+<p>What a fantastic article! <img src="http://higherorderfun.com/blog/wp-includes/images/smilies/icon_biggrin.gif" alt=":D" class="wp-smiley" /><br />
+Now I finally have a page that I can throw at people when they ask me how2thing. ^__^<br />
+I was about to mention that Sonic Physics Guide on Sonic Retro, then noticed that OmegaWarrior had already posted it! <img src="http://higherorderfun.com/blog/wp-includes/images/smilies/icon_biggrin.gif" alt=":D" class="wp-smiley" /> </p>
+<p>One other thing which might be useful is this: <a href="http://www.niksula.hut.fi/~hkankaan/Homepages/gravity.html" rel="nofollow">http://www.niksula.hut.fi/~hkankaan/Homepages/gravity.html</a><br />
+^how to implement gravity so that it stays practically the same regardless of framerate. <img src="http://higherorderfun.com/blog/wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley" /> </p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-1717">
+	<div class="comment-body" id="div-comment-1717">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/b480cf65577f0a07c72887b8a964726b?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Mau</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-1717" class="comment-date">2013-02-08</a>
+		<a class="comment-quote-link" href="?replytocom=1717#respond" onclick="quote('1717', 'Mau', 'comment','div-comment-1717', false, false); try { addComment.moveForm('comment-1717', '1717', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-1717'>
+<p>Holy crap&#8230; this was AMAZING!!</p>
+<p>You&#8217;ve touched on SO many interesting topics here and explained things in such a simple manner that I&#8217;m probably going to prepare a whole University course primarily based on what was discussed in this article!! Thanks for sharing your knowledge and your time! <img src="http://higherorderfun.com/blog/wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley" /> </p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-1885">
+	<div class="comment-body" id="div-comment-1885">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/54ed4dafcb0e92aee692c5cb5334f7ed?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Loughlin</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-1885" class="comment-date">2013-02-25</a>
+		<a class="comment-quote-link" href="?replytocom=1885#respond" onclick="quote('1885', 'Loughlin', 'comment','div-comment-1885', false, false); try { addComment.moveForm('comment-1885', '1885', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-1885'>
+<p>Possibly one of the best articles I&#8217;ve read on this subject.  I&#8217;m working with ImpactJS at the moment &#8211; really finding it intuitive but it&#8217;s the long established principals discussed in this article that I find are pure gold when it comes to developing a game that not only plays well but has that instant feel of quality.  MORE!!!!</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-2030">
+	<div class="comment-body" id="div-comment-2030">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/4525522c2485ab4647ced20c1246212e?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://www.facebook.com/studiofael' rel='external nofollow' class='url'>Palifael</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-2030" class="comment-date">2013-03-10</a>
+		<a class="comment-quote-link" href="?replytocom=2030#respond" onclick="quote('2030', 'Palifael', 'comment','div-comment-2030', false, false); try { addComment.moveForm('comment-2030', '2030', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-2030'>
+<p>Great Article!</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-2042">
+	<div class="comment-body" id="div-comment-2042">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/0b185fd3169cda02383a6d5ae33a8d10?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Vinicius</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-2042" class="comment-date">2013-03-12</a>
+		<a class="comment-quote-link" href="?replytocom=2042#respond" onclick="quote('2042', 'Vinicius', 'comment','div-comment-2042', false, false); try { addComment.moveForm('comment-2042', '2042', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-2042'>
+<p>Really good article.<br />
+However, I&#8217;m still struggling for months to get type #2 work. Couldn&#8217;t find a way to implement the closest-edge direction and it always result on glitches and unprecise collision.<br />
+Can you give me some directions on more stuff to read?</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-2288">
+	<div class="comment-body" id="div-comment-2288">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/a398f725241ce9631078a390a0606286?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>odu</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-2288" class="comment-date">2013-04-16</a>
+		<a class="comment-quote-link" href="?replytocom=2288#respond" onclick="quote('2288', 'odu', 'comment','div-comment-2288', false, false); try { addComment.moveForm('comment-2288', '2288', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-2288'>
+<p>Kudos to you guys. I not know any thing in coding i want to be a game developer . What can i do.? What Programming do i need must? C++ or java. Please help me</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-2406">
+	<div class="comment-body" id="div-comment-2406">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/7801298521033dc030979e42ebc6c956?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://www.prweb.com/releases/2012/4/prweb9429244.htm' rel='external nofollow' class='url'>Alcocapok</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-2406" class="comment-date">2013-04-30</a>
+		<a class="comment-quote-link" href="?replytocom=2406#respond" onclick="quote('2406', 'Alcocapok', 'comment','div-comment-2406', false, false); try { addComment.moveForm('comment-2406', '2406', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-2406'>
+<p>Asked a short while ago to write down about <a href="http://vaporultra.blogspot.com/feeds/posts/default" rel="nofollow">alternative smoking herbs </a> , I have to confess that I&#8217;d hardly ever listened to of these kinds of a thing. Some world wide web study later and i found out that e-cigarettes are very substantially a swiftly expanding problem. A Google search discovered there exists no smoke with out fireplace as nearly 6 million effects just for the phrase &#8220;electronic cigarette&#8221; had been returned. </p>
+<p>What&#8217;s an e-cigarette? </p>
+<p>The electronic cigarette has long been in existence for nearly 3 several years and it is a intelligent product targeted at offering smokers which has a much healthier solution. Seemingly also valuable in assisting to reduce and in truth stop smoking cigarettes entirely. </p>
+<p>Now within a fourth era, e-cigs have become much extra user helpful than before variations which maybe ended up a little bit very substantial to stimulate a mass current market attraction. The &#8220;mini&#8221; is the most sensible e cigarette to this point with its duration of 100mm currently being similar to a conventional cigarette. </p>
+<p>An electronic cigarette incorporates a flavor of tobacco but none of the harmful substances identified in ordinary cigarettes permitting people who smoke cravings for being happy with no inhaling the many unsafe toxins. Could it be all smoke and mirrors? Or can this merchandise really be the saviour it would like to be? </p>
+<p>A battery, an atomiser and a renewable nicotine chamber allows the smoker to carry and smoke the electronic cigarette equally as they&#8217;d another cigarette, even making a &#8220;smoke&#8221; like vapour and glow for the close because they attract. The nicotine chamber proves quite valuable as cartridges are available in several strengths, allowing the user to lessen the amount of nicotine they intake right until should they hope, can give up absolutely. </p>
+<p>A nicotine cartridge generally lasts the identical time as fifteen to twenty cigarettes, hence developing a huge conserving to standard expenses. Typical, medium, minimal and no nicotine whatsoever are classified as the a variety of cartridge strengths. </p>
+<p>A more healthy choice entirely it seems, although the advantages don&#8217;t close there. Due to e-cigarette not emitting any perilous substances, poisons or actual smoke for instance, they are completely lawful to smoke in public. In wintertime especially, regular cigarette people who smoke really have to brave the freezing chilly plus the rain just for a fast smoking break but this substitute enables them to remain of their offices, dining places and pubs. </p>
+<p>None people who smoke also will gain, as their problems about passive using tobacco are rendered null and void with the ecigarette. A way more sociable atmosphere then! </p>
+<p>Upon reflection the ecigarette is a much healthier, more cost-effective and eco-friendly different to using tobacco and as the awareness as well as the marketplace grows they&#8217;ve fantastic prospective to properly swap the hazardous cigarettes we have now all arrive to know and many of us have come to dread and concern.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-2417">
+	<div class="comment-body" id="div-comment-2417">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/6b4c05d3e4cdc90c233551cd9de66644?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Decroded</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-2417" class="comment-date">2013-05-02</a>
+		<a class="comment-quote-link" href="?replytocom=2417#respond" onclick="quote('2417', 'Decroded', 'comment','div-comment-2417', false, false); try { addComment.moveForm('comment-2417', '2417', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-2417'>
+<blockquote cite="comment-622">
+<p><strong><a href="#comment-622" rel="nofollow">Jonny D</a></strong>: Great article!Concerning jump ascent control, I don’t think games typically “add impulse” or “disable gravity”.It’s simpler and probably more common to chop the vertical velocity down to a low constant value (if vel is higher than that value).That way there’s still some arc left in the jump, but it doesn’t rise much more after you release the button.</p>
+</blockquote>
+<p>I code this so when jump is held, vertical speed is set to a negative amount.<br />
+The effect of gravity is disabled while jump is held.<br />
+This continues each step until the jump-hold counter goes off or player releases the button (or hit roof etc etc).<br />
+Then gravity kicks in and modifies the vertical speed accordingly.</p>
+<p>Works really well.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-2418">
+	<div class="comment-body" id="div-comment-2418">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/6b4c05d3e4cdc90c233551cd9de66644?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Decroded</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-2418" class="comment-date">2013-05-02</a>
+		<a class="comment-quote-link" href="?replytocom=2418#respond" onclick="quote('2418', 'Decroded', 'comment','div-comment-2418', false, false); try { addComment.moveForm('comment-2418', '2418', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-2418'>
+<blockquote cite="comment-2288">
+<p><strong><a href="#comment-2288" rel="nofollow">odu</a></strong>: Kudos to you guys. I not know any thing in coding i want to be a game developer . What can i do.? What Programming do i need must? C++ or java. Please help me</p>
+</blockquote>
+<p>Start with Game Maker Studio.<br />
+It has a great free version for beginners and very active community for support and examples.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-2457">
+	<div class="comment-body" id="div-comment-2457">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/10e76f4331068a1eedeff0ae0c8ef2d0?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://www.00l.com' rel='external nofollow' class='url'>link shortner</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-2457" class="comment-date">2013-05-08</a>
+		<a class="comment-quote-link" href="?replytocom=2457#respond" onclick="quote('2457', 'link shortner', 'comment','div-comment-2457', false, false); try { addComment.moveForm('comment-2457', '2457', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-2457'>
+<p>Hi there, yeah this post is genuinely fastidious and I have learned lot of things from it about blogging.<br />
+thanks.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-3303">
+	<div class="comment-body" id="div-comment-3303">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/304a9aa3f49e68283860091d46283ac3?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Rodaraujo</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-3303" class="comment-date">2013-08-09</a>
+		<a class="comment-quote-link" href="?replytocom=3303#respond" onclick="quote('3303', 'Rodaraujo', 'comment','div-comment-3303', false, false); try { addComment.moveForm('comment-3303', '3303', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-3303'>
+<p>Great Article, very insightful, but does this apply to 2D games with 3D graphics like the new Donkey Kong Country Returns game on the Wii? I&#8217;ve heard people saying it&#8217;s better to implement the movement yourself rather than letting a physics simulator handle it, but is it the same with 3D surfaces? The only way I&#8217;ve come to think of implementing it yourself is by casting vectors from the character to the outside in order to detect collisions, but isn&#8217;t this just the same as a 3D physics engine? I&#8217;d appreciate it if you could point me in the right way, I&#8217;m making a 2.5D game using a physics simulator engine but I don&#8217;t know if it is the best way to do it.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-3618">
+	<div class="comment-body" id="div-comment-3618">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/a1ecdef9fe3fe0a2cf7977cc0ee4a730?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://junedmey8er.Webs.com/' rel='external nofollow' class='url'>Princess</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-3618" class="comment-date">2013-09-21</a>
+		<a class="comment-quote-link" href="?replytocom=3618#respond" onclick="quote('3618', 'Princess', 'comment','div-comment-3618', false, false); try { addComment.moveForm('comment-3618', '3618', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-3618'>
+<p>It&#8217;s awesome to go to see this site and reading the views of all<br />
+friends concerning this paragraph, while I am<br />
+also zealous of getting experience.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-3634">
+	<div class="comment-body" id="div-comment-3634">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/6eb3ecdfbed8c29f0070a12dd97db5ad?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://sgjm.co.kr/xe/notice01/1655184' rel='external nofollow' class='url'>snapdeal coupon code</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-3634" class="comment-date">2013-09-24</a>
+		<a class="comment-quote-link" href="?replytocom=3634#respond" onclick="quote('3634', 'snapdeal coupon code', 'comment','div-comment-3634', false, false); try { addComment.moveForm('comment-3634', '3634', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-3634'>
+<p>You can make use of different offers in different states as well adding to your<br />
+convenience. The absence of chemicals is what makes the henna tattoo a much sought after temporary<br />
+tattoo. They have gone a long way from the age of<br />
+the computers and are today enjoying their lives in a different<br />
+way. s stiff competition of e-commerce sites, online shoppers<br />
+may easily get the best deals, offers, and free coupons<br />
+that will be helpful to meet your requirements.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-3709">
+	<div class="comment-body" id="div-comment-3709">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/792a956cab2aef659008d6717ba6fc58?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Chris</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-3709" class="comment-date">2013-10-05</a>
+		<a class="comment-quote-link" href="?replytocom=3709#respond" onclick="quote('3709', 'Chris', 'comment','div-comment-3709', false, false); try { addComment.moveForm('comment-3709', '3709', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-3709'>
+<p>Nice article. Another entry in the Bitmask theme is of course lemmings: <a href="http://www.javalemmings.com/DMA/Lem_2.htm" rel="nofollow">http://www.javalemmings.com/DMA/Lem_2.htm</a> even describes how the team literally integrated Deluxe Paint into the level editor.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-3880">
+	<div class="comment-body" id="div-comment-3880">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/187f7efecda9a73ba028a0c36c2fbf50?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://www.portalofdallas.com/pages/sudan-divestment-legislation-senate-bill-247-passes-texas-house/' rel='external nofollow' class='url'>gold mining stocks</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-3880" class="comment-date">2013-10-25</a>
+		<a class="comment-quote-link" href="?replytocom=3880#respond" onclick="quote('3880', 'gold mining stocks', 'comment','div-comment-3880', false, false); try { addComment.moveForm('comment-3880', '3880', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-3880'>
+<p>Hmm is anyone else having problems with the images on this blog loading?</p>
+<p>I&#8217;m trying to find out if its a problem on my end or if it&#8217;s the<br />
+blog. Any feed-back would be greatly appreciated.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-4039">
+	<div class="comment-body" id="div-comment-4039">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/5b3ebc92664c1fe6be7a7b734670740c?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://www.filairsoft.com/forum/member.php?u=1008857' rel='external nofollow' class='url'>filairsoft.com</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-4039" class="comment-date">2013-11-15</a>
+		<a class="comment-quote-link" href="?replytocom=4039#respond" onclick="quote('4039', 'filairsoft.com', 'comment','div-comment-4039', false, false); try { addComment.moveForm('comment-4039', '4039', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-4039'>
+<p>�<br />
+nieprzychylnie. Łypnął spod oka. Drogocenna budowa. &#8211; Stanąć!<br />
+- warknął.<br />
+Bez budowa (filairsoft.com) sensu. Pozbawiony wolności, odkąd paru chwil apatryda,<br />
+również tak bardzo stał.<br />
+- Na odporności itd., administruje się konfiskatę majątku na wierzch kosztów<br />
+przewoduplus wyżywienia&#8230; Usiąść!<br />
+Popatrzył na boki.<br />
+- Koniec! &#8211; powiadał. &#8211; Również tak bardzo zasxobem informacji, o co chodzi, Zydyy pazerne&#8230;</p>
+<p>Cywile zarechotali. Uwięziony także się uśmiechnął.<br />
+Umie.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-4040">
+	<div class="comment-body" id="div-comment-4040">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/c05abfbb82da0d7187ac72e4d4d14bfd?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://ierf.org/index.php/member/348551/' rel='external nofollow' class='url'>Budowanie</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-4040" class="comment-date">2013-11-15</a>
+		<a class="comment-quote-link" href="?replytocom=4040#respond" onclick="quote('4040', 'Budowanie', 'comment','div-comment-4040', false, false); try { addComment.moveForm('comment-4040', '4040', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-4040'>
+<p>� nadzieję.<br />
+- Pieprz się, Wart uwagi budowa. dupku &#8211; wychrypiał Budowanie na wdechu.</p>
+<p>- Co, powiesz chyba, że cię figa nie<br />
+obchodzi? Owszem, zauważymy, dojrzejemy. Toż najpierw spróbujemy<br />
+tradycyjnie. Raptem,bez zamachu wpakował pięść w żołądek niziołka.<br />
+Nogi Froda<br />
+zadrgały, piętami wybijając kusy werbel na ścianie.<br />
+Podczas gdy wprzódy umiał percypować a także odbierać<br />
+byt, spędzał przyklejony taśmą samoprzylep.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-4188">
+	<div class="comment-body" id="div-comment-4188">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/af66c5e155f5113f18cbb9e81ae397bd?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://www.dsnapshot.com/4images/details.php?image_id=2487&#038;sessionid=d7219519552633af81190967f90d3977' rel='external nofollow' class='url'>modeling agency</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-4188" class="comment-date">2013-12-05</a>
+		<a class="comment-quote-link" href="?replytocom=4188#respond" onclick="quote('4188', 'modeling agency', 'comment','div-comment-4188', false, false); try { addComment.moveForm('comment-4188', '4188', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-4188'>
+<p>Why users still make use of to read newes papers when in this<br />
+technological globe the whole thing iis existing on net?</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-4501">
+	<div class="comment-body" id="div-comment-4501">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/a109a16363f7044528ff7b1084267956?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://berxa.yolasite.com/' rel='external nofollow' class='url'>Kellie</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-4501" class="comment-date">2014-01-02</a>
+		<a class="comment-quote-link" href="?replytocom=4501#respond" onclick="quote('4501', 'Kellie', 'comment','div-comment-4501', false, false); try { addComment.moveForm('comment-4501', '4501', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-4501'>
+<p>amtąd na Natomiast owe będziesz wyłapała solidnego baba.<br />
+nieuszkodzony<br />
+świat. Przecież drzewko nie potrzebuje byt web page<br />
+(Kellie) promieniować. Głowa kościoła jakby<br />
+dziękuje, jakkolwiek pewno, że wyraz twarzy<br />
+mu rzednie. Znikoma myśl. Dalszy<br />
+kiedyś natychmiast nie chce się nam unosić się w powietrzu.<br />
+&#8220;Pomyliłaś drzewka! &#8221; -<br />
+wrzeszczy Oleg na Verę. &#8220;Nie wrzeszcz na mnie! &#8221; -<br />
+wrzeszczy Vera. &#8220;Stulcie mordy! &#8221; &#8211; wrzeszczy Bob (lite<br />
+zbieg okoliczności, że Ojciec święty nie słucha tą<br />
+prawdziwej cyrkulacji zdań). -<br />
+&#8220;Trzeba.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-6374">
+	<div class="comment-body" id="div-comment-6374">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/7bbc203e2e423ccadfb0a26d7ec038bb?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://www.bighillsoftware.com' rel='external nofollow' class='url'>Brad O'Hearne</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-6374" class="comment-date">2014-03-27</a>
+		<a class="comment-quote-link" href="?replytocom=6374#respond" onclick="quote('6374', 'Brad O'Hearne', 'comment','div-comment-6374', false, false); try { addComment.moveForm('comment-6374', '6374', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-6374'>
+<p>Major kudos for this post! This was one of, if not the most interesting, informative, and pragmatically helpful posts on game development that I have ever read. This is gold &#8212; I highly recommend that you further expand the discussions of the details, problems encountered, and alternative solutions to those problems, and turn this into a full book on platformer game development. I&#8217;d be the first in line to buy it. I think if you wanted to expand even further with discussions on specific implementations on platforms like SpriteKit, Unity, GameMaker Studio, etc., you probably have the makings of a great training course as well. Really well done. Thanks for investing your time and thoughts into a great piece of reading &#8212; made my morning reading and coffee extra enjoyable today!</p>
+<p>Cheers, </p>
+<p>Brad</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-7363">
+	<div class="comment-body" id="div-comment-7363">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/92ab9067d264a3511e4101b4b587816a?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>Karan Sequeira</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-7363" class="comment-date">2014-04-28</a>
+		<a class="comment-quote-link" href="?replytocom=7363#respond" onclick="quote('7363', 'Karan Sequeira', 'comment','div-comment-7363', false, false); try { addComment.moveForm('comment-7363', '7363', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-7363'>
+<p>Thanks a lot Rodrigo. This was definitely one of the best articles on the subject that I have come across. The amount of simplistic yet extensive detail that you have documented here is much appreciated. Keep up the good work dude.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-7443">
+	<div class="comment-body" id="div-comment-7443">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/2bde135162573865e8f8a49d33ff964e?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://churchflowers.co.uk' rel='external nofollow' class='url'>Heriberto</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-7443" class="comment-date">2014-05-01</a>
+		<a class="comment-quote-link" href="?replytocom=7443#respond" onclick="quote('7443', 'Heriberto', 'comment','div-comment-7443', false, false); try { addComment.moveForm('comment-7443', '7443', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-7443'>
+<p>This paragraph is truly a nice one it helps<br />
+new web people, who are wishing for blogging.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-7948">
+	<div class="comment-body" id="div-comment-7948">
+		<div class="comment-meta">
+			<img alt='' src='http://0.gravatar.com/avatar/0a18886ffd961bdbd04557c8188ed68b?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4>retro16</h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-7948" class="comment-date">2014-05-23</a>
+		<a class="comment-quote-link" href="?replytocom=7948#respond" onclick="quote('7948', 'retro16', 'comment','div-comment-7948', false, false); try { addComment.moveForm('comment-7948', '7948', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-7948'>
+<p>For those who wish to know more about Sonic games, the Sonic Retro website has a great in-depth description on how to do it :</p>
+<p><a href="http://info.sonicretro.org/Sonic_Physics_Guide" rel="nofollow">http://info.sonicretro.org/Sonic_Physics_Guide</a></p>
+<p>Sonic is probably the most complex 2D platformer ever made, and this website just shows it.</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="comment-8362">
+	<div class="comment-body" id="div-comment-8362">
+		<div class="comment-meta">
+			<img alt='' src='http://1.gravatar.com/avatar/1b9ce40e1a2baa8a315a32a26a256ccf?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />			<h4><a href='http://blacksnob.blogspot.com' rel='external nofollow' class='url'>Divina Gatchel</a></h4> &nbsp;/&nbsp;
+			<a href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-2/#comment-8362" class="comment-date">2014-06-27</a>
+		<a class="comment-quote-link" href="?replytocom=8362#respond" onclick="quote('8362', 'Divina Gatchel', 'comment','div-comment-8362', false, false); try { addComment.moveForm('comment-8362', '8362', 'respond', '99'); } catch(e) {}; return false;">
+		<img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/quote-comment.png" /></a></a>
+					</div>
+		<div class="comment-text">
+						<div id='q-8362'>
+<p>I have to tell you that it&#8217;s hard to find your articles in google,<br />
+i found this one on 11 spot, you should build some quality backlinks in order<br />
+to rank your page, i know how to help you, just search in google &#8211; k2 seo tips and tricks</p>
+</div>
+		</div>
+			</div><!-- /comment-body -->
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<a class="prev page-numbers" href="http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-1/#comments">&laquo; Previous</a>
+<a class='page-numbers' href='http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/comment-page-1/#comments'>1</a>
+<span class='page-numbers current'>2</span>	</div>
+
+	<ol class="trackbacklist">
+			<li class="pingback even thread-even depth-1" id="comment-346">
+				<a href='http://www.indievault.it/2012/05/21/una-guida-alla-programmazione-dei-platform-2d/' rel='external nofollow' class='url'>Una guida alla programmazione dei platform 2D &#8211; Indie Vault</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-358">
+				<a href='http://www.unity-news.de/anleitung-zum-erstellen-eines-2d-platformers/1927' rel='external nofollow' class='url'>Anleitung zum Erstellen eines 2D Platformers - Unity News</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-370">
+				<a href='http://asseenfromspace.wordpress.com/2012/05/23/implementing-2d-platformers/' rel='external nofollow' class='url'>Implementing 2D platformers &laquo; asseenfromspace</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-382">
+				<a href='http://mondaybynoon.com/20120524/the-guide-to-implementing-2d-platformers/' rel='external nofollow' class='url'>The guide to implementing 2D platformers - Monday By Noon</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-381">
+				<a href='http://mondaybynoon.com/20120524/the-guide-to-implementing-2d-platformers/' rel='external nofollow' class='url'>The guide to implementing 2D platformers - Monday By Noon</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-397">
+				<a href='http://superlevel.de/superlicious/superlicious-134' rel='external nofollow' class='url'>Superlicious | Superlevel</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-405">
+				<a href='http://willknott.ie/2012/05/25/and-class-we-will-now-study-2d-platform-games-in-detail/' rel='external nofollow' class='url'>WillKnott.ie &raquo; Blog Archive &raquo; And class, we will now study 2D platform games in detail</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-412">
+				<a href='http://volkanongun.com/blog/?p=127' rel='external nofollow' class='url'>That feeling of loneliness in a beautiful space</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-422">
+				<a href='http://andalas.com/?p=121' rel='external nofollow' class='url'>Bookmarks for May 30th &#8211; [ andalas.com ]</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-427">
+				<a href='http://williamjmoner.com/2012/im-reading-link-the-guide-to-implementing-2d-platformers/' rel='external nofollow' class='url'>I&#8217;m reading Link: The guide to implementing 2D platformers | william j. moner</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-432">
+				<a href='http://blog.greweb.fr/2012/04/blender-as-a-2d-game-map-editor-proof-of-concept/' rel='external nofollow' class='url'>Blender as a 2D game level editor &#8211; Proof Of Concept &bull; @GreWeb</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-434">
+				<a href='http://www.casa-rock.de/2012/06/05/meine-lesezeichen-vom-10-mai-bis-4-juni/' rel='external nofollow' class='url'>Meine Lesezeichen vom 10 Mai bis 4 Juni : Casa Rock!</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-448">
+				<a href='http://www.raywenderlich.com/8618/adding-icade-support-to-your-game' rel='external nofollow' class='url'>Adding iCade Support to Your Game | Ray Wenderlich</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-449">
+				<a href='http://www.indiegamemag.com/dev-links-shooting-the-breeze/' rel='external nofollow' class='url'>Dev Links: Shooting The Breeze | The Indie Game Magazine - Indie Game Reviews, Previews, News &amp; Downloads</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-450">
+				<a href='http://www.diygamer.com/2012/06/dev-links-shooting-the-breeze/' rel='external nofollow' class='url'>Dev Links: Shooting The Breeze | DIYGamer</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-456">
+				<a href='http://ballerindustries.com/2012/07/day-1-run-and-gun/' rel='external nofollow' class='url'>Day 1 &#8211; Run and Gun | Baller Industries</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-610">
+				<a href='http://www.raywenderlich.com/zh-hans/20598/%e5%a6%82%e4%bd%95%e5%88%b6%e4%bd%9c%e4%b8%80%e6%ac%be%e5%83%8f%e8%b6%85%e7%ba%a7%e7%8e%9b%e4%b8%bd%e5%85%84%e5%bc%9f%e4%b8%80%e6%a0%b7%e5%9f%ba%e4%ba%8e%e5%' rel='external nofollow' class='url'>如何制作一款像超级玛丽兄弟一样基于平台的游戏-第2部分</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-635">
+				<a href='http://wallcatgames.wordpress.com/2012/09/07/dark-season-particle-effects/' rel='external nofollow' class='url'>Dark Season – Particle Effects &laquo; WallCat Games</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-887">
+				<a href='http://micuurloon.wordpress.com/2012/11/05/experimental-game-project-2/' rel='external nofollow' class='url'>Experimental Game Project &#8211; 2 &laquo; MicUurloon &#8211; making games</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-888">
+				<a href='http://micuurloon.wordpress.com/2012/11/05/egp2/' rel='external nofollow' class='url'>Experimental Gameplay Project &#8211; 2 &laquo; MicUurloon &#8211; making games</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-1094">
+				<a href='http://crudecg.com/2012/11/higher-order-fun-the-guide-to-implementing-2d-platformers/' rel='external nofollow' class='url'>Higher Order Fun &#8211; The guide to implementing 2D platformers | CrudeCG</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-1188">
+				<a href='http://blog.fatestudio.org/2012/12/fate-update-week-1/' rel='external nofollow' class='url'>Fate Update, неделя 1 | Fatestudio blog</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-1222">
+				<a href='http://gamedev.tutsplus.com/articles/roundups/fantastic-gamedev-tutorials-from-across-the-web/' rel='external nofollow' class='url'>40+ Fantastic Game Development Tutorials From Across the Web | Gamedevtuts+</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-1223">
+				<a href='http://fatestudio.org/2012/12/20/fate-update-week-1/' rel='external nofollow' class='url'>Fate update, week 1 | Fatestudio</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-2007">
+				<a href='http://purify-zombie.com/archives/165' rel='external nofollow' class='url'>方針雑記 | PurifyZombie</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-2217">
+				<a href='http://blog.oskarrough.com/2012/06/the-guide-to-implementing-2d-platformers/' rel='external nofollow' class='url'>blog.oskarrough.com &mdash; The guide to implementing 2D platformers</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-2620">
+				<a href='http://logap.wordpress.com/2013/05/24/level-3-what-game-do-i-want-to-create/' rel='external nofollow' class='url'>Level 3 &#8211; What game do I want to create? | LoGaP</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-3296">
+				<a href='http://www.learn-cocos2d.com/2013/08/physics-engine-platformer-terrible-idea/' rel='external nofollow' class='url'>Why Using A Physics Engine For A 2D Platformer Is A Terrible Idea | Learn &amp; Master Cocos2D Game Development</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-3338">
+				<a href='http://koboldkit.com/2013/08/indie-roll-guides-making-2d-platformer-games/' rel='external nofollow' class='url'>Indie Roll: Guides For Making 2D Platformer Games | Kobold Kit</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-3561">
+				<a href='http://bp.io/post/1501' rel='external nofollow' class='url'>Moonman: The Last 2 Years. | BP | I make video games and fun software by fractional distillation.</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-3598">
+				<a href='http://www.simplypointless.net/?p=227' rel='external nofollow' class='url'>Take A Walk On The Tiled Side | Simply Pointless</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-3985">
+				<a href='http://girishbalakrishnan.com/redesign/the-guide-to-implementing-2d-platformers/' rel='external nofollow' class='url'>Girish Balakrishnan | The Guide to Implementing 2D Platformers</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-4107">
+				<a href='http://hauskapellmeister.de/hauskapellmeister/blog/wordpress/the-guide-to-implementing-2d-platformers-higher-order-fun/' rel='external nofollow' class='url'>The guide to implementing 2D platformers | Higher-Order Fun | Hauskapellmeister</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-4561">
+				<a href='http://www.error454.com/2013/10/23/platformer-physics-101-and-the-3-fundamental-equations-of-platformers/' rel='external nofollow' class='url'>Platformer Physics 101 and The 3 Fundamental Equations of Platformers | error 454</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-4625">
+				<a href='http://www.abhinavguptaonline.com/games-and-apps/tools-important-links-app-game-developers/' rel='external nofollow' class='url'>Tools and Important Links For App and Game Developers &#124; AbhinavGuptaOnline.comAbhinavGuptaOnline.com</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-4702">
+				<a href='http://tuttlegames.com/short-hiatus/' rel='external nofollow' class='url'>Short hiatus | Tuttle Games</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-4705">
+				<a href='http://www.raywenderlich.com/62049/sprite-kit-tutorial-make-platform-game-like-super-mario-brothers-part-1' rel='external nofollow' class='url'>Sprite Kit Tutorial: How to Make a Platform Game Like Super Mario Brothers - Part 1 | Ray Wenderlich</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-4706">
+				<a href='http://allofapp.com/sprite-kit-tutorial-how-to-make-a-platform-game-like-super-mario-brothers-part-1/' rel='external nofollow' class='url'>Sprite Kit Tutorial: How to Make a Platform Game Like Super Mario Brothers – Part 1 | All Of App</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-4707">
+				<a href='http://appdevdigest.com/sprite-kit-tutorial-how-to-make-a-platform-game-like-super-mario-brothers-part-1' rel='external nofollow' class='url'>Sprite Kit Tutorial: How to Make a Platform Game Like Super Mario Brothers – Part 1 | AppDevDigest.com &#8211; IOS Mobile App Development, Design and Business News Updates</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-4722">
+				<a href='http://codesandnotes.com/coding-2d-platformers/' rel='external nofollow' class='url'>Coding 2D platformers – Codes &amp; Notes</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-5894">
+				<a href='http://mark-mcqueen.co.uk/attack-of-the-flapping-clones/' rel='external nofollow' class='url'>Attack of the (Flapping) Clones | Mark McQueen</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-6423">
+				<a href='http://inyourlegends.wordpress.com/2014/03/29/the-guide-to-implementing-2d-platformers-higher-order-fun-2/' rel='external nofollow' class='url'>The guide to implementing 2D platformers | Higher-Order Fun | in your legends</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-7447">
+				<a href='http://appgong.com/the-guide-to-implementing-2d-platformers-higher-order-fun-70/' rel='external nofollow' class='url'>The guide to implementing 2D platformers | Higher-Order Fun - appgong</a></li><!-- #comment-## -->
+	<li class="pingback odd alt thread-odd thread-alt depth-1" id="comment-7764">
+				<a href='http://stephenmeier.net/?p=161' rel='external nofollow' class='url'>&#8220;Metroidvania&#8221; Prototype &#8211; Stephen Meier</a></li><!-- #comment-## -->
+	<li class="pingback even thread-even depth-1" id="comment-8080">
+				<a href='http://www.jneilon.com/2014/02/05/implementing-platformers-4-different-ways/' rel='external nofollow' class='url'>Implementing Platformers &#8211; 4 Different Ways | Justin Neilon</a></li><!-- #comment-## -->
+	</ol>
+
+
+
+
+	<h2 class="comment-heading">Leave a Reply</h2>
+
+	<div id="respond">
+
+	
+		<form action="http://higherorderfun.com/blog/wp-comments-post.php" method="post" id="commentform">
+
+		<div class="cancel-comment-reply">
+			<p><a rel="nofollow" id="cancel-comment-reply-link" href="/blog/2012/05/20/the-guide-to-implementing-2d-platformers/#respond" style="display:none;">Click here to cancel reply.</a></p>
+		</div>
+
+				
+			<p class="cform-name">
+				<input type="text" name="author" id="author" tabindex="1" aria-required='true' value="" />
+				<label for="author">Name <span class="required">*</span></label>
+			</p>
+
+			<p class="cform-mail">
+				<input type="text" name="email" id="email" tabindex="2" aria-required='true' value="" />
+				<label for="email">E-mail <span class="required">*</span></label>
+			</p>
+
+			<p class="cform-web">
+				<input type="text" name="url" id="url" tabindex="3" value="" />
+				<label for="url">Website</label>
+			</p>
+
+		
+		<p><textarea name="comment" id="comment" tabindex="4"></textarea></p>
+
+		<input name="submit" type="submit" id="submit" tabindex="5" value="Submit Comment" class="button" />
+
+		<input type='hidden' name='comment_post_ID' value='99' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+
+		
+<div id="captchaImgDiv">
+
+<div class="captchaSizeDivLarge"><img id="si_image_com" class="si-captcha" src="http://higherorderfun.com/blog/wp-content/plugins/si-captcha-for-wordpress/captcha/securimage_show.php?si_form_id=com&amp;prefix=k5MvAQuSRmhdaCPR" width="175" height="60" alt="CAPTCHA Image" title="CAPTCHA Image" />
+    <input id="si_code_com" name="si_code_com" type="hidden"  value="k5MvAQuSRmhdaCPR" />
+    <div id="si_refresh_com">
+<a href="#" rel="nofollow" title="Refresh Image" onclick="si_captcha_refresh('si_image_com','com','/blog/wp-content/plugins/si-captcha-for-wordpress/captcha','http://higherorderfun.com/blog/wp-content/plugins/si-captcha-for-wordpress/captcha/securimage_show.php?si_form_id=com&amp;prefix='); return false;">
+      <img class="captchaImgRefresh" src="http://higherorderfun.com/blog/wp-content/plugins/si-captcha-for-wordpress/captcha/images/refresh.png" width="22" height="20" alt="Refresh Image" onclick="this.blur();" /></a>
+  </div>
+  </div>
+<div id="captchaInputDiv"> <label id="captcha_code_label" for="captcha_code">CAPTCHA Code</label><input id="captcha_code" name="captcha_code" type="text" value="" tabindex="4"  />
+<span class="required"> *</span>
+ </div>
+</div>
+<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="dd5836250d" /></p>
+		</form><!-- /commentform -->
+
+		</div><!-- /respond -->
+
+</div><!-- /comments -->
+
+<!-- comments end here -->	
+	</div>
+	<!--/post -->
+		
+			
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+
+	
+		</div><!-- /c1 -->
+
+		<div class="c2">
+
+<ul id="widgets">
+
+<li id="text-3" class="widget widget_text"><h2 class="widgettitle">About</h2>
+			<div class="textwidget"><p><center><img src="http://higherorderfun.com/blog/wp-content/uploads/2011/02/amz_thumb.jpg" width=100 height=108></center></p>
+
+<p>I'm Rodrigo Monteiro, and I have been programming video games since 1997, ranging from Klik & Play to C++ and Java. I'm the creator of the Aegisub subtitling software (together with Niels Hansen), and I like joining game programming challenges such as the Allegro SpeedHack and the Global Game Jam.</p>
+
+<p>I currently work as a professional video game programmer at <a href="http://www.bossastudios.com">Bossa Studios</a>, in London, United Kingdom.</p>
+
+<p>All opinions are my own.</p>
+
+<p><a href="http://higherorderfun.com/blog/?page_id=37">More...</a></p></div>
+		</li>
+<li id="archives-3" class="widget widget_archive"><h2 class="widgettitle">Archives</h2>
+		<ul>
+			<li><a href='http://higherorderfun.com/blog/2012/09/'>September 2012</a>&nbsp;(1)</li>
+	<li><a href='http://higherorderfun.com/blog/2012/06/'>June 2012</a>&nbsp;(1)</li>
+	<li><a href='http://higherorderfun.com/blog/2012/05/'>May 2012</a>&nbsp;(2)</li>
+	<li><a href='http://higherorderfun.com/blog/2012/02/'>February 2012</a>&nbsp;(1)</li>
+	<li><a href='http://higherorderfun.com/blog/2011/11/'>November 2011</a>&nbsp;(1)</li>
+	<li><a href='http://higherorderfun.com/blog/2011/09/'>September 2011</a>&nbsp;(1)</li>
+	<li><a href='http://higherorderfun.com/blog/2011/06/'>June 2011</a>&nbsp;(1)</li>
+	<li><a href='http://higherorderfun.com/blog/2011/05/'>May 2011</a>&nbsp;(1)</li>
+	<li><a href='http://higherorderfun.com/blog/2011/02/'>February 2011</a>&nbsp;(3)</li>
+	<li><a href='http://higherorderfun.com/blog/2010/08/'>August 2010</a>&nbsp;(1)</li>
+	<li><a href='http://higherorderfun.com/blog/2010/02/'>February 2010</a>&nbsp;(1)</li>
+	<li><a href='http://higherorderfun.com/blog/2009/06/'>June 2009</a>&nbsp;(4)</li>
+		</ul>
+</li>
+<li id="tag_cloud-3" class="widget widget_tag_cloud"><h2 class="widgettitle">Tags</h2>
+<div class="tagcloud"><a href='http://higherorderfun.com/blog/tag/article/' class='tag-link-12' title='2 topics' style='font-size: 12.2pt;'>article</a>
+<a href='http://higherorderfun.com/blog/tag/c/' class='tag-link-5' title='1 topic' style='font-size: 8pt;'>c++</a>
+<a href='http://higherorderfun.com/blog/tag/diablo/' class='tag-link-29' title='1 topic' style='font-size: 8pt;'>diablo</a>
+<a href='http://higherorderfun.com/blog/tag/down-goes-the-phoenix/' class='tag-link-24' title='1 topic' style='font-size: 8pt;'>down goes the phoenix</a>
+<a href='http://higherorderfun.com/blog/tag/experiment/' class='tag-link-19' title='1 topic' style='font-size: 8pt;'>experiment</a>
+<a href='http://higherorderfun.com/blog/tag/game/' class='tag-link-26' title='1 topic' style='font-size: 8pt;'>game</a>
+<a href='http://higherorderfun.com/blog/tag/game-design/' class='tag-link-18' title='2 topics' style='font-size: 12.2pt;'>game design</a>
+<a href='http://higherorderfun.com/blog/tag/game-jam/' class='tag-link-28' title='1 topic' style='font-size: 8pt;'>game jam</a>
+<a href='http://higherorderfun.com/blog/tag/greenlight/' class='tag-link-33' title='1 topic' style='font-size: 8pt;'>greenlight</a>
+<a href='http://higherorderfun.com/blog/tag/humor/' class='tag-link-13' title='1 topic' style='font-size: 8pt;'>humor</a>
+<a href='http://higherorderfun.com/blog/tag/lecture/' class='tag-link-22' title='1 topic' style='font-size: 8pt;'>lecture</a>
+<a href='http://higherorderfun.com/blog/tag/main-loop/' class='tag-link-8' title='1 topic' style='font-size: 8pt;'>main loop</a>
+<a href='http://higherorderfun.com/blog/tag/math-tutorial/' class='tag-link-4' title='5 topics' style='font-size: 19.2pt;'>math</a>
+<a href='http://higherorderfun.com/blog/tag/opengl/' class='tag-link-15' title='1 topic' style='font-size: 8pt;'>opengl</a>
+<a href='http://higherorderfun.com/blog/tag/phoenix/' class='tag-link-25' title='1 topic' style='font-size: 8pt;'>phoenix</a>
+<a href='http://higherorderfun.com/blog/tag/presentation/' class='tag-link-21' title='1 topic' style='font-size: 8pt;'>presentation</a>
+<a href='http://higherorderfun.com/blog/tag/programming/' class='tag-link-7' title='5 topics' style='font-size: 19.2pt;'>programming</a>
+<a href='http://higherorderfun.com/blog/tag/rant/' class='tag-link-30' title='2 topics' style='font-size: 12.2pt;'>rant</a>
+<a href='http://higherorderfun.com/blog/tag/religion/' class='tag-link-14' title='2 topics' style='font-size: 12.2pt;'>religion</a>
+<a href='http://higherorderfun.com/blog/tag/spjam/' class='tag-link-27' title='1 topic' style='font-size: 8pt;'>spjam</a>
+<a href='http://higherorderfun.com/blog/tag/steam/' class='tag-link-32' title='1 topic' style='font-size: 8pt;'>steam</a>
+<a href='http://higherorderfun.com/blog/tag/technical/' class='tag-link-20' title='1 topic' style='font-size: 8pt;'>technical</a>
+<a href='http://higherorderfun.com/blog/tag/thread/' class='tag-link-16' title='1 topic' style='font-size: 8pt;'>thread</a>
+<a href='http://higherorderfun.com/blog/tag/tutorial/' class='tag-link-3' title='7 topics' style='font-size: 22pt;'>tutorial</a>
+<a href='http://higherorderfun.com/blog/tag/vector/' class='tag-link-31' title='1 topic' style='font-size: 8pt;'>vector</a>
+<a href='http://higherorderfun.com/blog/tag/vectors/' class='tag-link-6' title='3 topics' style='font-size: 15pt;'>vectors</a>
+<a href='http://higherorderfun.com/blog/tag/video/' class='tag-link-23' title='1 topic' style='font-size: 8pt;'>video</a>
+<a href='http://higherorderfun.com/blog/tag/win32/' class='tag-link-17' title='1 topic' style='font-size: 8pt;'>win32</a></div>
+</li>
+<li id="linkcat-2" class="widget widget_links"><h2 class="widgettitle">Blogroll</h2>
+
+	<ul class='xoxo blogroll'>
+<li><a href="http://blog.aegisub.org/" rel="me" title="The Blog for the Aegisub project">Aegisub Blog</a></li>
+
+	</ul>
+</li>
+
+<li class='widget widget_fptwitter'>
+<h2><img src="http://higherorderfun.com/blog/wp-content/themes/renegade/images/twitter_logo.png" alt="Twitter" width="69" height="16" /></h2>
+<ol>
+<li><li><li>
+</ol>
+<div class='followme'>Follow me @<a href='http://twitter.com/amzeratul' target='_blank' rel='nofollow'>amzeratul</a></div>
+</li>
+</ul><!-- /widgets -->
+		</div><!-- /c2 -->
+
+	</div><!-- /content -->
+
+	<div class="footer">
+
+		<a href="http://frostpress.com/themes/comet/" target="_blank" id="frostpress" title="Theme from Frostpress"></a>
+		<a href="http://www.wordpress.org/" target="_blank" id="wordpress" title="Powered by Wordpress"></a>
+
+		<div class="footer-text">
+					</div>
+
+		<script type='text/javascript' src='http://higherorderfun.com/blog/wp-content/plugins/si-contact-form/vcita/vcita_fscf.js?ver=1.0'></script>
+	<!-- begin Fast Secure Contact Form - vCita Scheduler page header -->
+	<style type="text/css">
+			.vcita-widget-right { float: left !important; }
+			.vcita-widget-bottom { float: none !important; clear:both;}
+	</style>
+	<!-- end Fast Secure Contact Form - vCita Scheduler page header -->
+
+	<script type='text/javascript' src='http://higherorderfun.com/blog/wp-content/plugins/si-captcha-for-wordpress/captcha/si_captcha.js?ver=1.0'></script>
+<script type="text/javascript">
+//<![CDATA[
+var si_captcha_styles = "\
+<!-- begin SI CAPTCHA Anti-Spam - comment form style -->\
+<style type='text/css'>\
+div#captchaImgDiv { display:block; }\
+.captchaSizeDivSmall { width:175px; height:45px; padding-top:10px; }\
+.captchaSizeDivLarge { width:250px; height:60px; padding-top:10px; }\
+img#si_image_com,#si_image_reg,#si_image_log,#si_image_side_login { border-style:none; margin:0; padding-right:5px; float:left; }\
+.captchaImgRefresh { border-style:none; margin:0; vertical-align:bottom; }\
+div#captchaInputDiv { display:block; padding-top:15px; padding-bottom:5px; }\
+label#captcha_code_label { margin:0; }\
+input#captcha_code { width:65px; }\
+</style>\
+<!-- end SI CAPTCHA Anti-Spam - comment form style -->\
+";
+jQuery(document).ready(function($) {
+$('head').append(si_captcha_styles);
+});
+//]]>
+</script>
+<script type='text/javascript' src='http://higherorderfun.com/blog/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shCore.js?ver=3.0.83c'></script>
+<script type='text/javascript' src='http://higherorderfun.com/blog/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushCpp.js?ver=3.0.83c'></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "http://higherorderfun.com/blog/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.83c";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "http://higherorderfun.com/blog/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?ver=3.0.83c";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+</script>
+
+	</div><!-- /footer -->
+
+</div><!-- /wrap -->
+
+</body>
+</html>

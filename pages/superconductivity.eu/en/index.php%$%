@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<META NAME="Description" CONTENT="All about Superconductivity. Mini-gammes, videos, goodies, and a rich scientific content.">
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" >
+<title>All about superconductivity</title>
+<!--librairies de base -->
+<script type="text/javascript" src="../core/js/jquery-1.7.min.js"></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<!--librairies optionnelles -->
+<script type="text/javascript" src="../includes/swfobject/swfobject.js" ></script>
+<script type="text/javascript" src="../includes/jquery.ba-bbq.min.js" ></script>
+<script type="text/javascript">
+
+var laboel = null;
+var flashfocus = true;
+
+var flashvars = {
+debug:'false',
+langueID:"1"
+};
+
+var params = {
+  salign:"T",
+  allowscriptaccess:"sameDomain",
+  allowfullscreen:"true",
+  wmode:"transparent"
+};
+
+var attributes = {
+id:"labo",
+name:"labo"	
+};
+
+swfobject.embedSWF("../media/flash/labo.swf", "laboflash", "100%", "100%", "10.0.0", "../includes/swfobject/expressInstall.swf", flashvars, params, attributes, function(e) { laboel = e.ref; });
+
+var porte = false;
+function portelabo(){
+var isIE = navigator.appName.indexOf("Microsoft") != -1;
+if (!isIE) {
+if (laboel != null) {laboel.actionnerPorte(porte); }
+} else {
+var labo = document.getElementById("labo");
+if (labo) labo.actionnerPorte(porte);
+else setTimeout("setFashFocus()", 200); 
+}	
+	if (porte) porte = false;
+	else porte = true;
+}
+
+function trace() {
+  if(window.console && window.console.firebug) console.log(arguments);
+}
+
+function setFlashFocus(b) {
+flashfocus = b;
+var isIE = navigator.appName.indexOf("Microsoft") != -1;
+if (!isIE) {
+if (laboel != null) {laboel.defineFocus(flashfocus); }
+} else {
+var labo = document.getElementById("labo");
+if (labo) labo.defineFocus(flashfocus);
+else setTimeout("setFashFocus()", 200); 
+}
+}
+
+function laboOk() {
+setFlashFocus(flashfocus);
+}
+
+function loadContent(e) {
+var url = window.location.hash.substr(1);	
+if (url == "" || url =="#") return false;
+
+//track !
+var pagename = "/en/index.php?p=" + url.replace('#','');
+trace(pagename);
+_gaq.push(['_trackPageview',pagename]);
+
+effet = false;
+setFlashFocus(false);
+$("#page-container").empty();
+$("#page-container").html("<div class='spinner'><img src='../media/images/ajax-loader.gif'></div>");
+$("#page-container").show();
+if (effet) $("#page-container").load(url + ".php?a=1", function() {
+$("#page-container").css("top","150px");
+$("#page-container").show();
+$("#page-container").animate({top:'102px'}, 200);
+pageLoaded();
+});	
+else $("#page-container").load(url + ".php?a=1", pageLoaded );
+//$("#page").slideDown('slow');
+}
+
+$(document).ready(function()
+    {
+//$.history.init(loadContent);		
+
+$(window).bind( 'hashchange', function(e) {
+loadContent(e);	
+});
+$(window).trigger( 'hashchange' );
+/*	 if (window.location.hash) {
+		loadContent( window.location.hash.substr(1));
+	  }*/  
+	}
+);
+
+function page(url,effet) {
+window.location.hash = url;
+//$.bbq.pushState({ url: url} );
+//loadContent(url);
+//$.history.load(url);
+}
+
+function fermer() {
+window.location.hash = "#";
+$("#page-container").hide();
+labo = document.getElementById("laboflash");
+setFlashFocus(true);
+}
+
+function pageLoaded(responseText, textStatus, XMLHttpRequest) {
+//$('.box').colorbox();
+if (textStatus == "error") { $("#page-container").load("404.php?a=1"); 
+$(document).attr("title", "Page non trouvÃ©e.")
+//
+} 
+else {
+titre = $("#page-container > title").text();	
+document.title = titre;	
+}
+}
+</script>
+<link href="../css/supra.css" rel="stylesheet" type="text/css" />
+<!--[if lte IE 6]>
+	<link rel="stylesheet" type="text/css" href="../css/ie6.css" />
+<![endif]-->
+<link rel="stylesheet" type="text/css" href="../includes/lightbox/css/jquery.lightbox-0.5.css" media="screen" />
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-2538723-19']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+</head>
+<body>
+<!--LABO-->
+<div id="labo-container">
+  <!--<div id="langues">FranÃ§ais | <span class="disabled">English</span></div>-->
+  <div id="links"><a href="index.php?p=infos-siteplan&PHPSESSID=db43f7fce3cfc716e814a546b9f182d2">Site map</a> | <a href="index.php?p=infos-credits&PHPSESSID=db43f7fce3cfc716e814a546b9f182d2">Credits</a> | <a href="mailto:contact@supraconductivite.fr">Contacts</a> | <a href="index.php?p=infos-recherche&PHPSESSID=db43f7fce3cfc716e814a546b9f182d2">Search site &gt;&gt;</a></div>
+  <a href="#" id="digi" onclick="portelabo();"></a>
+  <div id="laboflash">
+  Your flash player is not up to date. <a href="http://www.adobe.com/shockwave/download/download.cgi?P1_Prod_Version=ShockwaveFlash">Update Flash.</a> 
+  <div id="html-menu"><ul><li><a  href="javascript:page('supra-intro',false);" >Superconductivity</a></li><li><a  href="javascript:page('recherche-intro',false);" >La recherche</a></li><li><a  href="javascript:page('applications-intro',false);" >Applications</a></li><li><a  href="javascript:page('samuser-intro',false);" >Have fun</a></li><li><a  href="javascript:page('100ans-intro',false);" >Supra2011</a></li><li><a  href="javascript:page('infos-intro',false);" >Superconductivity</a></li></ul></div>
+  </div>
+</div>
+<!--CONTAINER-->
+<div id="page-container"  >
+<br />
+<b>Warning</b>:  include(index.php/en/index.php) [<a href='function.include?PHPSESSID=db43f7fce3cfc716e814a546b9f182d2'>function.include</a>]: failed to open stream: Not a directory in <b>/home/supracon/www/en/index.php</b> on line <b>174</b><br />
+<br />
+<b>Warning</b>:  include() [<a href='function.include?PHPSESSID=db43f7fce3cfc716e814a546b9f182d2'>function.include</a>]: Failed opening 'index.php/en/index.php' for inclusion (include_path='.:/usr/local/lib/php') in <b>/home/supracon/www/en/index.php</b> on line <b>174</b><br />
+</div><!-- END CONTAINER -->
+<div id="logos-accueil"><img src="../media/images/logos/logo-cnrs.jpg" alt="CNRS" width="40" height="40" align="absmiddle" longdesc="http://ww.cnrs.fr" /><img src="../media/images/logos/logo-sfp.jpg" alt="SociÃ©tÃ© FranÃ§aise de Physique" width="50" height="34" align="absmiddle" longdesc="http://www.sfp.fr" /><img src="../media/images/logos/logo-triangle.jpg" alt="Triangle de la physique" width="70" height="35" align="absmiddle" /></div>
+</body>
+</html>

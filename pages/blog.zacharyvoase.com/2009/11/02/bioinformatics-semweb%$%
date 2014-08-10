@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:og="http://ogp.me/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:rss="http://purl.org/rss/1.0/" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+    <meta content="width=device-width" name="viewport" />
+    <meta content="http://gravatar.com/avatar/fcd3a40babe606ef30cb342a6a74c54c.png" property="og:image:url" />
+    <meta content="https://secure.gravatar.com/avatar/fcd3a40babe606ef30cb342a6a74c54c.png" property="og:image:secure_url" />
+    <meta content="Zachary Voase" property="dc:creator" />
+    <meta content="Public Domain" property="dc:rights" />
+    <meta content="summary" property="twitter:card" />
+    <meta content="@meat" property="twitter:site" />
+    <meta content="zacharyvoase.com" property="twitter:domain" />
+    <link href="rss:item" rel="rdf:type" />
+    <meta content="In this blog post, Iâm going to describe how an approach which unifies&#x000A;Content-Addressable Storage (via BioSeq and Bitcache), RDF and SPARQL&#x000A;technologies to develop a scalable, distributed system for storing and querying&#x000A;large quantities of massively-linked biological data." name="description" />
+    <meta content="2009-11-02" datatype="xs:date" property="dc:date" />
+    <meta content="Bioinformatics and the Semantic Web" property="rss:title" />
+    <meta content="@meat" property="twitter:creator" />
+    <meta content="http://zacharyvoase.com/2009/11/02/bioinformatics-semweb/" property="twitter:url" />
+    <meta content="Bioinformatics and the Semantic Web" property="twitter:title" />
+    <meta content="In this blog post, Iâm going to describe how an approach which unifies&#x000A;Content-Addressable Storage (via BioSeq and Bitcache), RDF and SPARQL&#x000A;technologies to develop a scalable, distributed system for storing and querying&#x000A;large quantities of massively-linked biological data." property="twitter:description" />
+    <link content="/2009/11/02/bioinformatics-semweb/" rel="rss:link" />
+    <link href="/media/css/style.css" media="screen, projection" rel="stylesheet" />
+    <script src="//use.typekit.net/jfx6whv.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      try{Typekit.load()}catch(e){}
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-9915287-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ga);
+      })();
+    </script>
+    <title>
+      Bioinformatics and the Semantic Web
+      | Zackâs Blog
+    </title>
+  </head>
+  <body>
+    <div id="header-container">
+      <div id="header">
+        <h1><a href="/"><span class="prefix">The Blog of</span>
+        Zachary Voase</a></h1>
+      </div>
+    </div>
+    <div about="http://zacharyvoase.com/" class="content-container" id="meta">
+      <p class="copy content">
+        Iâm a hacker, and I love to build stuff for the Web.
+      </p>
+      <nav class="content" id="links">
+        <ul>
+          <li class="first">
+            <a href="http://twitter.com/meat" rel="foaf:page">Twitter</a>
+          </li>
+          <li>
+            <a href="http://lanyrd.com/profile/zacharyvoase/" rel="foaf:page">Lanyrd</a>
+          </li>
+          <li>
+            <a href="http://github.com/zacharyvoase" rel="foaf:page">GitHub</a>
+          </li>
+          <li>
+            <a href="https://plus.google.com/114733187952811329250/?rel=author" rel="foaf:page">G+</a>
+          </li>
+          <li>
+            <a href="mailto:z@zacharyvoase.com" rel="foaf:mbox">Email</a>
+          </li>
+          <li>
+            <a href="http://meat.io/" rel="foaf:page">Meat</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div class="spacer">
+      <div class="spacer-child">
+        &#xa0;
+      </div>
+    </div>
+    <div class="content-container">
+  <div class="content article">
+    <p class="index-link-container">
+      <a class="index-link" href="/">â All posts</a>
+    </p>
+    <h1 datatype="" property="rss:title">
+      Bioinformatics and the Semantic Web
+    </h1>
+    <p class="date" content="2009-11-02" datatype="xs:date" property="dc:date">Monday 2<sup>nd</sup>Â November,Â 2009
+    </p>
+    <div class="contents"><p>In this blog post, Iâm going to describe how an approach which unifies
+Content-Addressable Storage (via BioSeq and Bitcache), RDF and SPARQL
+technologies to develop a scalable, distributed system for storing and querying
+large quantities of massively-linked biological data.</p>
+
+<p>Iâm assuming that readers are familiar with the basic concepts of RDF; if you
+arenât, it would help to read the âOverviewâ section of the
+<a href="http://en.wikipedia.org/wiki/Resource_Description_Framework">Wikipedia article</a>.
+Those familiar with graph theory will understand RDF as a framework for
+describing labelled, directed multi-graphs.</p>
+
+<p>Also, note that RDF itself is just a <em>model</em> and is not to be confused with a
+<em>serialization format</em>, much in the same way that the general concept of âsoundâ
+is distinct from the MP3 file format. A mimetype of <code>RDF/XML</code>, for example,
+signifies that a file is the serialized form of an RDF graph <em>represented as</em>
+XML-encoded data. Some other (IMHO superior) RDF serialization formats include
+<a href="http://en.wikipedia.org/wiki/Notation_3">Notation 3</a> (commonly abbreviated to
+âN3â), <a href="http://en.wikipedia.org/wiki/Turtle_(syntax)">Turtle</a> and
+<a href="http://en.wikipedia.org/wiki/N-Triples">N-Triples</a>.</p>
+
+<h2 id="the-state-of-play">The State of Play</h2>
+
+<p>But back to Bioinformatics. At the moment, several serialization formats are
+used for storing and sharing biological data, including (but by no means limited
+to):</p>
+
+<ul>
+  <li><a href="http://en.wikipedia.org/wiki/FASTA_format">FASTA</a></li>
+  <li><a href="http://en.wikipedia.org/wiki/GenBank">GenBank</a></li>
+  <li><a href="http://en.wikipedia.org/wiki/Swiss-Prot">Swiss-Prot</a></li>
+  <li>HTML (yup, screen-scraping!)</li>
+  <li>XML</li>
+</ul>
+
+<p>Some of these formats are very difficult to use, with parsers available only in
+a few languages, and most of them hard-coding the entire set of possible
+expressions about data into the format itself. Furthermore, inter-format
+conversion can often be lossy, and there is no clear way to store, retrieve and
+query the data in these files without developing complex schemata and swapping
+data into and out of SQL databases.</p>
+
+<h2 id="enter-rdf">Enter RDF</h2>
+
+<p>RDF and SPARQL can solve almost all of these issues. 90% of the incidental
+complexity that bioinformaticians have to deal with vis-Ã -vis data interchange
+formats <em>should not exist</em>, plain and simple. The main benefit that RDF brings
+to the table is that ontologies (i.e. the set of all expressible relationships
+between resources) are theoretically universal: if the predicate
+<code>&lt;ncbi:organism&gt;</code> is understood by every computer program in the universe to
+mean that âthe (subject) biological sequence <em>is found in</em> the (object)
+organismâ, then a huge hurdle of interoperability is overcome. Now various
+agents in the system can produce and consume data with a <em>universally-understood
+meaning</em>.</p>
+
+<h3 id="sparql">SPARQL</h3>
+
+<p>As if the universal semantics offered by RDF arenât sufficient, itâs accompanied
+by a kick-ass query language. SPARQL is enough on its own to make you want to
+switch all your data to RDF. I donât know of any other widely-implemented query
+language which allows you to issue queries like the following (all of these
+prefixes have been made up, by the way):</p>
+
+<p>Find all the research papers published since 1989 which mention a specific
+protein (essentially a one-query lit review):</p>
+
+<pre>&#x000A;  <code>PREFIX bioseq: &lt;http://bioseq.org/&gt;&#x000A;PREFIX ncbi: &lt;http://www.ncbi.nlm.nih.gov/ontology#&gt;&#x000A;&#x000A;SELECT ?paper&#x000A;WHERE {&#x000A;    # The specific sequence mentioned here has the paper as a citation.&#x000A;    bioseq:a2126...d8c33 ncbi:citation ?paper .&#x000A;    # The paper's publication year is stored as `?year`.&#x000A;    ?paper ncbi:pubyear ?year .&#x000A;    # The result set is filtered by the âsince 1989â criterion.&#x000A;    FILTER (?year &gt;= 1989)&#x000A;}&#x000A;</code></pre>
+
+<p>Find all proteins mentioned in research papers in which both of the given
+diseases are mentioned too, and return the list of papers and proteins:</p>
+
+<pre>&#x000A;  <code>PREFIX diseases: &lt;http://example.org/disease-ontology#&gt;&#x000A;PREFIX ncbi: &lt;http://www.ncbi.nlm.nih.gov/ontology#&gt;&#x000A;&#x000A;SELECT ?paper ?protein&#x000A;WHERE {&#x000A;    # The protein has the paper as a relevant citation.&#x000A;    ?protein ncbi:citation ?paper .&#x000A;    # As do the diseases identified by âdisease-id-1â and âdisease-id-1â.&#x000A;    diseases:disease-id-1 ncbi:citation ?paper .&#x000A;    diseases:disease-id-2 ncbi:citation ?paper .&#x000A;}&#x000A;</code></pre>
+
+<p>SPARQL supports more than just a basic <code>SELECT</code> form. <code>ASK</code> queries return
+booleans indicating whether a solution for the query exists (so are perhaps more
+efficient in some cases), and <code>CONSTRUCT</code> queries create whole new RDF graphs
+with data filtered, sorted and modified according to the query parameters
+(useful for exporting certain neighborhoods of a large triplestore). And youâd
+be surprised how efficient some of the SPARQL implementations are; itâs feasible
+to run complex queries on repositories with millions, even billions of triples.</p>
+
+<h2 id="porting-existing-data-to-rdf">Porting Existing Data to RDF</h2>
+
+<p>To show how porting your data to RDF can simplify its representation, Iâve
+chosen an example of a biological sequence to RDF-ize. This is how the genetic
+sequence of the first chromosome of <em>Saccharomyces cerevisiae</em> (brewerâs yeast)
+is represented in FASTA format (data taken from
+<a href="http://downloads.yeastgenome.org/sequence/genomic_sequence/chromosomes/fasta/">yeastgenome.org</a>):</p>
+
+<pre>&#x000A;  <code>&gt;ref|NC_001133| [org=Saccharomyces cerevisiae] [strain=S288C] [moltype=genomic] [chromosome=I]&#x000A;CCACACCACACCCACACACCCACACACCACACCACACACCACACCACACCCACACACACA&#x000A;CATCCTAACACTACCCTAACACAGCCCTAATCTAACCCTGGCCAACCTGTCTCTCAACTT&#x000A;...&#x000A;AGTATTAGGGTGTGGTGTGTGGGTGTGGTGTGGGTGTGGGTGTGGGTGTGGGTGTGGGTG&#x000A;TGGGTGTGGTGTGGTGTGTGGGTGTGGTGTGGGTGTGGTGTGTGTGGG&#x000A;</code></pre>
+
+<p>There are about 3,800 lines in the whole file, so Iâve snipped the dataset. The
+first line is the sequence header: the FASTA format specifies that this must
+begin with a right-angle bracket character (â&gt;â). The rest is an <em>ad hoc</em> format
+giving more information about the sequence. The lines which follow are the
+sequence itself; this is an unambiguous DNA sequence, and so it is only made up
+of the characters âAâ, âCâ, âGâ and âTâ.</p>
+
+<p>The problems we can immediately notice here are that:</p>
+
+<ul>
+  <li>
+    <p>Only a small amount of sequence metadata can be given on the one line
+provided by the FASTA format;</p>
+  </li>
+  <li>
+    <p>The metadata format, being <em>ad hoc</em>, limits the amount of computer-readable
+information.</p>
+  </li>
+</ul>
+
+<p>Now weâll see how an RDF representation of the sequence might look. The
+following example is written in the
+<a href="http://www.w3.org/TeamSubmission/turtle/">Turtle</a> format. The prefixes used
+have mostly been made up, but the real document could feasibly be this simple:</p>
+
+<pre>&#x000A;  <code>@prefix alphabets: &lt;http://www.ncbi.nlm.nih.gov/alphabets/&gt; .&#x000A;@prefix bioseq: &lt;http://bioseq.org/&gt; .&#x000A;@prefix ncbi: &lt;http://www.ncbi.nlm.nih.gov/ontology#&gt; .&#x000A;@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .&#x000A;&#x000A;&lt;bioseq:a21268b77c91c67973efa8289cc42a62772d8c33&gt;&#x000A;    &lt;ncbi:alphabet&gt; &lt;alphabets:unambiguous/dna&gt;;&#x000A;    &lt;ncbi:chromosome&gt; "1"^^&lt;xsd:integer&gt;;&#x000A;    &lt;ncbi:organism&gt; "Saccharomyces cerevisiae";&#x000A;    &lt;ncbi:ref&gt; "NC_001133";&#x000A;    &lt;ncbi:strain&gt; "S288C" .&#x000A;</code></pre>
+
+<p>The <code>@prefix</code> notation is just a sprinkle of syntactic sugar for abbreviating
+common parts of URIs. In plain English, this collection of RDF triples expresses
+the following âmeaningâ:</p>
+
+<ul>
+  <li>
+    <p>Weâre talking about the sequence identified by the URI
+<code>http://bioseq.org/a21268b77c91c67973efa8289cc42a62772d8c33</code>. This sequence:</p>
+
+    <ul>
+      <li>Is expressed in the alphabet
+<code>http://www.ncbi.nlm.nih.gov/alphabets/unambiguous/dna</code>
+(i.e. unambiguous DNA);</li>
+      <li>Is the first chromosome of the organism in which it is found;</li>
+      <li>Is found in the organism âSaccharomyces cerevisiaeâ;</li>
+      <li>Has an NCBI reference identifier string of <code>NC_001133</code>; and</li>
+      <li>Belongs to the organism strain <code>S2288C</code>.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>A few things should be noted about this particular example:</p>
+
+<ul>
+  <li>It is assumed that NCBI hosts a complete ontology for expressing information
+about biological sequences, such as
+<code>http://www.ncbi.nlm.nih.gov/ontology#organism</code>, and so on.</li>
+  <li>You should read my
+<a href="http://blog.zacharyvoase.com/post/230595085">previous post about BioSeq</a>
+for more information on <code>bioseq:</code> URIs; in short, these allow you to
+universally identify individual biological sequences.</li>
+</ul>
+
+<p>So we can now insert this sort of RDF data into a local âtriplestoreâ (the RDF
+equivalent of a database) and run SPARQL queries on it. Assume weâve loaded a
+sizeable dataset into our RDF store, and we now want to filter through the
+triples to find exactly what we want. Thankfully, SPARQL is incredibly
+expressive, and queries can go from extremely precise to extremely general. Say
+we want to look for <em>all</em> unambiguous DNA sequences:</p>
+
+<pre>&#x000A;  <code>PREFIX alphabets: &lt;http://www.ncbi.nlm.nih.gov/alphabets/&gt;&#x000A;PREFIX bioseq: &lt;http://bioseq.org/&gt;&#x000A;PREFIX ncbi: &lt;http://www.ncbi.nlm.nih.gov/ontology#&gt;&#x000A;PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;&#x000A;&#x000A;SELECT ?sequence&#x000A;WHERE {&#x000A;    ?sequence ncbi:alphabet &lt;alphabets:unambiguous/dna&gt;&#x000A;}&#x000A;</code></pre>
+
+<p>How about just DNA sequences, unambiguous <em>or</em> ambiguous? Assuming the same
+prefix bindings:</p>
+
+<pre>&#x000A;  <code>SELECT ?sequence&#x000A;WHERE {&#x000A;    {&#x000A;        ?sequence ncbi:alphabet &lt;alphabets:unambiguous/dna&gt;&#x000A;    } UNION {&#x000A;        ?sequence ncbi:alphabet &lt;alphabets:ambiguous/dna&gt;&#x000A;    }&#x000A;}&#x000A;</code></pre>
+
+<p>Or all DNA sequences on the 2nd chromosome of <em>S. cerevisiae</em>?</p>
+
+<pre>&#x000A;  <code>SELECT ?sequence&#x000A;WHERE {&#x000A;    ?sequence ncbi:chromosome "2"^^&lt;xsd:integer&gt; ;&#x000A;              ncbi:organism "Saccharomyces cerevisiae" .&#x000A;    {&#x000A;        ?sequence ncbi:alphabet &lt;alphabets:unambiguous/dna&gt; .&#x000A;    } UNION {&#x000A;        ?sequence ncbi:alphabet &lt;alphabets:ambiguous/dna&gt; .&#x000A;    }&#x000A;}&#x000A;</code></pre>
+
+<p>And donât forget you can also issue <code>ASK</code> and <code>CONSTRUCT</code> queries. If you want
+to know more about SPARQL, Iâd sincerely recommend reading the
+<a href="http://www.w3.org/TR/rdf-sparql-query/">official spec</a>.</p>
+
+<h2 id="wrap-up">Wrap-Up</h2>
+
+<p>As you can see, the benefits brought to bioinformatics data by these
+technologies are manifold. Comprehensive RDF parsing and serialization libraries
+exist for most major languages, Bitcache and BioSeq bring efficient CAS to any
+programming language with a HTTP client library, and SPARQL opens up these vast
+stores of knowledge to expressive and dynamic querying.</p>
+
+<p>The next steps in integration for the semweb and bioinformatics communities are:</p>
+
+<ul>
+  <li>
+    <p><strong>Education</strong>: Writing and sharing more tutorials on using and implementing
+these technologies.</p>
+  </li>
+  <li>
+    <p><strong>Adoption</strong>: As more bioinformaticians and related institutions consume and
+produce RDF, semweb technologies will reach a critical mass within the
+bioinformatics community.</p>
+  </li>
+  <li>
+    <p><strong>Contribution</strong>: As the semweb concepts are âfield-testedâ by
+bioinformaticians, hopefully a feedback loop will be set up between the two
+communities: bioinformaticians make recommendations and contributions back
+to the semweb speci writers, who themselves seek input from
+bioinformaticians on how new proposals might help or hinder their work.</p>
+  </li>
+</ul>
+
+<p>I hope you enjoyed this blog post; please donât refrain from commenting if you
+have anything to say about it.</p></div>
+  </div>
+</div>
+    <div id="footer-container">
+      <div id="footer">
+        <p class="share-buttons">
+          <a class="twitter-share-button" data-related="meat" data-text="âBioinformatics and the Semantic Webâ" data-via="meat" href="https://twitter.com/share">Tweet</a>
+          <a class="twitter-follow-button" data-show-count="false" href="https://twitter.com/meat">Words by @meat</a>
+          <script>
+            !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+          </script>
+        </p>
+        <p class="licensing">
+          All content on this site is released into the
+          <a rel="license" href="http://creativecommons.org/publicdomain/zero/1.0/">Public Domain</a>.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

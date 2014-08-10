@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title>trevorbedford : interpretable phylogenies</title>
+	<link rel="stylesheet" href="/style.css" type="text/css"/>
+	<link rel="shortcut icon" href="/favicon.gif"/>	
+
+	<script type="text/javascript" src="http://use.typekit.com/pdl2vgv.js"></script>
+	<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+	<script type="text/javascript">
+
+  		var _gaq = _gaq || [];
+  		_gaq.push(['_setAccount', 'UA-26244371-1']);
+  		_gaq.push(['_trackPageview']);
+
+  		(function() {
+    		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  		})();
+
+	</script>		
+	
+	<script src="/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/js/jquery.boastful.js"></script>		
+	
+</head>
+
+<body>
+
+	<div id="header">
+		<span class=title>Plotting interpretable phylogenies</span><br>
+		<span class=subtitle><a class="off" href="../index.html">trvrb</a> / <a class="off" href="../projects.html">projects</a></span>
+	</div>
+	
+	<div id="banner">
+	<div id="text">
+		
+		<h3>Motivation</h3>
+		
+		<p>
+		The phylogeny of the <a href="http://en.wikipedia.org/wiki/Influenza_A_virus_subtype_H3N2">H3N2 human influenza virus</a> shows a very distinctive structure, exhibiting a pronounced 'trunk' and short side branches that go extinct within 1-5 years.  This structure is indicative of strong positive selection driving population turnover.  At any given moment, there exists a virus that will, in a few years time, take over the entire influenza virus population.  Because of this fast rate of evolution and population turnover, the vaccine for influenza A (H3N2) must be updated every 1-2 years.
+		
+		<p>
+		Here, I've shown the phylogeny for H3N2 influenza constructed from the HA1 gene region for 126 viruses sampled between 1968 and 2003.  These sequences were taken from <a href="http://www.sciencemag.org/content/305/5682/371.abstract">Smith et al. (2004)</a>, where they were assigned to antigenic clusters based on <a href="http://en.wikipedia.org/wiki/Hemagglutination">hemagglutination inhibition</a> assay data.  You can download the <a href="http://beast.bio.ed.ac.uk">BEAST</a> XML control file I used to construct this phylogeny <a href="../data/smith_clusters.xml">here</a>.  
+		
+		<img class="center" src="../images/smith_clusters_tree.png">		
+		
+		<p>
+		I've followed the standard algorithm of sorting branches according to number of progeny branches.  This sorts the trunk of the tree to the top of the <i>y</i>-axis and makes the trunk / side branch structure very clear.  However, in presenting this work, <a href="http://wildevolution.biology.ed.ac.uk/jpemberton/pemberton.html">Josephine Pemberton</a> made the interesting point that this layout algorithm makes it look like the choice of trunk lineage is entirely deterministic.  I've also thought it strange that the <i>y</i>-axis doesn't have a direct interpretation.  This phylogeny is a diagram, and not a plot.
+		
+		<p>
+		Here, I've made a small attempt at plotting phylogenies with an interpretable <i>y</i>-axis.
+		
+		<h3>Counting nucleotide differences</h3>
+		
+		<p>
+		We can quantify evolution directly in the phylogenetic plot by counting differences between nodes and the root of the tree.  Here, I've set BEAST to reconstruct the ancestral sequence at each internal node.  Then, rather than doing the traditional layout algorithm, I just count the number of nucleotide differences between the sequence at the root of the tree and sequences at the nodes of the tree.
+		
+		<img class="center" src="../images/smith_clusters_nuc.png">			
+		
+		<p>
+		From this you can see that the rate of nucleotide evolution has been both rapid and fairly constant.  As in the traditional phylogeny, you can see that very little nucleotide diversity exists at any given moment.  However, you can also see that the trunk of the tree doesn't always emerge from the lineage with the most nucleotide differences.  You can see this more clearly when plotting residuals.
+	
+		<img class="center" src="../images/smith_clusters_nuc_residuals.png">	
+	
+		<p>
+		This was made by calculating a <a href="http://en.wikipedia.org/wiki/Local_regression">LOESS regression</a> and then taking residuals for each node in the tree.  From this, it's clear that the trunk is not deterministically chosen based on nucleotide differences.  Still, the LOESS regression shows that trunk nodes are, on average, 0.89 nucleotide differences ahead of the rest of the tree.  There is some signal here.
+	
+		<h3>Counting amino acid differences</h3>
+		
+		<p>
+		Here, I've conducted a similar analysis using amino acid sequences instead of nucleotide sequences.
+		
+		<img class="center" src="../images/smith_clusters_aa.png">	
+				
+		<p>
+		The results are similar, though surprisingly, amino acid differences don't provide a better prediction of trunk lineage.  In this case, trunk nodes are 0.17 amino acid differences ahead of the rest of the tree.  Especially clear, is that the Beijing/92 cluster (shown in blue) is significantly advanced in amino acid differences, but still dies out.
+		
+		<img class="center" src="../images/smith_clusters_aa_residuals.png">			
+		
+		<p>
+		For this first pass, I haven't addressed one technical issue.  Trees shown are a single representative sample from the MCMC chain.  It would be possible (and preferable) to calculate means and credible intervals for substitution counts across the MCMC chain.
+		
+		<script>
+			$(document).ready(function() {
+				$('#boastful').boastful({
+				location: 'http://www.trevorbedford.com/writeups/interpretable_phylogenies.html',
+				empty_message: ''
+				});
+			});
+		</script>
+		<p class="comments"> Join the discussion
+		<div id="boastful">
+			<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.trevorbedford.com/writeups/interpretable_phylogenies.html" data-text="Plotting interpretable phylogenies" data-count="none" data-via="trvrb">Tweet</a>
+			<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+		</div>		
+		
+	</div>
+	</div>
+	
+	<p class="updated">Posted May 21, 2012	
+
+</body>
+</html>

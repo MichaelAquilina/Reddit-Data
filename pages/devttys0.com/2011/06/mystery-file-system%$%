@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Mystery File System   - /dev/ttyS0</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="description" content="Last week Jim posted a comment asking about reverse engineering the firmware for some Chinese routers with the intention of extracting the Web files and translating them to English. Although I usually work with" />
+<meta property="template" content="mantra" />
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="pingback" href="http://www.devttys0.com/xmlrpc.php" />
+<link rel="alternate" type="application/rss+xml" title="/dev/ttyS0 &raquo; Feed" href="http://www.devttys0.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="/dev/ttyS0 &raquo; Comments Feed" href="http://www.devttys0.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="/dev/ttyS0 &raquo; Mystery File System Comments Feed" href="http://www.devttys0.com/2011/06/mystery-file-system/feed/" />
+<link rel='stylesheet' id='mantras-css'  href='http://www.devttys0.com/wp-content/themes/mantra/style.css?ver=3.9.1' type='text/css' media='all' />
+<script type='text/javascript' src='http://www.devttys0.com/wp-includes/js/jquery/jquery.js?ver=1.11.0'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=1.2.1'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/themes/mantra/js/frontend.js?ver=3.9.1'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://www.devttys0.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://www.devttys0.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Firmware Patching: Fixing the TEW-632BRP' href='http://www.devttys0.com/2011/06/firmware-patching-fixing-the-tew-632brp/' />
+<link rel='next' title='Binwalk v0.3.4 Released!' href='http://www.devttys0.com/2011/06/binwalk-v0-3-4-released/' />
+<meta name="generator" content="WordPress 3.9.1" />
+<link rel='canonical' href='http://www.devttys0.com/2011/06/mystery-file-system/' />
+<link rel='shortlink' href='http://www.devttys0.com/?p=218' />
+ <style type="text/css"> #wrapper, #access, #colophon, #branding, #main { width:1200px ;} #content { width:890px;} #primary,#secondary {width:250px;}#content, #content p, #content ul, #content ol, #content input, #content select, #content textarea{ font-size:15px; } * , .widget-title {font-family:Segoe UI, Arial, sans-serif ; } #content h1, #content h2, #content h3, #content h4, #content h5, #content h6 { margin-left:20px;} .sticky hgroup { background: url(http://www.devttys0.com/wp-content/themes/mantra/images/icon-featured.png) no-repeat 12px 10px transparent; padding-left: 15px;} #header-container > div { margin-top:20px;} #header-container > div { margin-left:40px;} body { background-color:#444444 !important ;} #header { background-color:#333333 ;} #footer { background-color:#222222 ;} #footer2 { background-color:#171717 ;} #site-title span a { color:#0D85CC ;} #site-description { color:#999999 ;} #content, #content p, #content ul, #content ol { color:#333333 ;} .widget-area a:link, .widget-area a:visited, a:link, a:visited ,#searchform #s:hover , #container #s:hover, #access a:hover, #wp-calendar tbody td a , #site-info a ,#site-copyright a, #access li:hover > a, #access ul ul :hover > a { color:#0D85CC;} a:hover, .entry-meta a:hover, .entry-utility a:hover , .widget-area a:hover { color:#333333 ;} #content .entry-title a, #content .entry-title, #content h1, #content h2, #content h3, #content h4, #content h5, #content h6{ color:#333333 ;} #content .entry-title a:hover { color:#000000 ;} .widget-title,#footer-widget-area .widget-title { background-color:#444444 ;} .widget-title { color:#2EA5FD ;} #footer-widget-area .widget-title { color:#0C85CD ; ;} #footer-widget-area a { color:#666666 ;} #footer-widget-area a:hover { color:#888888 ;} #content p, .entry-content ul, .entry-summary ul , .entry-content ol, .entry-summary ol { margin-bottom:1.5em;} .entry-meta .entry-time {display:none;} #branding { height:120px ;} </style> 
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><style>/* Mantra Custom CSS */</style>
+<script>var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-29703784-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();</script>
+<!--[if lte IE 8]>
+<style type="text/css" media="screen">
+ #access ul  li,
+.edit-link a ,
+ #footer-widget-area .widget-title, .entry-meta,.entry-meta .comments-link,
+.short-button-light, .short-button-dark ,.short-button-color ,blockquote  {
+     position:relative;
+     behavior: url(http://www.devttys0.com/wp-content/themes/mantra/js/PIE/PIE.php);
+   }
+
+#access ul ul {
+-pie-box-shadow:0px 5px 5px #999;
+}
+   
+#access  ul  li.current_page_item,  #access ul li.current-menu-item ,
+#access ul  li ,#access ul ul ,#access ul ul li, .commentlist li.comment	,.commentlist .avatar,
+ .nivo-caption, .theme-default .nivoSlider {
+     behavior: url(http://www.devttys0.com/wp-content/themes/mantra/js/PIE/PIE.php);
+   }
+</style>
+<![endif]-->
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+<!--[if lt IE 9]>
+<script>
+document.createElement('header');
+document.createElement('nav');
+document.createElement('section');
+document.createElement('article');
+document.createElement('aside');
+document.createElement('footer');
+document.createElement('hgroup');
+</script>
+<![endif]-->
+<script type="text/javascript">
+function makeDoubleDelegate(function1, function2) {
+// concatenate functions
+    return function() { if (function1) function1(); if (function2) function2(); }
+}
+
+function mantra_onload() {
+
+
+     // Add responsive videos
+     if (jQuery(window).width() < 800) jQuery(".entry-content").fitVids();
+}; // mantra_onload
+
+
+jQuery(document).ready(function(){
+     // Add custom borders to images
+     jQuery("img.alignnone, img.alignleft, img.aligncenter,  img.alignright").addClass("imageSeven");
+
+	// Add select navigation to small screens
+     jQuery("#access > .menu > ul").tinyNav({
+          	header: ' = Menu = '
+			});
+});
+
+// make sure not to lose previous onload events
+window.onload = makeDoubleDelegate(window.onload, mantra_onload );
+</script>
+</head>
+<body class="single single-post postid-218 single-format-standard">
+
+<div id="toTop"> </div>
+<div id="wrapper" class="hfeed">
+
+
+<header id="header">
+
+		<div id="masthead">
+
+			<div id="branding" role="banner" >
+
+				
+	<div id="header-container">
+
+
+<div><div id="site-title"><span> <a href="http://www.devttys0.com/" title="/dev/ttyS0" rel="home">/dev/ttyS0</a> </span></div><div id="site-description" >Embedded Device Hacking</div></div><div class="socials" id="sheader">
+			<a target="_blank" rel="nofollow" href="https://twitter.com/devttyS0" class="socialicons social-Twitter" title="Twitter"><img alt="Twitter" src="http://www.devttys0.com/wp-content/themes/mantra/images/socials/Twitter.png" /></a></div></div>				<div style="clear:both;"></div>
+
+			</div><!-- #branding -->
+
+			<nav id="access" class="jssafe" role="navigation">
+
+				<div class="skip-link screen-reader-text"><a href="#content" title="Skip to content">Skip to content</a></div>
+<div class="menu"><ul><li ><a href="http://www.devttys0.com/">Home</a></li><li class="page_item page-item-884"><a href="http://www.devttys0.com/training/">Training</a></li><li class="page_item page-item-7 current_page_parent"><a href="http://www.devttys0.com/blog/">Blog</a></li><li class="page_item page-item-978"><a href="http://www.devttys0.com/tools/">Tools</a></li><li class="page_item page-item-35"><a href="http://www.devttys0.com/contact/">Contact</a></li><li class="page_item page-item-2"><a href="http://www.devttys0.com/about/">About</a></li></ul></div>
+
+			</nav><!-- #access -->
+
+		</div><!-- #masthead -->
+
+	<div style="clear:both;"> </div>
+
+</header><!-- #header -->
+<div id="main">
+	<div  id="forbottom" >
+		
+		<div style="clear:both;"> </div>
+		
+									
+		<section id="container">
+			<div id="content" role="main">
+			
+						
+
+				<div id="nav-above" class="navigation">
+					<div class="nav-previous"><a href="http://www.devttys0.com/2011/06/firmware-patching-fixing-the-tew-632brp/" rel="prev"><span class="meta-nav">&laquo;</span> Firmware Patching: Fixing the TEW-632BRP</a></div>
+					<div class="nav-next"><a href="http://www.devttys0.com/2011/06/binwalk-v0-3-4-released/" rel="next">Binwalk v0.3.4 Released! <span class="meta-nav">&raquo;</span></a></div>
+				</div><!-- #nav-above -->
+
+				<div id="post-218" class="post-218 post type-post status-publish format-standard hentry category-embedded-systems category-reverse-engineering">
+					<h1 class="entry-title">Mystery File System</h1>
+										<div class="entry-meta">
+						&nbsp; <span class="author vcard" >By  <a class="url fn n" href="http://www.devttys0.com/author/craig/" title="View all posts by Craig">Craig</a> <span class="bl_sep">|</span></span>  <span class="onDate"> <a href="http://www.devttys0.com/2011/06/mystery-file-system/" title="2:12 pm" rel="bookmark"><span class="entry-date">June 26, 2011</span> <span class="entry-time"> - 2:12 pm</span></a> <span class="bl_sep">|</span> </span> <span class="bl_categ"> <a href="http://www.devttys0.com/category/embedded-systems/" title="View all posts in Embedded Systems" rel="tag">Embedded Systems</a>, <a href="http://www.devttys0.com/category/reverse-engineering/" title="View all posts in Reverse Engineering" rel="tag">Reverse Engineering</a> </span>  					</div><!-- .entry-meta -->
+
+					<div class="entry-content">
+						<p>Last week Jim posted a <a href="http://www.devttys0.com/2011/05/reverse-engineering-firmware-linksys-wag120n/#comments">comment</a> asking about reverse engineering the <a href="http://www.mercurycom.com.cn/downloadfilesuploadfolder/2011610171165.rar">firmware</a> for some Chinese routers with the intention of extracting the Web files and translating them to English.</p>
+<p>Although I usually work with Linux based firmware, this sounded interesting so I thought I&#8217;d investigate. <del>Although I wasn&#8217;t able to completely recover the Web files</del>, the process of reversing a file system format seemed like a good subject for discussion.</p>
+<p><span id="more-218"></span></p>
+<p>The firmware image contains none of the normal file systems found in Linux firmware, no identifiable compression formats, and the only intelligible strings in the image are the names of the Web files themselves:</p>
+<blockquote>
+<pre>embedded@ubuntu:~/Mercury/110523$ <strong>strings -n 8 mw150rv5.bin</strong>
+...
+owowowowowowowowowowowowowowowow
+o0common.js
+lcss_help.css
+ (css_main.css
+custom.js
+$0help.js
+%0menu.js
+(dbanner.htm
+18bottom1.htm
+bottom2.htm
+logo.htm
+AssignedIpAddrListHelpRpm.htm
+9@BackNRestoreHelpRpm.htm
+&lt;,ChangeLoginPwdHelpRpm.htm
+?`DateTimeCfgHelpRpm.htm
+DMZHelpRpm.htm
+DomainFilterHelpRpm.htm
+FireWallHelpRpm.htm
+KhFixMapCfgHelpRpm.htm
+L2tpCfgHelpRpm.htm
+...</pre>
+</blockquote>
+<p>The string &#8216;owowowowow&#8230;&#8217; is unusual, and long enough that it&#8217;s probably not random. Let&#8217;s take a look at the hex dump:</p>
+<blockquote>
+<pre>embedded@ubuntu:~/Mercury/110523$ <strong>hexdump -C mw150rv5.bin | less</strong>
+000f5b70  00 00 00 00 6f 77 6f 77  6f 77 6f 77 6f 77 6f 77  |....owowowowowow|
+000f5b80  6f 77 6f 77 6f 77 6f 77  6f 77 6f 77 6f 77 6f 77  |owowowowowowowow|
+000f5b90  6f 77 6f 77 00 00 00 01  00 00 00 8c 00 00 6f 30  |owow..........o0|
+000f5ba0  63 6f 6d 6d 6f 6e 2e 6a  73 00 00 00 00 00 00 00  |common.js.......|
+000f5bb0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+000f5bc0  00 00 00 00 00 00 00 00  00 00 05 bb 00 00 1a 6c  |...............l|
+000f5bd0  63 73 73 5f 68 65 6c 70  2e 63 73 73 00 00 00 00  |css_help.css....|
+000f5be0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+000f5bf0  00 00 00 00 00 00 00 00  00 00 01 e0 00 00 20 28  |.............. (|
+000f5c00  63 73 73 5f 6d 61 69 6e  2e 63 73 73 00 00 00 00  |css_main.css....|
+000f5c10  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+000f5c20  00 00 00 00 00 00 00 00  00 00 02 28 00 00 22 08  |...........(..".|
+000f5c30  63 75 73 74 6f 6d 2e 6a  73 00 00 00 00 00 00 00  |custom.js.......|
+000f5c40  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+000f5c50  00 00 00 00 00 00 00 00  00 00 00 fd 00 00 24 30  |..............$0|
+000f5c60  68 65 6c 70 2e 6a 73 00  00 00 00 00 00 00 00 00  |help.js.........|
+000f5c70  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+000f5c80  00 00 00 00 00 00 00 00  00 00 03 31 00 00 25 30  |...........1..%0|
+000f5c90  6d 65 6e 75 2e 6a 73 00  00 00 00 00 00 00 00 00  |menu.js.........|
+000f5ca0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+000f5cb0  00 00 00 00 00 00 00 00  00 00 08 d3 00 00 28 64  |..............(d|
+000f5cc0  62 61 6e 6e 65 72 2e 68  74 6d 00 00 00 00 00 00  |banner.htm......|
+000f5cd0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+000f5ce0  00 00 00 00 00 00 00 00  00 00 02 e0 00 00 31 38  |..............18|</pre>
+</blockquote>
+<p>It looks like the &#8216;owowow&#8217; string is followed by a list of all the Web files in the firmware.This isn&#8217;t just an array of strings however; there is additional data included. The pseudo-structure for the data layout appears to be:</p>
+<blockquote><p>['owowowow' string]<br />
+[12 bytes of data]<br />
+[file string, null-padded to 40 bytes]<br />
+[8 bytes of data]<br />
+[file string, null-padded to 40 bytes]<br />
+[8 bytes of data]<br />
+[file string, null-padded to 40 bytes]<br />
+[8 bytes of data]<br />
+etc&#8230;</p></blockquote>
+<p>This looks like it could be a simple file system, but searching Google for the &#8216;owowow&#8217; string didn&#8217;t turn up anything interesting. So it is either custom, undocumented, or we are completely off track. The latter seems unlikely, so let&#8217;s try to identify the file system structure.</p>
+<p>The last entry appears to be for the WzdWlanRpm.htm file. As with the other strings we saw, this null padded string is followed by 8 bytes of binary data, which ends at offset 0x0F75DF. Immediately after this are the bytes 5A 00 00 80:</p>
+<blockquote>
+<pre>embedded@ubuntu:~/Mercury/110523$ <strong>hexdump -C mw150rv5.bin | less</strong>
+000f7580  57 7a 64 57 61 6e 54 79  70 65 52 70 6d 2e 68 74  |WzdWanTypeRpm.ht|
+000f7590  6d 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |m...............|
+000f75a0  00 00 00 00 00 00 00 00  00 00 03 e4 00 02 f6 1c  |................|
+000f75b0  57 7a 64 57 6c 61 6e 52  70 6d 2e 68 74 6d 00 00  |WzdWlanRpm.htm..|
+000f75c0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+000f75d0  00 00 00 00 00 00 00 00  00 00 12 d2 00 02 fa 00  |................|
+000f75e0  <em>5a 00 00 80</em> 00 e3 18 00  00 00 00 00 00 00 33 1e  |Z.............3.|
+000f75f0  1f 3f 54 6a bb ab 88 57  be 2b 9f 84 e1 82 4e 3c  |.?Tj...W.+....N&lt;|
+000f7600  6a 17 85 39 7c 94 92 e9  84 58 10 4c 68 fd 92 20  |j..9|....X.Lh.. |</pre>
+</blockquote>
+<p>Since there are no other obvious strings in the firmware, we can assume that the files themselves are probably compressed. This makes the bytes 5A 00 00 80 very interesting, because they are very similar to the magic bytes for LZMA compression which are 5D 00 00 80.</p>
+<p>Let&#8217;s assume that the bytes 5A 00 00 80 are the magic bytes for a compression algorithm. If so, they will probably be at the beginning of all the Web files. Let&#8217;s see how many instances of this byte string we can find in the firmware:</p>
+<blockquote>
+<pre>embedded@ubuntu:~/Mercury/110523$ <strong>hexdump -C mw150rv5.bin | grep '5a 00 00 80' | wc -l</strong>
+140</pre>
+</blockquote>
+<p>Although doing this type of simple search isn&#8217;t always completely accurate, there are at least 140 instances of these bytes in the firmware image. Let&#8217;s compare that to how many Web files are listed in the firmware:</p>
+<blockquote>
+<pre>embedded@ubuntu:~/Mercury/110523$ <strong>strings mw150rv5.bin | grep -e '\.js' -e '\.htm' -e '\.css' -e '\.jpg' -e '\.gif' | wc -l</strong>
+140</pre>
+</blockquote>
+<p>This looks encouraging! The bytes 5a 00 00 80 are likely present at the beginning of each file.</p>
+<p>If the structures we found earlier are part of a file system, there are two pieces of information that will need to accompany each file name:</p>
+<ol>
+<li>Where is the file located?</li>
+<li>How big is the file?</li>
+</ol>
+<p>First, let&#8217;s look at the 12 bytes immediately following the &#8216;owowow&#8217; string. We&#8217;ll assume that these are integer (4 byte) fields, and we&#8217;ll cast each 4 byte field as various data types to see if we can make sense of any of them:</p>
+<blockquote>
+<pre>embedded@ubuntu:~/Mercury/110523$ <strong>binwalk -C -o 0xf5b94 -l 12 -b 4 mw150rv5.bin </strong>
+
+DECIMAL   	HEX       	DESCRIPTION
+-------------------------------------------------------------------------------------------------------
+1006484   	0xF5B94   	Hex:                 0x00000001
+				Little Endian Long:  16777216
+				Big Endian Long:     1
+				Little Endian Short: 0
+				Big Endian Short:    0
+				Little Endian Date:  Mon Jul 13 21:20:16 1970
+				Big Endian Date:     Wed Dec 31 16:00:01 1969
+1006488   	0xF5B98   	Hex:                 0x0000008C
+				Little Endian Long:  -1946157056
+				Big Endian Long:     140
+				Little Endian Short: 0
+				Big Endian Short:    0
+				Little Endian Date:  Thu Apr 30 16:49:04 1908
+				Big Endian Date:     Wed Dec 31 16:02:20 1969
+1006492   	0xF5B9C   	Hex:                 0x00006F30
+				Little Endian Long:  812580864
+				Big Endian Long:     28464
+				Little Endian Short: 0
+				Big Endian Short:    0
+				Little Endian Date:  Sun Oct  1 13:54:24 1995
+				Big Endian Date:     Wed Dec 31 23:54:24 1969</pre>
+</blockquote>
+<p>The first four bytes are 00 00 00 01. This is likely not an offset or a size field. It could be a version number or something else, but is probably not terribly important.</p>
+<p>The second integer field, when cast as a big endian value, is 140 &#8211; exactly the number of files that we have!</p>
+<p>The last field doesn&#8217;t really match up with anything that we&#8217;ve seen so far.</p>
+<p>It looks like these first 12 bytes comprise the header for the file system (for lack of a better name, we&#8217;ll call it the OW file system):</p>
+<blockquote>
+<pre>struct owfs_header
+{
+   char magic[32];           // 'owowowowowow...'
+   uint32_t version;         // version #1
+   uint32_t file_count;      // 140 files
+   uint32_t unknown;         // ??
+}</pre>
+</blockquote>
+<p>Next we need to determine what the 8 bytes that follow the file names represent. Since we still need to know the size and location of each file, it stands to reason that these bytes represent those values. Let&#8217;s look at the first file entry:</p>
+<blockquote>
+<pre>embedded@ubuntu:~/Mercury/110523$ <strong>hexdump -C mw150rv5.bin | less</strong>
+000f5ba0  63 6f 6d 6d 6f 6e 2e 6a  73 00 00 00 00 00 00 00  |common.js.......|
+000f5bb0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+000f5bc0  00 00 00 00 00 00 00 00  <em>00 00 05 bb 00 00 1a 6c</em>  |...............l|</pre>
+</blockquote>
+<p>The two values 00 00 05 BB and 00 00 1A 6C likely represent the file size and an offset to the file&#8217;s location in the firmware image. Recall that the &#8216;owowow&#8217; magic bytes indicating the beginning of the file system are located at offset 0x0F5B74. Adding 0x01A6C to 0x0F5B74 gives us 0x0F75E0, the exact location of the fist occurrence of the bytes 5A 00 00 80 that we identified earlier:</p>
+<blockquote>
+<pre>embedded@ubuntu:~/Mercury/110523$ <strong>hexdump -C mw150rv5.bin | less</strong>
+000f75b0  57 7a 64 57 6c 61 6e 52  70 6d 2e 68 74 6d 00 00  |WzdWlanRpm.htm..|
+000f75c0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+000f75d0  00 00 00 00 00 00 00 00  00 00 12 d2 00 02 fa 00  |................|
+<em>000f75e0  5a 00 00 80</em> 00 e3 18 00  00 00 00 00 00 00 33 1e  |Z.............3.|
+000f75f0  1f 3f 54 6a bb ab 88 57  be 2b 9f 84 e1 82 4e 3c  |.?Tj...W.+....N&lt;|
+000f7600  6a 17 85 39 7c 94 92 e9  84 58 10 4c 68 fd 92 20  |j..9|....X.Lh.. |
+000f7610  3a 3c 5a 8c a8 cf 6a 11  90 0f 44 8a f0 19 14 0d  |:</pre>
+</blockquote>
+<p>If the second 4 byte value is the file offset, then the first four byte offset is likely the file size. Adding the 0x05BB value to the file offset 0x0F75E0 gives us 0x0F7B9B. At the very next byte (0x0F7B9C) we find the second occurrence of the the bytes 5A 00 00 80:</p>
+<blockquote>
+<pre>embedded@ubuntu:~/Mercury/110523$ <strong>hexdump -C mw150rv5.bin | less</strong>
+000f7b70  13 34 51 99 04 77 d7 85  21 2f 7f 11 74 df d2 16  |.4Q..w..!/..t...|
+000f7b80  f7 fc ef 97 38 81 a0 23  15 e0 f9 6e 50 4b e0 eb  |....8..#...nPK..|
+000f7b90  57 64 4f f4 11 9e 83 d7  59 ca b4 00 <em>5a 00 00 80</em>  |WdO.....Y...Z...|
+000f7ba0  00 8d 08 00 00 00 00 00  00 00 21 14 41 79 b8 3b  |..........!.Ay.;|
+000f7bb0  d8 aa f3 30 85 4f 7a 2a  f3 2c e2 50 44 3e 77 ed  |...0.Oz*.,.PD&gt;w.|</pre>
+</blockquote>
+<p>This looks good; we can now construct the structure for each file entry in the file system:</p>
+<blockquote>
+<pre>struct owfs_entry
+{
+   char file_name[40];
+   uint32_t file_size;
+   uint32_t file_offset;
+}</pre>
+</blockquote>
+<p>Now that we know how the file system is constructed, we can write a utility to extract the files. I&#8217;ve written an unowfs tool to do just that; you can download it <a href="http://www.devttys0.com/wp-content/uploads/2011/06/unowfs.c">here</a>, and use it to extract the files from the OWFS image:</p>
+<blockquote>
+<pre>embedded@ubuntu:~/Mercury/110523$ <strong>dd if=mw150rv5.bin bs=1006452 skip=1 of=owfs.img</strong>
+0+1 records in
+0+1 records out
+204240 bytes (204 kB) copied, 0.018024 s, 11.3 MB/s
+embedded@ubuntu:~/Mercury/110523$ <strong>gcc -Wall unowfs.c -o unowfs</strong>
+embedded@ubuntu:~/Mercury/110523$ <strong>./unowfs owfs.img </strong>
+Extracting 140 files from OWFS version 1 image...
+
+common.js [1467]
+css_help.css [480]
+css_main.css [552]
+custom.js [253]
+help.js [817]
+menu.js [2259]
+banner.htm [736]
+bottom1.htm [242]
+bottom2.htm [243]
+logo.htm [832]
+AssignedIpAddrListHelpRpm.htm [747]
+BackNRestoreHelpRpm.htm [817]
+ChangeLoginPwdHelpRpm.htm [899]
+DateTimeCfgHelpRpm.htm [426]
+DMZHelpRpm.htm [626]
+DomainFilterHelpRpm.htm [1121]
+FireWallHelpRpm.htm [623]
+FixMapCfgHelpRpm.htm [451]
+L2tpCfgHelpRpm.htm [910]
+LanArpBindingHelpRpm.htm [1005]
+LanArpBindingListHelpRpm.htm [1167]
+LanDhcpServerHelpRpm.htm [1018]
+LanMacFilterHelpRpm.htm [1071]
+MacCloneCfgHelpRpm.htm [608]
+ManageControlHelpRpm.htm [606]
+MiscHelpRpm.htm [920]
+NetworkCfgHelpRpm.htm [600]
+PeanutHullDdnsHelpRpm.htm [497]
+PingHelpRpm.htm [464]
+PPPoECfgAdvHelpRpm.htm [973]
+PPPoECfgFailAuthReasonHelpRpm.htm [1315]
+PPPoECfgFailOtherReasonHelpRpm.htm [866]
+PPPoECfgFailResponseReasonHelpRpm.htm [1216]
+PPPoECfgHelpRpm.htm [1047]
+PptpCfgHelpRpm.htm [909]
+QoSCfgSOHOHelpRpm.htm [1447]
+RestoreDefaultCfgHelpRpm.htm [665]
+SpecialAppHelpRpm.htm [1466]
+StaticRouteTableHelpRpm.htm [395]
+SysRebootHelpRpm.htm [423]
+SystemStatisticHelpRpm.htm [797]
+UpnpCfgHelpRpm.htm [589]
+VirtualServerHelpRpm.htm [1397]
+WanDhcpPlusCfgHelpRpm.htm [839]
+WanDynamicIpCfgHelpRpm.htm [819]
+WanDynamicIpCfgHelpRpm_8021X.htm [1210]
+WanIpFilterHelpRpm.htm [1403]
+WanStaticIpCfgHelpRpm.htm [664]
+WanStaticIpCfgHelpRpm_8021X.htm [1080]
+WlanAdvHelpRpm.htm [684]
+WlanMacFilterHelpRpm.htm [1202]
+WlanNetworkHelpRpm.htm [981]
+WlanSecurityHelpRpm.htm [1260]
+WlanStationHelpRpm.htm [414]
+WlanWpsChkModeHelpRpm.htm [849]
+WlanWpsHelpRpm.htm [1133]
+arc.gif [70]
+bgColor.jpg [418]
+bg_title1.jpg [217]
+empty.gif [53]
+logo.jpg [703]
+minus.gif [67]
+plus.gif [72]
+pw.gif [68]
+sp.gif [67]
+str_err.js [5910]
+str_menu.js [1378]
+AdvScrRpm.htm [2049]
+AssignedIpAddrListRpm.htm [899]
+AuthError.htm [952]
+BakNRestoreRpm.htm [1054]
+ChangeLoginPwdRpm.htm [1359]
+confUploadErrorRpm.htm [713]
+DateTimeCfgRpm.htm [2677]
+DiagnosticRpm.htm [2209]
+DMZRpm.htm [1042]
+DomainFilterAdvRpm.htm [1473]
+DomainFilterRpm.htm [1670]
+errorPage.htm [753]
+FireWallRpm.htm [1161]
+FirmwareUpdateTemp.htm [1405]
+FixMapCfgAdvRpm.htm [1392]
+FixMapCfgRpm.htm [1793]
+Index.htm [639]
+L2TPCfgRpm.htm [3490]
+LanArpBindingAdvRpm.htm [1292]
+LanArpBindingFindRpm.htm [2294]
+LanArpBindingListRpm.htm [1241]
+LanArpBindingRpm.htm [2002]
+LanDhcpServerRpm.htm [1528]
+LanMacFilterAdvRpm.htm [1257]
+LanMacFilterRpm.htm [1692]
+MacCloneCfgRpm.htm [1554]
+ManageControlRpm.htm [1665]
+MenuRpm.htm [1055]
+MiscShowRpm.htm [1079]
+NetworkCfgRpm.htm [1347]
+PeanutHullDdnsRpm.htm [2026]
+PingIframeRpm.htm [1553]
+popupSiteSurveyRpm.htm [1821]
+PPPoECfgAdvRpm.htm [1890]
+PPPoECfgRpm.htm [4169]
+PPTPCfgRpm.htm [3514]
+QoSCfgSOHORpm.htm [3319]
+restart.htm [1833]
+RestoreDefaultCfgRpm.htm [792]
+SoftwareUpgradeRpm.htm [1293]
+SpecialAppAdvRpm.htm [2088]
+SpecialAppRpm.htm [1713]
+StaticRouteTableAdvRpm.htm [1181]
+StaticRouteTableRpm.htm [1560]
+StatusRpm.htm [4094]
+SysRebootRpm.htm [733]
+SystemLogRpm.htm [972]
+SystemStatisticRpm.htm [2383]
+UpnpCfgRpm.htm [1299]
+VirtualServerAdvRpm.htm [1934]
+VirtualServerRpm.htm [1702]
+WanDhcpPlusCfgRpm.htm [2231]
+WanDynamicIpCfgRpm.htm [3307]
+WanDynamicIpCfgRpm_8021X.htm [2099]
+WanIpFilterAdvRpm.htm [1474]
+WanIpFilterRpm.htm [2202]
+WanStaticIpCfgRpm.htm [2685]
+WanStaticIpCfgRpm_8021X.htm [1827]
+WlanAdvRpm.htm [2108]
+WlanMacFilterAdvRpm.htm [1302]
+WlanMacFilterRpm.htm [2242]
+WlanNetworkRpm.htm [6083]
+WlanSecCheck.htm [658]
+WlanSecurityRpm.htm [5439]
+WlanStationRpm.htm [1377]
+WlanWpsChkModeRpm.htm [1622]
+WlanWpsRpm.htm [1602]
+WzdEndRpm.htm [1366]
+WzdPPPoERpm.htm [1137]
+WzdStartRpm.htm [1007]
+WzdStaticIpRpm.htm [1185]
+WzdWanTypeRpm.htm [996]
+WzdWlanRpm.htm [4818]
+
+Extracted 140 files to ./owfs-root/</pre>
+</blockquote>
+<p>Although we now have the files extracted from the firmware image, they are still compressed. Unfortunately, the file utility doesn&#8217;t recognize the extracted files, and Googling for &#8217;5A 00 00 80&#8242; didn&#8217;t turn up anything useful. Given the lack of strings in the firmware image, it is likely that the remainder of the firmware is also compressed, making code analysis impossible without first decompressing the data (there appear to be no standard compression or archive headers elsewhere in the firmware).</p>
+<p>Since I don&#8217;t have one of these routers myself, this is where I&#8217;ve stopped. Looking at some internal <a href="http://img-1.product.pchome.net/VtNIazJ/bE_522vn22/bn9/zBMSNgKhfkEuH.jpg">images</a> of these devices, it appears that they do have a serial port. Simply observing the debug output from the boot loader and OS during start up may reveal some hints on where to go from here, and if nothing else it should be possible to dump the SPI flash chip in order to get the boot loader code.</p>
+<p>So if anyone can shed some further light on how these files are compressed, let me know!</p>
+<p><strong>UPDATE:</strong></p>
+<p>ghjm and insn left comments regarding the compression used for these files. They are LZMA:23 and can be decompressed with p7zip/lzmadec:</p>
+<blockquote>
+<pre>embedded@ubuntu:~/Mercury/110523/owfs-root$ <strong>for FILE in *; do mv $FILE $FILE.7z &amp;&amp; p7zip -d $FILE.7z; done</strong>
+...
+7-Zip (A) 9.04 beta  Copyright (c) 1999-2009 Igor Pavlov  2009-05-30
+p7zip Version 9.04 (locale=en_US.utf8,Utf16=on,HugeFiles=on,1 CPU)
+
+Processing archive: UpnpCfgRpm.htm.7z
+
+Extracting  UpnpCfgRpm.htm
+
+Everything is Ok
+
+Size:       3882
+Compressed: 1299
+
+7-Zip (A) 9.04 beta  Copyright (c) 1999-2009 Igor Pavlov  2009-05-30
+p7zip Version 9.04 (locale=en_US.utf8,Utf16=on,HugeFiles=on,1 CPU)
+
+Processing archive: VirtualServerAdvRpm.htm.7z
+
+Extracting  VirtualServerAdvRpm.htm
+
+Everything is Ok
+
+Size:       5762
+Compressed: 1934
+...
+<strong> </strong></pre>
+</blockquote>
+<p>Thanks guys!</p>
+<p>&nbsp;</p>
+<p><strong>UPDATE #2:</strong></p>
+<p>After some further probing, I&#8217;ve concluded that this firmware is definitely VxWorks based. Whether this file system is exclusive to VxWorks I can&#8217;t say for sure, but I wouldn&#8217;t be surprised if it was.</p>
+<p><strong>UPDATE #3:</strong></p>
+<p>It looks like Ruben from IOActive has a little more <a href="http://blog.ioactive.com/2012/02/solving-little-mystery.html">insight</a> into this file system. As suspected it is a VxWorks pseudo file system, called MemFS (aka, Wind River management file system). Thanks to Ruben and Sergio!</p>
+											</div><!-- .entry-content -->
+
+
+					<div class="entry-utility">
+						<span class="bl_bookmark">Bookmark the  <a href="http://www.devttys0.com/2011/06/mystery-file-system/" title="Permalink to Mystery File System" rel="bookmark">permalink</a>. </span>											</div><!-- .entry-utility -->
+				</div><!-- #post-## -->
+
+				<div id="nav-below" class="navigation">
+					<div class="nav-previous"><a href="http://www.devttys0.com/2011/06/firmware-patching-fixing-the-tew-632brp/" rel="prev"><span class="meta-nav">&laquo;</span> Firmware Patching: Fixing the TEW-632BRP</a></div>
+					<div class="nav-next"><a href="http://www.devttys0.com/2011/06/binwalk-v0-3-4-released/" rel="next">Binwalk v0.3.4 Released! <span class="meta-nav">&raquo;</span></a></div>
+				</div><!-- #nav-below -->
+
+				
+			<div id="comments">
+
+
+			<h3 id="comments-title">
+				40 Responses to <em>Mystery File System</em>			</h3>
+
+	<ol class="commentlist">
+			
+			<li class="comment even thread-even depth-1" id="li-comment-1523">
+		<div id="comment-1523">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/3c26394bcd9f362fa8d1b6015d09e784?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">fuzzynyanko</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1523">
+			June 26, 2011 at 5:44 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>I must give you props for an awesome job of documenting your findings. It was clear and very understandable to me</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1523#respond' onclick='return addComment.moveForm("comment-1523", "1523", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-1524">
+		<div id="comment-1524">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/98e5e1f8fb2da8322a032e3ff2d7e668?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn"><a href='http://t-a-w.blogspot.com/' rel='external nofollow' class='url'>Tomasz Wegrzanowski</a></cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1524">
+			June 26, 2011 at 5:55 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>It reminds me of reverse engineering various formats used by Empire Total War. They were often a lot more complicated, but basic workflow was similar, and at least they never bothered with serious nonstandard compression.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1524#respond' onclick='return addComment.moveForm("comment-1524", "1524", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1525">
+		<div id="comment-1525">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/48b53f3f075668b8c4230cb1d4d442d4?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">stone_tape</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1525">
+			June 26, 2011 at 5:58 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Awesome post.</p>
+<p>Good luck with finishing this &#8216;project&#8217;!</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1525#respond' onclick='return addComment.moveForm("comment-1525", "1525", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-1526">
+		<div id="comment-1526">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/69373dd357457e2d7e3403f92c724a01?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn"><a href='http://eeng.net' rel='external nofollow' class='url'>mycall</a></cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1526">
+			June 26, 2011 at 5:58 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Go ahead and change the 5A 00 00 80 to 5D 00 00 80 and see what happens.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1526#respond' onclick='return addComment.moveForm("comment-1526", "1526", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1527">
+		<div id="comment-1527">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d2f8c35bc8fbed9867306c7dcc4d14ec?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Drew</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1527">
+			June 26, 2011 at 6:05 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>I saw this on /r/programming&#8230; </p>
+<p>Absolutely fantastic write-up. I have no skin in this game but found it very interesting. Thanks for doing this.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1527#respond' onclick='return addComment.moveForm("comment-1527", "1527", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-1528">
+		<div id="comment-1528">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/b23f581449085ebe3bab6b516cf4421c?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn"><a href='http://michalmoroz.com' rel='external nofollow' class='url'>Michał Moroz</a></cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1528">
+			June 26, 2011 at 6:19 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Maybe the microcontroller&#8217;s name could shed some light on the filesystem used in the device? For example, Michochip has it&#8217;s own MPFS2 file system which was designed primarily for storing static web files.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1528#respond' onclick='return addComment.moveForm("comment-1528", "1528", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://idelit.com/index.php?page=168' rel='external nofollow' class='url'>IDELIT</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1530">
+		<div id="comment-1530">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/599e897a60a35ebdf779732a29a1c167?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">ghjm</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1530">
+			June 26, 2011 at 6:49 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>p7zip can decompress these files:</p>
+<p>for a in `ls` do mv $a $a.7z; done<br />
+for a in `ls *.7z` do 7z e $a; done</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1530#respond' onclick='return addComment.moveForm("comment-1530", "1530", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-1531">
+		<div id="comment-1531">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/627f0a46a5ea5729951b8224833ca653?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn"><a href='http://amerine.net' rel='external nofollow' class='url'>Mark Turner</a></cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1531">
+			June 26, 2011 at 6:54 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Did you attempt a decompress using LZMA? I assume you did. My guess is that without the magic bytes it would fail.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1531#respond' onclick='return addComment.moveForm("comment-1531", "1531", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1532">
+		<div id="comment-1532">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/599e897a60a35ebdf779732a29a1c167?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">ghjm</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1532">
+			June 26, 2011 at 7:01 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>p7zip recognizes them as &#8220;LZMA:23&#8243;</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1532#respond' onclick='return addComment.moveForm("comment-1532", "1532", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-1533">
+		<div id="comment-1533">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/be28d6bfbcea2b98ea165590ccd31a2d?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">jerkface</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1533">
+			June 26, 2011 at 7:28 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Hacked by Chinese</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1533#respond' onclick='return addComment.moveForm("comment-1533", "1533", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1534">
+		<div id="comment-1534">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/ecbd7b050e100ba4dc9c4f635eb01c0f?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">insn</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1534">
+			June 26, 2011 at 7:29 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>I just tried this and it works:<br />
+mkdir decompressed<br />
+for i in *; do lzmadec  decompressed/$i; done</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1534#respond' onclick='return addComment.moveForm("comment-1534", "1534", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-1535">
+		<div id="comment-1535">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/ecbd7b050e100ba4dc9c4f635eb01c0f?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">insn</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1535">
+			June 26, 2011 at 7:32 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Seems like some characters got eaten:<br />
+lzmadec \ decompressed/$i; done</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1535#respond' onclick='return addComment.moveForm("comment-1535", "1535", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1537">
+		<div id="comment-1537">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/a194650e513894bcbd8049ebab5bd549?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn"><a href='http://www.antigamer.com' rel='external nofollow' class='url'>PENIX</a></cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1537">
+			June 26, 2011 at 7:43 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Please post TL;DR summary.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1537#respond' onclick='return addComment.moveForm("comment-1537", "1537", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-craig bypostauthor odd alt thread-odd thread-alt depth-1" id="li-comment-1538">
+		<div id="comment-1538">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6909980e321852bc16b799e38b300daf?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Craig</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1538">
+			June 26, 2011 at 8:21 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>@mycall, Mark Turner:</p>
+<p>Tried changing the magic bytes to 5D 00 00 80, but still couldn&#8217;t decompress with standard lzma utility.</p>
+<p>@ghjm, insn:</p>
+<p>p7zip did the job beautifully! Odd that file didn&#8217;t have a signature for it though (actually not that odd I guess since LZMA technically doesn&#8217;t have a magic signature block). Thanks for the tip!</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1538#respond' onclick='return addComment.moveForm("comment-1538", "1538", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1539">
+		<div id="comment-1539">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/1161c1c8fa54a1f40246f8d9a07a284f?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">russell</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1539">
+			June 26, 2011 at 8:50 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>I couldn&#8217;t figure out why you were including , then I realized that it exports the uint32_t type&#8230;why not just use  or ?</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1539#respond' onclick='return addComment.moveForm("comment-1539", "1539", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-craig bypostauthor odd alt thread-odd thread-alt depth-1" id="li-comment-1540">
+		<div id="comment-1540">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6909980e321852bc16b799e38b300daf?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Craig</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1540">
+			June 26, 2011 at 9:03 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>@Michał Moroz:</p>
+<p>I don&#8217;t have the router so I don&#8217;t know exactly what processor it uses, but I doubt it&#8217;s microcontroller based. Probably an Atheros SoC or something along those lines.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1540#respond' onclick='return addComment.moveForm("comment-1540", "1540", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1543">
+		<div id="comment-1543">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/e0af73595b6563b98be2b1f3684c29c2?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Aihal</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1543">
+			June 26, 2011 at 10:53 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Awesome job!</p>
+<p>Here&#8217;s a little patch i did for those who may want to compile this on Windows <img src="http://www.devttys0.com/wp-includes/images/smilies/icon_wink.gif" alt=";)" class="wp-smiley" /> </p>
+<p><a href="http://pastebin.com/BdBADFLF" rel="nofollow">http://pastebin.com/BdBADFLF</a></p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1543#respond' onclick='return addComment.moveForm("comment-1543", "1543", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-1544">
+		<div id="comment-1544">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d23a7137c5af39362340c558139dd8ae?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">jack</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1544">
+			June 26, 2011 at 11:02 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Absolutely fascinating and well written write-up, thanks for sharing!</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1544#respond' onclick='return addComment.moveForm("comment-1544", "1544", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1547">
+		<div id="comment-1547">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/33991ebd8eae9c54fa05eb4732d165dc?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Ant</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1547">
+			June 27, 2011 at 4:05 am</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>@Michał Moroz: I don&#8217;t think it&#8217;s MPFS as that file system starts with an &#8220;MPFS&#8221; signature.<br />
+There&#8217;s an example MPFS v2.1 file system header over here:<br />
+<a href="http://www.plugandprogram.com/microchip_mpfs2-1-filesystem-ref" rel="nofollow">http://www.plugandprogram.com/microchip_mpfs2-1-filesystem-ref</a></p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1547#respond' onclick='return addComment.moveForm("comment-1547", "1547", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-1548">
+		<div id="comment-1548">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6486f85dc7cfdb4457f3c4e05bab2541?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Dario</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1548">
+			June 27, 2011 at 5:08 am</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Very instresting article. I had to do the same with a custom file system used in Digimon Digital Card Battle (US and J)(PSX).<br />
+It had some .drv files, that lucky were uncompressed, and inside, all the .tim .str, a DEBUG folder ^^ with map files inside, and more stuff.<br />
+The jap version even had a demo of some kind of game i don&#8217;t even know what was about because it was 100% in japanese, so counld even figure out, what it was, and pressing the short/long text didn&#8217;t help much.</p>
+<p>Love this kind of article, please do more like this, if it can be a bit little more advanced / H4Xx0r level, much better <img src="http://www.devttys0.com/wp-includes/images/smilies/icon_razz.gif" alt=":P" class="wp-smiley" /> </p>
+<p>my suggestion of hardware i would like to see is one of those cheap chinese MP4s that use a RockChip soc. Not linux based but intresting in fact as the hardware has a lot of potencial o explore</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1548#respond' onclick='return addComment.moveForm("comment-1548", "1548", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1549">
+		<div id="comment-1549">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/b001aaf07c2d275483f6a0fe16448b95?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">chpie</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1549">
+			June 27, 2011 at 8:00 am</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>very cool <img src="http://www.devttys0.com/wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley" />  <img src="http://www.devttys0.com/wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley" />  <img src="http://www.devttys0.com/wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley" />  !</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1549#respond' onclick='return addComment.moveForm("comment-1549", "1549", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-1550">
+		<div id="comment-1550">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/0da7166e72b0877cfa26892a6f62cd19?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">ak</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1550">
+			June 27, 2011 at 8:45 am</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>great writeup! thanks!</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1550#respond' onclick='return addComment.moveForm("comment-1550", "1550", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1552">
+		<div id="comment-1552">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/a2728f91bcbe3460f0e15fe4ef263dfe?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">anon</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1552">
+			June 27, 2011 at 2:01 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Wonderful write up!</p>
+<p>@PENIX, get lost.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1552#respond' onclick='return addComment.moveForm("comment-1552", "1552", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-1553">
+		<div id="comment-1553">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/7c9aa768e965ceffe8d84fbbe494bbeb?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">kass</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1553">
+			June 27, 2011 at 3:46 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>great job! very educating.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1553#respond' onclick='return addComment.moveForm("comment-1553", "1553", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1554">
+		<div id="comment-1554">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6fd9d41bb0e0762c8131c205c88e828e?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Mike B</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1554">
+			June 27, 2011 at 3:54 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>This was very interesting to read.  Thanks for sharing.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1554#respond' onclick='return addComment.moveForm("comment-1554", "1554", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-1556">
+		<div id="comment-1556">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/8357260cb0018190686f892ff6c05dab?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Simon</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1556">
+			June 27, 2011 at 9:46 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Awesome findings, excellent write up. Keep it up, Bro!</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1556#respond' onclick='return addComment.moveForm("comment-1556", "1556", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1561">
+		<div id="comment-1561">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/86da5f4c3e8987070ea4c533a831a929?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Mikuslaw</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1561">
+			June 28, 2011 at 7:22 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Wow,<br />
+I greatly appreciate your posts. It gives insight how it can be done. Do you know maybe of any more sources on this topic which could be helpful.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1561#respond' onclick='return addComment.moveForm("comment-1561", "1561", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-craig bypostauthor odd alt thread-odd thread-alt depth-1" id="li-comment-1563">
+		<div id="comment-1563">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6909980e321852bc16b799e38b300daf?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Craig</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1563">
+			June 29, 2011 at 12:16 am</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>@Mikuslaw:</p>
+<p>Unfortunately I don&#8217;t know of any big RE communities that are focused on embedded systems. Although focused specifically on routers, OpenWRT&#8217;s site is a good resource. Also OpenRCE is a great reverse engineering site in general, and there are some embedded-specific discussions there.</p>
+<p>Do a Google video search for &#8216;reverse engineering embedded systems&#8217;, there are some good conference videos that you might find interesting.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1563#respond' onclick='return addComment.moveForm("comment-1563", "1563", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-1567">
+		<div id="comment-1567">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/86da5f4c3e8987070ea4c533a831a929?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Mikuslaw</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1567">
+			June 29, 2011 at 3:43 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Thank you. It&#8217;s a great place to start!</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1567#respond' onclick='return addComment.moveForm("comment-1567", "1567", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-1570">
+		<div id="comment-1570">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/f2830d72f086d2cdc8ac5b4f1333c3cd?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn"><a href='http://segment6.blogspot.com/' rel='external nofollow' class='url'>⬡</a></cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-1570">
+			July 1, 2011 at 9:54 am</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>This reminds me a lot of my work with reversing Nintendo 64 games. The &#8220;file table&#8221; containing offsets and sizes, an LZ-based file compression format with a magic identifier not seen elsewhere, all very similar. The only big difference is that N64 games&#8217; files tend not to have names, and are referenced only by their offset.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=1570#respond' onclick='return addComment.moveForm("comment-1570", "1570", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://www.devttys0.com/2011/07/reverse-engineering-vxworks-firmware-wrt54gv8/' rel='external nofollow' class='url'>/dev/ttyS0 &raquo; Blog Archive &raquo; Reverse Engineering VxWorks Firmware: WRT54Gv8</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-2024">
+		<div id="comment-2024">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d66823b07db04166888b8f1d97d825a0?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Rahat</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-2024">
+			October 11, 2011 at 8:13 am</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>I have been trying really hard to reverse Engineer my Sagem Gigaset SX682 WiMax modem firmware to find a way to change my MAC without tearing the device apart.</p>
+<p>The OS is independent and not Linux with no documentation on the web at all.</p>
+<p>Any chance you can help a little?<br />
+ Here&#8217;s the link : <a href="http://banglagamer.com/attachment.php?attachmentid=11974&#038;d=1315223899" rel="nofollow">http://banglagamer.com/attachment.php?attachmentid=11974&#038;d=1315223899</a></p>
+<p>Thanks in Advance!</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=2024#respond' onclick='return addComment.moveForm("comment-2024", "2024", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-2383">
+		<div id="comment-2383">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/255bd726a0bc717ff9e7a6a3d5f8abdb?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">sezkar</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-2383">
+			December 5, 2011 at 10:02 am</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Hi<br />
+  We have a Vxworks bin file. I extracted the zlib portion and changed the html file content  and then loaded into the device.Sadly it failed stating chksum failure.Even in the original hexdump of the file changing a single value is throwing chksum failed when loading to the device. Suggestions please.</p>
+<p>I hope the file is having chksum embedded into it.<br />
+How to find it and modify it.</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=2383#respond' onclick='return addComment.moveForm("comment-2383", "2383", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-2783">
+		<div id="comment-2783">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/b22fbf1f20b0d171e14131dce12b6d2b?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Sergio Rivaldi</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-2783">
+			March 6, 2012 at 4:28 am</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Hey, I don&#8217;t know if you&#8217;ve seen this yet, but it looks Ruben over at IOactive managed to solve the one last little detail of the mystery: the file system is MemFS.  Check out the IOActive blog for more info.<br />
+<a href="http://blog.ioactive.com/2012/02/solving-little-mystery.html" rel="nofollow">http://blog.ioactive.com/2012/02/solving-little-mystery.html</a></p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=2783#respond' onclick='return addComment.moveForm("comment-2783", "2783", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-craig bypostauthor odd alt depth-2" id="li-comment-2837">
+		<div id="comment-2837">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/6909980e321852bc16b799e38b300daf?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Craig</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-2837">
+			March 10, 2012 at 6:05 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Awesome info, thanks for the link Sergio!</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=2837#respond' onclick='return addComment.moveForm("comment-2837", "2837", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-3308">
+		<div id="comment-3308">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/134f5e886e92a7bef1bf1f7e000f9f1b?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">Jinto</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-3308">
+			April 20, 2012 at 2:01 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Great Job! Is there anyway we can see how the extracted and changed files are repacked  into the firmware? And checksum changed etc. which can then be actually copied into the router?</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=3308#respond' onclick='return addComment.moveForm("comment-3308", "3308", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment odd alt depth-2" id="li-comment-5483">
+		<div id="comment-5483">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/d590ca1580965cdd44f5bfdb09b8a022?s=40&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">tsgan</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-5483">
+			November 26, 2012 at 1:32 pm</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>How about repacking the files to image and fix checksum? Are the any tool to do that?</p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=5483#respond' onclick='return addComment.moveForm("comment-5483", "5483", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="post pingback">
+		<p>Pingback: <a href='http://james.slaterspage.com/hacking-the-amx-nxa-wap250g-access-point-with-a-raspberry-pi/' rel='external nofollow' class='url'>Hacking the AMX NXA-WAP250G Access Point (with a Raspberry Pi) | James Slater</a></p>
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-11778">
+		<div id="comment-11778">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/83712b042196d16f3548b86dd2e8b39e?s=40&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D40&amp;r=G' class='avatar avatar-40 photo' height='40' width='40' /><cite class="fn">blithermx</cite> <span class="says">says:</span>
+
+
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.devttys0.com/2011/06/mystery-file-system/#comment-11778">
+			April 12, 2013 at 3:35 am</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Hi,</p>
+<p>I have a problem with a DVBS firmware file. I can&#8217;t extract it.</p>
+<p>With binwalk I get the following:</p>
+<p>DECIMAL   	HEX       	DESCRIPTION<br />
+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-<br />
+131200    	0&#215;20080   	LZMA compressed data, properties: 0x6C, dictionary size: 8388608 bytes, uncompressed size: 6323336 bytes<br />
+2097280   	0&#215;200080  	LZMA compressed data, properties: 0x6C, dictionary size: 8388608 bytes, uncompressed size: 2419340 bytes</p>
+<p>But there is no file system</p>
+<p>With the Hex Editor I found interesting strings:</p>
+<p>NCRCbootloader</p>
+<p>Smaincode<br />
+S3606T2-1.0.0</p>
+<p>I&#8217;ve tried with &#8220;dd&#8221; to create lzma files but they are not valid files.</p>
+<p>I would appreciate you help, thanks <img src="http://www.devttys0.com/wp-includes/images/smilies/icon_wink.gif" alt=";)" class="wp-smiley" /> </p>
+</div>
+
+		<div class="reply">
+			<a class='comment-reply-link' href='/2011/06/mystery-file-system/?replytocom=11778#respond' onclick='return addComment.moveForm("comment-11778", "11778", "respond", "218")'>Reply</a>		</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	
+	</ol>
+
+	
+								<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2011/06/mystery-file-system/#respond" style="display:none;">Cancel reply</a></small></h3>
+									<form action="http://www.devttys0.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+																			<p class="comment-notes">Your email address will not be published. Required fields are marked <span class="required">*</span></p>							<p class="comment-form-author"><label for="author">Name <span class="required">*</span></label> <input id="author" name="author" type="text" value="" size="30" aria-required='true' /></p>
+<p class="comment-form-email"><label for="email">Email <span class="required">*</span></label> <input id="email" name="email" type="text" value="" size="30" aria-required='true' /></p>
+<p class="comment-form-url"><label for="url">Website</label> <input id="url" name="url" type="text" value="" size="30" /></p>
+												<p class="comment-form-comment"><label for="comment">Comment</label> <textarea id="comment" name="comment" cols="45" rows="8" aria-required="true"></textarea></p>						<p class="form-allowed-tags">You may use these <abbr title="HyperText Markup Language">HTML</abbr> tags and attributes:  <code>&lt;a href=&quot;&quot; title=&quot;&quot;&gt; &lt;abbr title=&quot;&quot;&gt; &lt;acronym title=&quot;&quot;&gt; &lt;b&gt; &lt;blockquote cite=&quot;&quot;&gt; &lt;cite&gt; &lt;code&gt; &lt;del datetime=&quot;&quot;&gt; &lt;em&gt; &lt;i&gt; &lt;q cite=&quot;&quot;&gt; &lt;strike&gt; &lt;strong&gt; </code></p>						<p class="form-submit">
+							<input name="submit" type="submit" id="submit" value="Post Comment" />
+							<input type='hidden' name='comment_post_ID' value='218' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+						</p>
+						<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="7e10a2f3ff" /></p><script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/akismet/_inc/form.js?ver=3.0.0'></script>
+<p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="141"/></p>					</form>
+							</div><!-- #respond -->
+			
+</div><!-- #comments -->
+
+
+						</div><!-- #content -->
+			<div id="primary" class="widget-area" role="complementary">
+		
+				
+				
+			<ul class="xoxo">
+				<li id="search-2" class="widget-container widget_search"> 
+<form method="get" id="searchform"
+action="http://www.devttys0.com//">
+<input type="text" value="Search"
+name="s" id="s"
+onblur="if (this.value == '')
+{this.value = 'Search';}"
+onfocus="if (this.value == 'Search')
+{this.value = '';}" />
+<input type="submit" id="searchsubmit" value="OK" />
+</form></li>		<li id="recent-posts-2" class="widget-container widget_recent_entries">		<h3 class="widget-title">Recent Posts</h3>		<ul>
+					<li>
+				<a href="http://www.devttys0.com/2014/05/hacking-the-dsp-w215-again-again-again/">Hacking the DSP-W215, Again, Again, Again</a>
+						</li>
+					<li>
+				<a href="http://www.devttys0.com/2014/05/hacking-the-dsp-w215-again-again/">Hacking the DSP-W215, Again, Again</a>
+						</li>
+					<li>
+				<a href="http://www.devttys0.com/2014/05/hacking-the-dspw215-again/">Hacking the DSP-W215, Again</a>
+						</li>
+					<li>
+				<a href="http://www.devttys0.com/2014/05/hacking-the-d-link-dsp-w215-smart-plug/">Hacking the D-Link DSP-W215 Smart Plug</a>
+						</li>
+					<li>
+				<a href="http://www.devttys0.com/2014/04/jtag-slides/">JTAG Slides</a>
+						</li>
+				</ul>
+		</li><li id="recent-comments-2" class="widget-container widget_recent_comments"><h3 class="widget-title">Recent Comments</h3><ul id="recentcomments"><li class="recentcomments">Craig on <a href="http://www.devttys0.com/2014/05/hacking-the-dsp-w215-again-again/#comment-127552">Hacking the DSP-W215, Again, Again</a></li><li class="recentcomments">Craig on <a href="http://www.devttys0.com/2014/05/hacking-the-d-link-dsp-w215-smart-plug/#comment-127549">Hacking the D-Link DSP-W215 Smart Plug</a></li><li class="recentcomments">fyk on <a href="http://www.devttys0.com/2014/05/hacking-the-dsp-w215-again-again/#comment-127369">Hacking the DSP-W215, Again, Again</a></li><li class="recentcomments"><a href='http://www.wpt.co.in/embedded-system/' rel='external nofollow' class='url'>Amrik Singh</a> on <a href="http://www.devttys0.com/training/#comment-126249">Training</a></li><li class="recentcomments">Craig on <a href="http://www.devttys0.com/2014/05/hacking-the-dsp-w215-again-again/#comment-125972">Hacking the DSP-W215, Again, Again</a></li></ul></li><li id="archives-2" class="widget-container widget_archive"><h3 class="widget-title">Archives</h3>		<ul>
+	<li><a href='http://www.devttys0.com/2014/05/'>May 2014</a></li>
+	<li><a href='http://www.devttys0.com/2014/04/'>April 2014</a></li>
+	<li><a href='http://www.devttys0.com/2014/03/'>March 2014</a></li>
+	<li><a href='http://www.devttys0.com/2014/02/'>February 2014</a></li>
+	<li><a href='http://www.devttys0.com/2013/12/'>December 2013</a></li>
+	<li><a href='http://www.devttys0.com/2013/11/'>November 2013</a></li>
+	<li><a href='http://www.devttys0.com/2013/10/'>October 2013</a></li>
+	<li><a href='http://www.devttys0.com/2013/07/'>July 2013</a></li>
+	<li><a href='http://www.devttys0.com/2013/06/'>June 2013</a></li>
+	<li><a href='http://www.devttys0.com/2013/04/'>April 2013</a></li>
+	<li><a href='http://www.devttys0.com/2013/03/'>March 2013</a></li>
+	<li><a href='http://www.devttys0.com/2013/02/'>February 2013</a></li>
+	<li><a href='http://www.devttys0.com/2013/01/'>January 2013</a></li>
+	<li><a href='http://www.devttys0.com/2012/12/'>December 2012</a></li>
+	<li><a href='http://www.devttys0.com/2012/11/'>November 2012</a></li>
+	<li><a href='http://www.devttys0.com/2012/10/'>October 2012</a></li>
+	<li><a href='http://www.devttys0.com/2012/09/'>September 2012</a></li>
+	<li><a href='http://www.devttys0.com/2012/08/'>August 2012</a></li>
+	<li><a href='http://www.devttys0.com/2012/07/'>July 2012</a></li>
+	<li><a href='http://www.devttys0.com/2012/06/'>June 2012</a></li>
+	<li><a href='http://www.devttys0.com/2012/04/'>April 2012</a></li>
+	<li><a href='http://www.devttys0.com/2012/03/'>March 2012</a></li>
+	<li><a href='http://www.devttys0.com/2012/02/'>February 2012</a></li>
+	<li><a href='http://www.devttys0.com/2012/01/'>January 2012</a></li>
+	<li><a href='http://www.devttys0.com/2011/12/'>December 2011</a></li>
+	<li><a href='http://www.devttys0.com/2011/11/'>November 2011</a></li>
+	<li><a href='http://www.devttys0.com/2011/09/'>September 2011</a></li>
+	<li><a href='http://www.devttys0.com/2011/08/'>August 2011</a></li>
+	<li><a href='http://www.devttys0.com/2011/07/'>July 2011</a></li>
+	<li><a href='http://www.devttys0.com/2011/06/'>June 2011</a></li>
+	<li><a href='http://www.devttys0.com/2011/05/'>May 2011</a></li>
+	<li><a href='http://www.devttys0.com/2010/12/'>December 2010</a></li>
+		</ul>
+</li><li id="categories-2" class="widget-container widget_categories"><h3 class="widget-title">Categories</h3>		<ul>
+	<li class="cat-item cat-item-34"><a href="http://www.devttys0.com/category/electronics/" title="View all posts filed under Electronics">Electronics</a>
+</li>
+	<li class="cat-item cat-item-22"><a href="http://www.devttys0.com/category/embedded-systems/" title="View all posts filed under Embedded Systems">Embedded Systems</a>
+</li>
+	<li class="cat-item cat-item-30"><a href="http://www.devttys0.com/category/hardware/" title="View all posts filed under Hardware">Hardware</a>
+</li>
+	<li class="cat-item cat-item-23"><a href="http://www.devttys0.com/category/microcontrollers/" title="View all posts filed under Microcontrollers">Microcontrollers</a>
+</li>
+	<li class="cat-item cat-item-11"><a href="http://www.devttys0.com/category/news/" title="View all posts filed under News">News</a>
+</li>
+	<li class="cat-item cat-item-28"><a href="http://www.devttys0.com/category/reverse-engineering/" title="View all posts filed under Reverse Engineering">Reverse Engineering</a>
+</li>
+	<li class="cat-item cat-item-4"><a href="http://www.devttys0.com/category/security/" title="View all posts filed under Security">Security</a>
+</li>
+	<li class="cat-item cat-item-12"><a href="http://www.devttys0.com/category/tools/" title="View all posts filed under Tools">Tools</a>
+</li>
+	<li class="cat-item cat-item-17"><a href="http://www.devttys0.com/category/tutorial/" title="View all posts filed under Tutorial">Tutorial</a>
+</li>
+	<li class="cat-item cat-item-20"><a href="http://www.devttys0.com/category/tutorials/" title="View all posts filed under Tutorials">Tutorials</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="http://www.devttys0.com/category/uncategorized/" title="View all posts filed under Uncategorized">Uncategorized</a>
+</li>
+		</ul>
+</li><li id="linkcat-3" class="widget-container widget_links"><h3 class="widget-title">Links</h3>
+	<ul class='xoxo blogroll'>
+<li><a href="http://www.reaversystems.com/" title="ReaverPro">Reaver Systems</a></li>
+<li><a href="http://www.eevblog.com/">EEVblog</a></li>
+<li><a href="http://www.hackaday.com">Hack A Day</a></li>
+
+	</ul>
+</li>
+<li id="meta-2" class="widget-container widget_meta"><h3 class="widget-title">Meta</h3>			<ul>
+						<li><a href="http://www.devttys0.com/wp-login.php">Log in</a></li>
+			<li><a href="http://www.devttys0.com/feed/" title="Syndicate this site using RSS 2.0">Entries <abbr title="Really Simple Syndication">RSS</abbr></a></li>
+			<li><a href="http://www.devttys0.com/comments/feed/" title="The latest comments to all posts in RSS">Comments <abbr title="Really Simple Syndication">RSS</abbr></a></li>
+<li><a href="https://wordpress.org/" title="Powered by WordPress, state-of-the-art semantic personal publishing platform.">WordPress.org</a></li>			</ul>
+</li>			</ul>
+
+			<ul class="xoxo">
+							</ul>
+			
+			
+						
+		</div><!-- #primary .widget-area -->
+
+ <!-- 1c -->		</section><!-- #container -->
+
+	<div style="clear:both;"></div>
+
+	</div> <!-- #forbottom -->
+	</div><!-- #main -->
+
+
+	<footer id="footer" role="contentinfo">
+		<div id="colophon">
+		
+			
+			
+		</div><!-- #colophon -->
+
+		<div id="footer2">
+		
+				<div style="text-align:center;clear:both;padding-top:4px;" >
+		<a href="http://www.devttys0.com/" title="/dev/ttyS0" rel="home">
+			/dev/ttyS0</a> | Powered by <a target="_blank" href="http://www.cryoutcreations.eu" title="Mantra Theme by Cryout Creations">Mantra</a> &amp; <a target="_blank" href="http://wordpress.org/"
+			title="Semantic Personal Publishing Platform">  WordPress.		</a>
+	</div><!-- #site-info -->
+<div class="socials" id="sfooter">
+			<a target="_blank" rel="nofollow" href="https://twitter.com/devttyS0" class="socialicons social-Twitter" title="Twitter"><img alt="Twitter" src="http://www.devttys0.com/wp-content/themes/mantra/images/socials/Twitter.png" /></a></div>			
+		</div><!-- #footer2 -->
+
+	</footer><!-- #footer -->
+
+</div><!-- #wrapper -->
+
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shCore.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushAS3.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushBash.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushColdFusion.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/third-party-brushes/shBrushClojure.js?ver=20090602'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushCpp.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushCSharp.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushCss.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushDelphi.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushDiff.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushErlang.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/third-party-brushes/shBrushFSharp.js?ver=20091003'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushGroovy.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushJava.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushJavaFX.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushJScript.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/third-party-brushes/shBrushLatex.js?ver=20090613'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/third-party-brushes/shBrushMatlabKey.js?ver=20091209'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/third-party-brushes/shBrushObjC.js?ver=20091207'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushPerl.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushPhp.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushPlain.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushPowerShell.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushPython.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/third-party-brushes/shBrushR.js?ver=20100919'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushRuby.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushScala.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushSql.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushVb.js?ver=3.0.9'></script>
+<script type='text/javascript' src='http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushXml.js?ver=3.0.9'></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "http://www.devttys0.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?ver=3.0.9";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+</script>
+<link rel='stylesheet' id='mantra-mobile-css'  href='http://www.devttys0.com/wp-content/themes/mantra/style-mobile.css?ver=3.9.1' type='text/css' media='all' />
+<script type='text/javascript' src='http://www.devttys0.com/wp-includes/js/comment-reply.min.js?ver=3.9.1'></script>
+
+</body>
+</html>

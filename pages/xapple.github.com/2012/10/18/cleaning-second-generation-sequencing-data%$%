@@ -1,0 +1,320 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="author" content="" />
+    <title>Cleaning second-generation sequencing data</title>
+
+    <link rel="stylesheet" href="/assets/themes/binky/styles.css">
+    <link rel="stylesheet" href="/assets/themes/binky/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header"><a href="/">My blog</a></h1>
+        <p class="header"></p>
+        <ul>
+          
+          
+          
+
+
+  
+    
+      
+      	
+      	<li><a href="/index.html">Index</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/atom.xml">Atom Feed</a></li>
+      	
+      
+    
+  
+
+
+
+        </ul>
+        
+        
+        <div class="misc vcard">
+          <h4>author</h4>
+          <ul>
+            
+            
+            <li class="github"><a href="http://github.com/xapple/" rel="me">github.com/xapple</a></li>
+            
+            
+            
+            
+            
+            
+          </ul>
+        </div><!-- misc -->
+        
+      </header>
+
+      <section>
+      
+<section>
+  <h1>Cleaning second-generation sequencing data</h1>
+
+  <p>As the title implies, I would like to talk about the pre-processing of sequencing reads. Originally, this was intended to be a question posted on the bioinformatics forum <a href='http://www.biostars.org'>biostars.org</a> but I discovered, once I finished writing it, that the content length exceeded the limit that is imposed. That is how this text became my first blog post. Nonetheless, I still want to get all your answers, comments, suggestions and protests just as much as if I had loaded it as a question on the forum. To be honest, the main purpose this post is to start a discussion on the subject. So, please, don&#8217;t hesitate to go to the comment section afterwards.</p>
+
+<p>Preparing and cleaning data from second-generation sequencing data is an important step that heavily influences downstream analysis. This is certainly the case for metagenomics-type studies that don&#8217;t necessarily proceed by first performing an assembly. Yet this appears to be a vaguely described step with no clear procedures established. In other words, I think this cleaning business hasn&#8217;t been sorted out. There are a multitude of solutions out there all advertising themselves as reliable, but often poorly documented and badly coded. It seems it is more a question of habit and favorite command line options then a real methodology. I would like to ask everyone working with such problems: how do you solve them ?</p>
+
+<p>So that the answers you might come up with are the best possible, I would like to provide some context and describe the problem fully. To do this I will first present my case and summarize the purpose of cleaning sequencing data. Finally, I will list and rant about the softwares I have tried until now.</p>
+
+<p>My case is the following: I got a few SFF files back from the sequencing facility for a study on some bacterial communities in lakes. They are the result of a &#8220;shotgun metagenomics&#8221; experiment where all DNA in an environment sample is randomly sheered and sequenced. The machine used is a 454 GS FLX Titanium. Some runs are standard, some runs are paired-end with a linker sequence that I know. Having computed a few statistics on the data with the nice program called <a href='http://www.bioinformatics.babraham.ac.uk/projects/fastqc/'>fastqc</a>, it is evident that it needs heavy cleaning before further analysis, like do probably all sequencing runs of the kind. One would not dare operate gene calling on the reads as they stand. An example output of this program is shown below:</p>
+
+<p><img src='http://i.imgur.com/mrttS.png' alt='Example fastqc graph' /></p>
+
+<p>As far as I can see, the goals of cleaning can be summarized in eleven points:</p>
+
+<ol>
+<li><strong>Duplicates</strong> (removal of artificial ones, conservation of natural ones)</li>
+
+<li><strong>Homopolymers</strong> (removal or correction)</li>
+
+<li><strong>Chimeras</strong> (removal or correction)</li>
+
+<li><strong>Contamination</strong> (e.g. removal of sequencing from homo sapiens)</li>
+
+<li><strong>Undesirables</strong> (e.g. removing viral sequences)</li>
+
+<li><strong>Low complexity regions</strong> (removal or masking)</li>
+
+<li><strong>Low quality regions</strong> (removal or masking)</li>
+
+<li><strong>Tags, adaptors</strong> (removal)</li>
+
+<li><strong>Barcodes</strong> (removal or demultiplexing)</li>
+
+<li><strong>Splitting</strong> (only for paired-end reads).</li>
+
+<li><strong>Other</strong> (e.g. extra trimming of bases at beginning and end of reads)</li>
+</ol>
+
+<p>I have done a short survey of the current tools, and can only report a dis-satisfactory situation. Let&#8217;s look at what the community of biologist/programmers has produced. The tools are listed in no particular order. This review is an attempt at venting my frustration and tries to capture the reactions of a new user coming to the field of DNA sequence analysis, starting with the pre-treatement of the data.</p>
+
+<h2 id='fastxtoolkit'><a href='http://hannonlab.cshl.edu/fastx_toolkit/'>FASTX-Toolkit</a></h2>
+
+<p>Looking at their webpage, the project hasn&#8217;t been updated since 2010 and marks itself as version <code>0.0.13</code>. It is written in a mix of c, perl and shell and composed of individual scripts one has to glue together. It does not handle <em>Duplicates, Contamination, Chimeras, Splitting</em> or <em>Homopolymers</em>. Briefly looking at the source, I didn&#8217;t see any unittests present. When specifying a quality score, the documentation does not tell us what standard is expected <a href='http://en.wikipedia.org/wiki/FASTQ_format#Encoding'>(Illumina 1.0, Illumina 1.3 or Illumina 1.8+)</a>.</p>
+
+<p>It is licensed under AGLP3. There is no paper associated.</p>
+
+<h2 id='prinseq'><a href='http://edwards.sdsu.edu/cgi-bin/prinseq/prinseq.cgi'>PRINSEQ</a></h2>
+
+<p>The main interface to this one seems to be via a web browser. That works great when you have only a few samples but manually uploading each one or having to interact with a GUI every time one wants to try different parameters is too cumbersome. They do have a standalone downloadable version of the code but it&#8217;s a &#8220;Lite&#8221; version with less options. Looking at the code there was no trace of unittests. On the front page they have a very discouraging notice setup in a red background reading approximately &#8220;Until version 0.19.5 sequences were not being trimmed correctly when using some options please rerun your data if you used prior versions&#8221;.</p>
+
+<p>It is written in perl and GPL3 licensed. Link to the <a href='http://bioinformatics.oxfordjournals.org/content/27/6/863.long'>paper</a>.</p>
+
+<h2 id='comavs_clean_reads'><a href='http://bioinf.comav.upv.es/clean_reads/index.html'>COMAV&#8217;s clean_reads</a></h2>
+
+<p>The longer and more detailed documentation when compared to the others is welcome. When testing it for the first time, I specified <code>-e 10,0</code> as an option telling the program to clip ten bases from the start of every read. However, the resulting FASTQ file had reads with unchanged lengths. I reported this to the developer and he replied it was indeed a bug in the program. He also admitted in his post that there were no unittests and probably never will be because the projects was dropped in favor of writing an other new cleaning pipeline.</p>
+
+<p>It is written in python and GPL3 licensed. Link to the <a href='http://www.biomedcentral.com/1471-2164/12/285'>paper</a>.</p>
+
+<h2 id='pyrocleaner'><a href='https://mulcyber.toulouse.inra.fr/projects/pyrocleaner/'>Pyrocleaner</a></h2>
+
+<p>The installation of this one is pretty hard as one dependency is a piece of proprietary and commercial software from Roche. An other dependency is obtained only by filling a lengthly form, e-mailing someone at Washington University and waiting for his reply. A particular installation procedure, but if you are ready to do all that you will find one of the rare packages that takes care of artificial duplicates at the same as quality control. Unfortunately, my testing showed that it is extremely slow. On one dataset it ran over 30 hours and produced a result that was quantified by <a href='http://www.bioinformatics.babraham.ac.uk/projects/fastqc/'>fastqc</a> to still have &gt;30% duplication levels. On the paired-end dataset it did not complete and produced the following error:</p>
+
+<pre><code>Traceback (most recent call last):
+  File &quot;~/bin/pyrocleaner&quot;, line 783, in &lt;module&gt;
+    [seqs, in_shot_gun, del_by_length_pe, del_by_ns_pe, del_by_complexity_pe, del_by_quality_pe, del_by_pairends] = filter_pairends(seqs, options)
+  File &quot;~/bin/pyrocleaner&quot;, line 446, in filter_pairends
+    sub_seq1.id = id + &quot;.r&quot;
+AttributeError: &#39;list&#39; object has no attribute &#39;id&#39;</code></pre>
+
+<p>The code that can be downloaded from the Toulouse INRA website contains no unittests. This is a pity as they advertised in the paper the fact that they &#8220;used technical validation run produced in collaboration with Roche&#8221;.</p>
+
+<p>It is written in python and GLP3 licensed. Link to the <a href='http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3117718/'>paper</a>.</p>
+
+<h2 id='qiime'><a href='http://www.biomedcentral.com/1471-2105/11/187'>QIIME</a></h2>
+
+<p>Indubitably, the hardest of package to install in this list. On the website the suggestion is made to download a virtualbox image to run the software. Making a virtualbox is usually a glaring symptom of a program that has become so complicated to install in a *nix environment, that one has to distribute a full operating system set up just right so as to make it work. The drawbacks of running computationally heavy operations inside a virtualized machine are too strong anyways to consider this approach. I was unable to install it on a machine where I did not have super user access so reverted to install it on a slower personal machine that I controlled. Even that <a href='https://gist.github.com/3811253'>failed on my first attempt</a>. If one finally gets access to a working version of QIIME, the <a href='http://qiime.sourceforge.net/scripts/split_libraries.html'>script</a> <code>split_libraries.py</code> takes SFF files and will provide some types quality control. It includes homopolymers, demultiplexing and can use a sliding quality window (why a read is discarded instead of trimmed when the window goes below the given threshold but is still larger than the minimum sequence length is beyond me). However, even if one doesn&#8217;t want to demultiplex, the script still demands a particular &#8220;mapping file&#8221;. My tests have shown that it bugs if the reads don&#8217;t have barcodes and the <code>-b 0</code> option is given. Qiime has many other irritating idiosyncrasies such as not functioning if ones uses underscores in the name of ones samples in the mapping file. Qiime needs pairs of FASTA and QUAL files, and cannot use FASTQ files. A separate script <code>identify_chimeric_seqs.py</code> can identify sequences that are chimeric. Over all, it is was a highly un-userfirendly experience. An extra downside for me was the fact that the support forums are hosted on Google Groups. To get a google account you have to provide a valid phone number on which they will call you or text a validation code. Qiime does have an extensive suite of unittests. This did not however prevent them from releasing code that outputs <a href='http://qiime.wordpress.com/2011/12/03/bug-identified-in-make_distance_histograms-py-affecting-all-versions-of-qiime/'>erroneous p-values</a> without noticing it for quite some time. Just the other day, another script was discovered to be performing an <a href='http://qiime.wordpress.com/2012/10/26/qiime-is-now-hosted-on-github-and-bug-in-compare_alpha_diversity-py/'>incorrect t-statistic</a>. This raises once again the question of the trust we place in code that is not reviewed or tested. They also have a worrisome quantity of issues in their <a href='https://github.com/qiime/qiime/issues?state=open'>github tracker</a>.</p>
+
+<p>Qiime is written in python and appears to be GLP1 licensed. Link to the <a href='http://www.nature.com/nmeth/journal/vaop/ncurrent/full/nmeth.f.303.html'>paper</a>.</p>
+
+<h2 id='mothur'><a href='http://www.mothur.org/'>Mothur</a></h2>
+
+<p>Easier to install than Qiime, but equal in ignoring user friendliness. In this project, they actually created their own replicate of a shell as an interface to the software. Happily, there is nonetheless a &#8220;batch mode&#8221; for Mothur that enables you to start non interactive subprocesses though with a non standard syntax. Other nuisances include that it doesn&#8217;t support the FASTQ format and only takes combination of FASTA and QUAL files. As usual, nothing is said about the expected standard to be used in the QUAL file. One cannot specify an output directory for the operation and the trimmed read file is always created in the input file&#8217;s directory, regardless of the current directory. Mothur does not just use the standard output alone. It will, at every command, duplicate its standard output into endless logfiles. The <a href='http://www.mothur.org/wiki/Trim.seqs'>documentation for cleaning reads</a> describes some of the parameters for the <code>Trim</code> command but a bit vague on several parts. Does the <code>qtrim</code> option also apply to <code>qwindowaverage</code> ? What does the <code>removelast</code> parameter really do ? Not the slightest trace of tests within <a href='https://github.com/mothur/mothur'>the code provided</a> is to be found.</p>
+
+<p>Mothur is written in C++ with some fortran and is GPL3 licensed. Link to the <a href='http://www.ncbi.nlm.nih.gov/pubmed/19801464'>paper</a>.</p>
+
+<h2 id='cdhit454'><a href='http://weizhong-lab.ucsd.edu/public/?q=softwares/cd-hit-454'>CD-HIT-454</a></h2>
+
+<p>This program only handles the duplicate read analysis while ignoring all other aspects of the cleaning problem. It seems to be, with Pyrocleaner, the only solution to provide this. The parameters all have default values but are poorly described. One has no idea how to fine tune the parameters for one&#8217;s own use or how changing them affects the output. Plus, when using it, should one run it before or after trimming ? As trimming could make two artificial duplicate sequences more similar to one another helping CD-HIT detect them, as well as have the opposite effect of separating two duplicate reads preventing their detection by CD-HIT. Also, should it intervene before or after homopolymer removal ? What about paired-end datasets, are the reads artificially duplicated after ligation or before ? I have found no review, articles or documentation that addresses all these questions. publications that use this tool just seem to say &#8220;Oh yeah yeah, we CDhitted them in our pipeline, don&#8217;t worry&#8221; without extra detail. No sign of unit tests with the code. In fact on the CD-HIT website one can read the following message: &#8220;Bugs: There are a number of outstanding bugs in the current implementation. We are always looking for volunteers [&#8230;]&#8221;.</p>
+
+<p>Written in C++ with some perl and licensed under GPL2. Link to the <a href='http://www.biomedcentral.com/1471-2105/11/187'>paper</a>.</p>
+
+<h2 id='qtrim'><a href='http://hiv.sanbi.ac.za/software/qtrim'>Qtrim</a></h2>
+
+<p>Consists of a single 1800 line long badly written python file. It is not free software as commercial users may need to pay a license fee to the South African National Bioinformatics Institute. No information about PHRED format expected. No homopolymer, no duplication etc. No unit tests. Draws some nice plots. No paper associated.</p>
+
+<h2 id='ngs_qc_toolkit'><a href='http://59.163.192.90:8080/ngsqctoolkit/'>NGS QC toolkit</a></h2>
+
+<p>A collection of 14 perl scripts to be used individually. Supports FASTQ variants with homopolymer trimming and can even draw some graphs. However, no tests. Didn&#8217;t find any license information except this: &#8220;All rights about the toolkit are reserved to National Institute of Plant Genome Research, Aruna Asaf Ali Marg, New Delhi&#8221;. Link to the <a href='http://www.plosone.org/article/info:doi/10.1371/journal.pone.0030619'>paper</a>.</p>
+
+<h2 id='others'>Others</h2>
+
+<p>To make this post complete here are a few other tools which I didn&#8217;t take as much time to test. However, the story is often similar to the previous ones you have just read.</p>
+
+<ol>
+<li><a href='http://code.google.com/p/biopieces/'>Trimmomatic</a> (Specific for Illumina reads)</li>
+
+<li><a href='http://code.google.com/p/biopieces/'>biopieces</a> (Piece together single scripts)</li>
+
+<li><a href='http://www.scbi.uma.es/portal/index.php?option=com_content&amp;view=article&amp;id=81:seqtrimnext&amp;catid=25:tools&amp;Itemid=60'>SeqtrimNEXT</a> (Calls CD-HIT)</li>
+</ol>
+
+<h2 id='conclusion'>Conclusion</h2>
+
+<p>Ideally, one would have a solution that is installable with the only command <code>easy_install --user supercleaner</code> and simply takes an SFF file as input while outputting a FASTQ file. By default these would come from the standard in and standard output and all other parameters would be optional. It would take care of all eleven aspects of cleaning mentioned above in a thoroughly tested manner. Such a software will probably never be available, but the situation could certainly be improved. I have the impression that preparing sequencing data for analysis is an obscure task in the current situation and that it is guided more by good prayers and trust on unknown code pieces rather than by scientific evidence and facts. What do you think ?</p>
+
+<h2 id='edit_1'><em>-Edit 1</em></h2>
+
+<p>One of the criticism I received from a reader of this post is that &#8221;<em>[&#8230;] scientists should concentrate on science, not design</em>&#8221;. While I agree with this statement in a broad scope, I don&#8217;t think it is a good argument for justifying the sloppiness with which some scientific software is written. Firstly, the difficulty of installation and then execution is maybe linked to a slight gain of time for the developer of the software, but how much time does it suck up from the countless users ? Each of these PhD, Postdocs and Professors now all have to stop doing science for an hour or two and start battling with IT problems. Better interfaces means more time doing science and focusing on problems that matter. Secondly, the lack of code review, validation and unittesting is certainly unscientific. The writing of tests for a program can be seen as part of the software design process, but isn&#8217;t it just as importantly a part of the scientific process ? Who checks that the method or simply the implementation of the algorithm described is accurate ? I haven&#8217;t played the publishing game much yet, but I know that we cannot count on the peer-review process to do this. From what I have seen, it seems that the reviewers don&#8217;t always try to install and execute the software that is provided with a submission, let alone try to criticize it. This has happened even in the case of methodology submissions.</p>
+
+<h2 id='edit_2'><em>-Edit 2</em></h2>
+
+<p>So, I continued playing a bit around with these tools after this post but my thesis must advance. The time I planned to dedicate at setting up this part of my analysis has run out and I need to move on to the next steps. For anyone interested, this is what I ended up putting in my pipeline. It&#8217;s just one more custom made script in the jungle of bioinformatic code and not anything special. It probably resembles what other people have been doing before me ! I will return to this part of the problem later if it proves necessary to the quality of the results produced further down.</p>
+
+<pre><code>#!/usr/bin/env python
+
+&quot;&quot;&quot;
+A custom made script to perform quality control on a
+set of nucleotide sequences coming from a sequencing experiment.
+Takes an SFF file on the standard in, and outputs a FASTQ file.
+
+You can use this script from the shell like this:
+$ supercleaner &lt; reads.sff &gt; reads.clean.fastq
+
+It needs these python modules installed:
+- biopython
+- numpy
+- sh
+
+And these binaries in your $PATH:
+- cd-hit-454
+
+Written by Lucas Sinclair.
+Kopimi.
+&quot;&quot;&quot;
+
+# Modules #
+import sys, argparse, tempfile, shutil
+import numpy, sh
+from Bio import SeqIO
+
+###############################################################################
+def test():
+    # Constants #
+    seq = &quot;TGACGGAGTGTAACTCGATG&quot;
+    scores = [31]*10 + [10]*10
+    assert len(seq) == len(scores)
+    # Make object #
+    from Bio.SeqRecord import SeqRecord
+    from Bio.Seq import Seq
+    read = SeqRecord(Seq(seq), id=&quot;test&quot;, name=&quot;test&quot;, description=&quot;test&quot;)
+    read.letter_annotations[&quot;phred_quality&quot;] = scores
+    # Trim it #
+    trimmed = trim([read], 10, 21, 5).next()
+    assert str(trimmed.seq) == &quot;TGACGGAGTGTA&quot;
+
+###############################################################################
+def trim(reads, minlength, threshold, windowsize):
+    for read in reads:
+        # Length #
+        if len(read) &lt; minlength: continue
+        # PHRED score #
+        scores = read.letter_annotations[&quot;phred_quality&quot;]
+        averaged = moving_average(scores, windowsize)
+        for i,value in enumerate(averaged):
+            if value &lt; threshold:
+                length = i+windowsize-1
+                if length &gt;= minlength:
+                    yield read[:length]
+                break
+        # All ok #
+        else:
+            yield read
+
+###############################################################################
+def moving_average(interval, windowsize):
+    window = numpy.ones(int(windowsize))/float(windowsize)
+    return numpy.convolve(interval, window, &#39;valid&#39;)
+
+###############################################################################
+minlength_help = &quot;&quot;&quot;Sequences below this length are discarded. Sequences higher
+or equal to this length proceed on to further quality control. Defaults to
+150 base pairs.&quot;&quot;&quot;
+threshold_help = &quot;&quot;&quot;Sequences falling below this quality will be trimmed.
+Defaults to 21.&quot;&quot;&quot;
+windowsize_help = &quot;&quot;&quot;The PHRED scores of each sequences will be averaged over
+a window of this size. Sequences are truncated when the average quality inside
+the window falls below the threshold such that no region of length *windowsize*
+can have an average quality below that of *threshold*. The sequence is trimmed
+regardless of the fact that downstream windows might again rise above the
+average quality score threshold. Defaults to 5 base pairs.&quot;&quot;&quot;
+
+###############################################################################
+if __name__ == &#39;__main__&#39;:
+    # Parse the shell arguments #
+    parser = argparse.ArgumentParser()
+    parser.description = sys.modules[__name__].__doc__
+    parser.formatter_class = argparse.RawDescriptionHelpFormatter
+    parser.add_argument(&quot;--minlength&quot;, help=minlength_help, default=150)
+    parser.add_argument(&quot;--threshold&quot;, help=threshold_help, default=21)
+    parser.add_argument(&quot;--windowsize&quot;, help=windowsize_help, default=5)
+    args = parser.parse_args()
+    # Temporary files #
+    tmp_dir = tempfile.mkdtemp()
+    trim_file = tmp_dir + &#39;/trimmed.fastq&#39;
+    clean_file = tmp_dir + &#39;/clean.fastq&#39;
+    log_file = tmp_dir + &#39;/cdhit.log&#39;
+    # Parse sequences #
+    reads = SeqIO.parse(sys.stdin, &quot;sff-trim&quot;)
+    trimmed = trim(reads, args.minlength, args.threshold, args.windowsize)
+    # Do it #
+    try: SeqIO.write(trimmed, trim_file, &#39;fastq&#39;)
+    except IOError: parser.error(&#39;ERROR: Could not read the standard in.&#39;)
+    except AssertionError: parser.error(&#39;Problem with the standard in.&#39;)
+    # Cluster #
+    cdhit = sh.Command(&#39;cd-hit-454&#39;)
+    parameters = [&#39;-g&#39;, 1, &#39;-c&#39;, 0.96, &#39;-T&#39;, 1, &#39;-M&#39;, 3000, &#39;-aS&#39;, 0.8]
+    cdhit(*parameters, i=trim_file, o=clean_file, _out=log_file)
+    # Print on standard out #
+    sh.cat(clean_file, _out=sys.stdout)
+    # Cleanup #
+    shutil.rmtree(tmp_dir)</code></pre>
+
+<h1 id='go_to_the_reddit_comment_section'><a href='http://www.reddit.com/r/bioinformatics/comments/11qzvh/cleaning_secondgeneration_sequencing_data_what_to/'>Go to the reddit comment section</a></h1>
+
+<h1 id='go_to_the_biosupport_answers_section'><a href='http://biosupport.se/questions/168/cleaning-second-generation-sequencing-data-what-to-do'>Go to the bio-support answers section</a></h1>
+
+  
+</section>
+
+
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
+</html>
+

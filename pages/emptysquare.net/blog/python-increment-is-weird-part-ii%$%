@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=1">
+    <title>Python&#39;s += Is Weird, Part II</title>
+    <link rel="stylesheet" type="text/css" href="/blog/theme/static/css/style.css">
+    <link rel="shortcut icon" href="/blog/theme/static/favicon.gif">
+    <link rel="EditURI" type="application/rsd+xml" title="RSD" href="/blog/rsd">
+    <link rel="alternate" type="application/rss+xml" title="A. Jesse Jiryu Davis - Feed" href="http://feeds.feedburner.com/emptysquare">
+    <meta name="description" content="A. Jesse Jiryu Davis&#39;s blog on Python, Tornado, MongoDB, Zen, and photography">
+    <meta name="author" content="A. Jesse Jiryu Davis">
+    <meta name="generator" content="Motor-Blog">
+    <!-- Twitter card stuff.-->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Python&#39;s += Is Weird, Part II">
+    <meta name="twitter:description" content="A. Jesse Jiryu Davis&#39;s blog on Python, Tornado, MongoDB, Zen, and photography">
+    <meta name="twitter:creator" content="@jessejiryudavis">
+    <meta name="twitter:domain" content="emptysqua.re">
+  </head>
+  <body class="single-body">
+    <div class="backgroundplaceholder1"></div>
+    <div class="backgroundplaceholder2"></div>
+    <div class="backgroundplaceholder3"></div>
+    <div class="backgroundplaceholder4"></div>
+    <div class="backgroundplaceholder5"></div>
+    <div class="backgroundplaceholder6"></div>
+    <div class="container">
+      <header class="main-header"><a href="/blog/" class="logo"></a>
+        <h1><a href="/blog/">A. Jesse Jiryu Davis</a>
+        </h1>
+<nav class="main-nav">
+  <ul>
+    <li class="nav-item menu-nav-item all-posts-nav-item"><a href="/blog/all-posts/">All Posts</a>
+    </li>
+    <li class="nav-item menu-nav-item feed-nav-item"><a href="/blog/feed/">Feed</a>
+    </li>
+    <li class="nav-item menu-nav-item about-nav-item"><a href="/blog/about/">About</a>
+    </li>
+    <li class="nav-item menu-nav-item photography-nav-item"><a href="/photography/">Photography</a>
+    </li>
+    <li class="nav-item nav-divider nav-divider-1">Categories:</li>
+    <li class="nav-item category-nav-item"><a href="/blog/category/mongo/" title="View all posts filed under Mongo">Mongo</a>
+    </li>
+    <li class="nav-item category-nav-item"><a href="/blog/category/motor/" title="View all posts filed under Motor">Motor</a>
+    </li>
+    <li class="nav-item category-nav-item"><a href="/blog/category/photography/" title="View all posts filed under Photography">Photography</a>
+    </li>
+    <li class="nav-item category-nav-item"><a href="/blog/category/programming/" title="View all posts filed under Programming">Programming</a>
+    </li>
+    <li class="nav-item category-nav-item"><a href="/blog/category/python/" title="View all posts filed under Python">Python</a>
+    </li>
+    <li class="nav-item category-nav-item"><a href="/blog/category/review/" title="View all posts filed under Review">Review</a>
+    </li>
+    <li class="nav-item category-nav-item"><a href="/blog/category/uncategorized/" title="View all posts filed under Uncategorized">Uncategorized</a>
+    </li>
+    <li class="nav-item category-nav-item"><a href="/blog/category/zen/" title="View all posts filed under Zen">Zen</a>
+    </li>
+    <li class="nav-item nav-divider nav-divider-2">&nbsp;</li>
+    <li class="nav-item search-item">
+      <form action="/blog/search/" method="get" class="search-form">
+        <input type="text" name="q" value="" id="search-input" class="search-text-input"/>
+        <input type="submit" value="search" id="search-submit" class="button search-button"/>
+      </form>
+    </li>
+  </ul>
+</nav>
+      </header>
+      <section>
+<article class="post">
+  <header>
+    <div class="post-meta">
+      <time title="Jan 2, 2013 0:28 PM" class="post-time">Jan 2, 2013</time><span class="byline"><span class="sep">&nbsp;&mdash;&nbsp;</span><span class="author">A. Jesse Jiryu Davis</span></span>
+    </div>
+    <h1 class="title"><a href="/blog/python-increment-is-weird-part-ii/">Python&#39;s += Is Weird, Part II</a>
+    </h1>
+  </header>
+  <!-- Include both summary and display content; CSS chooses which to show-->
+  <div class="post-summary"><a href="/blog/python-increment-is-weird-part-ii/"></a>
+  </div>
+  <div class="post-content"><p>I wrote the other day about two things I think are weird about Python's <code>+=</code> operator. <a href="http://emptysquare.net/blog/python-increment-is-weird/#comment-752873234">In the comments</a>, famed Twisted hacker Jean-Paul Calderone showed me something far, far weirder. This post is a record of me playing around and trying to understand it.</p>
+<p>To begin let's review what we know. Tuples are immutable in Python, so you can't increment a member of a tuple:</p>
+<div class="codehilite" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>x <span style="color: #666666">=</span> (<span style="color: #666666">0</span>,)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>x
+<span style="color: #808080">(0,)</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>x[<span style="color: #666666">0</span>] <span style="color: #666666">+=</span> <span style="color: #666666">1</span>
+<span style="color: #0040D0">Traceback (most recent call last):</span>
+  File <span style="color: #008000">&quot;&lt;stdin&gt;&quot;</span>, line <span style="color: #666666">1</span>, in &lt;module&gt;
+<span style="color: #FF0000">TypeError</span>: &#39;tuple&#39; object does not support item assignment
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>x
+<span style="color: #808080">(0,)</span>
+</pre></div>
+
+
+<p>That's fine. But here's the bizarre behavior Jean-Paul showed me: if you put a list in a tuple and use the <code>+=</code> operator to extend the list, the increment succeeds <strong>and</strong> you get a <code>TypeError</code>!:</p>
+<div class="codehilite" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>x <span style="color: #666666">=</span> ([],)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>x
+<span style="color: #808080">([],)</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>x[<span style="color: #666666">0</span>] <span style="color: #666666">+=</span> [<span style="color: #666666">1</span>]
+<span style="color: #0040D0">Traceback (most recent call last):</span>
+  File <span style="color: #008000">&quot;&lt;stdin&gt;&quot;</span>, line <span style="color: #666666">1</span>, in &lt;module&gt;
+<span style="color: #FF0000">TypeError</span>: &#39;tuple&#39; object does not support item assignment
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>x
+<span style="color: #808080">([1],)</span>
+</pre></div>
+
+
+<p>The equivalent statement using <code>extend</code> succeeds without the <code>TypeError</code>:</p>
+<div class="codehilite" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>x <span style="color: #666666">=</span> ([],)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>x[<span style="color: #666666">0</span>]<span style="color: #666666">.</span>extend([<span style="color: #666666">1</span>])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>x
+<span style="color: #808080">([1],)</span>
+</pre></div>
+
+
+<p>So what's going on with <code>+=</code>? As always, looking at the bytecode is a good step toward understanding. I'll compile and disassemble the statement <code>x[0] += [1]</code>, and add some annotations:</p>
+<div class="codehilite" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">dis</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>dis<span style="color: #666666">.</span>dis(<span style="color: #008000">compile</span>(<span style="color: #BA2121">&#39;x[0] += [1]&#39;</span>, <span style="color: #BA2121">&#39;&lt;string&gt;&#39;</span>, <span style="color: #BA2121">&#39;exec&#39;</span>))
+<span style="color: #808080">  1           0 LOAD_NAME                0 (x)</span>
+<span style="color: #808080">              3 LOAD_CONST               0 (0)</span>
+<span style="color: #808080">              6 DUP_TOPX                 2</span>
+<span style="background-color: #ffffcc"><span style="color: #808080">              -- put x[0] on the stack --</span>
+</span><span style="background-color: #ffffcc"><span style="color: #808080">              9 BINARY_SUBSCR            </span>
+</span><span style="color: #808080">             10 LOAD_CONST               1 (1)</span>
+<span style="color: #808080">             13 BUILD_LIST               1</span>
+<span style="background-color: #ffffcc"><span style="color: #808080">              -- do the &quot;+=&quot; --</span>
+</span><span style="background-color: #ffffcc"><span style="color: #808080">             16 INPLACE_ADD</span>
+</span><span style="color: #808080">             17 ROT_THREE           </span>
+<span style="background-color: #ffffcc"><span style="color: #808080">              -- store new value in x[0] --</span>
+</span><span style="background-color: #ffffcc"><span style="color: #808080">             18 STORE_SUBSCR</span>
+</span><span style="color: #808080">             19 LOAD_CONST               2 (None)</span>
+<span style="color: #808080">             22 RETURN_VALUE     </span>
+</pre></div>
+
+
+<p>(See Dan Crosta's <a href="http://late.am/post/2012/03/26/exploring-python-code-objects">Exploring Python Code Objects</a> for more on this technique).</p>
+<p>Looks like the statement puts a reference to <code>x[0]</code> on the stack, makes the list <code>[1]</code> and uses it to successfully extend the list in <code>x[0]</code>. But then the statement executes <code>STORE_SUBSCR</code>, which calls the C function <code>PyObject_SetItem</code>, which checks if the object supports item assignment. In our case the object is a tuple, so <code>PyObject_SetItem</code> throws the <code>TypeError</code>. Mystery solved.</p>
+<p>Is this a Python bug or just very surprising?</p>
+  </div>
+</article>
+<footer class="entry-meta">Categories:
+<a href="/blog/category/programming/" title="All posts in Programming">Programming</a>,
+<a href="/blog/category/python/" title="All posts in Python">Python</a>
+</footer>
+<nav class="nav-below">
+  <div class="nav-previous"><a href="/blog/mushrooms/" rel="prev"><span class="meta-nav">&larr;&nbsp;</span>Mushrooms</a>
+  </div>
+  <div class="nav-next"><a href="/blog/the-middlesteins-by-jami-attenberg/" rel="next">"The Middlesteins" by Jami Attenberg<span class="meta-nav">&nbsp;&rarr;</span></a>
+  </div>
+</nav>
+<div id="disqus_thread">
+  <script>var disqus_identifier = '50e46ccb53937451d2fe28b2';
+var disqus_shortname = 'emptysquare';
+
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+
+</script>
+  <noscript>
+    <Please>enable JavaScript to view the</Please><a href="http://disqus.com/?ref_noscript">comments</a>
+  </noscript><a href="http://disqus.com" class="dsq-brlink">
+    <Comments>powered by</Comments><span class="logo-disqus">Disqus.</span></a>
+</div>
+      </section>
+    </div>
+    <script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-41411917-1', 'emptysqua.re');
+ga('send', 'pageview');
+
+</script>
+  </body>
+</html>

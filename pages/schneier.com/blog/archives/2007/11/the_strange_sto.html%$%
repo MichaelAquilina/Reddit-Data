@@ -1,0 +1,1602 @@
+<!DOCTYPE html> 
+<html>
+<head>
+
+	
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width; initial-scale=1"/>
+
+	<link rel="STYLESHEET" type="text/css" href="https://www.schneier.com/main.css?v=20140620">
+	<link rel="alternate" type="application/atom+xml" title="Blog Feed (Atom 1.0)" href="https://www.schneier.com/blog/atom.xml">
+
+
+	<link rel="STYLESHEET" type="text/css" href="/scripts/jquery.socialshareprivacy.css">
+	<script type="text/javascript" src="/scripts/jquery-1.9.1.min.js"></script> 
+	<script type="text/javascript" src="/scripts/jquery.cookies.js"></script>
+	<script type="text/javascript" src="/scripts/jquery.socialshareprivacy.2.js"></script>
+	<script type="text/javascript">
+	// <![CDATA[
+	// define the default order of the buttons:
+	$.fn.socialSharePrivacy.settings.order = ['facebook', 'twitter', 'gplus'];
+	$.fn.socialSharePrivacy.settings.path_prefix = '/';
+	// ]]>
+	</script>
+
+
+
+	
+		<link rel="alternate" type="application/atom+xml" title="Comments on The Strange Story of Dual_EC_DRBG (Atom 1.0)" href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.xml" >
+	
+	
+		<link rel="prev" href="https://www.schneier.com/blog/archives/2007/11/illuminated_sit.html" title="Illuminated Site of the Week">
+	
+	
+		<link rel="next" href="https://www.schneier.com/blog/archives/2007/11/hushmail_turns.html" title="Hushmail Turns Data Over to Government">
+	
+
+	<script type="text/javascript" src="/blog/mt.js"></script>
+
+	<title>Schneier on Security: The Strange Story of Dual_EC_DRBG</title>
+
+</head>
+<body><div id="wrapper"><div id="main">
+	<header><div id="header">
+	<h1><a href="/">Schneier on Security</a></h1>
+	</div></header>
+	<nav><div class="nav" id="header-nav">
+<ul>
+		<li class="menu1 current"><a href="https://www.schneier.com/">Blog</a></li>
+		<li class="menu2"><a href="https://www.schneier.com/crypto-gram.html">Newsletter</a></li>
+		<li class="menu3"><a href="https://www.schneier.com/books.html">Books</a></li>
+    <li class="menu4"><a href="https://www.schneier.com/essays/">Essays</a></li>
+		<li class="menu5"><a href="https://www.schneier.com/news.html">News</a></li>
+		<li class="menu6"><a href="https://www.schneier.com/schedule.html">Schedule</a></li>
+		<li class="menu7"><a href="https://www.schneier.com/cryptography.html">Crypto</a></li>
+		<li class="menu8"><a href="https://www.schneier.com/about.html">About Me</a></li>
+	</ul>
+
+	</div></nav>
+
+
+<aside><div class="sidebar" id="sidebar-one">
+
+		<section><div class="sidesection" id="search-widget">
+		<h3>Search</h3>
+		<p class="small"><em>Powered by <a href="https://duckduckgo.com/">DuckDuckGo</a></em></p>
+		<form method="get" action="https://duckduckgo.com/">
+		<input type="hidden" name="kh" value="1"><!-- use https -->
+		<input id="search" name="q" size="15" maxlength="255">
+		<input type="submit" value="Go"><br>
+		<input type="radio" name="sites" id="searchblog" value="www.schneier.com/blog" checked><label for="searchblog">blog</label> <input type="radio" name="sites" id="searchessays" value="www.schneier.com/essay" ><label for="searchessays">essays</label>
+		<input type="radio" name="sites" id="searchall" value="www.schneier.com" ><label for="searchall">whole site</label>		</form>
+		</div></section>
+	
+		<section><div class="sidesection">
+		<h3>Subscribe</h3>
+		
+			<div id="subscription-buttons">
+				<a href="https://www.schneier.com/blog/atom.xml"><img alt="Atom Feed" src="https://www.schneier.com/images/rss-32px.png"></a>
+				<a href="https://www.facebook.com/bruce.schneier"><img alt="Facebook" src="https://www.schneier.com/images/facebook-32px.png"></a>
+				<a href="http://twitter.com/schneierblog/"><img alt="Twitter" src="https://www.schneier.com/images/twitter-32px.png"></a>
+				<a href="http://www.amazon.com/Schneier-on-Security/dp/B0053HDDWW/"><img alt="Kindle" src="https://www.schneier.com/images/kindle-32px.png"></a>
+				<a href="/crypto-gram-sub.html"><img alt="E-Mail Newsletter (Crypto-Gram)" src="https://www.schneier.com/images/email-32px.png"></a>
+			</div><!--#subscription-buttons-->
+		</div></section>
+
+	</div></aside>
+
+
+	
+	<div id="content">
+    
+ 	<div id="timetravel">
+		
+		<a class="earlier" href="https://www.schneier.com/blog/archives/2007/11/illuminated_sit.html">&larr; Illuminated Site of the Week</a>
+		
+		
+		<a class="later" href="https://www.schneier.com/blog/archives/2007/11/hushmail_turns.html">Hushmail Turns Data Over to Government &rarr;</a>
+		
+	</div>
+    
+<article><div class="article">
+	<script type="text/javascript">
+		// <![CDATA[
+		$(document).ready(function () {
+			$('#share001922').socialSharePrivacy({uri: 'https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html', title: 'The Strange Story of Dual_EC_DRBG'});
+			});
+		// ]]>
+	</script>
+	
+	<h2 class="entry" id="a001922">	The Strange Story of Dual_EC_DRBG</h2>
+	
+		
+	
+    
+	    <p>Random numbers are critical for cryptography: for encryption keys, random authentication challenges, initialization vectors, nonces, key-agreement schemes, generating prime numbers and so on. Break the random-number generator, and most of the time you break the entire security system. Which is why you should worry about a new random-number standard that includes an algorithm that is slow, badly designed and just might contain a backdoor for the National Security Agency.</p>
+
+<p>Generating random numbers isn't easy, and researchers have discovered lots of <a href="http://www.cs.virginia.edu/~rjg7v/annotated.html">problems and attacks</a> over the years. A recent <a href="http://eprint.iacr.org/2007/419">paper</a> found a flaw in the Windows 2000 random-number generator. Another <a href="http://eprint.iacr.org/2006/086.pdf">paper</a> found flaws in the Linux random-number generator. Back in 1996, an early version of SSL was <a href="http://www.ddj.com/windows/184409807">broken</a> because of flaws in its random-number generator. With John Kelsey and Niels Ferguson in 1999, I co-authored <a href="http://www.schneier.com/yarrow.html">Yarrow</a>, a random-number generator based on <a href="http://www.schneier.com/paper-prngs.html">our own cryptanalysis work</a>. I improved this design four years later -- and renamed it Fortuna -- in the book <a href="http://www.schneier.com/pc.html"><cite>Practical Cryptography</cite></a>, which I co-authored with Ferguson.</p>
+
+<p>The U.S. government released a new official standard for random-number generators this year, and it will likely be followed by software and hardware developers around the world. Called <a href="http://csrc.nist.gov/publications/nistpubs/800-90/SP800-90revised_March2007.pdf">NIST Special Publication 800-90</a> (.pdf), the 130-page document contains four different approved techniques, called DRBGs, or "Deterministic Random Bit Generators." All four are based on existing cryptographic primitives. One is based on hash functions, one on <a href="http://en.wikipedia.org/wiki/HMAC ">HMAC</a>, one on block ciphers and one on elliptic curves. It's smart cryptographic design to use only a few well-trusted cryptographic primitives, so building a random-number generator out of existing parts is a good thing.</p>
+
+<p>But one of those generators -- the one based on elliptic curves -- is not like the others. Called Dual_EC_DRBG, not only is it a mouthful to say, it's also three orders of magnitude slower than its peers. It's in the standard only because it's been championed by the NSA, which first proposed it years ago in a related standardization project at the American National Standards Institute.</p>
+
+<p>The NSA has always been intimately involved in U.S. cryptography standards -- it is, after all, expert in making and breaking secret codes. So the agency's participation in the NIST (the U.S. Commerce Department's National Institute of Standards and Technology) standard is not sinister in itself. It's only when you look under the hood at the NSA's contribution that questions arise.</p>
+
+<p>Problems with Dual_EC_DRBG <a href="http://eprint.iacr.org/2006/190">were</a> first <a href="http://eprint.iacr.org/2007/048">described</a> in early 2006. The math is complicated, but the general point is that the random numbers it produces have a small bias. The problem isn't large enough to make the algorithm unusable -- and Appendix E of the NIST standard describes an optional work-around to avoid the issue -- but it's cause for concern. Cryptographers are a conservative bunch: We don't like to use algorithms that have even a whiff of a problem.</p>
+
+<p>But today there's an even bigger stink brewing around Dual_EC_DRBG. In an <a href="http://rump2007.cr.yp.to/15-shumow.pdf">informal presentation</a> (.pdf) at the CRYPTO 2007 conference in August, Dan Shumow and Niels Ferguson showed that the algorithm contains a weakness that can only be described as a backdoor.</p>
+
+<p>This is how it works: There are a bunch of constants -- fixed numbers -- in the standard used to define the algorithm's elliptic curve. These constants are listed in Appendix A of the NIST publication, but nowhere is it explained where they came from. </p>
+
+<p>What Shumow and Ferguson showed is that these numbers have a relationship with a second, secret set of numbers that can act as a kind of skeleton key. If you know the secret numbers, you can predict the output of the random-number generator after collecting just 32 bytes of its output. To put that in real terms, you only need to monitor one <a href="http://en.wikipedia.org/wiki/Secure_Sockets_Layer ">TLS</a> internet encryption connection in order to crack the security of that protocol. If you know the secret numbers, you can completely break any instantiation of Dual_EC_DRBG.</p>
+
+<p>The researchers don't know what the secret numbers are. But because of the way the algorithm works, the person who produced the constants might know; he had the mathematical opportunity to produce the constants and the secret numbers in tandem. </p>
+
+<p>Of course, we have no way of knowing whether the NSA knows the secret numbers that break Dual_EC-DRBG. We have no way of knowing whether an NSA employee working on his own came up with the constants -- and has the secret numbers. We don't know if someone from NIST, or someone in the ANSI working group, has them. Maybe nobody does.</p>
+
+<p>We don't know where the constants came from in the first place. We only know that whoever came up with them could have the key to this backdoor. And we know there's no way for NIST -- or anyone else -- to prove otherwise.</p>
+
+<p>This is scary stuff indeed.</p>
+
+<p>Even if no one knows the secret numbers, the fact that the backdoor is present makes Dual_EC_DRBG very fragile. If someone were to solve just one instance of the algorithm's elliptic-curve problem, he would effectively have the keys to the kingdom. He could then use it for whatever nefarious purpose he wanted. Or he could publish his result, and render every implementation of the random-number generator completely insecure.</p>
+
+<p>It's possible to implement Dual_EC_DRBG in such a way as to protect it against this backdoor, by generating new constants with another secure random-number generator and then publishing the seed. This method is even in the NIST document, in Appendix A. But the procedure is optional, and my guess is that most implementations of the Dual_EC_DRBG won't bother.</p>
+
+<p>If this story leaves you confused, join the club. I don't understand why the NSA was so insistent about including Dual_EC_DRBG in the standard. It makes no sense as a trap door: It's public, and rather obvious. It makes no sense from an engineering perspective: It's too slow for anyone to willingly use it. And it makes no sense from a backwards-compatibility perspective: Swapping one random-number generator for another is easy.</p>
+
+<p>My recommendation, if you're in need of a random-number generator, is not to use Dual_EC_DRBG under any circumstances. If you have to use something in SP 800-90, use CTR_DRBG or Hash_DRBG.</p>
+
+<p>In the meantime, both NIST and the NSA have some explaining to do.</p>
+
+<p>This essay <a href="http://www.wired.com/politics/security/commentary/securitymatters/2007/11/securitymatters_1115">originally appeared</a> on Wired.com.</p>
+    
+	
+	
+	
+
+	<p class="entry-tags">Tags: <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=academic%20papers&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">academic papers</a>, <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=back%20doors&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">back doors</a>, <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=books&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">books</a>, <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=cryptography&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">cryptography</a>, <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=essays&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">essays</a>, <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=Linux&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">Linux</a>, <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=NIST&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">NIST</a>, <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=NSA&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">NSA</a>, <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=operating%20systems&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">operating systems</a>, <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=Practical%20Cryptography&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">Practical Cryptography</a>, <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=random%20numbers&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">random numbers</a>, <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=vulnerabilities&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">vulnerabilities</a>, <a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=Windows&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1" rel="tag">Windows</a></p>
+
+
+	
+	<p class="posted"><a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html">Posted on November 15, 2007 at  6:08 AM</a>
+	 &#8226; 
+	77 Comments
+	
+	</p>
+	<aside><div class="share" id="share001922"></div></aside>
+	</div></article>
+
+
+
+
+    
+    
+
+<h3 id="comments">Comments</h3>
+
+
+<article><div class="comment by-lolita-stays-anonymous" id="c216439">
+
+
+<p class="commentcredit"><span class="commenter">Lolita stays anonymous</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216439">November 15, 2007  7:19 AM</a>
+</p>
+
+<p>I think you nailed the why. It is not any of the people you listed who pushed for this algorithm with a back door, it is the ones you didn't mention.</p>
+
+<p>The only sane explanation is some official / person in power who kept on pushing for this, regardless of what the techies said.<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-n00b" id="c216440">
+
+
+<p class="commentcredit"><span class="commenter">n00b</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216440">November 15, 2007  7:21 AM</a>
+</p>
+
+<p>Maybe they are counting on the fact, that most of the programmers don't have crypto background and will just get the algorithm, test cases and go on implementing it.</p>
+
+<p>Other idea might be to later mandate it's use in some circumstances and have sort of key recovery mechanism without messy escrow or master keystore.</p>
+</div></article>
+
+
+
+<article><div class="comment by-matt" id="c216442">
+
+
+<p class="commentcredit"><span class="commenter">Matt</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216442">November 15, 2007  7:29 AM</a>
+</p>
+
+<p>I think perhaps you don't give them enough credit.  Have you considered the idea that Dual_EC_DRBG is a red herring, and the real threat remains hidden in one of the other algorithms?<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-nostromo" id="c216446">
+
+
+<p class="commentcredit"><span class="commenter">Nostromo</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216446">November 15, 2007  7:44 AM</a>
+</p>
+
+<p>I don't understand why anyone thinks it is a good idea to use crypto standards defined by the NSA. Of course they have a lot of experience in the field, and it is very valuable to have them review a proposed standard and point out its weaknesses. But they have an obvious interest in promoting the use of crypto that they can break. In the perpetual conflict between the government's desire to control and the people's desire to be free, they are simply on the wrong side.</p>
+</div></article>
+
+
+
+<article><div class="comment by-steve-laniel" id="c216454">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://laniels.org/" href="http://laniels.org/" rel="nofollow">Steve Laniel</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216454">November 15, 2007  7:52 AM</a>
+</p>
+
+<p>Bruce writes: "If you have to use something in SP 800-90 ...".</p>
+
+<p>This suggests that cryptographers shouldn't use something in SP 800-90. I'm not a cryptographer, so I ask: what should we be using as our PRNG?</p>
+</div></article>
+
+
+
+<article><div class="comment by-notallhomers" id="c216455">
+
+
+<p class="commentcredit"><span class="commenter">NotAllHomers</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216455">November 15, 2007  8:06 AM</a>
+</p>
+
+<p>Elliptic curves is the big clue here. </p>
+
+<p>Pythagoras is well understood by the NSA. They will always try to put a "back door" into public encryption schemes. The flaw in DES is a classic case in point for those in the know so these "new" revaluations are not so new after all. The random number generator problem  has been a favorite means to break a secure key for ages. Using the pit controller and reprogramming it to saturation on most home pc motherboards provides a good solution to the problem! </p>
+</div></article>
+
+
+
+<article><div class="comment by-karellen" id="c216464">
+
+
+<p class="commentcredit"><span class="commenter">Karellen</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216464">November 15, 2007  8:33 AM</a>
+</p>
+
+<p>NotAllHomers > Huh? You say that the NSA will always try to put back doors in encryption schemes, and then bring up the DES flaw that the NSA fixed?!?</p>
+
+<p>I do take it you're talking about changes they made to the S-box constants in 1978 before DES was finalised, making it more secure against differential cryptanalysis. Differential cryptanalysis which the NSA invented in 1974 and wasn't figured out by anyone else 'til 1990?[0]</p>
+
+<p>So make your mind up - are the NSA always trying to make algorithms more secure, or less?</p>
+
+<p>[0] <a href="http://en.wikipedia.org/wiki/Data_Encryption_Standard#NSA.27s_involvement_in_the_design" rel="nofollow">http://en.wikipedia.org/wiki/Data_Encryption_Standard#NSA.27s_involvement_in_the_design</a></p>
+</div></article>
+
+
+
+<article><div class="comment by-joe-patterson" id="c216466">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://www.terremark.com/" href="http://www.terremark.com/" rel="nofollow">Joe Patterson</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216466">November 15, 2007  8:50 AM</a>
+</p>
+
+<p>@Steve Laniel:</p>
+
+<p>Fortuna, of course!</p>
+</div></article>
+
+
+
+<article><div class="comment by-nicholas-weaver" id="c216474">
+
+
+<p class="commentcredit"><span class="commenter">Nicholas Weaver</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216474">November 15, 2007  9:05 AM</a>
+</p>
+
+<p>I think it may be a "all your eggs in one basket" thing, that Dual_EC_DRBG proves to be computationally equivelent to the elliptic curve problem for public keys, so if there is an algorithmic breakthrough whith bones the pRNG, it also bones the public key operations as well.  So if you have to do crisis management, it doesn't make the problem any worse.</p>
+
+<p><br />
+And because its something they have probably used for a LONG time, they want to make sure that all the old systems still apply to the "standard", rather than having to replace them.</p>
+
+<p><br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-matt" id="c216475">
+
+
+<p class="commentcredit"><span class="commenter">Matt</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216475">November 15, 2007  9:05 AM</a>
+</p>
+
+<p>Re: Karellen</p>
+
+<p>They only fixed it because it was widely known.  Wheels within wheels man, take the red pill and follow the rabbit hole.</p>
+</div></article>
+
+
+
+<article><div class="comment by-john" id="c216478">
+
+
+<p class="commentcredit"><span class="commenter">John</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216478">November 15, 2007  9:12 AM</a>
+</p>
+
+<p>Oops. RNGs have more uses than cryptography. In my time (long ago) linearly congruential generators were in common use. They were no good for cryptography, but quite good for statistical purposes. They also had the advantage of generating pseudo-random sequences that could be reproduced (a big point).</p>
+
+<p>But, in those days there was also a dearth of literature on non-linear generators (like nothing, a deafening silence), and some of my math friends suspected NSA influence.</p>
+
+<p>So, the latest NIST standard may prove excellent for general use, but remain suspect for crypto.</p>
+
+<p>That is nothing new.</p>
+
+<p>Crypto is a specialized field. I believe that to be used effectively in the private sphere, we would need Corporate Security Agencies (CSAs) analogous to the NSA for the Government. I have yet to see that happen.</p>
+</div></article>
+
+
+
+<article><div class="comment by-nyhm" id="c216480">
+
+
+<p class="commentcredit"><span class="commenter">Nyhm</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216480">November 15, 2007  9:15 AM</a>
+</p>
+
+<p>This is not directly related to RNG, but some other references regarding the U.S. gov't involvement in algorithm design from Bruce:</p>
+
+<p>Regarding prime number choices for DH and DSA standardization: Practical Cryptography (Ferguson,Schneier) Ch 12.9, pp.220-222: "Other parts of that same U.S. government (e.g., NSA, CIA, FBI) have a vested interest in being able to break into private communications."</p>
+
+<p>Somewhere (could not find the reference), Bruce stated that the U.S. gov't (NIST,NSA) would logically have stronger interest in providing strong _digital signature_ functions (vs. strong encryption), which would imply producing good hash algorithms. (*Please double-check this, as I have no reference.*)<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-dave-walker" id="c216485">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://blogs.sun.com/davew/" href="http://blogs.sun.com/davew/" rel="nofollow">Dave Walker</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216485">November 15, 2007  9:32 AM</a>
+</p>
+
+<p>It's interesting to compare and contrast this case, to the famous case of the NSA requesting the contents of the S-boxes be changed in the prototype which eventually became DES. The fame, here, came when differential cryptananalysis was discovered in the non-NSA world, and the prototype was found to be particularly vulnerable whereas production DES was rather less so.</p>
+
+<p>Yesterday, the NSA was making crypto stronger, without us knowing about it. Now, they might be introducing back doors.</p>
+
+<p>How times change.</p>
+</div></article>
+
+
+
+<article><div class="comment by-andrew" id="c216489">
+
+
+<p class="commentcredit"><span class="commenter">Andrew</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216489">November 15, 2007  9:45 AM</a>
+</p>
+
+<p>What about true hardware random number generators? They are becoming more common on various processors these days. The TI Omap series of ARM processors have them, as do the Cavium (and other) network processors. Given that some of these processors sell for only a few $, how hard can it really be for the big guys to add them to, say, an x86?<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-greg" id="c216492">
+
+
+<p class="commentcredit"><span class="commenter">greg</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216492">November 15, 2007  9:55 AM</a>
+</p>
+
+<p>I thought that any algo with constants should use a public method to generate  them or move them out of control of the designer. (aka n digits of pi or e).</p>
+
+<p>But more impressive is that insisting on published algorithm's is working. A hats of to the code breakers...NSA can't be that far head of the published literature any more. </p>
+</div></article>
+
+
+
+<article><div class="comment by-clive-robinson" id="c216494">
+
+
+<p class="commentcredit"><span class="commenter">Clive Robinson</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216494">November 15, 2007 10:11 AM</a>
+</p>
+
+<p>As Bruce says'</p>
+
+<p>"Generating random numbers isn't easy"</p>
+
+<p>"Problems with Dual_EC_DRBG were first described in early 2006. The math is complicated, but the general point is that the random numbers it produces have a small bias."</p>
+
+<p>Even non determanistic or True RNGs based on such things as radioactive decay have bias, that can be sufficiently predictable to weaken a system where it has not been taken into acount.</p>
+
+<p>Likewise Noise Resistors and diodes can be subject to external signals which would add bias to their output.</p>
+
+<p>And even interferance on the power cables in a building can have an effect on the output of any poorly designed physical RNG.</p>
+
+<p>Oh and all physical sources of randomness usually produce very little in the way of random bits in any given time frame.</p>
+
+<p>The usual suggestion for getting rid of bias and upping the bit rate is hashing a pool of entropy... Which unsurprisingly (due to complexity of the problem) has little real reasearch behind it, it just "feels right".</p>
+
+<p>Hashing has it's own problem, if your source of randomness goes wrong and becomes predictable after it has been hashed it will not be obvious to the casual or unskilled observer.</p>
+
+<p>And an entropy pool likewise has problems if an attacker can get access to any input to it (say via hitting the hard disk controler with lots of file access requests) they can eventually poison it to their advantage.</p>
+
+<p>So even when designing in a True Random Generator you need to be very carefull with what you use/buy.</p>
+</div></article>
+
+
+
+<article><div class="comment by-barney" id="c216495">
+
+
+<p class="commentcredit"><span class="commenter">Barney</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216495">November 15, 2007 10:15 AM</a>
+</p>
+
+<p>It's not really a backdoor, it's more a flaw.</p>
+
+<p>The recommendation to use other generators is, of course, relative.</p>
+
+<p>If you really have to save the extra hour (in NSA time) it takes to break, then you just infiltrate the process.</p>
+</div></article>
+
+
+
+<article><div class="comment by-unter" id="c216496">
+
+
+<p class="commentcredit"><span class="commenter">UNTER</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216496">November 15, 2007 10:24 AM</a>
+</p>
+
+<p>Bruce,</p>
+
+<p>This sounds like the old Heisenberg ploy. Someone at the NSA got orders from folks higher up to make a back-door PRNG. The mathematician thought this was absolutely imbecilic, useless, and dangerous, but he was under orders. </p>
+
+<p>So he does what Heisenberg did with A-bomb work in Germany - he does the job poorly and slowly. "Yup, I've got it!" So it's slow - that would dissuade good engineers who don't have the maths to see it. It's obvious - that dissuades the mathematicians who don't care about efficiency. </p>
+
+<p>The only people screwed are those who don't think about the problem at all, much like the manager who demanded the back door. Probably  a Bush political hack, I bet.</p>
+</div></article>
+
+
+
+<article><div class="comment by-sooth_sayer" id="c216507">
+
+
+<p class="commentcredit"><span class="commenter">sooth_sayer</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216507">November 15, 2007 10:50 AM</a>
+</p>
+
+<p>There might be a simpler and more human explanation.</p>
+
+<p>The person in-charge or his/her protege did the work the DRBG's .. sometimes such motivations drive people. Who hasn't heard of Edison frying someone with AC to push DC.</p>
+
+<p>I don't understand why the source of constants has to be explained if the algorithm to generate them is provided.</p>
+
+<p>The back-door scenario will be troublesome if it were proven for any set constants. That would be even a bigger back door than the one implied in the article.</p>
+</div></article>
+
+
+
+<article><div class="comment by-fp" id="c216509">
+
+
+<p class="commentcredit"><span class="commenter">FP</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216509">November 15, 2007 10:54 AM</a>
+</p>
+
+<p>@Andrew: "true hardware random number generators"</p>
+
+<p>Most true random number generators are too slow for cryptography or other real-world applications.</p>
+
+<p>When many random numbers are needed, and a true random number generator is available, it is usually only used to seed a pseudo-random number generators.</p>
+
+<p>A good PRNG, when seeded with random input, produces "infinite" amounts of pseudo-numbers that are indistinguishable from "truly random" numbers.<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-anurag" id="c216519">
+
+
+<p class="commentcredit"><span class="commenter">anurag</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216519">November 15, 2007 11:28 AM</a>
+</p>
+
+<p>it seems more likely, given that the impl is slow, that there are problems with the other approaches that NSA is aware of, and they want something in the standard that is still viable that they can advise people to use. Ditto for choice of Q.</p>
+
+<p>Its hard to see how they benefit from forcing a slow, complex, broken mechanism into the standard. A slow, complex, only known safe mechanism, I would understand. </p>
+
+<p>That said, the fact that everyone else is placed in a position of just having to trust is certainly problematic.</p>
+</div></article>
+
+
+
+<article><div class="comment by-clive-robinson" id="c216520">
+
+
+<p class="commentcredit"><span class="commenter">Clive Robinson</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216520">November 15, 2007 11:30 AM</a>
+</p>
+
+<p>@FP,</p>
+
+<p>"A good PRNG, when seeded with random input, produces "infinite" amounts of pseudo-numbers that are indistinguishable from "truly random" numbers."</p>
+
+<p>If only that where true...</p>
+
+<p>It's not, a very simple thought experiment disproves it. "Infinite" includes all numbers therefore their length is also infinite, a PRNG is limited to the size of numbers it produces by the size of it's internal state (in bits).</p>
+
+<p>Also You have the problem of how often you re-seed the PRNG. It depends on the unisity distance of the one way function of the PRNG. A bad example using DES then you would have to re-seed about every two block outputs to be theoreticaly secure...</p>
+</div></article>
+
+
+
+<article><div class="comment by-ace" id="c216521">
+
+
+<p class="commentcredit"><span class="commenter">ace</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216521">November 15, 2007 11:45 AM</a>
+</p>
+
+<p>Looking in 800-90: there are P-256, P-384 and P-521. Are they all broken? It sounds so? Then it's more than unlucky coincidence. <br />
+Second, there is the recipe for alternatives in Appendix. It probably doesn't mention the "prime order" condition? Otherwise it would be too obvious?<br />
+Third, if when somebody doesn't know of such condition, and make his own constants, what's the probability that he'll make the same error as Dual_EC_DRBG authors? The Appendix  expects alternative constants to be "hard-wired" in the source code or the hardware.</p>
+</div></article>
+
+
+
+<article><div class="comment by-aze" id="c216522">
+
+
+<p class="commentcredit"><span class="commenter">aze</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216522">November 15, 2007 11:48 AM</a>
+</p>
+
+<p>I have a better theory.  There's only one reasonable reason to have a slower algorithm.  That's because it's stronger than all the others.  NSA knows secret weakness(es) in all other commercial crypto systems.  So; the NSA have published this because they want to have decent commercial crypto available off the shelf for their own use.  (I know this doesn't sound very paranoid.. please just wait :-).  All they have to insist on is full implementation of the standard and they get their own RNG which is actually secure.  </p>
+
+<p>Whatever weakness the other systems have that this doesn't have, is dependent on the keying of the special constants.  If you choose randomly you get a weak system.  If you choose according to some rule that only they know you get a strong system.  If you take the constants they give, you get a strong system with a backdoor.  </p>
+
+<p>This would also match with the way that Russian crypto systems are much slower and more conservative than most western ones.  Maybe they know something about NSA crypto that we don't know.  </p>
+
+<p>(now I get to find out why you should know more about crypto before commenting on Bruces blog.) </p>
+</div></article>
+
+
+
+<article><div class="comment by-david-toronto" id="c216526">
+
+
+<p class="commentcredit"><span class="commenter">David (Toronto)</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216526">November 15, 2007 11:51 AM</a>
+</p>
+
+<p>Deja-DES-vu indeed.</p>
+
+<p>Magic numbers, it even sounds like the S-box controversy all over again.</p>
+
+<p>@Karellen & Dave Walker - Yes the NSA made the DES S-boxes stronger.  However,  somewhere along the line the key length got halved.   DESCHAL and EFF wouldn't have broken 112 bit DES in - my god that was 10 years ago.  Nor today for that matter.</p>
+
+<p>Maybe they are weakening it, maybe not.  If they are and the parrallel holds, the magic numbers are a red-herring.  So, what are we missing?</p>
+
+<p>Having a fallback method is an interesting idea, but unless it's just in case - the implications may be a bit of a worry.</p>
+</div></article>
+
+
+
+<article><div class="comment by-anonymous" id="c216530">
+
+
+<p class="commentcredit"><span class="commenter">Anonymous</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216530">November 15, 2007 12:00 PM</a>
+</p>
+
+<p>@ Clive Robinson</p>
+
+<p>"'Infinite' includes all numbers therefore their length is also infinite, [...]"</p>
+
+<p>Wouldn't that only be true if I were attempting to create an infinitely long series of UNIQUE numbers? If I allow for any given number to be used an indefinite number of times, shouldn't I be able to create an infinite series of numbers that doesn't include all numbers?</p>
+</div></article>
+
+
+
+<article><div class="comment by-greg-alexander" id="c216547">
+
+
+<p class="commentcredit"><span class="commenter">Greg Alexander</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216547">November 15, 2007 12:15 PM</a>
+</p>
+
+<p>Dear Mr. Schneier,</p>
+
+<p>Why did you cite the Gutterman/Pinkas/Reinman paper?  It picks nits and it only suggests three exploits:<br />
+  * if  you have access to kernel memory on a stopped system, you can determine the previous random number generated.  Newsflash: if you have access to kernel memory on a stopped system, you already won.  Did you know that if you strace the program reading from /dev/urandom, you can see what numbers it is currently reading?  Wow!<br />
+  * if you know the root password then you know certain attributes of the user's first interaction with the computer which may help you predict entropy pool contents.  In actuality, if you know the root password you already won.  Even if you hadn't, vaguaries in the way that it is typed (time of boot, time of login, speed of typing, typos, etc.) provide enough entropy to make this attack infeasible.  As they note in the paper!!<br />
+  * if you know the complete set of network events going into a WRT router, you know its entropy pool.  Since WRTs almost never contain private keys (and if they do, knowing the state of LRNG is of limited utility), you may as well replace the WRT with your own device if you have this kind of complete hardware access to the network.  Further, at worst this is a weakness in a special case application of the LRNG rather than a general weakness in the LRNG.</p>
+
+<p>It rounds out with a bunch of gnashing of teeth about documentation and open source development ideology, and a neither-here-nor-there whinge about a denial of service attack.</p>
+
+<p>Frankly, if The Bruce Schneier is going to say that the LRNG is "flawed", I'd hope you'd cite something a little bit less retarded.  Or does your authority mean so little to you?</p>
+</div></article>
+
+
+
+<article><div class="comment by-savik" id="c216551">
+
+
+<p class="commentcredit"><span class="commenter">Savik</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216551">November 15, 2007 12:23 PM</a>
+</p>
+
+<p>The NSA is after all a government agency with a mission to protect national assets -- meaning it helps business and individuals protect their assets.  How? By providing secure encryption algorithms and best practices for securing systems, etc.  </p>
+
+<p>Just because they have the capability to perform nefarious activities does not mean that they do.  And really -- where is the evidence that they have?</p>
+
+<p>Why so quick to jump to conspiracies all of the time?</p>
+</div></article>
+
+
+
+<article><div class="comment by-bryan-feir" id="c216552">
+
+
+<p class="commentcredit"><span class="commenter">Bryan Feir</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216552">November 15, 2007 12:27 PM</a>
+</p>
+
+<p>@ David (Also in Toronto):</p>
+
+<p>The explanation I heard for NSA and their handling of the DES keys (which was more along the lines of 'this is the only thing that really makes sense', since the NSA is understandably unwilling to provide official answers):</p>
+
+<p>Remember that part of the push for DES was a standard encryption system to be used by even the American government.  (For Classified documents, at least; Secret and up were to use other methods.)  So the NSA wouldn't want it to be too easily broken.</p>
+
+<p>Also emember that NSA has a large, classified budget.  They have long been one of the biggest investors in supercomputer technology, and almost certainly had and still have access to a lot of high-end computing resources.</p>
+
+<p>So basically, with DES they wanted a system that had no weaknesses that the Russians could exploit to crack it... but which was had a short enough key that the NSA could brute-force it themselves in a reasonable length of time.</p>
+
+<p>DES was never supposed to be the be-all and end-all of encryption; even when it was first adopted, it was given a 'shelf life' of how long it would be considered useful before something stronger was needed.</p>
+
+<p>There are all sorts of interesting bits about DES that tell you what its designers were thinking.  Such as the initial permutation which shuffles the bits around and then shuffles them back.  This has absolutely no effect on the actual cryptographic strength of the algorithm, and doesn't affect hardware implementations at all... but it slows down purely software implementations.</p>
+</div></article>
+
+
+
+<article><div class="comment by-greg-alexander" id="c216553">
+
+
+<p class="commentcredit"><span class="commenter">Greg Alexander</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216553">November 15, 2007 12:28 PM</a>
+</p>
+
+<p>More details....  The previous post was about the "Analysis of the Linux Random Number Generator."  I decided to read "Cryptanalysis of the Random Number Generator of the Windows Operating System" from Dorrendorf/Gutterman/Pinkas, for contrast.  I find it odd that the flaws in the Windows generator are described as "a flaw" while the FUD about the Linux generator is described as "flaws".  Let me compare and contrast:</p>
+
+<p>  * Entropy:<br />
+     + Linux: maybe predictable, if the moon lines up just right and you squint<br />
+     + Windows: only used every 128kB, not used for seed, and therefore mostly irrelevant<br />
+  * forward-security attack:<br />
+     + Linux: possible to go back one value if there is no intervening entropy and if you have full access to kernel, O(2^64) or harder<br />
+     + Windows: possible to go back up to 128kB values with just access to user memory, O(2^23)<br />
+  * backward-security attack:<br />
+     + Linux: O(1) iff there are *no* entropy events occurring whatsoever<br />
+     + Windows: O(1) for 128kB no matter what</p>
+
+<p>The vulnerabilities are not even in the same realm.  The Windows vulnerabilities are the sort of things that can and will be exploited in The Real World we all Know And Love.  The Linux vulnerabilities are grasping at straws.</p>
+
+<p>Bruce, whyfor behavest thou so disrespectfully towards facts?</p>
+</div></article>
+
+
+
+<article><div class="comment by-karellen" id="c216554">
+
+
+<p class="commentcredit"><span class="commenter">Karellen</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216554">November 15, 2007 12:39 PM</a>
+</p>
+
+<p>David (Toronto) > The NSA did not halve the DES key length, it was originally 64 bits before they reduced it to 56 bits.</p>
+</div></article>
+
+
+
+<article><div class="comment by-anonymous" id="c216570">
+
+
+<p class="commentcredit"><span class="commenter">Anonymous</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216570">November 15, 2007  1:40 PM</a>
+</p>
+
+<p>anyone thought of the NSA inisisting on this rather obvious flaw to be included in the standard to divert attention from the other more subtle ones???? call me an unbeliever but not trusting agencies like the NSA has proved to be good practice throughout history :-)</p>
+</div></article>
+
+
+
+<article><div class="comment by-anonymous" id="c216577">
+
+
+<p class="commentcredit"><span class="commenter">Anonymous</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216577">November 15, 2007  2:12 PM</a>
+</p>
+
+<p>Good to read your website/blog Bruce, critical issues.<br />
+Previous posters, some need to read about DES...</p>
+
+<p>Dual_EC_DRBG:  DES S box history seems a good starting point, see BS's book, Applied Cryptography.  Some ideas I'm pondering:<br />
+With Trusted Computing and DRM coming around, privacy rethink, Donald Kerr recent news, I'm glad the NSA puts up the target ballon of Dual_EC_DRBG.  Mainstream needs crypto issues put up, to keep people honest.  What happened with S boxes and those in the know, beyond reported in Applied Cryptography?  Idea is, how proactive is the NSA to keep crypto from being a used as a hostile measure?<br />
+Trap doors and time to break seem critical design issues, unique keys in each hardware, with other crypto magic?<br />
+The NSA must be getting VERY good at crypto today, although others outside are too.  Dual_EC seems to have a good bad and ugly nature.  Hopefully, the movie ends right, ahhhhhhhhh!</p>
+</div></article>
+
+
+
+<article><div class="comment by-jeremy" id="c216578">
+
+
+<p class="commentcredit"><span class="commenter">Jeremy</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216578">November 15, 2007  2:13 PM</a>
+</p>
+
+<p>@Anonymous<br />
+"If I allow for any given number to be used an indefinite number of times, shouldn't I be able to create an infinite series of numbers that doesn't include all numbers?"</p>
+
+<p>Yes.</p>
+
+<p>However, pseudo-random algorithms still can't do this, because their internal state has finite size (required to run on a computer with finite memory).  This means that, after some finite number of outputs, the generator has to enter a state that it's been in before.  At that point, the generator has entered a loop (though possibly a very long one).  All outputs after that point are cyclic, and can be predicted knowing only the previous outputs and the cycle length.</p>
+</div></article>
+
+
+
+<article><div class="comment by-anonymous" id="c216583">
+
+
+<p class="commentcredit"><span class="commenter">Anonymous</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216583">November 15, 2007  3:04 PM</a>
+</p>
+
+<p>Andrew: "how hard can it really be for the big guys to add them to, say, an x86?"</p>
+
+<p>They've been in VIA processors, and Intel/AMD chipsets, since the Socket 370/Socket A days.</p>
+</div></article>
+
+
+
+<article><div class="comment by-rc" id="c216591">
+
+
+<p class="commentcredit"><span class="commenter">RC</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216591">November 15, 2007  3:45 PM</a>
+</p>
+
+<p>The main problem with this deliberate vulnerability is that it proves the NSA is willing to act in this manner, casting doubt on all the other standards in which they have been substantially involved.</p>
+</div></article>
+
+
+
+<article><div class="comment by-david-toronto" id="c216596">
+
+
+<p class="commentcredit"><span class="commenter">David (Toronto)</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216596">November 15, 2007  4:13 PM</a>
+</p>
+
+<p>@Karellen - I believe you are mistaken. </p>
+
+<p>1. Wikipedia mentions both a 64 and 128 version of Lucifer predating DES, but is unclear which went forward.</p>
+
+<p>2. Biryukov is clearer (in "Block Ciphers and Stream Ciphers: The State of the Art") ...  "The structure of Lucifer was significantly altered and since the design rationale was never made public and the secret key size also went down from 128-bit to 56-bits this resulted in controversy, and distrust among the public."   </p>
+</div></article>
+
+
+
+<article><div class="comment by-paul-wayper" id="c216622">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://mabula.net" href="http://mabula.net" rel="nofollow">Paul Wayper</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216622">November 15, 2007  5:31 PM</a>
+</p>
+
+<p>Even if this is an obvious backdoor, there's one way I can think of that they can still get to easily exploit it.</p>
+
+<p>If all US Government servers were set up so that they used the Dual_EC_DRBG method, then no matter what random bit generation method you use the NSA already knows something about your encrypted data.  Maybe this only allows them to decrypt the server's side of the conversation.  Maybe they can only break the encryption easily if both sides are using Dual_EC_DRBG.  But forcing the hand of one party is a good start.  And if you can get two Government machines to talk to eachother, you have a guaranteed ability to break their encryption.</p>
+
+<p>So regardless of whether it's slower, uglier and smells of fish, it may still give the powers that be a chance to listen in.  Once it's in the standard it'll be very hard to shift.</p>
+</div></article>
+
+
+
+<article><div class="comment by-filias-cupio" id="c216653">
+
+
+<p class="commentcredit"><span class="commenter">Filias Cupio</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216653">November 15, 2007  7:31 PM</a>
+</p>
+
+<p>You could run two of the PRNG algorithms and XOR their output. In this case, someone would need to break both algorithms to break your PRNG.</p>
+
+<p>Is this a sensible strategy? Would you get more cryptographic value for your cpu cycles/memory by using just one algorithm but with more rounds and/or longer keys?</p>
+</div></article>
+
+
+
+<article><div class="comment by-paran0id" id="c216661">
+
+
+<p class="commentcredit"><span class="commenter">Paran0id</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216661">November 15, 2007  8:01 PM</a>
+</p>
+
+<p>"My recommendation, if you're in need of a random-number generator, is not to use Dual_EC_DRBG under any circumstances. If you have to use something in SP 800-90, use CTR_DRBG or Hash_DRBG."</p>
+
+<p>Oh Bruce!</p>
+
+<p>You risk antagonising the Power.</p>
+
+<p>Watch out for Black Helicopters.</p>
+</div></article>
+
+
+
+<article><div class="comment by-david-thomas" id="c216700">
+
+
+<p class="commentcredit"><span class="commenter">David Thomas</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216700">November 15, 2007 10:25 PM</a>
+</p>
+
+<p>@Greg Alexander</p>
+
+<p>... aren't we sensitive!  Bruce didn't say the LRNG "is flawed," he said that the paper "found flaws."  This is true - as much as they are not of practical concern, they are flaws.  Appropriate discrimination between the Windows 2000 RNG and the Linux RNG was not the point of the article.  What was Bruce's recommendation?  "Don't use the LRNG"? No, it was "Don't use Dual_EC_DRBG," as it gives every indication of deliberate sabotage.  Were the paper a survey of RNGs more generally, more details would be required.  The point was how easy it is for RNGs to stray from ideal when you're *trying* to make 'em work right, and that, in this case, they may not have been trying.</p>
+</div></article>
+
+
+
+<article><div class="comment by-matthew-skala" id="c216708">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://ansuz.sooke.bc.ca/bonobo-conspiracy/" href="http://ansuz.sooke.bc.ca/bonobo-conspiracy/" rel="nofollow">Matthew Skala</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216708">November 15, 2007 11:00 PM</a>
+</p>
+
+<p>Filias Cupio:  I think my PRNG is pretty good, but I want extra security, so I'll XOR it with the output twice.</p>
+
+<p>I agree with RC: regardless of why the NSA would suggest this PRNG with an obvious problem, the fact that they're willing to do so is itself an important piece of information.</p>
+
+<p>As for what their inscrutable reasons might be, I'm reminded of a comment about the old Soviet GOST block cipher, which I think I read in Bruce's AC2:  the cipher had selectable S-boxes, and it was speculated that the people in charge of crypto would give secure S-boxes to the people they wanted to have secure S-boxes, and insecure S-boxes to the people they wanted to have insecure S-boxes.  I could see something like that coming into play here.  If everyone implements the standard and the standard includes an insecure option among the secure ones, then someone who knows about that and wants to control whether a party's communications are secure or not, just has to influence the party to choose the right option.  The benefits of standardization, and of people you want to be secure and people you don't want to be secure using the same software and probably not noticing that they're using different settings for it, are huge.</p>
+</div></article>
+
+
+
+<article><div class="comment by-anonymous" id="c216744">
+
+
+<p class="commentcredit"><span class="commenter">Anonymous</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216744">November 16, 2007  1:20 AM</a>
+</p>
+
+<p>"The main problem with this deliberate vulnerability is that it proves the NSA is willing to act in this manner, casting doubt on all the other standards in which they have been substantially involved." RC</p>
+
+<p>Good point. So why do they push ECC so much? They have provided the curves more or less. Maybe like other curves the recommended curves will map to a group that the normal Index calculus can be used. Now the security of ECC is no better than other DL based PK methods. Problem is you use ECC because we think its safe to assume that the sub exponential Index methods don't apply.</p>
+</div></article>
+
+
+
+<article><div class="comment by-greg" id="c216745">
+
+
+<p class="commentcredit"><span class="commenter">greg</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216745">November 16, 2007  1:21 AM</a>
+</p>
+
+<p>Sorry<br />
+Anonymous at November 16, 2007 01:20 AM<br />
+is me</p>
+</div></article>
+
+
+
+<article><div class="comment by-q" id="c216781">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://picasaweb.google.com/freemovequantumexchange" href="http://picasaweb.google.com/freemovequantumexchange" rel="nofollow">Q</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216781">November 16, 2007  5:44 AM</a>
+</p>
+
+<p>All artithmetic generated random numbers suffer from this problem. If you maintain a list of all known used arithmetic random generators, then with an algoritm like C4.5 (search for "C4.5" with Google) you can easily discriminate which arthimetic random generation algorithm is used to produce the random numbers and therefore easily break the used computational secure algorithm. </p>
+
+<p>The Information-Theoretic provable secure low-cost PC-based FreeMove Quantum Exchange Proof-of-Concept System therefore uses true Quantum Randomness instead of pseudo arithmetic randomness. By the way: This was already predicted in 1951 by John von Neumann. </p>
+
+<p>More Information on this Research Proof-of-Concept can be found on the URL <a href="http://picasaweb.google.com/freemovequantumexchange" rel="nofollow">http://picasaweb.google.com/freemovequantumexchange</a></p>
+</div></article>
+
+
+
+<article><div class="comment by-clive-robinson" id="c216783">
+
+
+<p class="commentcredit"><span class="commenter">Clive Robinson</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216783">November 16, 2007  6:00 AM</a>
+</p>
+
+<p>@Matthew Skala,</p>
+
+<p>"people in charge of crypto would give secure S-boxes to the people they wanted to have secure S-boxes, and insecure S-boxes to the people they wanted to have insecure S-boxes."</p>
+
+<p>Actualy there is a history of this happening. During WWII the U.S. issued a small field machine cipher based on a coin counting mechanism. It is now known that something aproaching 80% of the keys where relativly insecure. The argument given at the time was that if it was captured and copied the chances are that the adversery would not know about the relative security of the keys, and would in all probability end up predominantly using the relativly insecure keys. Likewise the possability of weakness in other Crypto AG ciphers suposedly put in by the NSA has been debated on numerous occasions. </p>
+
+<p>It has been surmised that the NSA did not know about either Differential or Linear cryptanalysis at the time IBM made their original submission for DES. </p>
+
+<p>It is known that the designers of DES actually discovered the weaknesses in the S-Boxes after developing their own "new" attack (T or tickle) which was later re-discovered by people playing around with early versions of FEAL. The level of involvment of the NSA in actually strengthaning the S-Boxs has never been released and is still something of a controversy  (see Don Coppersmiths and others comments on the "T-Attack"). It has been further suggested that the NSA had no input other than to tell the IBM design team to keep their mouths shut for the sake of National Security.</p>
+
+<p>Oddly the NSA assumed that DES would only be put in hardware and that they could control the technology supply to banks and the like. It has been said that it was one of their biggest (publicaly known) mistakes, it realy was responsible for kick starting the computer security industry and Universities delving into Crypto research</p>
+
+<p>Later as we know the NSA tried to push a DES replacment which they tried to keep the internals of secret (Skipjack / CapStone / clipper) it was soundly rejected by just about everybody. In June 1998 they declasified the Skipjack algorithm and interestingly although it is secure in the implimentation the NSA released it is very brittle in that even very minor changes to the algorithm can weaken it greatly.</p>
+</div></article>
+
+
+
+<article><div class="comment by-inglorion" id="c216793">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://inglorion.net/" href="http://inglorion.net/" rel="nofollow">Inglorion</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216793">November 16, 2007  6:45 AM</a>
+</p>
+
+<p>While on the subject of PRNGs, I'd like to point people at my<br />
+deadbeef random number generator (http://inglorion.net/software/deadbeef_rand/).<br />
+While I made it as a kind of joke, I have the feeling that it<br />
+can be useful in practice, as it's simple and seems to<br />
+perform fairly well. I don't have the background to perform<br />
+a good analysis of it, but maybe someone here can help with that.<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-john" id="c216815">
+
+
+<p class="commentcredit"><span class="commenter">John</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216815">November 16, 2007  8:18 AM</a>
+</p>
+
+<p>There were a couple of comments on DES peculiarities that I want to add to.</p>
+
+<p>1. The Initial Permutation. The DES designers never explained its purpose. It was widely believed that its purpose was to make software implementations costly, and thus prefer hardware.</p>
+
+<p>However, somebody (I forgot his name, sorry - David Hoye?) came up with a clever scheme of boolean operations that achieved the IP quickly and cheaply.</p>
+
+<p>2. Why the NSA preference for hardware? </p>
+
+<p>My guess is purely legal. The Arms Import and Export Act began in 1954 with a different name, the Military something Act. At that time, effective crypto meant hardware. The ITAR, which implemented the law, listed crypto hardware (legally "devices"). Nobody thought of software.</p>
+
+<p>Now, a law to be enforceable has to be fairly specific. If crypto is equipment, it could be argued that software isn't equipment and thus is exportable without permission. It was a gap in the law.</p>
+
+<p>Sometime in the early 80s somebody recognized the same gap I did, and software crypto was added to ITAR. Further, the Munitions Control Board extended the definition of cryptographic devices and software to include cryptanalytic devices and software in one of its bulletins.</p>
+
+<p>But at the time of DES, NSA's General Counsel feared that its legal authority did not extend to software implementations. At least, that is my surmise. Thus, the insistence on hardware.<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-tc" id="c216819">
+
+
+<p class="commentcredit"><span class="commenter">TC</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c216819">November 16, 2007  8:38 AM</a>
+</p>
+
+<p>I blame Elaine Roberts!</p>
+</div></article>
+
+
+
+<article><div class="comment by-rick" id="c217137">
+
+
+<p class="commentcredit"><span class="commenter">Rick</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c217137">November 17, 2007  7:28 PM</a>
+</p>
+
+<p>Is this sort of bias something that the NSA might<br />
+expect the research community to detect?  Or, <br />
+looking at it another way, was this a "test" to<br />
+see if the non-NSA community would detect<br />
+a backdoor?</p>
+</div></article>
+
+
+
+<article><div class="comment by-kerub" id="c217307">
+
+
+<p class="commentcredit"><span class="commenter">Kerub</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c217307">November 18, 2007  4:01 PM</a>
+</p>
+
+<p>why do not they let people put numbers ad random, in it...</p>
+</div></article>
+
+
+
+<article><div class="comment by-in_the_surf" id="c217348">
+
+
+<p class="commentcredit"><span class="commenter">IN_the_Surf</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c217348">November 18, 2007  7:19 PM</a>
+</p>
+
+<p>Bruce, </p>
+
+<p>For as much as you lament the current administration's "fear tactics," you sure do a great job yourself when it appears to benefit a point that _you_ are making.  </p>
+
+<p>"...we have no way of knowing whether the NSA knows the secret numbers that break Dual_EC-DRBG. We have no way of knowing whether an NSA employee working on his own came up with the constants—and has the secret numbers. We don't know if someone from NIST, or someone in the ANSI working group, has them. Maybe nobody does."</p>
+
+<p>Bruce, the absence of proof is not proof of wrongdoing in this case.  You are however presenting this lack of knowledge as if it were proof that wrongdoing is occurring.</p>
+
+<p>I have no problem with you questioning the veracity or safety of such things; however, you should try and give some evidence to support your claims as well as be "open" enough to allow for others to do such things as well.  You have a tendency to think that your questions, opinions, and worries are the rational ones.  You are, by far, not the only "authority" on security topics.</p>
+</div></article>
+
+
+
+<article><div class="comment by-rangan" id="c217421">
+
+
+<p class="commentcredit"><span class="commenter">Rangan</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c217421">November 19, 2007  6:20 AM</a>
+</p>
+
+<p>Bruce</p>
+
+<p>Why should we worry about contraversial PRNG - Dual_EC_DRNG?<br />
+We should think in a new line. Like, computing DRNG from Pi infinite series that will give a good entropy. </p>
+</div></article>
+
+
+
+<article><div class="comment by-rangan" id="c217428">
+
+
+<p class="commentcredit"><span class="commenter">Rangan</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c217428">November 19, 2007  6:32 AM</a>
+</p>
+
+<p>Bruce</p>
+
+<p>Sometimes, DRNGs won't be useful other than crypto applications. We should design DRNGs should be useful for multiple applications such as Information Security, Image processing, Digital Signal processing. </p>
+
+<p>I don't know CTR_DRNG / Hash_DRNG that will be useful for multiple applications. Give me some DRNGs that we can use for many things.<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-brian" id="c217450">
+
+
+<p class="commentcredit"><span class="commenter">Brian</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c217450">November 19, 2007  8:40 AM</a>
+</p>
+
+<p>Being completely ignorant of the math involved with ECs and PRNGs, has anyone tried factoring the constants from Appendix A of the NIST publication?  Would that help in determining the secret numbers?</p>
+</div></article>
+
+
+
+<article><div class="comment by-otho" id="c217502">
+
+
+<p class="commentcredit"><span class="commenter">otho</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c217502">November 19, 2007  2:31 PM</a>
+</p>
+
+<p>Very important news !<br />
+Even in Poland:)<br />
+<a href="http://www.idg.pl/news/131422.html" rel="nofollow">http://www.idg.pl/news/131422.html</a></p>
+</div></article>
+
+
+
+<article><div class="comment by-_anonymous" id="c218012">
+
+
+<p class="commentcredit"><span class="commenter">_Anonymous</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c218012">November 21, 2007  5:36 PM</a>
+</p>
+
+<p>One can only hope that Quad_EC_TFHA might be declassified someday in order to put an end to this conspiracy. </p>
+
+<p>(TFHA = Tin Foil Hat Algorithm)</p>
+</div></article>
+
+
+
+<article><div class="comment by-seumas-macbeth" id="c218885">
+
+
+<p class="commentcredit"><span class="commenter">Seumas Macbeth</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c218885">November 25, 2007  7:58 PM</a>
+</p>
+
+<p>Macbeth reccomend departing from the fallacy of numbers, which inof itself is futile, no matter how random the sequence is it will eventually be guessed by pure chance and the law of averages, instead, forge a cryptography in the form of symbols, riddles, use mystical sources, abandon mundane numbers.<br />
+-Seumas</p>
+</div></article>
+
+
+
+<article><div class="comment by-stromseal" id="c220664">
+
+
+<p class="commentcredit"><span class="commenter">Stromseal</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c220664">December  1, 2007 11:10 PM</a>
+</p>
+
+<p>The spooks already have the backdoor, frontdoor, sidedoor and the basement key. Oh, and there's the secret trapdoor that they have told you about too.</p>
+</div></article>
+
+
+
+<article><div class="comment by-pubnutboppy" id="c220688">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://e.blog1.ind.in" href="http://e.blog1.ind.in" rel="nofollow">PubNutboppy</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c220688">December  2, 2007  3:22 AM</a>
+</p>
+
+<p>Thankiosst <br />
+Great!</p>
+</div></article>
+
+
+
+<article><div class="comment by-black-hunks" id="c225556">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://g.gay1.net.in" href="http://g.gay1.net.in" rel="nofollow">black hunks</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c225556">December 17, 2007  6:20 PM</a>
+</p>
+
+<p>My life's been completely boring these days. Not much on my mind recently, not that it matters. Today was a complete loss. Maybe tomorrow. Pretty much nothing seems important.<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-military-hunks" id="c225588">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://g.gay1.net.in" href="http://g.gay1.net.in" rel="nofollow">military hunks</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c225588">December 17, 2007  8:17 PM</a>
+</p>
+
+<p>I've pretty much been doing nothing to speak of. Such is life. It's not important. Not that it matters.<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-free-naked-hunks" id="c226414">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://o.gay2.net.in" href="http://o.gay2.net.in" rel="nofollow">free naked hunks</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c226414">December 20, 2007  6:10 AM</a>
+</p>
+
+<p>Not much on my mind worth mentioning. What can I say? Today was a total loss, but I don't care. I've just been letting everything happen without me. I can't be bothered with anything these days. I haven't been up to anything lately.<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-mike" id="c292705">
+
+
+<p class="commentcredit"><span class="commenter">Mike</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c292705">July 31, 2008  3:30 AM</a>
+</p>
+
+<p>IN_the_Surf:</p>
+
+<p>>You are however presenting this lack of knowledge as if it were proof that wrongdoing is occurring.</p>
+
+<p>I don't at all see how Bruce is saying that. He even writes: "We don't know if someone from NIST, or someone in the ANSI working group, has them. *Maybe nobody does*". He is highlighting a valid concern, but asking for more proof simply highlights that you don't understand this problem at all. There cannot be any proof given about this, neither that this is not the case, so Bruce is asking to be cautious, and since there are other and better alternatives, it is a no-brainer to use them instead.</p>
+
+<p>That you have to point out that Bruce is not the only authority on security topics (although I fail to see why it is relevant to mention that) tells me that this is more of a personal problem you have with Bruce, than anything else.</p>
+</div></article>
+
+
+
+<article><div class="comment by-huck" id="c308409">
+
+
+<p class="commentcredit"><span class="commenter">HUCK</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c308409">September 17, 2008  1:43 PM</a>
+</p>
+
+<p><br />
+Has anyone from ANSI / NSA / etc. commented on this potential backdoor since this article was posted?</p>
+
+<p>Thanks for keeping encryption sane for us all, Bruce.</p>
+</div></article>
+
+
+
+<article><div class="comment by-brain-" id="c416367">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://-" href="http://-" rel="nofollow">brain </a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c416367">February 28, 2010  9:07 AM</a>
+</p>
+
+<p>please explain more on tickling attack<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-dennis" id="c1559878">
+
+
+<p class="commentcredit"><span class="commenter">Dennis</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c1559878">July  6, 2013  8:45 AM</a>
+</p>
+
+<p>Intel includes a hardware random number generator starting with the Ivy Bridge chip. It produces 800 megabytes/second, using the hardware randomness as input to a cryptographic function. Google brings up plenty of articles, <a href="http://electronicdesign.com/learning-resources/understanding-intels-ivy-bridge-random-number-generator" rel="nofollow">such as this</a>. </p>
+</div></article>
+
+
+
+<article><div class="comment by-doc" id="c1560473">
+
+
+<p class="commentcredit"><span class="commenter">Doc</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c1560473">July  6, 2013  5:30 PM</a>
+</p>
+
+<p>What if ephemeral DH elliptic curve keys are always generated by this generator? (as in TLS' ECDHE_RSA standard) Wouldn't perfect-forward secrecy be a total sham?<br />
+<a href="http://blogs.computerworld.com/encryption/22366/can-nsa-see-through-encrypted-web-pages-maybe-so" rel="nofollow">http://blogs.computerworld.com/encryption/22366/can-nsa-see-through-encrypted-web-pages-maybe-so</a><br />
+<a href="http://nmav.gnutls.org/2011/12/price-to-pay-for-perfect-forward.html" rel="nofollow">http://nmav.gnutls.org/2011/12/price-to-pay-for-perfect-forward.html</a><br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-kernel-kurtz" id="c1560591">
+
+
+<p class="commentcredit"><span class="commenter">Kernel Kurtz</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c1560591">July  6, 2013  7:22 PM</a>
+</p>
+
+<p>Who developed the constants? I'd start looking at car wrecks around that time. They lo-o-o-o-v-e car wrecks.</p>
+</div></article>
+
+
+
+<article><div class="comment by-sapien_red" id="c1561272">
+
+
+<p class="commentcredit"><span class="commenter">sapien_red</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c1561272">July  7, 2013 11:01 AM</a>
+</p>
+
+<p>i have a nagging doubt , i suspect a double bluff.</p>
+
+<p>they what people far far away from ecc and any crypto implementation based on it.</p>
+
+<p>give a bad example with obvious flaws to scare them off<br />
+"its a trap"</p>
+
+<p>i will be looking into ECC with renewed interest because of this ;)<br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-clive-robinson" id="c1562267">
+
+
+<p class="commentcredit"><span class="commenter">Clive Robinson</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c1562267">July  8, 2013  6:35 AM</a>
+</p>
+
+<p>@ Dennis,</p>
+
+<ul><i>
+Intel includes a hardware random number generator... It produces 800 megabytes/second, using the hardware randomness as input to a cryptographic function.
+</i></ul>
+
+<p>I would be very very cautious about the Intel RNG system.</p>
+
+<p>One major issue is you cannot test it reliably because of the crypto function.</p>
+
+<p>As I've repeatedly said in the past crypto/hash functions do not add entropy to the output of the basic entropy generator, using such systems are the equivalent of "sprinkling magic pixie dust" thinking.</p>
+
+<p>Further the basic entropy generator is very likely to be subject to significant bias and noise that is not actually unpredictable (think powersupply noise it is mainly dependent on the input source and load conditions all of which are either measurable or influanceable).</p>
+
+<p>If you cannot get directly at the output of the basic entropy generator than you cannot check it, thus all bets are off as to if it's actually giving you any entropy at all...</p>
+</div></article>
+
+
+
+<article><div class="comment by-whir" id="c1675943">
+
+
+<p class="commentcredit"><span class="commenter">whir</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c1675943">September  5, 2013  4:11 PM</a>
+</p>
+
+<p><i>In the meantime, both NIST and the NSA have some explaining to do.</i></p>
+
+<p><a href="http://www.nytimes.com/2013/09/06/us/nsa-foils-much-internet-encryption.html?hp&pagewanted=all" rel="nofollow">You don't say.</a></p>
+</div></article>
+
+
+
+<article><div class="comment by-yan-zhu" id="c1703700">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://web.mit.edu/zyan/www" href="http://web.mit.edu/zyan/www" rel="nofollow">Yan Zhu</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c1703700">September  9, 2013  1:01 PM</a>
+</p>
+
+<p>By the way, the link to NIST Special Publication 800-90 no longer works. I've posted this document to <a href="http://web.mit.edu/zyan/Public/SP800-90revised_March2007.pdf" rel="nofollow">http://web.mit.edu/zyan/Public/SP800-90revised_March2007.pdf</a> for now.</p>
+
+<p>Thank you for this post!</p>
+</div></article>
+
+
+
+<article><div class="comment by-yan-zhu" id="c1704360">
+
+
+<p class="commentcredit"><span class="commenter"><a title="http://web.mit.edu/zyan/www" href="http://web.mit.edu/zyan/www" rel="nofollow">Yan Zhu</a></span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c1704360">September  9, 2013  3:25 PM</a>
+</p>
+
+<p>In addition, the current draft of NIST SP 800-90 is now open for public review "in light of recent reports": <a href="http://csrc.nist.gov/publications/PubsDrafts.html#SP-800-90-A%20Rev.%201,%20B,%20and%20C" rel="nofollow">http://csrc.nist.gov/publications/PubsDrafts.html#SP-800-90-A%20Rev.%201,%20B,%20and%20C</a></p>
+</div></article>
+
+
+
+<article><div class="comment by-mika" id="c3041593">
+
+
+<p class="commentcredit"><span class="commenter">mika</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c3041593">December 21, 2013  6:09 AM</a>
+</p>
+
+<p>I wish you live one hundred years more<br />
+And I wish you train/educate some people<br />
+Peace...</p>
+</div></article>
+
+
+
+<article><div class="comment by-afshin" id="c3042098">
+
+
+<p class="commentcredit"><span class="commenter">afshin</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c3042098">December 21, 2013  6:42 AM</a>
+</p>
+
+<p>You are realy a hero of cryptograph world!<br />
+<a href="http://www.theverge.com/2013/12/20/5231006/nsa-paid-10-million-for-a-back-door-into-rsa-encryption-according-to" rel="nofollow">http://www.theverge.com/2013/12/20/5231006/nsa-paid-10-million-for-a-back-door-into-rsa-encryption-according-to</a><br />
+</p>
+</div></article>
+
+
+
+<article><div class="comment by-g-hardy" id="c5045876">
+
+
+<p class="commentcredit"><span class="commenter">G Hardy</span> &bull; <a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html#c5045876">March 20, 2014  2:05 PM</a>
+</p>
+
+<p>The backdoor was part of a larger program named "Bullrun" by the NSA, which apparently has been more successful than is safe to reveal.</p>
+
+<p>Reporting by the New York Times: <a href="http://www.nytimes.com/2013/09/06/us/nsa-foils-much-internet-encryption.html?pagewanted=all" rel="nofollow">http://www.nytimes.com/2013/09/06/us/nsa-foils-much-internet-encryption.html?pagewanted=all</a></p>
+</div></article>
+
+
+
+
+<p class="subscribe-comments"><a href="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.xml"><img alt="Atom Feed" src="/images/rss-16px.png">Subscribe to comments on this entry</a></p>
+
+  <div class="postcomment notpreviewed">
+
+    
+    
+    <div class="comments-open" id="comments-open">
+        <h2 class="comments-open-header">Leave a comment</h2>
+        <div class="comments-open-content">
+
+        
+            <div id="comment-greeting"></div>
+
+            <form method="post" action="https://www.schneier.com/cgi-bin/mt/mt-comments.cgi" name="comments_form" id="comments-form" onsubmit="return mtCommentOnSubmit(this)">
+                <input type="hidden" name="static" value="https://www.schneier.com/blog/archives/2007/11/the_strange_sto.html?nc=77">
+                <input type="hidden" name="entry_id" value="1922" />
+                <input type="hidden" name="__lang" value="en-us" />
+
+                <script language="javascript" type="text/javascript"><!--
+	                document.write('<input type="hidden" name="armor" value="" /><input type="hidden" name="sid" value="" /><input type="hidden" name="preview" value="" />');
+                // --></script>
+                <div id="comments-open-data">
+                    <div id="comment-form-name">
+                        <label for="comment-author">Name (required):</label>
+                        <input id="comment-author" name="author" size="30" value="" onfocus="mtCommentFormOnFocus()" />
+                    </div>
+                    <div id="comment-form-email">
+                        <label for="comment-email">E-mail Address:</label>
+                        <input id="comment-email" name="email" size="30" value="" onfocus="mtCommentFormOnFocus()" />
+                    </div>
+                    <div id="comment-form-url">
+                        <label for="comment-url">URL:</label>
+                        <input id="comment-url" name="url" size="30" value="" onfocus="mtCommentFormOnFocus()" />
+                    </div>
+                <script language="javascript" type="text/javascript"><!--
+                document.write('<div id="comment-form-remember-me"><input type="checkbox" id="comment-bake-cookie" name="bakecookie" onclick="mtRememberMeOnClick(this)" value="1" accesskey="r" /><label class="checkbox" for="comment-bake-cookie">Remember personal info?<\/label><\/div>');
+                // --></script>
+                </div>
+<p id="comments-open-challenge"><input type="hidden" id="commchallenge_beacon" name="commchallenge_beacon" value="1" /><label for="commchallenge_answer">Fill in the blank: the name of this blog is Schneier on ___________ <strong>(required)</strong>:</label>
+<input type="text" id="commchallenge_answer" name="commchallenge_answer" size="30" value="" /></p><script type="text/javascript">
+<!--    
+if ((typeof commenter_name != 'undefined') ||
+    (typeof getCommenterName != 'undefined' &&  getCommenterName())) {
+    mtHide('comments-open-challenge');
+} else {
+    mtShow('comments-open-challenge');
+} 
+// -->
+</script>
+
+
+                <div id="comments-open-text">
+                    <label for="comment-text">Comments:</label>
+                    <textarea id="comment-text" name="text" onfocus="mtCommentFormOnFocus()"></textarea>
+                </div>
+		            <p id="allowed"><strong>Allowed HTML:</strong> &lt;a href="URL"&gt; &bull; &lt;em&gt; &lt;cite&gt; &lt;i&gt; &bull; &lt;strong&gt; &lt;b&gt; &bull; &lt;sub&gt; &lt;sup&gt; &bull; &lt;ul&gt; &lt;ol&gt; &lt;li&gt; &bull; &lt;blockquote&gt; &lt;pre&gt;</p>
+                <div id="comments-open-captcha"></div>
+                <div id="comments-open-footer">
+
+  	                <script language="javascript" type="text/javascript"><!--
+										document.write('<input type="submit" accesskey="v" name="preview_button" id="comment-preview" value="Preview" onclick="this.form.preview.value=\'1\';" />');
+		                // --></script>
+		                <noscript><input type="submit" accesskey="v" name="preview" id="comment-preview" value="Preview"></noscript>
+                    
+                    <input type="submit" accesskey="s" name="post" id="comment-submit" value="Submit" />
+                </div>
+            </form>
+
+
+
+        </div>
+    </div>
+    <script type="text/javascript">
+    <!--
+    mtAttachEvent("load", mtEntryOnLoad);
+    mtAttachEvent("unload", mtEntryOnUnload);
+    //-->
+    </script>
+    
+    
+  </div>
+
+
+
+
+
+
+
+
+    
+    
+    
+<p id="powered">Photo of Bruce Schneier by Per Ervland.
+	
+	<p id="disclaim">Schneier on Security is a personal website.  Opinions expressed are not necessarily those of <a href="https://www.co3sys.com/">Co3 Systems, Inc.</a>.
+
+
+	
+	</div><!--#content-->
+<aside><div class="sidebar" id="sidebar-two">
+		<section><div class="sidesection" id="about">
+		
+		<h3>About Bruce Schneier</h3>
+		<img id="authorphoto" src="https://www.schneier.com/images/bruce-blog3.jpg" width="150" height="194" alt="Bruce Schneier"><p class="small">I've been writing about security issues on my <a href="https://www.schneier.com/">blog</a> since 2004, and in my monthly <a href="https://www.schneier.com/crypto-gram.html">newsletter</a> since 1998. I write <a href="https://www.schneier.com/books.html">books</a>, <a href="https://www.schneier.com/essays.html">articles</a>, and <a href="cryptography.html">academic papers</a>. Currently, I'm the Chief Technology Officer of <a href="https://www.co3sys.com/">Co3 Systems</a>, a fellow at Harvard's <a href="http://berkman.harvard.edu/">Berkman Center</a>, and a board member of <a href="https://www.eff.org/">EFF</a>.</p>
+		</div></section>
+
+
+		<section><div class="sidesection">
+			<h3>Related Entries</h3>
+			<ul>
+     			<li><a href="https://www.schneier.com/blog/archives/2007/12/dual_ec_drbg_ad.html">Dual_EC_DRBG Added to Windows Vista</a></li>
+   			
+     			<li><a href="https://www.schneier.com/blog/archives/2008/05/random_number_b.html">Random Number Bug in Debian Linux</a></li>
+   			
+     			<li><a href="https://www.schneier.com/blog/archives/2013/09/good_summary_of.html">Good Summary of Potential NSA Involvement in a NIST RNG Standard</a></li>
+   			
+     			<li><a href="https://www.schneier.com/blog/archives/2013/10/defending_again_1.html">Defending Against Crypto Backdoors</a></li>
+   			
+     			<li><a href="https://www.schneier.com/blog/archives/2013/10/insecurities_in.html">Insecurities in the Linux /dev/random</a></li>
+   			</ul>
+		</div></section>
+
+
+	<section><div class="sidesection">
+
+    
+
+		<h3>Featured Essays</h3>
+		<ul>
+			<li><a href="https://www.schneier.com/essay-472.html">It's Time to Break Up the NSA</a></li>
+			<li><a href="https://www.schneier.com/essay-469.html">How the NSA Threatens National Security</a></li>
+			<li><a href="https://www.schneier.com/essay-258.html">Terrorists May Use Google Earth, but Fear is No Reason to Ban It</a></li>
+			<li><a href="https://www.schneier.com/essay-154.html">In Praise of Security Theater</a></li>
+			<li><a href="https://www.schneier.com/essay-114.html">The Eternal Value of Privacy</a></li>
+			<li><a href="https://www.schneier.com/essay-087.html">Terrorists Don't Do Movie Plots</a></li>
+		</ul>
+		
+    <p><a href="https://www.schneier.com/essays/">more essays</a></p>
+		</div></section>
+
+
+
+
+		<section><div class="sidesection">
+		
+			<h3>Blog Archives</h3>
+			<ul>
+				<li><a href="https://www.schneier.com/blog/calendar.html">Archives by Date</a></li>
+				<li><a href="https://www.schneier.com/blog/newcomments.html">100 Latest Comments</a></li>
+			</ul>
+		
+
+
+        
+		<h4>Blog Tags</h4>
+<ul class="top-tags">
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=privacy&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">privacy</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=terrorism&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">terrorism</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=surveillance&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">surveillance</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=squid&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">squid</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=air%20travel&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">air travel</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=DHS&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">DHS</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=homeland%20security&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">homeland security</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=law%20enforcement&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">law enforcement</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=academic%20papers&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">academic papers</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=cryptography&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">cryptography</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=economics%20of%20security&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">economics of security</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=crime&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">crime</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=NSA&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">NSA</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=Schneier%20news&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">Schneier news</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=TSA&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">TSA</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=hacking&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">hacking</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=essays&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">essays</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=laws&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">laws</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=national%20security%20policy&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">national security policy</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=computer%20security&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">computer security</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=malware&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">malware</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=encryption&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">encryption</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=fraud&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">fraud</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=psychology%20of%20security&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">psychology of security</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=police&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">police</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=physical%20security&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">physical security</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=cost-benefit%20analysis&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">cost-benefit analysis</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=fear&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">fear</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=bombs&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">bombs</a></li>
+
+		<li><a href="https://www.schneier.com/cgi-bin/mt/mt-search.cgi?search=courts&amp;__mode=tag&amp;IncludeBlogs=2&amp;limit=10&amp;page=1">courts</a></li>
+</ul>
+<p><a href="https://www.schneier.com/blog/tags.html">more tags</a></p>
+
+
+	
+		</div></section>
+		
+		<section><div class="sidesection">
+		<h3>Latest Book</h3>
+		<a href="https://www.schneier.com/book-co.html"><img class="sidepic"  alt="Carry On" src="https://www.schneier.com/images/book-co-175w.jpg"></a>
+		<p><a href="https://www.schneier.com/books.html">more books</a></p>
+		</div></section>
+		
+		<section><div class="sidesection">
+		<a href="https://www.eff.org/issues/bloggers/legal/join"><img id="effbutton" src="https://www.schneier.com/images/eff-150x40.gif" ALT="Support Bloggers' Rights!" width="150" height="40"></a>
+		
+		<a href="https://npo.networkforgood.org/Donate/Donate.aspx?npoSubscriptionId=8252"><img src="https://www.schneier.com/images/epic-150w.png" width="150" height="54" alt="Defend Privacy--Support Epic"></a>
+
+		</div></section>
+
+		<section><div class="sidesection">
+		<a href="https://www.co3sys.com/"><img class="sidepic" alt="Co3 Systems" src="https://www.schneier.com/images/co3-logo-175w.jpg"></a>	
+
+		</div></section>
+
+		
+	</div></aside>
+
+
+<footer><nav><div class="nav" id="footer-nav">
+<ul>
+		<li class="menu1 current"><a href="https://www.schneier.com/">Blog</a></li>
+		<li class="menu2"><a href="https://www.schneier.com/crypto-gram.html">Newsletter</a></li>
+		<li class="menu3"><a href="https://www.schneier.com/books.html">Books</a></li>
+    <li class="menu4"><a href="https://www.schneier.com/essays/">Essays</a></li>
+		<li class="menu5"><a href="https://www.schneier.com/news.html">News</a></li>
+		<li class="menu6"><a href="https://www.schneier.com/schedule.html">Schedule</a></li>
+		<li class="menu7"><a href="https://www.schneier.com/cryptography.html">Crypto</a></li>
+		<li class="menu8"><a href="https://www.schneier.com/about.html">About Me</a></li>
+	</ul>
+	
+	</div></nav></footer>
+
+</div><!--#main-->
+</div><!--#wrapper-->
+
+</body>
+</html>
+
+
+

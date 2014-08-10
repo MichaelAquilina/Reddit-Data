@@ -1,0 +1,474 @@
+
+
+
+<!DOCTYPE html>
+
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+    <head>
+        
+    <title>Mike Pirnat: The Diaper Pattern Stinks</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width" />
+<link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico">
+<link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="http://feeds.feedburner.com/PirnatMike" />
+
+<link rel="stylesheet" href="/css/foundation.min.css">
+<link rel="stylesheet" href="/css/app.css">
+
+<script src="/js/modernizr.foundation.js"></script>
+
+<!--
+<script>var a=new Date,b=a.getHours()+a.getTimezoneOffset()/60;if(18==a.getDate()&&0==a.getMonth()&&2012==a.getFullYear()&&13<=b&&24>=b)window.location="http://sopastrike.com/strike";</script>
+<link rel="stylesheet" href="/css/pygments_monokai.css" type="text/css" />
+-->
+<link rel="stylesheet" href="/fonts/clarendonfs_medium/stylesheet.css" type="text/css" />
+<link rel="stylesheet" href="/fonts/groteskfs_regular/stylesheet.css" type="text/css" />
+<link rel="stylesheet" href="/fonts/groteskfs_light/stylesheet.css" type="text/css" />
+<link rel="stylesheet" href="/fonts/savoy_roman/stylesheet.css" type="text/css" />
+<link href="http://coderwall.com/stylesheets/jquery.coderwall.css" media="all" rel="stylesheet" type="text/css">
+
+<meta property="og:site_name" content="Mike Pirnat"/>
+<meta property="og:type" content="blog" />
+    <meta property="og:url" content="http://mike.pirnat.com/2009/05/09/the-diaper-pattern-stinks/" />
+
+    <meta property="og:title" content="Mike Pirnat: The Diaper Pattern Stinks" />
+
+
+
+
+    </head>
+
+    <body>
+
+        
+    <div class="row">
+<header class="twelve columns">
+    <hgroup>
+        <h3>the further adventures of</h3>
+        <h1><a href="/">Mike Pirnat</a></h1>
+        <h2>a leaf on the wind</h2>
+    </hgroup>
+
+<nav>
+    <ul class="nav-bar">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/presentations/">Presentations</a></li>
+        <li class="show-for-small"><a href="/categories">Categories</a></li>
+        <li class="show-for-small"><a href="/archives">Archives</a></li>
+        <li><a href="http://feeds.feedburner.com/PirnatMike">Feed</a> <img src="/images/feed-10x10.png" width="10" height="10"></li>
+    </ul>
+</nav>
+
+</header>
+
+</div>
+
+
+
+        <!-- Main Page Content and Sidebar -->
+        <div class="row">
+
+            <!-- Main Blog Content -->
+            <div id="content" class="seven columns" role="content">
+                
+
+
+
+<p class="prev_next">
+    <a class="prev_link" href="/2009/05/08/tweeted-on-2009-05-08/">Â« Previous Post</a>
+
+    <a class="next_link" href="/2009/05/09/atomisator-configuration-for-unified-python-planet/">Next Post Â»</a>
+</p>
+
+
+<article>
+
+<div class="blog_post">
+  <a name="the-diaper-pattern-stinks" />
+  <h2 class="blog_post_title"><a href="/2009/05/09/the-diaper-pattern-stinks/" rel="bookmark" title="Permanent Link to The Diaper Pattern Stinks">The Diaper Pattern Stinks</a></h2>
+  <p class="blog_post_meta">May 09, 2009 at 02:49 PM | Categories: 
+
+<a href='/category/python'>python</a>, <a href='/category/naughty-words'>naughty-words</a>, <a href='/category/geekery'>geekery</a>
+ | <a href="http://mike.pirnat.com/2009/05/09/the-diaper-pattern-stinks/#disqus_thread">View Comments</a>
+</p>
+  <div class="post_prose">
+    
+  
+<p>I mentioned the "Diaper Pattern" in <a href="http://www.pirnat.com/mike/2009/05/06/the-zen-of-doing-it-wrong/">a recent post</a> and got some comments asking what the term meant.  I had hoped to just link to an explanation, thinking it was a well-known antipattern, but several minutes of frustrated Googling have left me convinced that there's actually a tiny knowledge gap to be filled here.</p>
+
+<p>"Diaper Pattern" is a term that I picked up from working with <a href="http://tplus1.com/">Matt Wilson</a> and <a href="http://www.traceback.org/">David Stanek</a>.  It's an <a href="http://en.wikipedia.org/wiki/Anti-pattern">anti-pattern</a> about naively over-broad exception catching.  A very basic example in Python might be:</p>
+
+
+<div class="pygments_monokai"><pre>try:
+    do_something_that_might_throw_various_exceptions()
+except Exception:
+    pass
+</pre></div>
+
+
+
+
+<p>If anything at all goes wrong in <code>do_something</code>, the <code>except</code> will catch and silence it--but we know that <a href="http://www.python.org/dev/peps/pep-0020/">errors should never pass silently (unless explicitly silenced)</a>.  <strong>It's called a Diaper because it catches all the shit.</strong></p>
+
+<p>In practice, unless you have a good reason to catch everything, it's a lot better to only catch the specific exceptions that need special handling, so that you'll know right away about any runtime surprises and where they came from:</p>
+
+
+<div class="pygments_monokai"><pre>try:
+    do_something_that_might_throw_various_exceptions()
+except IOError, e:
+    # handle just IOErrors; let everything else make noise
+</pre></div>
+
+
+
+
+<p>Maybe it's just a coincidence, but I've heard the term used more by developers who have young children than by those without kids.</p>
+
+
+  </div>
+</div>
+
+
+
+
+<div class="after_post">
+
+<a name="disqus-thread"></a>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  var disqus_url = "http://mike.pirnat.com/2009/05/09/the-diaper-pattern-stinks/";
+</script>
+<script type="text/javascript" src="http://disqus.com/forums/mike-pirnat/embed.js"></script>
+<noscript class="dsq-generic"><a href="http://mike-pirnat.disqus.com/?url=ref">View the discussion thread</a></noscript>
+
+<p class="dsq-generic"><a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a></p>
+
+</div>
+</article>
+
+
+
+<p class="prev_next">
+    <a class="prev_link" href="/2009/05/08/tweeted-on-2009-05-08/">Â« Previous Post</a>
+
+    <a class="next_link" href="/2009/05/09/atomisator-configuration-for-unified-python-planet/">Next Post Â»</a>
+</p>
+
+
+            </div>
+            <!-- End Main Content -->
+
+            
+    <!-- Sidebar -->
+
+<aside id="sidebar" class="four columns offset-by-one">
+
+    <section id="search">
+    <form method="get" action="http://www.google.com/search">
+        <span><input type="text" name="q" id="search-query" size="32" maxlength="255" value="" /></span>
+        <input type="submit" value="Search" class="small secondary radius button" />
+        <input type="hidden" name="sitesearch" value="http://mike.pirnat.com" />
+    </form>
+</section>
+
+
+    <section id="ads">
+
+<ul>
+    <li id="myjam">
+        <script src="http://www.thisismyjam.com/includes/js/medallion.js"></script>
+        <script>Jam.Medallion.insert({"username":"mpirnat"});</script>
+    </li>
+
+    <!-- TODO: move to iframe? -->
+    <li id="webfaction_badge">
+        <a href="http://www.webfaction.com?affiliate=mpirnat">
+            <h5>WebFaction</h5>
+            <p>Python, Ruby, PHP hosting</p>
+        </a>
+    </li>
+
+    <li id="gittip_badge">
+    <script
+        data-gittip-base="https://www.gittip.com"
+        data-gittip-username="mpirnat"
+        src="/js/gittip.js"></script>
+    </li>
+
+    <li id="coderwall_badges" class="hide-for-small">
+        <section class="coderwall" data-coderwall-username="mpirnat" data-coderwall-orientation="horizontal"></section>
+    </li>
+
+</ul>
+
+</section>
+
+
+    <section id="recent" class="hide-for-small">
+    <h5>Recent Posts</h5>
+
+    <ul class="side-nav">
+        <li><a href="/2013/06/01/announcing-procatindex" title="Announcing Procatindex">Announcing Procatindex</a></li>
+        <li><a href="/2013/03/30/since-youve-been-gone" title="Since You've Been Gone">Since You've Been Gone</a></li>
+        <li><a href="/2013/03/30/shiny-lets-be-bad-guys" title="Shiny, Let's Be Bad Guys">Shiny, Let's Be Bad Guys</a></li>
+        <li><a href="/2013/01/13/web-development-with-python-and-django" title="Web Development with Python and Django">Web Development with Python and Django</a></li>
+        <li><a href="/2012/12/31/366-365-see-you-later" title="366/365: See You Later">366/365: See You Later</a></li>
+        <li><a href="/2012/12/30/365-365-365" title="365/365: 365!">365/365: 365!</a></li>
+        <li><a href="/2012/12/30/364-365-to-the-rescue" title="364/365: To the Rescue">364/365: To the Rescue</a></li>
+        <li><a href="/2012/12/27/363-365-tower-city" title="363/365: Tower City">363/365: Tower City</a></li>
+        <li><a href="/2012/12/27/362-365-making-connections" title="362/365: Making Connections">362/365: Making Connections</a></li>
+        <li><a href="/2012/12/26/361-365-get-your-own" title="361/365: Get Your Own">361/365: Get Your Own</a></li>
+    </ul>
+</section>
+
+
+    <section id="tweets" class="hide-for-small">
+
+    <h5>Twitter&nbsp;
+        <a href="http://www.twitter.com/mpirnat">
+        <img src="http://twitter-badges.s3.amazonaws.com/t_mini-b.png" alt="Follow mpirnat on Twitter" border="0"/></a>
+    </h5>
+
+    <a class="twitter-timeline" data-dnt="true"
+        href="https://twitter.com/mpirnat"
+        data-chrome="noheader"
+        data-widget-id="357659608929681408">Tweets by @mpirnat</a>
+    <script>!function(d,s,id){var
+        js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+</section>
+
+
+
+    
+<section id="flickr" class="hide-for-small">
+    <h5>Flickr
+    <a href="http://api.flickr.com/services/feeds/photos_public.gne?id=89522530@N00&lang=en-us&format=rss_200"><img src="http://l.yimg.com/g/images/feed-icon-16x16.png" width="16" height="16"></a></h5>
+    <div id="flickr_badge_wrapper"><script type="text/javascript" src="http://www.flickr.com/badge_code_v2.gne?count=9&amp;display=random&amp;size=s&amp;layout=x&amp;source=user&amp;user=89522530@N00"></script></div>
+</section>
+
+
+    <section id="categories" class="hide-for-small">
+    <h5>Categories</h5>
+
+    <ul class="side-nav">
+        <li><a href="/category/agile">agile</a> (1)</li>
+        <li><a href="/category/anime">anime</a> (13)</li>
+        <li><a href="/category/apple">apple</a> (10)</li>
+        <li><a href="/category/appletv">appletv</a> (3)</li>
+        <li><a href="/category/art">art</a> (5)</li>
+        <li><a href="/category/beer">beer</a> (16)</li>
+        <li><a href="/category/biking">biking</a> (1)</li>
+        <li><a href="/category/birthday">birthday</a> (16)</li>
+        <li><a href="/category/blogs">blogs</a> (15)</li>
+        <li><a href="/category/books">books</a> (34)</li>
+        <li><a href="/category/cars">cars</a> (29)</li>
+        <li><a href="/category/cats">cats</a> (102)</li>
+        <li><a href="/category/children">children</a> (23)</li>
+        <li><a href="/category/christmas">christmas</a> (26)</li>
+        <li><a href="/category/claire">claire</a> (65)</li>
+        <li><a href="/category/clepy">clepy</a> (23)</li>
+        <li><a href="/category/cleveland">cleveland</a> (10)</li>
+        <li><a href="/category/comics">comics</a> (12)</li>
+        <li><a href="/category/computers">computers</a> (15)</li>
+        <li><a href="/category/concerts">concerts</a> (14)</li>
+        <li><a href="/category/conferences">conferences</a> (24)</li>
+        <li><a href="/category/css">css</a> (1)</li>
+        <li><a href="/category/culture">culture</a> (4)</li>
+        <li><a href="/category/current-events">current-events</a> (36)</li>
+        <li><a href="/category/cwru">cwru</a> (6)</li>
+        <li><a href="/category/dates">dates</a> (27)</li>
+        <li><a href="/category/death">death</a> (12)</li>
+        <li><a href="/category/dreams">dreams</a> (5)</li>
+        <li><a href="/category/family">family</a> (58)</li>
+        <li><a href="/category/food">food</a> (138)</li>
+        <li><a href="/category/friends">friends</a> (62)</li>
+        <li><a href="/category/games">games</a> (20)</li>
+        <li><a href="/category/garden">garden</a> (1)</li>
+        <li><a href="/category/gardening">gardening</a> (7)</li>
+        <li><a href="/category/geekery">geekery</a> (184)</li>
+        <li><a href="/category/goals">goals</a> (21)</li>
+        <li><a href="/category/health">health</a> (82)</li>
+        <li><a href="/category/holidays">holidays</a> (64)</li>
+        <li><a href="/category/house">house</a> (82)</li>
+        <li><a href="/category/howto">howto</a> (8)</li>
+        <li><a href="/category/humor">humor</a> (19)</li>
+        <li><a href="/category/javascript">javascript</a> (1)</li>
+        <li><a href="/category/lego">lego</a> (36)</li>
+        <li><a href="/category/life">life</a> (65)</li>
+        <li><a href="/category/links">links</a> (75)</li>
+        <li><a href="/category/linux">linux</a> (25)</li>
+        <li><a href="/category/liz">liz</a> (163)</li>
+        <li><a href="/category/lord-of-the-rings">lord-of-the-rings</a> (36)</li>
+        <li><a href="/category/lovenotes">lovenotes</a> (8)</li>
+        <li><a href="/category/macintosh">macintosh</a> (26)</li>
+        <li><a href="/category/marriage">marriage</a> (11)</li>
+        <li><a href="/category/media">media</a> (4)</li>
+        <li><a href="/category/memes">memes</a> (11)</li>
+        <li><a href="/category/movies">movies</a> (92)</li>
+        <li><a href="/category/music">music</a> (78)</li>
+        <li><a href="/category/naughty-words">naughty-words</a> (24)</li>
+        <li><a href="/category/nostalgia">nostalgia</a> (6)</li>
+        <li><a href="/category/perl">perl</a> (1)</li>
+        <li><a href="/category/photography">photography</a> (386)</li>
+        <li><a href="/category/photos">photos</a> (165)</li>
+        <li><a href="/category/photoshop">photoshop</a> (4)</li>
+        <li><a href="/category/poetry">poetry</a> (6)</li>
+        <li><a href="/category/politics">politics</a> (25)</li>
+        <li><a href="/category/presentations">presentations</a> (3)</li>
+        <li><a href="/category/programming">programming</a> (6)</li>
+        <li><a href="/category/psa">psa</a> (6)</li>
+        <li><a href="/category/pycon">pycon</a> (1)</li>
+        <li><a href="/category/python">python</a> (100)</li>
+        <li><a href="/category/rants">rants</a> (53)</li>
+        <li><a href="/category/retail-therapy">retail-therapy</a> (40)</li>
+        <li><a href="/category/schadenfreude">schadenfreude</a> (2)</li>
+        <li><a href="/category/science">science</a> (2)</li>
+        <li><a href="/category/science-fiction">science-fiction</a> (14)</li>
+        <li><a href="/category/shindig">shindig</a> (1)</li>
+        <li><a href="/category/space">space</a> (6)</li>
+        <li><a href="/category/spam">spam</a> (3)</li>
+        <li><a href="/category/sports">sports</a> (7)</li>
+        <li><a href="/category/star-wars">star-wars</a> (42)</li>
+        <li><a href="/category/testing">testing</a> (2)</li>
+        <li><a href="/category/thanksgiving">thanksgiving</a> (7)</li>
+        <li><a href="/category/theatre">theatre</a> (13)</li>
+        <li><a href="/category/thoughts">thoughts</a> (39)</li>
+        <li><a href="/category/travel">travel</a> (153)</li>
+        <li><a href="/category/tv">tv</a> (39)</li>
+        <li><a href="/category/twitter">twitter</a> (607)</li>
+        <li><a href="/category/vacation">vacation</a> (52)</li>
+        <li><a href="/category/video-games">video-games</a> (33)</li>
+        <li><a href="/category/weather">weather</a> (62)</li>
+        <li><a href="/category/weddings">weddings</a> (17)</li>
+        <li><a href="/category/weekends">weekends</a> (54)</li>
+        <li><a href="/category/wine">wine</a> (102)</li>
+        <li><a href="/category/work">work</a> (174)</li>
+        <li><a href="/category/wtf">wtf</a> (3)</li>
+    </ul>
+</section>
+
+
+    <section id="archives" class="hide-for-small">
+    <div class="sidebar-full">
+        <h5>Archives</h5>
+
+        <ul class="side-nav">
+            <li><a href="/2013" title="2013">2013</a> (4)</li>
+            <li><a href="/2012" title="2012">2012</a> (382)</li>
+            <li><a href="/2011" title="2011">2011</a> (34)</li>
+            <li><a href="/2010" title="2010">2010</a> (24)</li>
+            <li><a href="/2009" title="2009">2009</a> (341)</li>
+            <li><a href="/2008" title="2008">2008</a> (334)</li>
+            <li><a href="/2007" title="2007">2007</a> (88)</li>
+            <li><a href="/2006" title="2006">2006</a> (85)</li>
+            <li><a href="/2005" title="2005">2005</a> (136)</li>
+            <li><a href="/2004" title="2004">2004</a> (133)</li>
+            <li><a href="/2003" title="2003">2003</a> (156)</li>
+            <li><a href="/2002" title="2002">2002</a> (87)</li>
+        </ul>
+    </div>
+</section>
+
+
+</aside>
+
+<!-- End Sidebar -->
+
+
+
+        </div>
+        <!-- End Main Content and Sidebar -->
+
+        
+    <footer class="row">
+    <div class="eight columns">
+        <p>&copy; 2002-2013 Mike Pirnat - All rights reserved</p>
+        <p>Powered by <a href="http://www.blogofile.com">Blogofile</a>
+            and <a href="http://foundation.zurb.com">Zurb Foundation</a></p>
+    </div>
+    <div class="four columns">
+        <ul class="link-list right">
+            <li><img src="/images/feed-10x10.png" width="10" height="10">
+                <a href="http://feeds.feedburner.com/PirnatMike">Entries</a></li>
+            <li><img src="/images/feed-10x10.png" width="10" height="10">
+                <a href="http://feeds.feedburner.com/PirnatMikeComments">Comments</a></li>
+        </ul>
+    </div>
+</footer>
+
+<script type="text/javascript">
+//<![CDATA[
+(function() {
+		var links = document.getElementsByTagName('a');
+		var query = '?';
+		for(var i = 0; i < links.length; i++) {
+			if(links[i].href.indexOf('#disqus_thread') >= 0) {
+				query += 'url' + i + '=' + encodeURIComponent(links[i].href) + '&';
+			}
+		}
+		document.write('<script charset="utf-8" type="text/javascript" src="http://disqus.com/forums/mike-pirnat/get_num_replies.js' + query + '"></' + 'script>');
+	})();
+//]]>
+</script>
+
+
+        
+    <!-- Included JS Files (Compressed) -->
+<script src="/js/foundation.min.js"></script>
+
+<!-- Initialize JS Plugins -->
+<script src="/js/app.js"></script>
+
+<!-- TODO: move to app.js -->
+<script type="text/javascript">
+if (navigator.appVersion.indexOf("Mac") == -1) {
+    document.body.className += "nonmac";
+}
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script src="http://coderwall.com/javascripts/jquery.coderwall.js"></script>
+
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    gaTrack: true,
+    gaId: 'UA-82872-5'
+  });
+}
+</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script type="text/javascript">
+//<![CDATA[
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-82872-5']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+//]]>
+</script>
+
+
+
+    </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+

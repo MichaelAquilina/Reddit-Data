@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en-GB-x-hixie" class="big split chapter"><head><title>4.10.5.3 Common input element attributes — HTML Standard</title><script>
+   var loadTimer = new Date();
+   var current_revision = "r" + "$Revision: 8682 $".substr(11);
+   current_revision = current_revision.substr(0, current_revision.length - 2);
+   var last_known_revision = current_revision;
+   function F( /* varargs... */) {
+     var fragment = document.createDocumentFragment();
+     for (var index = 0; index < arguments.length; index += 1) {
+       if (arguments[index] instanceof Array) {
+         fragment.appendChild(F.apply(this, arguments[index]));
+       } else if (typeof arguments[index] == 'string') {
+         fragment.appendChild(document.createTextNode(arguments[index]));
+       } else {
+         fragment.appendChild(arguments[index]);
+       }
+     }
+     return fragment;
+   }
+   function E(name, /* optional */ attributes /*, varargs... */) {
+     var element = document.createElement(name);
+     var index = 1;
+     if ((arguments.length > 1) && (typeof attributes != 'string') &&
+         (!(attributes instanceof Node)) && (!(attributes instanceof Array))) {
+       for (var attName in attributes) {
+         if (typeof attributes[attName] == 'boolean') {
+           if (attributes[attName])
+             element.setAttribute(attName, '');
+         } else if (typeof attributes[attName] == 'function') {
+           element[attName] = attributes[attName];
+         } else {
+           element.setAttribute(attName, attributes[attName]);
+         }
+       }
+       index = 2;
+     }
+     for (; index < arguments.length; index += 1) {
+       if (arguments[index] instanceof Array) {
+         element.appendChild(F.apply(this, arguments[index]));
+       } else if (typeof arguments[index] == 'string') {
+         element.appendChild(document.createTextNode(arguments[index]));
+       } else {
+         element.appendChild(arguments[index]);
+       }
+     }
+     return element;
+   }
+   function getCookie(name) {
+     var params = location.search.substr(1).split("&");
+     for (var index = 0; index < params.length; index++) {
+       if (params[index] == name)
+         return "1";
+       var data = params[index].split("=");
+       if (data[0] == name)
+         return unescape(data[1]);
+     }
+     var cookies = document.cookie.split("; ");
+     for (var index = 0; index < cookies.length; index++) {
+       var data = cookies[index].split("=");
+       if (data[0] == name)
+         return unescape(data[1]);
+     }
+     return null;
+   }
+   var currentAlert;
+   var currentAlertTimeout;
+   function showAlert(s, href) {
+     if (!currentAlert) {
+       currentAlert = document.createElement('div');
+       currentAlert.id = 'alert';
+       var x = document.createElement('button');
+       x.textContent = '\u2573';
+       x.onclick = closeAlert2;
+       currentAlert.appendChild(x);
+       currentAlert.appendChild(document.createElement('span'));
+       currentAlert.onmousemove = function () {
+         clearTimeout(currentAlertTimeout);
+         currentAlert.className = '';
+         currentAlertTimeout = setTimeout(closeAlert, 10000);
+       }
+       document.body.appendChild(currentAlert);
+     } else {
+       clearTimeout(currentAlertTimeout);
+       currentAlert.className = '';
+     }
+     currentAlert.lastChild.textContent = '';
+     currentAlert.lastChild.appendChild(F(s));
+     if (href) {
+       var link = document.createElement('a');
+       link.href = href;
+       link.textContent = href;
+       currentAlert.lastChild.appendChild(F(' ', link));
+     }
+     currentAlertTimeout = setTimeout(closeAlert, 10000);
+   }
+   function closeAlert() {
+     clearTimeout(currentAlertTimeout);
+     if (currentAlert) {
+       currentAlert.className = 'closed';
+       currentAlertTimeout = setTimeout(closeAlert2, 3000);
+     }
+   }
+   function closeAlert2() {
+     clearTimeout(currentAlertTimeout);
+     if (currentAlert) {
+       currentAlert.parentNode.removeChild(currentAlert);
+       currentAlert = null;
+     }
+   }
+   window.addEventListener('keydown', function (event) {
+     if (event.keyCode == 27) {
+       if (currentAlert)
+         closeAlert2();
+     } else {
+       closeAlert();
+     }
+   }, false);
+   window.addEventListener('scroll', function (event) {
+     closeAlert();
+   }, false);
+   function load(script) {
+     var e = document.createElement('script');
+     e.setAttribute('src', '//www.whatwg.org/specs/web-apps/current-work/' + script);
+     document.body.appendChild(e);
+   }
+  </script><link rel="stylesheet" href="//www.whatwg.org/style/specification"><link rel="icon" href="//www.whatwg.org/images/icon"><style>
+   .proposal { border: blue solid; padding: 1em; }
+   .bad, .bad *:not(.XXX) { color: gray; border-color: gray; background: transparent; }
+   #updatesStatus { display: none; z-index: 10; }
+   #updatesStatus.relevant { display: block; position: fixed; right: 1em; top: 1em; padding: 0.5em; font: bold small sans-serif; min-width: 25em; width: 30%; max-width: 40em; height: auto; border: ridge 4px gray; background: #EEEEEE; color: black; }
+   div.head .logo { width: 11em; margin-bottom: 20em; }
+   #configUI { position: absolute; z-index: 20; top: auto; right: 0; width: 11em; padding: 0 0.5em 0 0.5em; font-size: small; background: gray; background: rgba(32,32,32,0.9); color: white; border-radius: 1em 0 0 1em; -moz-border-radius: 1em 0 0 1em; }
+   #configUI p { margin: 0.75em 0; padding: 0.3em; }
+   #configUI p label { display: block; }
+   #configUI #updateUI, #configUI .loginUI { text-align: center; }
+   #configUI input[type=button] { display: block; margin: auto; }
+   #configUI :link, #configUI :visited { color: white; }
+   #configUI :link:hover, #configUI :visited:hover { background: transparent; }
+   #alert { position: fixed; top: 20%; left: 20%; right: 20%; font-size: 2em; padding: 0.5em; z-index: 40; background: gray; background: rgba(32,32,32,0.9); color: white; border-radius: 1em; -moz-border-radius: 1em; -webkit-transition: opacity 1s linear; }
+   #alert.closed { opacity: 0; }
+   #alert button { position: absolute; top: -1em; right: 2em; border-radius: 1em 1em 0 0; border: none; line-height: 0.9; color: white; background: rgb(64,64,64); font-size: 0.6em; font-weight: 900; cursor: pointer; }
+   #alert :link, #alert :visited { color: white; }
+   #alert :link:hover, #alert :visited:hover { background: transparent; }
+   @media print { #configUI { display: none; } }
+   .rfc2119 { font-variant: small-caps; text-shadow: 0 0 0.5em yellow; position: static; }
+   .rfc2119::after { position: absolute; left: 0; width: 25px; text-align: center; color: yellow; text-shadow: 0.075em 0.075em 0.2em black; }
+   .rfc2119.m\ust::after { content: '\2605'; }
+   .rfc2119.s\hould::after { content: '\2606'; }
+   [hidden] { display: none; }
+  </style><style type="text/css">
+
+   .fingerprint { float: right; }
+
+   .applies thead th > * { display: block; }
+   .applies thead code { display: block; }
+   .applies td { text-align: center; }
+   .applies .yes { background: yellow; }
+
+   .matrix, .matrix td { border: hidden; text-align: right; }
+   .matrix { margin-left: 2em; }
+
+   .vertical-summary-table tr > th[rowspan="2"]:first-child + th,
+   .vertical-summary-table tr > td[rowspan="2"]:first-child + td { border-bottom: hidden; }
+
+   .dice-example { border-collapse: collapse; border-style: hidden solid solid hidden; border-width: thin; margin-left: 3em; }
+   .dice-example caption { width: 30em; font-size: smaller; font-style: italic; padding: 0.75em 0; text-align: left; }
+   .dice-example td, .dice-example th { border: solid thin; width: 1.35em; height: 1.05em; text-align: center; padding: 0; }
+
+   td.eg { border-width: thin; text-align: center; }
+
+   #table-example-1 { border: solid thin; border-collapse: collapse; margin-left: 3em; }
+   #table-example-1 * { font-family: "Essays1743", serif; line-height: 1.01em; }
+   #table-example-1 caption { padding-bottom: 0.5em; }
+   #table-example-1 thead, #table-example-1 tbody { border: none; }
+   #table-example-1 th, #table-example-1 td { border: solid thin; }
+   #table-example-1 th { font-weight: normal; }
+   #table-example-1 td { border-style: none solid; vertical-align: top; }
+   #table-example-1 th { padding: 0.5em; vertical-align: middle; text-align: center; }
+   #table-example-1 tbody tr:first-child td { padding-top: 0.5em; }
+   #table-example-1 tbody tr:last-child td { padding-bottom: 1.5em; }
+   #table-example-1 tbody td:first-child { padding-left: 2.5em; padding-right: 0; width: 9em; }
+   #table-example-1 tbody td:first-child::after { content: leader(". "); }
+   #table-example-1 tbody td { padding-left: 2em; padding-right: 2em; }
+   #table-example-1 tbody td:first-child + td { width: 10em; }
+   #table-example-1 tbody td:first-child + td ~ td { width: 2.5em; }
+   #table-example-1 tbody td:first-child + td + td + td ~ td { width: 1.25em; }
+
+   .apple-table-examples { border: none; border-collapse: separate; border-spacing: 1.5em 0em; width: 40em; margin-left: 3em; }
+   .apple-table-examples * { font-family: "Times", serif; }
+   .apple-table-examples td, .apple-table-examples th { border: none; white-space: nowrap; padding-top: 0; padding-bottom: 0; }
+   .apple-table-examples tbody th:first-child { border-left: none; width: 100%; }
+   .apple-table-examples thead th:first-child ~ th { font-size: smaller; font-weight: bolder; border-bottom: solid 2px; text-align: center; }
+   .apple-table-examples tbody th::after, .apple-table-examples tfoot th::after { content: leader(". ") }
+   .apple-table-examples tbody th, .apple-table-examples tfoot th { font: inherit; text-align: left; }
+   .apple-table-examples td { text-align: right; vertical-align: top; }
+   .apple-table-examples.e1 tbody tr:last-child td { border-bottom: solid 1px; }
+   .apple-table-examples.e1 tbody + tbody tr:last-child td { border-bottom: double 3px; }
+   .apple-table-examples.e2 th[scope=row] { padding-left: 1em; }
+   .apple-table-examples sup { line-height: 0; }
+
+   .three-column-nowrap tr > td:first-child,
+   .three-column-nowrap tr > td:first-child + td,
+   .three-column-nowrap tr > td:first-child + td + td { white-space: nowrap; }
+
+   .details-example img { vertical-align: top; }
+
+   #base64-table {
+     white-space: nowrap;
+     font-size: 0.6em;
+     column-width: 6em;
+     column-count: 5;
+     column-gap: 1em;
+     -moz-column-width: 6em;
+     -moz-column-count: 5;
+     -moz-column-gap: 1em;
+     -webkit-column-width: 6em;
+     -webkit-column-count: 5;
+     -webkit-column-gap: 1em;
+   }
+   #base64-table thead { display: none; }
+   #base64-table * { border: none; }
+   #base64-table tbody td:first-child:after { content: ':'; }
+   #base64-table tbody td:last-child { text-align: right; }
+
+   #named-character-references-table {
+     white-space: nowrap;
+     font-size: 0.6em;
+     column-width: 30em;
+     column-gap: 1em;
+     -moz-column-width: 30em;
+     -moz-column-gap: 1em;
+     -webkit-column-width: 30em;
+     -webkit-column-gap: 1em;
+   }
+   #named-character-references-table > table > tbody > tr > td:first-child + td,
+   #named-character-references-table > table > tbody > tr > td:last-child { text-align: center; }
+   #named-character-references-table > table > tbody > tr > td:last-child:hover > span { position: absolute; top: auto; left: auto; margin-left: 0.5em; line-height: 1.2; font-size: 5em; border: outset; padding: 0.25em 0.5em; background: white; width: 1.25em; height: auto; text-align: center; }
+   #named-character-references-table > table > tbody > tr#entity-CounterClockwiseContourIntegral > td:first-child { font-size: 0.5em; }
+
+   .glyph.control { color: red; }
+
+   @font-face {
+     font-family: 'Essays1743';
+     src: url('//www.whatwg.org/specs/web-apps/current-work/fonts/Essays1743.ttf');
+   }
+   @font-face {
+     font-family: 'Essays1743';
+     font-weight: bold;
+     src: url('//www.whatwg.org/specs/web-apps/current-work/fonts/Essays1743-Bold.ttf');
+   }
+   @font-face {
+     font-family: 'Essays1743';
+     font-style: italic;
+     src: url('//www.whatwg.org/specs/web-apps/current-work/fonts/Essays1743-Italic.ttf');
+   }
+   @font-face {
+     font-family: 'Essays1743';
+     font-style: italic;
+     font-weight: bold;
+     src: url('//www.whatwg.org/specs/web-apps/current-work/fonts/Essays1743-BoldItalic.ttf');
+   }
+
+  </style><link rel="stylesheet" href="data:text/css," title="Normal"><link rel="stylesheet alternate" href="data:text/css,.impl%20%7B%20background:%20pink;%20%7D" title="Highlight implementation-only prose"><link rel="stylesheet" href="status.css"><script>
+   var startedInit = 0;
+   function init() {
+     startedInit = 1;
+     if (location.search == '?slow-browser')
+       return;
+     load('reviewer.js');
+     if (document.documentElement.className == "big" || document.documentElement.className == "big split index")
+       load('toc.js');
+     load('updater.js');
+     load('dfn.js');
+     load('status.js');
+     if (getCookie('profile') == '1')
+       document.getElementsByTagName('h2')[0].textContent += '; load: ' + (new Date() - loadTimer) + 'ms';
+   }
+   if (document.documentElement.className == "")
+     setTimeout(function () {
+       if (!startedInit)
+         showAlert("Too slow? Try reading the multipage copy of the spec instead:", "http://whatwg.org/html");
+     }, 6000);
+
+   window.addEventListener('keypress', function (event) {
+     if ((event.which == 114) && (event.metaKey)) {
+       if (!confirm('Are you sure you want to reload this page?'))
+         event.preventDefault();
+     }
+   }, false);
+
+  </script>
+  <script src="link-fixup.js"></script>
+  <link href="states-of-the-type-attribute.html" title="4.10.5.1 States of the type attribute" rel="prev">
+  <link href="index.html#contents" title="Table of contents" rel="index">
+  <link href="the-button-element.html" title="4.10.6 The button element" rel="next">
+  </head><body onload="fixBrokenLink(); init()"><header id="head" class="head with-buttons"><p><a href="//www.whatwg.org/" class="logo"><img src="/images/logo" width="101" alt="WHATWG" height="101"></a></p>
+   <hgroup><h1 class="allcaps">HTML</h1>
+    <h2 class="no-num no-toc">Living Standard — Last Updated 20 June 2014</h2>
+   </hgroup></header><nav>
+   <a href="states-of-the-type-attribute.html">← 4.10.5.1 States of the type attribute</a> –
+   <a href="index.html#contents">Table of contents</a> –
+   <a href="the-button-element.html">4.10.6 The button element →</a>
+  <ol class="toc"><li><ol><li><ol><li><ol><li><a href="common-input-element-attributes.html#common-input-element-attributes"><span class="secno">4.10.5.3 </span>Common <code>input</code> element attributes</a>
+        <ol><li><a href="common-input-element-attributes.html#the-maxlength-and-minlength-attributes"><span class="secno">4.10.5.3.1 </span>The <code title="attr-input-maxlength">maxlength</code> and <code title="attr-input-minlength">minlength</code> attributes</a></li><li><a href="common-input-element-attributes.html#the-size-attribute"><span class="secno">4.10.5.3.2 </span>The <code title="attr-input-size">size</code> attribute</a></li><li><a href="common-input-element-attributes.html#the-readonly-attribute"><span class="secno">4.10.5.3.3 </span>The <code title="attr-input-readonly">readonly</code> attribute</a></li><li><a href="common-input-element-attributes.html#the-required-attribute"><span class="secno">4.10.5.3.4 </span>The <code title="attr-input-required">required</code> attribute</a></li><li><a href="common-input-element-attributes.html#the-multiple-attribute"><span class="secno">4.10.5.3.5 </span>The <code title="attr-input-multiple">multiple</code> attribute</a></li><li><a href="common-input-element-attributes.html#the-pattern-attribute"><span class="secno">4.10.5.3.6 </span>The <code title="attr-input-pattern">pattern</code> attribute</a></li><li><a href="common-input-element-attributes.html#the-min-and-max-attributes"><span class="secno">4.10.5.3.7 </span>The <code title="attr-input-min">min</code> and <code title="attr-input-max">max</code> attributes</a></li><li><a href="common-input-element-attributes.html#the-step-attribute"><span class="secno">4.10.5.3.8 </span>The <code title="attr-input-step">step</code> attribute</a></li><li><a href="common-input-element-attributes.html#the-list-attribute"><span class="secno">4.10.5.3.9 </span>The <code title="attr-input-list">list</code> attribute</a></li><li><a href="common-input-element-attributes.html#the-placeholder-attribute"><span class="secno">4.10.5.3.10 </span>The <code title="attr-input-placeholder">placeholder</code> attribute</a></li></ol></li><li><a href="common-input-element-attributes.html#common-input-element-apis"><span class="secno">4.10.5.4 </span>Common <code>input</code> element APIs</a></li><li><a href="common-input-element-attributes.html#common-input-element-events"><span class="secno">4.10.5.5 </span>Common event behaviors</a></li></ol></li></ol></li></ol></li></ol></nav>
+
+  <h5 id="common-input-element-attributes"><span class="secno">4.10.5.3 </span>Common <code><a href="the-input-element.html#the-input-element">input</a></code> element attributes</h5>
+
+  <div class="impl">
+
+  <p>These attributes only <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">apply</a> to an <code><a href="the-input-element.html#the-input-element">input</a></code>
+  element if its <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute is in a state whose definition
+  declares that the attribute <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">applies</a>. When an attribute
+  <a href="the-input-element.html#do-not-apply" title="do not apply">doesn't apply</a> to an <code><a href="the-input-element.html#the-input-element">input</a></code> element, user agents must
+  <a href="infrastructure.html#ignore">ignore</a> the attribute, regardless of the requirements and definitions below.</p>
+
+  </div>
+
+
+  <h6 id="the-maxlength-and-minlength-attributes"><span class="secno">4.10.5.3.1 </span>The <code title="attr-input-maxlength"><a href="#attr-input-maxlength">maxlength</a></code> and <code title="attr-input-minlength"><a href="#attr-input-minlength">minlength</a></code> attributes</h6>
+
+  <p>The <dfn id="attr-input-maxlength" title="attr-input-maxlength"><code>maxlength</code></dfn> attribute<span class="impl">, when it <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">applies</a>,</span> is a <a href="association-of-controls-and-forms.html#attr-fe-maxlength" title="attr-fe-maxlength">form control <code title="">maxlength</code> attribute</a><span class="impl"> controlled by the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <a href="the-input-element.html#concept-input-value-dirty-flag" title="concept-input-value-dirty-flag">dirty value flag</a></span>.</p>
+
+  <p>The <dfn id="attr-input-minlength" title="attr-input-minlength"><code>minlength</code></dfn> attribute<span class="impl">, when it <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">applies</a>,</span> is a <a href="association-of-controls-and-forms.html#attr-fe-minlength" title="attr-fe-minlength">form control <code title="">minlength</code> attribute</a><span class="impl"> controlled by the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <a href="the-input-element.html#concept-input-value-dirty-flag" title="concept-input-value-dirty-flag">dirty value flag</a></span>.</p>
+
+  <p>If the <code><a href="the-input-element.html#the-input-element">input</a></code> element has a <a href="association-of-controls-and-forms.html#maximum-allowed-value-length">maximum allowed value length</a>, then the
+  <a href="infrastructure.html#code-unit-length">code-unit length</a> of the value of the element's <code title="attr-input-value"><a href="the-input-element.html#attr-input-value">value</a></code> attribute must be equal to or less than the element's
+  <a href="association-of-controls-and-forms.html#maximum-allowed-value-length">maximum allowed value length</a>.</p>
+
+  <!-- we allow the default to be smaller than the minimum, so that you can have incomplete, but not
+  empty, input already in the form, like a template that needs to be filled in -->
+
+  <div class="example">
+
+   <p>The following extract shows how a messaging client's text entry could be arbitrarily
+   restricted to a fixed number of characters, thus forcing any conversation through this medium to
+   be terse and discouraging intelligent discourse.</p>
+
+   <pre>&lt;label&gt;What are you doing? &lt;input name=status maxlength=140&gt;&lt;/label&gt;</pre>
+
+  </div>
+
+  <div class="example">
+
+   <p>Here, a password is given a minimum length:</p>
+
+   <pre>&lt;p&gt;&lt;label&gt;Username: &lt;input name=u required&gt;&lt;/label&gt;
+&lt;p&gt;&lt;label&gt;Password: &lt;input name=p required minlength=12&gt;&lt;/label&gt;</pre>
+
+  </div>
+
+
+
+  <h6 id="the-size-attribute"><span class="secno">4.10.5.3.2 </span>The <code title="attr-input-size"><a href="#attr-input-size">size</a></code> attribute</h6>
+
+  <p>The <dfn id="attr-input-size" title="attr-input-size"><code>size</code></dfn> attribute gives the number of
+  characters that, in a visual rendering, the user agent is to allow the user to see while editing
+  the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>.</p>
+
+  <p>The <code title="attr-input-size"><a href="#attr-input-size">size</a></code> attribute, if specified, must have a value that
+  is a <a href="common-microsyntaxes.html#valid-non-negative-integer">valid non-negative integer</a> greater than zero.</p>
+
+  <div class="impl">
+
+  <p>If the attribute is present, then its value must be parsed using the <a href="common-microsyntaxes.html#rules-for-parsing-non-negative-integers">rules for parsing
+  non-negative integers</a>, and if the result is a number greater than zero, then the user agent
+  should ensure that at least that many characters are visible.</p>
+
+  <p>The <code title="dom-input-size"><a href="the-input-element.html#dom-input-size">size</a></code> IDL attribute is <a href="common-dom-interfaces.html#limited-to-only-non-negative-numbers-greater-than-zero">limited to only
+  non-negative numbers greater than zero</a> and has a default value of 20.</p>
+
+  </div>
+
+
+
+  <h6 id="the-readonly-attribute"><span class="secno">4.10.5.3.3 </span>The <code title="attr-input-readonly"><a href="#attr-input-readonly">readonly</a></code> attribute</h6>
+
+  <p>The <dfn id="attr-input-readonly" title="attr-input-readonly"><code>readonly</code></dfn> attribute is a <a href="common-microsyntaxes.html#boolean-attribute">boolean
+  attribute</a> that controls whether or not the user can edit the form control. <span class="impl">When specified, the element is not <i title="concept-fe-mutable"><a href="the-button-element.html#concept-fe-mutable">mutable</a></i>.</span></p>
+
+  <div class="impl">
+
+  <p><strong>Constraint validation</strong>: If the <code title="attr-input-readonly"><a href="#attr-input-readonly">readonly</a></code> attribute is specified on an <code><a href="the-input-element.html#the-input-element">input</a></code>
+  element, the element is <a href="association-of-controls-and-forms.html#barred-from-constraint-validation">barred from constraint validation</a>.</p>
+
+  </div>
+
+  <p class="note">The difference between <code title="attr-fe-disabled"><a href="association-of-controls-and-forms.html#attr-fe-disabled">disabled</a></code> and <code title="attr-input-readonly"><a href="#attr-input-readonly">readonly</a></code> is that read-only controls are still focusable, so the
+  user can still select the text and interact with it, whereas disabled controls are entirely
+  non-interactive. (For this reason, only text controls can be made read-only: it wouldn't make
+  sense for checkboxes or buttons, for instances.)</p>
+
+  <div class="example">
+
+   <p>In the following example, the existing product identifiers cannot be modified, but they are
+   still displayed as part of the form, for consistency with the row representing a new product
+   (where the identifier is not yet filled in).</p>
+
+   <pre>&lt;form action="products.cgi" method="post" enctype="multipart/form-data"&gt;
+ &lt;table&gt;
+  &lt;tr&gt; &lt;th&gt; Product ID &lt;th&gt; Product name &lt;th&gt; Price &lt;th&gt; Action
+  &lt;tr&gt;
+   &lt;td&gt; &lt;input readonly="readonly" name="1.pid" value="H412"&gt;
+   &lt;td&gt; &lt;input required="required" name="1.pname" value="Floor lamp Ulke"&gt;
+   &lt;td&gt; $&lt;input required="required" type="number" min="0" step="0.01" name="1.pprice" value="49.99"&gt;
+   &lt;td&gt; &lt;button formnovalidate="formnovalidate" name="action" value="delete:1"&gt;Delete&lt;/button&gt;
+  &lt;tr&gt;
+   &lt;td&gt; &lt;input readonly="readonly" name="2.pid" value="FG28"&gt;
+   &lt;td&gt; &lt;input required="required" name="2.pname" value="Table lamp Ulke"&gt;
+   &lt;td&gt; $&lt;input required="required" type="number" min="0" step="0.01" name="2.pprice" value="24.99"&gt;
+   &lt;td&gt; &lt;button formnovalidate="formnovalidate" name="action" value="delete:2"&gt;Delete&lt;/button&gt;
+  &lt;tr&gt;
+   &lt;td&gt; &lt;input required="required" name="3.pid" value="" pattern="[A-Z0-9]+"&gt;
+   &lt;td&gt; &lt;input required="required" name="3.pname" value=""&gt;
+   &lt;td&gt; $&lt;input required="required" type="number" min="0" step="0.01" name="3.pprice" value=""&gt;
+   &lt;td&gt; &lt;button formnovalidate="formnovalidate" name="action" value="delete:3"&gt;Delete&lt;/button&gt;
+ &lt;/table&gt;
+ &lt;p&gt; &lt;button formnovalidate="formnovalidate" name="action" value="add"&gt;Add&lt;/button&gt; &lt;/p&gt;
+ &lt;p&gt; &lt;button name="action" value="update"&gt;Save&lt;/button&gt; &lt;/p&gt;
+&lt;/form&gt;</pre>
+
+  </div>
+
+
+
+  <h6 id="the-required-attribute"><span class="secno">4.10.5.3.4 </span>The <code title="attr-input-required"><a href="#attr-input-required">required</a></code> attribute</h6>
+
+  <p>The <dfn id="attr-input-required" title="attr-input-required"><code>required</code></dfn> attribute is a <a href="common-microsyntaxes.html#boolean-attribute">boolean
+  attribute</a>. When specified, the element is <dfn id="concept-input-required" title="concept-input-required"><i>required</i></dfn>.</p>
+
+  <div class="impl">
+
+  <p><strong>Constraint validation</strong>: If the element is <i title="concept-input-required"><a href="#concept-input-required">required</a></i>, and its <code title="dom-input-value"><a href="#dom-input-value">value</a></code>
+  IDL attribute <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">applies</a> and is in the mode <a href="#dom-input-value-value" title="dom-input-value-value">value</a>, and the element is <i title="concept-fe-mutable"><a href="the-button-element.html#concept-fe-mutable">mutable</a></i>, and the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> is the empty string, then the element is <a href="association-of-controls-and-forms.html#suffering-from-being-missing">suffering
+  from being missing</a>.</p>
+
+  </div>
+
+  <div class="example">
+
+   <p>The following form has two required fields, one for an e-mail address and one for a password.
+   It also has a third field that is only considered valid if the user types the same password in
+   the password field and this third field.</p>
+
+   <pre>&lt;h1&gt;Create new account&lt;/h1&gt;
+&lt;form action="/newaccount" method=post
+      oninput="up2.setCustomValidity(up2.value != up.value ? 'Passwords do not match.' : '')"&gt;
+ &lt;p&gt;
+  &lt;label for="username"&gt;E-mail address:&lt;/label&gt;
+  &lt;input id="username" type=email required name=un&gt;
+ &lt;p&gt;
+  &lt;label for="password1"&gt;Password:&lt;/label&gt;
+  &lt;input id="password1" type=password required name=up&gt;
+ &lt;p&gt;
+  &lt;label for="password2"&gt;Confirm password:&lt;/label&gt;
+  &lt;input id="password2" type=password name=up2&gt;
+ &lt;p&gt;
+  &lt;input type=submit value="Create account"&gt;
+&lt;/form&gt;</pre>
+
+  </div>
+
+  <div class="example">
+
+   <p>For radio buttons, the <code title="attr-input-required"><a href="#attr-input-required">required</a></code> attribute is
+   satisfied if any of the radio buttons in the <a href="states-of-the-type-attribute.html#radio-button-group" title="radio button group">group</a> is
+   selected. Thus, in the following example, any of the radio buttons can be checked, not just the
+   one marked as required:</p>
+
+   <pre>&lt;fieldset&gt;
+ &lt;legend&gt;Did the movie pass the Bechdel test?&lt;/legend&gt;
+ &lt;p&gt;&lt;label&gt;&lt;input type="radio" name="bechdel" value="no-characters"&gt; No, there are not even two female characters in the movie. &lt;/label&gt;
+ &lt;p&gt;&lt;label&gt;&lt;input type="radio" name="bechdel" value="no-names"&gt; No, the female characters never talk to each other. &lt;/label&gt;
+ &lt;p&gt;&lt;label&gt;&lt;input type="radio" name="bechdel" value="no-topic"&gt; No, when female characters talk to each other it's always about a male character. &lt;/label&gt;
+ &lt;p&gt;&lt;label&gt;&lt;input type="radio" name="bechdel" value="yes" <strong>required</strong>&gt; Yes. &lt;/label&gt;
+ &lt;p&gt;&lt;label&gt;&lt;input type="radio" name="bechdel" value="unknown"&gt; I don't know. &lt;/label&gt;
+&lt;/fieldset&gt;</pre>
+
+   <p>To avoid confusion as to whether a <a href="states-of-the-type-attribute.html#radio-button-group">radio button group</a> is required or not, authors
+   are encouraged to specify the attribute on all the radio buttons in a group. Indeed, in general,
+   authors are encouraged to avoid having radio button groups that do not have any initially checked
+   controls in the first place, as this is a state that the user cannot return to, and is therefore
+   generally considered a poor user interface.</p>
+
+  </div>
+
+
+  <h6 id="the-multiple-attribute"><span class="secno">4.10.5.3.5 </span>The <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute</h6>
+
+  <p>The <dfn id="attr-input-multiple" title="attr-input-multiple"><code>multiple</code></dfn> attribute is a <a href="common-microsyntaxes.html#boolean-attribute">boolean
+  attribute</a> that indicates whether the user is to be allowed to specify more than one
+  value.</p>
+
+  <div class="example">
+
+   <p>The following extract shows how an e-mail client's "Cc" field could accept multiple e-mail
+   addresses.</p>
+
+   <pre>&lt;label&gt;Cc: &lt;input type=email multiple name=cc&gt;&lt;/label&gt;</pre>
+
+   <p>If the user had, amongst many friends in his user contacts database, two friends "Arthur Dent"
+   (with address "art@example.net") and "Adam Josh" (with address "adamjosh@example.net"), then,
+   after the user has typed "a", the user agent might suggest these two e-mail addresses to the
+   user.</p>
+
+   <!-- Having alternative text in the following image would be bogus and non-conforming use of
+   HTML, since the image is redundant with the previous paragraph. In particular, just describing
+   the image would be especially bad for accessibility as it would be disorienting, there having
+   been no mention that an image is present. -->
+   <p><img width="500" src="http://images.whatwg.org/sample-email-1.png" alt="" height="140"></p>
+
+   <p>The page could also link in the user's contacts database from the site:</p>
+
+   <pre>&lt;label&gt;Cc: &lt;input type=email multiple name=cc list=contacts&gt;&lt;/label&gt;
+...
+&lt;datalist id="contacts"&gt;
+ &lt;option value="hedral@damowmow.com"&gt;
+ &lt;option value="pillar@example.com"&gt;
+ &lt;option value="astrophy@cute.example"&gt;
+ &lt;option value="astronomy@science.example.org"&gt;
+&lt;/datalist&gt;</pre>
+
+   <p>Suppose the user had entered "bob@example.net" into this text field, and then started typing a
+   second e-mail address starting with "a". The user agent might show both the two friends mentioned
+   earlier, as well as the "astrophy" and "astronomy" values given in the <code><a href="the-button-element.html#the-datalist-element">datalist</a></code>
+   element.</p>
+
+   <!-- As above, having a non-empty alt="" attribute on the following image would be dumb, which is
+   why it's left blank. The pertinent parts of the image are already described in the prose, and the
+   non-pertinent parts aren't relevant to users who can't see the image, obviously. -->
+   <p><img width="500" src="http://images.whatwg.org/sample-email-2.png" alt="" height="171"></p>
+
+  </div>
+
+  <div class="example">
+
+   <p>The following extract shows how an e-mail client's "Attachments" field could accept multiple
+   files for upload.</p>
+
+   <pre>&lt;label&gt;Attachments: &lt;input type=file multiple name=att&gt;&lt;/label&gt;</pre>
+
+  </div>
+
+
+
+  <h6 id="the-pattern-attribute"><span class="secno">4.10.5.3.6 </span>The <code title="attr-input-pattern"><a href="#attr-input-pattern">pattern</a></code> attribute</h6>
+
+  <!-- if more text control types start supporting multiple="", this will need to be refactored -->
+
+  <p>The <dfn id="attr-input-pattern" title="attr-input-pattern"><code>pattern</code></dfn> attribute specifies a regular
+  expression against which the control's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>, or, when the
+  <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">applies</a> and is set, the control's <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a>, are to be checked.</p>
+
+  <p>If specified, the attribute's value must match the JavaScript <i title="">Pattern</i>
+  production. <a href="references.html#refsECMA262">[ECMA262]</a></p>
+
+  <div class="impl">
+
+  <p>If an <code><a href="the-input-element.html#the-input-element">input</a></code> element has a <code title="attr-input-pattern"><a href="#attr-input-pattern">pattern</a></code>
+  attribute specified, and the attribute's value, when compiled as a JavaScript regular expression
+  with the <code title="">global</code>, <code title="">ignoreCase</code>, and <code title="">multiline</code> flags <em>disabled</em> (see ECMA262 Edition 5, sections 15.10.7.2
+  through 15.10.7.4), compiles successfully, then the resulting regular expression is the element's
+  <dfn id="compiled-pattern-regular-expression">compiled pattern regular expression</dfn>. If the element has no such attribute, or if the
+  value doesn't compile successfully, then the element has no <a href="#compiled-pattern-regular-expression">compiled pattern regular
+  expression</a>. <a href="references.html#refsECMA262">[ECMA262]</a></p>
+
+  <p><strong>Constraint validation</strong>: If the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> is not the empty string, and either the element's <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute is not specified or it <a href="the-input-element.html#do-not-apply" title="do not
+  apply">does not apply</a> to the <code><a href="the-input-element.html#the-input-element">input</a></code> element given its <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state, and the element has a
+  <a href="#compiled-pattern-regular-expression">compiled pattern regular expression</a> but that regular expression does not match the
+  entirety of the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>, then the element is
+  <a href="association-of-controls-and-forms.html#suffering-from-a-pattern-mismatch">suffering from a pattern mismatch</a>.</p>
+
+  <p><strong>Constraint validation</strong>: If the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> is not the empty string, and the element's <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute is specified and <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">applies</a> to the <code><a href="the-input-element.html#the-input-element">input</a></code> element, and the element has
+  a <a href="#compiled-pattern-regular-expression">compiled pattern regular expression</a> but that regular expression does not match the
+  entirety of each of the element's <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a>, then the
+  element is <a href="association-of-controls-and-forms.html#suffering-from-a-pattern-mismatch">suffering from a pattern mismatch</a>.</p>
+
+  <p>The <a href="#compiled-pattern-regular-expression">compiled pattern regular expression</a>, when matched against a string, must have
+  its start anchored to the start of the string and its end anchored to the end of the string.</p>
+
+  <p class="note">This implies that the regular expression language used for this attribute is the
+  same as that used in JavaScript, except that the <code title="attr-input-pattern"><a href="#attr-input-pattern">pattern</a></code>
+  attribute is matched against the entire value, not just any subset (somewhat as if it implied a
+  <code title="">^(?:</code> at the start of the pattern and a <code title="">)$</code> at the
+  end).</p>
+
+  </div>
+
+  <p>When an <code><a href="the-input-element.html#the-input-element">input</a></code> element has a <code title="attr-input-pattern"><a href="#attr-input-pattern">pattern</a></code>
+  attribute specified, authors should include a <dfn id="attr-input-title" title="attr-input-title"><code>title</code></dfn> attribute to give a description of the pattern.
+  User agents may use the contents of this attribute, if it is present, when informing the user that
+  the pattern is not matched, or at any other suitable time, such as in a tooltip or read out by
+  assistive technology when the control <a href="editing.html#gains-focus">gains focus</a>.</p>
+
+  <div class="example">
+   <p>For example, the following snippet:</p>
+   <pre>&lt;label&gt; Part number:
+ &lt;input pattern="[0-9][A-Z]{3}" name="part"
+        title="A part number is a digit followed by three uppercase letters."/&gt;
+&lt;/label&gt;</pre>
+   <p>...could cause the UA to display an alert such as:</p>
+   <pre><samp>A part number is a digit followed by three uppercase letters.
+You cannot submit this form when the field is incorrect.</samp></pre>
+  </div>
+
+  <p>When a control has a <code title="attr-input-pattern"><a href="#attr-input-pattern">pattern</a></code> attribute, the <code title="attr-input-title"><a href="#attr-input-title">title</a></code> attribute, if used, must describe the pattern. Additional
+  information could also be included, so long as it assists the user in filling in the control.
+  Otherwise, assistive technology would be impaired.</p>
+
+  <p class="example">For instance, if the title attribute contained the caption of the control,
+  assistive technology could end up saying something like <samp>The text you have entered does not
+  match the required pattern. Birthday</samp>, which is not useful.</p>
+
+  <p>UAs may still show the <code title="attr-title"><a href="elements.html#attr-title">title</a></code> in non-error situations (for
+  example, as a tooltip when hovering over the control), so authors should be careful not to word
+  <code title="attr-input-title"><a href="#attr-input-title">title</a></code>s as if an error has necessarily occurred.</p>
+
+
+  <h6 id="the-min-and-max-attributes"><span class="secno">4.10.5.3.7 </span>The <code title="attr-input-min"><a href="#attr-input-min">min</a></code> and <code title="attr-input-max"><a href="#attr-input-max">max</a></code> attributes</h6>
+
+  <!-- if more numeric control types start supporting multiple="", this will need to be refactored -->
+
+  <p>Some form controls can have explicit constraints applied limiting the allowed range of values
+  that the user can provide. Normally, such a range would be linear and continuous. A form control
+  can <dfn id="has-a-periodic-domain" title="has a periodic domain">have a periodic domain</dfn>, however, in which case the
+  form control's broadest possible range is finite, and authors can specify explicit ranges within
+  it that span the boundaries.</p>
+
+  <p class="example">Specifically, the broadest range of a <code title="attr-input-type-time"><a href="states-of-the-type-attribute.html#time-state-(type=time)">type=time</a></code> control is midnight to midnight (24 hours), and
+  authors can set both continuous linear ranges (such as 9pm to 11pm) and discontinuous ranges
+  spanning midnight (such as 11pm to 1am).</p>
+
+  <p>The <dfn id="attr-input-min" title="attr-input-min"><code>min</code></dfn> and <dfn id="attr-input-max" title="attr-input-max"><code>max</code></dfn> attributes indicate the allowed range of values for
+  the element.</p>
+
+  <div class="impl">
+
+  <p>Their syntax is defined by the section that defines the <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state.</p>
+
+  <p>If the element has a <code title="attr-input-min"><a href="#attr-input-min">min</a></code> attribute, and the result of
+  applying the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a string to a
+  number</a> to the value of the <code title="attr-input-min"><a href="#attr-input-min">min</a></code> attribute is a number,
+  then that number is the element's <dfn id="concept-input-min" title="concept-input-min">minimum</dfn>; otherwise, if the
+  <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state defines a <dfn id="concept-input-min-default" title="concept-input-min-default">default minimum</dfn>, then that is the <a href="#concept-input-min" title="concept-input-min">minimum</a>; otherwise, the element has no <a href="#concept-input-min" title="concept-input-min">minimum</a>.</p>
+
+  <p>The <code title="attr-input-min"><a href="#attr-input-min">min</a></code> attribute also defines the <a href="#concept-input-min-zero" title="concept-input-min-zero">step base</a>.</p>
+
+  <p>If the element has a <code title="attr-input-max"><a href="#attr-input-max">max</a></code> attribute, and the result of
+  applying the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a string to a
+  number</a> to the value of the <code title="attr-input-max"><a href="#attr-input-max">max</a></code> attribute is a number,
+  then that number is the element's <dfn id="concept-input-max" title="concept-input-max">maximum</dfn>; otherwise, if the
+  <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state defines a <dfn id="concept-input-max-default" title="concept-input-max-default">default maximum</dfn>, then that is the <a href="#concept-input-max" title="concept-input-max">maximum</a>; otherwise, the element has no <a href="#concept-input-max" title="concept-input-max">maximum</a>.</p>
+
+  </div>
+
+  <p>If the element does not <a href="#has-a-periodic-domain" title="has a periodic domain">have a periodic domain</a>, the
+  <code title="attr-input-max"><a href="#attr-input-max">max</a></code> attribute's value (the <a href="#concept-input-max" title="concept-input-max">maximum</a>) must not be less than the <code title="attr-input-min"><a href="#attr-input-min">min</a></code> attribute's value (its <a href="#concept-input-min" title="concept-input-min">minimum</a>).</p>
+
+  <div class="impl">
+
+  <p class="note">If an element that does not <a href="#has-a-periodic-domain" title="has a periodic domain">have a periodic
+  domain</a> has a <a href="#attr-input-max" title="attr-input-max">maximum</a> that is less than its <a href="#attr-input-min" title="attr-input-min">minimum</a>, then so long as the element has a <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>, it will either be <a href="association-of-controls-and-forms.html#suffering-from-an-underflow">suffering from an underflow</a>
+  or <a href="association-of-controls-and-forms.html#suffering-from-an-overflow">suffering from an overflow</a>.</p>
+
+  <p>An element <dfn id="has-a-reversed-range">has a reversed range</dfn> if it <a href="#has-a-periodic-domain">has a periodic domain</a> and its
+  <a href="#concept-input-max" title="concept-input-max">maximum</a> is less than its <a href="#concept-input-min" title="concept-input-min">minimum</a>.</p>
+
+  </div>
+
+  <p>An element <dfn id="have-range-limitations" title="have range limitations">has range limitations</dfn> if it has a defined
+  <a href="#concept-input-min" title="concept-input-min">minimum</a> or a defined <a href="#concept-input-max" title="concept-input-max">maximum</a>.</p>
+
+  <div class="impl">
+
+  <p>How these range limitations apply depends on whether the element has a <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute.</p>
+
+  <dl class="switch"><dt>If the element does not have a <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute
+   specified or if the <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute <a href="the-input-element.html#do-not-apply" title="do
+   not apply">does not apply</a></dt>
+
+   <dd>
+
+    <p><strong>Constraint validation</strong>: When the element has a <a href="#attr-input-min" title="attr-input-min">minimum</a> and does not <a href="#has-a-reversed-range" title="has a reversed range">have a
+    reversed range</a>, and the result of applying the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a string to a number</a> to
+    the string given by the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> is a number, and
+    the number obtained from that algorithm is less than the <a href="#attr-input-min" title="attr-input-min">minimum</a>, the element is <a href="association-of-controls-and-forms.html#suffering-from-an-underflow">suffering from an
+    underflow</a>.</p>
+
+    <p><strong>Constraint validation</strong>: When the element has a <a href="#attr-input-max" title="attr-input-max">maximum</a> and does not <a href="#has-a-reversed-range" title="has a reversed range">have a
+    reversed range</a>, and the result of applying the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a string to a number</a> to
+    the string given by the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> is a number, and
+    the number obtained from that algorithm is more than the <a href="#attr-input-max" title="attr-input-max">maximum</a>, the element is <a href="association-of-controls-and-forms.html#suffering-from-an-overflow">suffering from an
+    overflow</a>.</p>
+
+    <p><strong>Constraint validation</strong>: When an element <a href="#has-a-reversed-range">has a reversed range</a>,
+    and the result of applying the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to
+    convert a string to a number</a> to the string given by the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> is a number, and the number obtained from that algorithm
+    is more than the <a href="#attr-input-max" title="attr-input-max">maximum</a> <em>and</em> less than the <a href="#attr-input-min" title="attr-input-min">minimum</a>, the element is simultaneously <a href="association-of-controls-and-forms.html#suffering-from-an-underflow">suffering from an
+    underflow</a> and <a href="association-of-controls-and-forms.html#suffering-from-an-overflow">suffering from an overflow</a>.</p>
+
+   </dd>
+
+   <dt>If the element does have a <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute
+   specified and the <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute does <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">apply</a></dt>
+
+   <dd>
+
+    <p><strong>Constraint validation</strong>: When the element has a <a href="#attr-input-min" title="attr-input-min">minimum</a>, and the result of applying the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a string to a number</a> to
+    any of the strings in the element's <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a> is a number
+    that is less than the <a href="#attr-input-min" title="attr-input-min">minimum</a>, the element is
+    <a href="association-of-controls-and-forms.html#suffering-from-an-underflow">suffering from an underflow</a>.</p>
+
+    <p><strong>Constraint validation</strong>: When the element has a <a href="#attr-input-max" title="attr-input-max">maximum</a>, and the result of applying the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a string to a number</a> to
+    any of the strings in the element's <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a> is a number
+    that is more than the <a href="#attr-input-max" title="attr-input-max">maximum</a>, the element is
+    <a href="association-of-controls-and-forms.html#suffering-from-an-overflow">suffering from an overflow</a>.</p>
+
+    <!-- currently multiple="" only applies to type=range, which can't have a reversed range or a
+    periodic domain -->
+
+   </dd>
+
+  </dl></div>
+
+  <div class="example">
+
+   <p>The following date control limits input to dates that are before the 1980s:</p>
+
+   <pre>&lt;input name=bday type=date max="1979-12-31"&gt;</pre>
+
+  </div>
+
+  <div class="example">
+
+   <p>The following number control limits input to whole numbers greater than zero:</p>
+
+   <pre>&lt;input name=quantity required="" type="number" min="1" value="1"&gt;</pre>
+
+  </div>
+
+  <div class="example">
+
+   <p>The following time control limits input to those minutes that occur between 9pm and 6am,
+   defaulting to midnight:</p>
+
+   <pre>&lt;input name="sleepStart" type=time min="21:00" max="06:00" step="60" value="00:00"&gt;</pre>
+
+  </div>
+
+
+
+  <h6 id="the-step-attribute"><span class="secno">4.10.5.3.8 </span>The <code title="attr-input-step"><a href="#attr-input-step">step</a></code> attribute</h6>
+
+  <!-- if more numeric control types start supporting multiple="", this will need to be refactored -->
+
+  <p>The <dfn id="attr-input-step" title="attr-input-step"><code>step</code></dfn> attribute indicates the granularity
+  that is expected (and required) of the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> or <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a>, by limiting the allowed values. <span class="impl">The
+  section that defines the <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state also
+  defines the <dfn id="concept-input-step-default" title="concept-input-step-default">default step</dfn>, the <dfn id="concept-input-step-scale" title="concept-input-step-scale">step scale factor</dfn>, and in some cases the <dfn id="concept-input-step-default-base" title="concept-input-step-default-base">default step base</dfn>, which are used in processing the
+  attribute as described below.</span></p>
+
+  <p>The <code title="attr-input-step"><a href="#attr-input-step">step</a></code> attribute, if specified, must either have a
+  value that is a <a href="common-microsyntaxes.html#valid-floating-point-number">valid floating-point number</a> that <a href="common-microsyntaxes.html#rules-for-parsing-floating-point-number-values" title="rules for parsing
+  floating-point number values">parses</a> to a number that is greater than zero, or must have a
+  value that is an <a href="infrastructure.html#ascii-case-insensitive">ASCII case-insensitive</a> match for the string "<code title="">any</code>".</p>
+
+  <div class="impl">
+
+  <p>The attribute provides the <dfn id="concept-input-step" title="concept-input-step">allowed value step</dfn> for the
+  element, as follows:</p>
+
+  <ol><li>If the attribute is absent, then the <a href="#concept-input-step" title="concept-input-step">allowed value
+   step</a> is the <a href="#concept-input-step-default" title="concept-input-step-default">default step</a> multiplied by the
+   <a href="#concept-input-step-scale" title="concept-input-step-scale">step scale factor</a>.</li>
+
+   <li>Otherwise, if the attribute's value is an <a href="infrastructure.html#ascii-case-insensitive">ASCII case-insensitive</a> match for the
+   string "<code title="">any</code>", then there is no <a href="#concept-input-step" title="concept-input-step">allowed
+   value step</a>.</li>
+
+   <li>Otherwise, if the <a href="common-microsyntaxes.html#rules-for-parsing-floating-point-number-values">rules for parsing floating-point number values</a>, when they are
+   applied to the attribute's value, return an error, zero, or a number less than zero, then the
+   <a href="#concept-input-step" title="concept-input-step">allowed value step</a> is the <a href="#concept-input-step-default" title="concept-input-step-default">default step</a> multiplied by the <a href="#concept-input-step-scale" title="concept-input-step-scale">step scale factor</a>.</li>
+
+   <li>Otherwise, the <a href="#concept-input-step" title="concept-input-step">allowed value step</a> is the number
+   returned by the <a href="common-microsyntaxes.html#rules-for-parsing-floating-point-number-values">rules for parsing floating-point number values</a> when they are applied
+   to the attribute's value, multiplied by the <a href="#concept-input-step-scale" title="concept-input-step-scale">step scale
+   factor</a>.</li>
+
+  </ol><p>The <dfn id="concept-input-min-zero" title="concept-input-min-zero">step base</dfn> is the value returned by the following
+  algorithm:</p>
+
+  <ol><li><p>If the element has a <code title="attr-input-min"><a href="#attr-input-min">min</a></code> content attribute, and the
+   result of applying the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a
+   string to a number</a> to the value of the <code title="attr-input-min"><a href="#attr-input-min">min</a></code> content
+   attribute is not an error, then return that result and abort these steps.</p></li>
+
+   <li>
+
+    <p>If the element does not have a <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute
+    specified or if the <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute <a href="the-input-element.html#do-not-apply" title="do not apply">does not apply</a>, then: if the element has a <code title="attr-input-value"><a href="the-input-element.html#attr-input-value">value</a></code> content attribute, and the result of applying the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a string to a number</a> to
+    the value of the <code title="attr-input-value"><a href="the-input-element.html#attr-input-value">value</a></code> content attribute is not an error,
+    then return that result and abort these steps.</p>
+
+    <p>Otherwise, the element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute is in the <a href="states-of-the-type-attribute.html#range-state-(type=range)" title="attr-input-type-range">Range</a> state and the element has a <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute specified<!--, and the <code
+    title="attr-input-multiple">multiple</code> attribute does <span
+    title="concept-input-apply">apply</span>-->: run these substeps:</p>
+
+    <ol><li><p>If the element does not have a <code title="attr-input-value"><a href="the-input-element.html#attr-input-value">value</a></code> content
+     attribute, skip these substeps.</p></li>
+
+     <li><p><a href="common-microsyntaxes.html#split-a-string-on-commas" title="split a string on commas">Split on commas</a> the value of the <code title="attr-input-value"><a href="the-input-element.html#attr-input-value">value</a></code> content attribute.</p></li>
+
+     <li><p>If the result of the previous step was not exactly two values, or if either gets an
+     error when you apply the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert
+     a string to a number</a>, then skip these substeps.</p></li>
+
+     <li><p>Return the lower of the two numbers obtained in the previous step, and abort these
+     steps.</p></li>
+
+    </ol></li>
+
+   <li><p>If a <a href="#concept-input-step-default-base" title="concept-input-step-default-base">default step base</a> is defined for
+   this element given its <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's state, then return
+   it and abort these steps.</p>
+
+   </li><li><p>Return zero.</p></li>
+
+  </ol><p>How these range limitations apply depends on whether the element has a <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute.</p>
+
+  <dl class="switch"><dt>If the element does not have a <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute
+   specified or if the <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute <a href="the-input-element.html#do-not-apply" title="do
+   not apply">does not apply</a></dt>
+
+   <dd>
+
+    <p><strong>Constraint validation</strong>: When the element has an <a href="#concept-input-step" title="concept-input-step">allowed value step</a>, and the result of applying the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a string to a number</a> to
+    the string given by the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> is a number, and
+    that number subtracted from the <a href="#concept-input-min-zero" title="concept-input-min-zero">step base</a> is not an
+    integral multiple of the <a href="#concept-input-step" title="concept-input-step">allowed value step</a>, the
+    element is <a href="association-of-controls-and-forms.html#suffering-from-a-step-mismatch">suffering from a step mismatch</a>.</p>
+
+   </dd>
+
+   <dt>If the element does have a <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute
+   specified and the <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute does <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">apply</a></dt>
+
+   <dd>
+
+    <p><strong>Constraint validation</strong>: When the element has an <a href="#attr-input-step" title="attr-input-step">allowed value step</a>, and the result of applying the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a string to a number</a> to
+    any of the strings in the element's <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a> is a number
+    that, when subtracted from the <a href="#concept-input-min-zero" title="concept-input-min-zero">step base</a>, is not an
+    integral multiple of the <a href="#concept-input-step" title="concept-input-step">allowed value step</a>, the
+    element is <a href="association-of-controls-and-forms.html#suffering-from-a-step-mismatch">suffering from a step mismatch</a>.</p>
+
+   </dd>
+
+  </dl></div>
+
+  <div class="example">
+
+   <p>The following range control only accepts values in the range 0..1, and allows 256 steps in
+   that range:</p>
+
+   <pre>&lt;input name=opacity type=range min=0 max=1 step=0.00392156863&gt;</pre>
+
+  </div>
+
+  <div class="example">
+
+   <p>The following control allows any time in the day to be selected, with any accuracy (e.g.
+   thousandth-of-a-second accuracy or more):</p>
+
+   <pre>&lt;input name=favtime type=time step=any&gt;</pre>
+
+   <p>Normally, time controls are limited to an accuracy of one minute.</p>
+
+  </div>
+
+
+
+  <h6 id="the-list-attribute"><span class="secno">4.10.5.3.9 </span>The <code title="attr-input-list"><a href="#attr-input-list">list</a></code> attribute</h6>
+
+  <!-- if we add any more types of controls, the handling of multiple="" below needs refactoring -->
+
+  <p>The <dfn id="attr-input-list" title="attr-input-list"><code>list</code></dfn> attribute is used to identify an
+  element that lists predefined options suggested to the user.</p>
+
+  <p>If present, its value must be the <a href="infrastructure.html#concept-id" title="concept-id">ID</a> of a <code><a href="the-button-element.html#the-datalist-element">datalist</a></code>
+  element in the same document.</p>
+
+  <div class="impl">
+
+  <p>The <dfn id="concept-input-list" title="concept-input-list">suggestions source element</dfn> is the first element in
+  the document in <a href="infrastructure.html#tree-order">tree order</a> to have an <a href="infrastructure.html#concept-id" title="concept-id">ID</a> equal to the
+  value of the <code title="attr-input-list"><a href="#attr-input-list">list</a></code> attribute, if that element is a
+  <code><a href="the-button-element.html#the-datalist-element">datalist</a></code> element. If there is no <code title="attr-input-list"><a href="#attr-input-list">list</a></code> attribute,
+  or if there is no element with that <a href="infrastructure.html#concept-id" title="concept-id">ID</a>, or if the first element
+  with that <a href="infrastructure.html#concept-id" title="concept-id">ID</a> is not a <code><a href="the-button-element.html#the-datalist-element">datalist</a></code> element, then there is
+  no <a href="#concept-input-list" title="concept-input-list">suggestions source element</a>.</p>
+
+  <p>If there is a <a href="#concept-input-list" title="concept-input-list">suggestions source element</a>, then, when
+  the user agent is allowing the user to edit the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>, the user agent should offer the suggestions represented by
+  the <a href="#concept-input-list" title="concept-input-list">suggestions source element</a> to the user in a manner
+  suitable for the type of control used. The user agent may use the suggestion's <a href="the-button-element.html#concept-option-label" title="concept-option-label">label</a> to identify the suggestion if appropriate.</p>
+
+  <p>How user selections of suggestions are handled depends on whether the element is a control
+  accepting a single value only, or whether it accepts multiple values:</p>
+
+  <dl class="switch"><dt>If the element does not have a <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute
+   specified or if the <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute <a href="the-input-element.html#do-not-apply" title="do
+   not apply">does not apply</a></dt>
+
+   <dd>
+
+    <p>When the user selects a suggestion, the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> must be set to the selected suggestion's <a href="the-button-element.html#concept-option-value" title="concept-option-value">value</a>, as if the user had written that value himself.</p>
+
+   </dd>
+
+   <!-- multiple types where there's a fixed number of values-->
+   <dt>If the element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute is in the <a href="states-of-the-type-attribute.html#range-state-(type=range)" title="attr-input-type-range">Range</a> state and the element has a <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute specified<!--, and the <code
+   title="attr-input-multiple">multiple</code> attribute does <span
+   title="concept-input-apply">apply</span>--></dt>
+
+   <dd>
+
+    <p>When the user selects a suggestion, the user agent must identify which value in the element's
+    <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a> the user intended to update, and must then update
+    the element's <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a> so that the relevant value is
+    changed to the value given by the selected suggestion's <a href="the-button-element.html#concept-option-value" title="concept-option-value">value</a>, as if the user had himself set it to that value.</p>
+
+   </dd>
+
+   <!-- multiple types where there's a potentially growing number of values -->
+   <dt>If the element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute is in the <a href="states-of-the-type-attribute.html#e-mail-state-(type=email)" title="attr-input-type-email">Email</a> state and the element has a <code title="attr-input-multiple"><a href="#attr-input-multiple">multiple</a></code> attribute specified<!--, and the <code
+   title="attr-input-multiple">multiple</code> attribute does <span
+   title="concept-input-apply">apply</span>--></dt>
+
+   <dd>
+
+    <p>When the user selects a suggestion, the user agent must either add a new entry to the
+    <code><a href="the-input-element.html#the-input-element">input</a></code> element's <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a>, whose value
+    is the selected suggestion's <a href="the-button-element.html#concept-option-value" title="concept-option-value">value</a>, or change an
+    existing entry in the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a> to have the value given by the selected
+    suggestion's <a href="the-button-element.html#concept-option-value" title="concept-option-value">value</a>, as if the user had himself added
+    an entry with that value, or edited an existing entry to be that value. Which behavior is to be
+    applied depends on the user interface in a user-agent-defined manner.</p>
+
+   </dd>
+
+  </dl><hr><p>If the <code title="attr-input-list"><a href="#attr-input-list">list</a></code> attribute <a href="the-input-element.html#do-not-apply" title="do not apply">does not
+  apply</a>, there is no <a href="#concept-input-list" title="concept-input-list">suggestions source element</a>.</p>
+
+  </div>
+
+  <div class="example">
+
+   <p>This URL field offers some suggestions.</p>
+
+   <pre>&lt;label&gt;Homepage: &lt;input name=hp type=url list=hpurls&gt;&lt;/label&gt;
+&lt;datalist id=hpurls&gt;
+ &lt;option value="http://www.google.com/" label="Google"&gt;
+ &lt;option value="http://www.reddit.com/" label="Reddit"&gt;
+&lt;/datalist&gt;</pre>
+
+   <p>Other URLs from the user's history might show also; this is up to the user agent.</p>
+
+  </div>
+
+  <div class="example">
+
+   <p>This example demonstrates how to design a form that uses the autocompletion list feature while
+   still degrading usefully in legacy user agents.</p>
+
+   <p>If the autocompletion list is merely an aid, and is not important to the content, then simply
+   using a <code><a href="the-button-element.html#the-datalist-element">datalist</a></code> element with children <code><a href="the-button-element.html#the-option-element">option</a></code> elements is enough. To
+   prevent the values from being rendered in legacy user agents, they need to be placed inside the
+   <code title="attr-option-value"><a href="the-button-element.html#attr-option-value">value</a></code> attribute instead of inline.</p>
+
+   <pre>&lt;p&gt;
+ &lt;label&gt;
+  Enter a breed:
+  &lt;input type="text" name="breed" list="breeds"&gt;
+  &lt;datalist id="breeds"&gt;
+   &lt;option value="Abyssinian"&gt;
+   &lt;option value="Alpaca"&gt;
+   &lt;!-- ... --&gt;
+  &lt;/datalist&gt;
+ &lt;/label&gt;
+&lt;/p&gt;</pre>
+
+   <p>However, if the values need to be shown in legacy UAs, then fallback content can be placed
+   inside the <code><a href="the-button-element.html#the-datalist-element">datalist</a></code> element, as follows:</p>
+
+   <pre>&lt;p&gt;
+ &lt;label&gt;
+  Enter a breed:
+  &lt;input type="text" name="breed" list="breeds"&gt;
+ &lt;/label&gt;
+ &lt;datalist id="breeds"&gt;
+  &lt;label&gt;
+   or select one from the list:
+   &lt;select name="breed"&gt;
+    &lt;option value=""&gt; (none selected)
+    &lt;option&gt;Abyssinian
+    &lt;option&gt;Alpaca
+    &lt;!-- ... --&gt;
+   &lt;/select&gt;
+  &lt;/label&gt;
+ &lt;/datalist&gt;
+&lt;/p&gt;
+</pre>
+
+   <p>The fallback content will only be shown in UAs that don't support <code><a href="the-button-element.html#the-datalist-element">datalist</a></code>. The
+   options, on the other hand, will be detected by all UAs, even though they are not children of the
+   <code><a href="the-button-element.html#the-datalist-element">datalist</a></code> element.</p>
+
+   <p>Note that if an <code><a href="the-button-element.html#the-option-element">option</a></code> element used in a <code><a href="the-button-element.html#the-datalist-element">datalist</a></code> is <code title="attr-option-selected"><a href="the-button-element.html#attr-option-selected">selected</a></code>, it will be selected by default by legacy UAs
+   (because it affects the <code><a href="the-button-element.html#the-select-element">select</a></code>), but it will not have any effect on the
+   <code><a href="the-input-element.html#the-input-element">input</a></code> element in UAs that support <code><a href="the-button-element.html#the-datalist-element">datalist</a></code>.</p>
+
+  </div>
+
+
+
+  <h6 id="the-placeholder-attribute"><span class="secno">4.10.5.3.10 </span>The <code title="attr-input-placeholder"><a href="#attr-input-placeholder">placeholder</a></code> attribute</h6>
+
+  <!-- substantially similar text in the <textarea> section -->
+
+  <p>The <dfn id="attr-input-placeholder" title="attr-input-placeholder"><code>placeholder</code></dfn> attribute represents a
+  <em>short</em> hint (a word or short phrase) intended to aid the user with data entry when the
+  control has no value. A hint could be a sample value or a brief description of the expected
+  format. The attribute, if specified, must have a value that contains no U+000A LINE FEED (LF) or
+  U+000D CARRIAGE RETURN (CR) characters.</p>
+
+  <p>The <code title="attr-input-placeholder"><a href="#attr-input-placeholder">placeholder</a></code> attribute should not be used as an
+  alternative to a <code><a href="forms.html#the-label-element">label</a></code>. For a longer hint or other advisory text, the <code title="attr-title"><a href="elements.html#attr-title">title</a></code> attribute is more appropriate.</p>
+
+  <p class="note">These mechanisms are very similar but subtly different: the hint given by the
+  control's <code><a href="forms.html#the-label-element">label</a></code> is shown at all times; the short hint given in the <code title="attr-input-placeholder"><a href="#attr-input-placeholder">placeholder</a></code> attribute is shown before the user enters a
+  value; and the hint in the <code title="attr-title"><a href="elements.html#attr-title">title</a></code> attribute is shown when the user
+  requests further help.</p>
+
+  <div class="impl">
+
+  <p>User agents should present this hint to the user, after having <a href="common-microsyntaxes.html#strip-line-breaks" title="strip line
+  breaks">stripped line breaks</a> from it, when the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> is the empty string or the control is not <a href="editing.html#focused">focused</a> (or both),
+  e.g. by displaying it inside a blank unfocused control and hiding it otherwise.</p>
+
+  </div>
+
+  <div class="example">
+
+   <p>Here is an example of a mail configuration user interface that uses the <code title="attr-input-placeholder"><a href="#attr-input-placeholder">placeholder</a></code> attribute:</p>
+
+   <pre>&lt;fieldset&gt;
+ &lt;legend&gt;Mail Account&lt;/legend&gt;
+ &lt;p&gt;&lt;label&gt;Name: &lt;input type="text" name="fullname" placeholder="John Ratzenberger"&gt;&lt;/label&gt;&lt;/p&gt;
+ &lt;p&gt;&lt;label&gt;Address: &lt;input type="email" name="address" placeholder="john@example.net"&gt;&lt;/label&gt;&lt;/p&gt;
+ &lt;p&gt;&lt;label&gt;Password: &lt;input type="password" name="password"&gt;&lt;/label&gt;&lt;/p&gt;
+ &lt;p&gt;&lt;label&gt;Description: &lt;input type="text" name="desc" placeholder="My Email Account"&gt;&lt;/label&gt;&lt;/p&gt;
+&lt;/fieldset&gt;</pre>
+
+  </div>
+
+  <div class="example">
+
+   <p>In situations where the control's content has one directionality but the placeholder needs to
+   have a different directionality, Unicode's bidirectional-algorithm formatting characters can be
+   used in the attribute value:</p>
+
+   <pre>&lt;input name=t1 type=tel placeholder="<strong>&amp;#x202B;</strong> <bdo dir="rtl">رقم الهاتف 1</bdo> <strong>&amp;#x202E;</strong>"&gt;
+&lt;input name=t2 type=tel placeholder="<strong>&amp;#x202B;</strong> <bdo dir="rtl">رقم الهاتف 2</bdo> <strong>&amp;#x202E;</strong>"&gt;</pre>
+
+   <p>For slightly more clarity, here's the same example using numeric character references instead of inline Arabic:</p>
+
+   <pre>&lt;input name=t1 type=tel placeholder="<strong>&amp;#x202B;</strong>&amp;#1585;&amp;#1602;&amp;#1605; &amp;#1575;&amp;#1604;&amp;#1607;&amp;#1575;&amp;#1578;&amp;#1601; 1<strong>&amp;#x202E;</strong>"&gt;
+&lt;input name=t2 type=tel placeholder="<strong>&amp;#x202B;</strong>&amp;#1585;&amp;#1602;&amp;#1605; &amp;#1575;&amp;#1604;&amp;#1607;&amp;#1575;&amp;#1578;&amp;#1601; 2<strong>&amp;#x202E;</strong>"&gt;</pre>
+
+  </div>
+
+
+
+<!--TOPIC:DOM APIs-->
+
+  <h5 id="common-input-element-apis"><span class="secno">4.10.5.4 </span>Common <code><a href="the-input-element.html#the-input-element">input</a></code> element APIs</h5>
+
+  <dl class="domintro"><dt><var title="">input</var> . <code title="dom-input-value"><a href="#dom-input-value">value</a></code> [ = <var title="">value</var> ]</dt>
+
+   <dd>
+
+    <p>Returns the current <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> of the form control.</p>
+
+    <p>Can be set, to change the value.</p>
+
+    <p>Throws an <code><a href="infrastructure.html#invalidstateerror">InvalidStateError</a></code> exception if it is set to any value other than the
+    empty string when the control is a file upload control.</p>
+
+   </dd>
+
+   <dt><var title="">input</var> . <code title="dom-input-checked"><a href="#dom-input-checked">checked</a></code> [ = <var title="">value</var> ]</dt>
+
+   <dd>
+
+    <p>Returns the current <a href="the-button-element.html#concept-fe-checked" title="concept-fe-checked">checkedness</a> of the form
+    control.</p>
+
+    <p>Can be set, to change the <a href="the-button-element.html#concept-fe-checked" title="concept-fe-checked">checkedness</a>.</p>
+
+   </dd>
+
+   <dt><var title="">input</var> . <code title="dom-input-files"><a href="#dom-input-files">files</a></code> <!-- [ = <var title="">files</var> ] --></dt>
+
+   <dd>
+
+    <p>Returns a <code><a href="infrastructure.html#filelist">FileList</a></code> object listing the <a href="states-of-the-type-attribute.html#concept-input-type-file-selected" title="concept-input-type-file-selected">selected files</a> of the form control.</p>
+
+    <p>Returns null if the control isn't a file control.</p>
+
+<!--
+    <p>Can be set to an array of <code>File</code> or <code>Blob</code> instances.</p>-
+-->
+
+   </dd>
+
+   <dt><var title="">input</var> . <code title="dom-input-valueAsDate"><a href="#dom-input-valueasdate">valueAsDate</a></code> [ = <var title="">value</var> ]</dt>
+
+   <dd>
+
+    <p>Returns a <code>Date</code> object representing the form control's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>, if applicable; otherwise, returns null.</p>
+
+    <p>Can be set, to change the value.</p>
+
+    <p>Throws an <code><a href="infrastructure.html#invalidstateerror">InvalidStateError</a></code> exception if the control isn't date- or
+    time-based.</p>
+
+   </dd>
+
+   <dt><var title="">input</var> . <code title="dom-input-valueAsNumber"><a href="#dom-input-valueasnumber">valueAsNumber</a></code> [ = <var title="">value</var> ]</dt>
+
+   <dd>
+
+    <p>Returns a number representing the form control's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>,
+    if applicable; otherwise, returns NaN.</p>
+
+    <p>Can be set, to change the value. Setting this to NaN will set the underlying value to the
+    empty string.</p>
+
+    <p>Throws an <code><a href="infrastructure.html#invalidstateerror">InvalidStateError</a></code> exception if the control is neither date- or
+    time-based nor numeric.</p>
+
+   </dd>
+
+   <dt><var title="">input</var> . <code title="dom-input-valueLow"><a href="#dom-input-valuelow">valueLow</a></code> [ = <var title="">value</var> ]</dt>
+   <dt><var title="">input</var> . <code title="dom-input-valueHigh"><a href="#dom-input-valuehigh">valueHigh</a></code> [ = <var title="">value</var> ]</dt>
+
+   <dd>
+
+    <p>Returns a number representing the low and high components of form control's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> respectively, if applicable; otherwise, returns NaN.</p>
+
+    <p>Can be set, to change the value.</p>
+
+    <p>Throws an <code><a href="infrastructure.html#invalidstateerror">InvalidStateError</a></code> exception if the control is not a two-handle range
+    control.</p>
+
+   </dd>
+
+   <dt><var title="">input</var> . <code title="dom-input-stepUp"><a href="#dom-input-stepup">stepUp</a></code>( [ <var title="">n</var> ] )</dt>
+   <dt><var title="">input</var> . <code title="dom-input-stepDown"><a href="#dom-input-stepdown">stepDown</a></code>( [ <var title="">n</var> ] )</dt>
+
+   <dd>
+
+    <p>Changes the form control's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> by the value given in
+    the <code title="attr-input-step"><a href="#attr-input-step">step</a></code> attribute, multiplied by <var title="">n</var>.
+    The default value for <var title="">n</var> is 1.</p>
+
+    <p>Throws <code><a href="infrastructure.html#invalidstateerror">InvalidStateError</a></code> exception if the control is neither date- or time-based
+    nor numeric, or if the <code title="attr-input-step"><a href="#attr-input-step">step</a></code> attribute's value is "<code title="">any</code>".</p>
+
+   </dd>
+
+   <dt><var title="">input</var> . <code title="dom-input-list"><a href="#dom-input-list">list</a></code></dt>
+
+   <dd>
+
+    <p>Returns the <code><a href="the-button-element.html#the-datalist-element">datalist</a></code> element indicated by the <code title="attr-input-list"><a href="#attr-input-list">list</a></code> attribute.</p>
+
+   </dd>
+
+  </dl><div class="impl">
+
+  <p>The <dfn id="dom-input-value" title="dom-input-value"><code>value</code></dfn> IDL attribute allows scripts to
+  manipulate the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> of an <code><a href="the-input-element.html#the-input-element">input</a></code> element. The
+  attribute is in one of the following modes, which define its behavior:</p>
+
+  <dl><dt><dfn id="dom-input-value-value" title="dom-input-value-value">value</dfn>
+
+   </dt><dd>
+
+    <p>On getting, it must return the current <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> of the
+    element. On setting, it must set the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> to
+    the new value, set the element's <a href="the-input-element.html#concept-input-value-dirty-flag" title="concept-input-value-dirty-flag">dirty value
+    flag</a> to true, invoke the <a href="the-input-element.html#value-sanitization-algorithm">value sanitization algorithm</a>, if the element's
+    <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state defines one, and then, if
+    the element has a text entry cursor position, should move the text entry cursor position to the
+    end of the text field, unselecting any selected text and resetting the selection direction to
+    <i>none</i>.</p>
+
+   </dd>
+
+   <dt><dfn id="dom-input-value-default" title="dom-input-value-default">default</dfn>
+
+   </dt><dd>
+
+    <p>On getting, if the element has a <code title="attr-input-value"><a href="the-input-element.html#attr-input-value">value</a></code> attribute, it
+    must return that attribute's value; otherwise, it must return the empty string. On setting, it
+    must set the element's <code title="attr-input-value"><a href="the-input-element.html#attr-input-value">value</a></code> attribute to the new
+    value.</p>
+
+   </dd>
+
+   <dt><dfn id="dom-input-value-default-on" title="dom-input-value-default-on">default/on</dfn>
+
+   </dt><dd>
+
+    <p>On getting, if the element has a <code title="attr-input-value"><a href="the-input-element.html#attr-input-value">value</a></code> attribute, it
+    must return that attribute's value; otherwise, it must return the string "<code title="">on</code>". On setting, it must set the element's <code title="attr-input-value"><a href="the-input-element.html#attr-input-value">value</a></code> attribute to the new value.</p>
+
+   </dd>
+
+   <dt><dfn id="dom-input-value-filename" title="dom-input-value-filename">filename</dfn>
+
+   </dt><dd id="fakepath-orly">
+
+    <p>On getting, it must return the string "<code title="">C:\fakepath\</code>" followed by the
+    name of the first file in the list of <a href="states-of-the-type-attribute.html#concept-input-type-file-selected" title="concept-input-type-file-selected">selected
+    files</a>, if any, or the empty string if the list is empty. On setting, if the new value is
+    the empty string, it must empty the list of <a href="states-of-the-type-attribute.html#concept-input-type-file-selected" title="concept-input-type-file-selected">selected files</a>; otherwise, it must throw an
+    <code><a href="infrastructure.html#invalidstateerror">InvalidStateError</a></code> exception.</p>
+
+    <p class="note">This "fakepath" requirement is a sad accident of history. See <a href="states-of-the-type-attribute.html#fakepath-srsly">the example in the File Upload state section</a> for more
+    information.</p>
+
+    <p class="note">Since <a href="states-of-the-type-attribute.html#concept-input-file-path" title="concept-input-file-path">path components</a> are not
+    permitted in file names in the list of <a href="states-of-the-type-attribute.html#concept-input-type-file-selected" title="concept-input-type-file-selected">selected
+    files</a>, the "\fakepath\" cannot be mistaken for a path component.</p>
+
+   </dd>
+
+  </dl><hr><p>The <dfn id="dom-input-checked" title="dom-input-checked"><code>checked</code></dfn> IDL attribute allows scripts to
+  manipulate the <a href="the-button-element.html#concept-fe-checked" title="concept-fe-checked">checkedness</a> of an <code><a href="the-input-element.html#the-input-element">input</a></code>
+  element. On getting, it must return the current <a href="the-button-element.html#concept-fe-checked" title="concept-fe-checked">checkedness</a> of the element; and on setting, it must set the
+  element's <a href="the-button-element.html#concept-fe-checked" title="concept-fe-checked">checkedness</a> to the new value and set the
+  element's <a href="the-input-element.html#concept-input-checked-dirty-flag" title="concept-input-checked-dirty-flag">dirty checkedness flag</a> to
+  true.</p>
+
+  <hr><p>The <dfn id="dom-input-files" title="dom-input-files"><code>files</code></dfn> IDL attribute allows scripts to
+  access the element's <a href="states-of-the-type-attribute.html#concept-input-type-file-selected" title="concept-input-type-file-selected">selected files</a>. On
+  getting, if the IDL attribute <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">applies</a>, it must return a
+  <code><a href="infrastructure.html#filelist">FileList</a></code> object that represents the current <a href="states-of-the-type-attribute.html#concept-input-type-file-selected" title="concept-input-type-file-selected">selected files</a>. The same object must be returned
+  until the list of <a href="states-of-the-type-attribute.html#concept-input-type-file-selected" title="concept-input-type-file-selected">selected files</a> changes. If
+  the IDL attribute <a href="the-input-element.html#do-not-apply" title="do not apply">does not apply</a>, then it must instead return
+  null. <a href="references.html#refsFILEAPI">[FILEAPI]</a></p>
+
+  <hr><p>The <dfn id="dom-input-valueasdate" title="dom-input-valueAsDate"><code>valueAsDate</code></dfn> IDL attribute represents
+  the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> of the element, interpreted as a date.</p>
+
+  <p>On getting, if the <code title="dom-input-valueAsDate"><a href="#dom-input-valueasdate">valueAsDate</a></code> attribute <a href="the-input-element.html#do-not-apply" title="do not apply">does not apply</a>, as defined for the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state, then return null. Otherwise, run
+  the <a href="the-input-element.html#concept-input-value-string-date" title="concept-input-value-string-date">algorithm to convert a string to a
+  <code>Date</code> object</a> defined for that state to the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>; if the algorithm returned a <code>Date</code> object, then
+  return it, otherwise, return null.</p>
+
+  <p>On setting, if the <code title="dom-input-valueAsDate"><a href="#dom-input-valueasdate">valueAsDate</a></code> attribute <a href="the-input-element.html#do-not-apply" title="do not apply">does not apply</a>, as defined for the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state, then throw an
+  <code><a href="infrastructure.html#invalidstateerror">InvalidStateError</a></code> exception; otherwise, if the new value is null or a
+  <code>Date</code> object representing the NaN time value, then set the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> of the element to the empty string; otherwise, run the
+  <a href="the-input-element.html#concept-input-value-date-string" title="concept-input-value-date-string">algorithm to convert a <code>Date</code> object to
+  a string</a>, as defined for that state, on the new value, and set the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> of the element to the resulting string.</p>
+
+  <hr><p>The <dfn id="dom-input-valueasnumber" title="dom-input-valueAsNumber"><code>valueAsNumber</code></dfn> IDL attribute
+  represents the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> of the element, interpreted as a
+  number.</p>
+
+  <p>On getting, if the <code title="dom-input-valueAsNumber"><a href="#dom-input-valueasnumber">valueAsNumber</a></code> attribute <a href="the-input-element.html#do-not-apply" title="do not apply">does not apply</a>, as defined for the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state, then return a Not-a-Number (NaN)
+  value. Otherwise, if the <code title="dom-input-valueAsDate"><a href="#dom-input-valueasdate">valueAs<em>Date</em></a></code>
+  attribute <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">applies</a>, run the <a href="the-input-element.html#concept-input-value-string-date" title="concept-input-value-string-date">algorithm to convert a string to a <code>Date</code>
+  object</a> defined for that state to the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>; if the algorithm returned a <code>Date</code> object, then
+  return the <i>time value</i> of the object (the number of milliseconds from midnight UTC the
+  morning of 1970-01-01 to the time represented by the <code>Date</code> object), otherwise, return
+  a Not-a-Number (NaN) value. Otherwise, run the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a string to a number</a>
+  defined for that state to the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>; if the
+  algorithm returned a number, then return it, otherwise, return a Not-a-Number (NaN) value.</p>
+
+  <p>On setting, if the new value is infinite, then throw a <code>TypeError</code> exception.
+  Otherwise, if the <code title="dom-input-valueAsNumber"><a href="#dom-input-valueasnumber">valueAsNumber</a></code> attribute <a href="the-input-element.html#do-not-apply" title="do not apply">does not apply</a>, as defined for the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state, then throw an
+  <code><a href="infrastructure.html#invalidstateerror">InvalidStateError</a></code> exception. Otherwise, if the new value is a Not-a-Number (NaN)
+  value, then set the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> of the element to the empty
+  string. Otherwise, if the <code title="dom-input-valueAsDate"><a href="#dom-input-valueasdate">valueAs<em>Date</em></a></code>
+  attribute <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">applies</a>, run the <a href="the-input-element.html#concept-input-value-date-string" title="concept-input-value-date-string">algorithm to convert a <code>Date</code> object to a
+  string</a> defined for that state, passing it a <code>Date</code> object whose <i>time
+  value</i> is the new value, and set the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> of the
+  element to the resulting string. Otherwise, run the <a href="the-input-element.html#concept-input-value-number-string" title="concept-input-value-number-string">algorithm to convert a number to a string</a>, as
+  defined for that state, on the new value, and set the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>
+  of the element to the resulting string.</p>
+
+  <hr><p>The <dfn id="dom-input-valuelow" title="dom-input-valueLow"><code>valueLow</code></dfn> and <dfn id="dom-input-valuehigh" title="dom-input-valueHigh"><code>valueHigh</code></dfn> IDL attributes represent the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> of the element, interpreted as a comma-separated pair of
+  numbers.</p>
+
+  <p>On getting, if the attributes <a href="the-input-element.html#do-not-apply">do not apply</a>, as defined for the <code><a href="the-input-element.html#the-input-element">input</a></code>
+  element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state, then return zero;
+  otherwise, run the following steps:</p>
+
+  <ol><li><p>Let <var title="">values</var> be the <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a> of
+   the element, interpreted according to the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a string to a number</a>, as
+   defined by the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code>
+   attribute's current state.</p></li>
+
+   <li><p>If the attribute in question is <code title="dom-input-valueLow"><a href="#dom-input-valuelow">valueLow</a></code>, return
+   the lowest of the values in <var title="">values</var>; otherwise, return the highest of the
+   values in <var title="">values</var>.</p></li>
+
+  </ol><p>On setting, if the attributes <a href="the-input-element.html#do-not-apply">do not apply</a>, as defined for the <code><a href="the-input-element.html#the-input-element">input</a></code>
+  element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state, then throw an
+  <code><a href="infrastructure.html#invalidstateerror">InvalidStateError</a></code> exception. Otherwise, run the following steps:</p>
+
+  <ol><li><p>Let <var title="">values</var> be the <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a> of
+   the element, interpreted according to the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a string to a number</a>, as
+   defined by the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code>
+   attribute's current state.</p></li>
+
+   <li><p>Let <var title="">new value</var> be the result of running the <a href="the-input-element.html#concept-input-value-number-string" title="concept-input-value-number-string">algorithm to convert a number to a string</a>, as
+   defined for that state, on the new value.</p></li>
+
+   <li><p>If the attribute in question is <code title="dom-input-valueLow"><a href="#dom-input-valuelow">valueLow</a></code>, replace
+   the lower value in <var title="">values</var> with <var title="">new value</var>; otherwise,
+   replace the higher value in <var title="">values</var> with <var title="">new
+   value</var>.</p></li>
+
+   <li><p>Sort <var title="">values</var> in increasing numeric order.</p></li>
+
+   <li><p>Let <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a> be the result of running the <a href="the-input-element.html#concept-input-value-number-string" title="concept-input-value-number-string">algorithm to convert a number to a string</a>, as
+   defined by the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code>
+   attribute's current state, to the values in <var title="">values</var>.</p></li>
+
+   <li><p>Set the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> to the concatenation of the
+   strings in in <a href="the-button-element.html#concept-fe-values" title="concept-fe-values">values</a>, separating each value from the next
+   by a U+002C COMMA character (,).</p></li>
+
+  </ol><hr><p>The <dfn id="dom-input-stepdown" title="dom-input-stepDown"><code>stepDown(<var title="">n</var>)</code></dfn> and <dfn id="dom-input-stepup" title="dom-input-stepUp"><code>stepUp(<var title="">n</var>)</code></dfn> methods, when invoked,
+  must run the following algorithm:</p>
+
+  <ol><li><p>If the <code title="dom-input-stepDown"><a href="#dom-input-stepdown">stepDown()</a></code> and <code title="dom-input-stepUp"><a href="#dom-input-stepup">stepUp()</a></code> methods <a href="the-input-element.html#do-not-apply">do not apply</a>, as defined for the
+   <code><a href="the-input-element.html#the-input-element">input</a></code> element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's current state,
+   then throw an <code><a href="infrastructure.html#invalidstateerror">InvalidStateError</a></code> exception, and abort these steps.</p></li>
+
+   <li><p>If the element has no <a href="#concept-input-step" title="concept-input-step">allowed value step</a>, then
+   throw an <code><a href="infrastructure.html#invalidstateerror">InvalidStateError</a></code> exception, and abort these steps.</p></li>
+
+   <li><p>If the element has a <a href="#concept-input-min" title="concept-input-min">minimum</a> and a <a href="#concept-input-max" title="concept-input-max">maximum</a> and the <a href="#concept-input-min" title="concept-input-min">minimum</a>
+   is greater than the <a href="#concept-input-max" title="concept-input-max">maximum</a>, then abort these steps.</p>
+
+   </li><li><p>If the element has a <a href="#concept-input-min" title="concept-input-min">minimum</a> and a <a href="#concept-input-max" title="concept-input-max">maximum</a> and there is no value greater than or equal to the
+   element's <a href="#concept-input-min" title="concept-input-min">minimum</a> and less than or equal to the element's
+   <a href="#concept-input-max" title="concept-input-max">maximum</a> that, when subtracted from the <a href="#concept-input-min-zero" title="concept-input-min-zero">step base</a>, is an integral multiple of the <a href="#concept-input-step" title="concept-input-step">allowed value step</a>, then abort these steps.</p>
+
+   </li><li><p>If applying the <a href="the-input-element.html#concept-input-value-string-number" title="concept-input-value-string-number">algorithm to convert a
+   string to a number</a> to the string given by the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> does not result in an error, then let <var title="">value</var> be the result of that algorithm. Otherwise, let <var title="">value</var>
+   be zero.</p></li>
+
+   <li>
+
+    <p>If <var title="">value</var> subtracted from the <a href="#concept-input-min-zero" title="concept-input-min-zero">step
+    base</a> is not an integral multiple of the <a href="#concept-input-step" title="concept-input-step">allowed value
+    step</a>, then set <var title="">value</var> to the nearest value that, when subtracted from
+    the <a href="#concept-input-min-zero" title="concept-input-min-zero">step base</a>, is an integral multiple of the <a href="#concept-input-step" title="concept-input-step">allowed value step</a>, and that is less than <var title="">value</var> if the method invoked was the <code title="dom-input-stepDown"><a href="#dom-input-stepdown">stepDown()</a></code> and more than <var title="">value</var>
+    otherwise.</p>
+
+    <p>Otherwise (<var title="">value</var> subtracted from the <a href="#concept-input-min-zero" title="concept-input-min-zero">step base</a> is an integral multiple of the <a href="#concept-input-step" title="concept-input-step">allowed value step</a>), run the following substeps:</p>
+
+    <ol><li><p>Let <var title="">n</var> be the argument.</p></li>
+
+     <li><p>Let <var title="">delta</var> be the <a href="#concept-input-step" title="concept-input-step">allowed value
+     step</a> multiplied by <var title="">n</var>.</p></li>
+
+     <li><p>If the method invoked was the <code title="dom-input-stepDown"><a href="#dom-input-stepdown">stepDown()</a></code> method,
+     negate <var title="">delta</var>.</p></li>
+
+     <li><p>Let <var title="">value</var> be the result of adding <var title="">delta</var> to <var title="">value</var>.</p></li>
+
+    </ol></li>
+
+   <li><p>If the element has a <a href="#concept-input-min" title="concept-input-min">minimum</a>, and <var title="">value</var> is less than that <a href="#concept-input-min" title="concept-input-min">minimum</a>, then set
+   <var title="">value</var> to the smallest value that, when subtracted from the <a href="#concept-input-min-zero" title="concept-input-min-zero">step base</a>, is an integral multiple of the <a href="#concept-input-step" title="concept-input-step">allowed value step</a>, and that is more than or equal to <var title="">minimum</var>.</p></li>
+
+   <li><p>If the element has a <a href="#concept-input-min" title="concept-input-min">maximum</a>, and <var title="">value</var> is greater than that <a href="#concept-input-min" title="concept-input-min">maximum</a>, then
+   set <var title="">value</var> to the largest value that, when subtracted from the <a href="#concept-input-min-zero" title="concept-input-min-zero">step base</a>, is an integral multiple of the <a href="#concept-input-step" title="concept-input-step">allowed value step</a>, and that is less than or equal to <var title="">maximum</var>.</p></li>
+
+   <li><p>Let <var title="">value as string</var> be the result of running the <a href="the-input-element.html#concept-input-value-number-string" title="concept-input-value-number-string">algorithm to convert a number to a string</a>, as
+   defined for the <code><a href="the-input-element.html#the-input-element">input</a></code> element's <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code>
+   attribute's current state, on <var title="">value</var>.</p></li>
+
+   <li><p>Set the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> of the element to <var title="">value
+   as string</var>.</p></li>
+
+  </ol><hr><p>The <dfn id="dom-input-list" title="dom-input-list"><code>list</code></dfn> IDL attribute must return the current
+  <a href="#concept-input-list" title="concept-input-list">suggestions source element</a>, if any, or null otherwise.</p>
+
+  </div>
+<!--TOPIC:HTML-->
+
+
+  <div class="impl">
+
+  <h5 id="common-input-element-events"><span class="secno">4.10.5.5 </span>Common event behaviors</h5>
+
+  <p>When the <code title="event-input-input"><a href="#event-input-input">input</a></code> and <code title="event-input-change"><a href="#event-input-change">change</a></code> events <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">apply</a>
+  (which is the case for all <code><a href="the-input-element.html#the-input-element">input</a></code> controls other than <a href="forms.html#concept-button" title="concept-button">buttons</a> and those with the <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute in the <a href="states-of-the-type-attribute.html#hidden-state-(type=hidden)" title="attr-input-type-hidden">Hidden</a> state), the events are fired to indicate that the
+  user has interacted with the control. The <dfn id="event-input-input" title="event-input-input"><code>input</code></dfn>
+  event fires whenever the user has modified the data of the control. The <dfn id="event-input-change" title="event-input-change"><code>change</code></dfn> event fires when the value is committed, if
+  that makes sense for the control, or else when the control <a href="editing.html#unfocus-causes-change-event">loses focus</a>. In all cases, the <code title="event-input-input"><a href="#event-input-input">input</a></code> event comes before the corresponding <code title="event-input-change"><a href="#event-input-change">change</a></code> event (if any).</p>
+
+  <p>When an <code><a href="the-input-element.html#the-input-element">input</a></code> element has a defined <a href="editing.html#activation-behavior">activation behavior</a>, the rules
+  for dispatching these events, if they <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">apply</a>, are given
+  in the section above that defines the <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute's
+  state. (This is the case for all <code><a href="the-input-element.html#the-input-element">input</a></code> controls with the <code title="attr-input-type"><a href="the-input-element.html#attr-input-type">type</a></code> attribute in the <a href="states-of-the-type-attribute.html#checkbox-state-(type=checkbox)" title="attr-input-type-checkbox">Checkbox</a> state, the <a href="states-of-the-type-attribute.html#radio-button-state-(type=radio)" title="attr-input-type-radio">Radio Button</a> state, or the <a href="states-of-the-type-attribute.html#file-upload-state-(type=file)" title="attr-input-type-file">File Upload</a> state.)</p>
+
+  <p>For <code><a href="the-input-element.html#the-input-element">input</a></code> elements without a defined <a href="editing.html#activation-behavior">activation behavior</a>, but to
+  which these events <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">apply</a>, and for which the user
+  interface involves both interactive manipulation and an explicit commit action, then when the user
+  changes the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>, the user agent must
+  <a href="webappapis.html#queue-a-task">queue a task</a> to <a href="webappapis.html#fire-a-simple-event">fire a simple event</a> that bubbles named <code title="event-input-input"><a href="#event-input-input">input</a></code> at the <code><a href="the-input-element.html#the-input-element">input</a></code> element, and any time the user
+  commits the change, the user agent must <a href="webappapis.html#queue-a-task">queue a task</a> to <a href="webappapis.html#fire-a-simple-event">fire a simple
+  event</a> that bubbles named <code title="event-input-change"><a href="#event-input-change">change</a></code> at the
+  <code><a href="the-input-element.html#the-input-element">input</a></code> element.</p>
+
+  <p class="example">An example of a user interface involving both interactive manipulation and a
+  commit action would be a <a href="states-of-the-type-attribute.html#range-state-(type=range)" title="attr-input-type-range">Range</a> controls that use a
+  slider, when manipulated using a pointing device. While the user is dragging the control's knob,
+  <code title="event-input-input"><a href="#event-input-input">input</a></code> events would fire whenever the position changed,
+  whereas the <code title="event-input-change"><a href="#event-input-change">change</a></code> event would only fire when the user
+  let go of the knob, committing to a specific value.</p>
+
+  <p>For <code><a href="the-input-element.html#the-input-element">input</a></code> elements without a defined <a href="editing.html#activation-behavior">activation behavior</a>, but to
+  which these events <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">apply</a>, and for which the user
+  interface involves an explicit commit action but no intermediate manipulation, then any time the
+  user commits a change to the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>, the user
+  agent must <a href="webappapis.html#queue-a-task">queue a task</a> to first <a href="webappapis.html#fire-a-simple-event">fire a simple event</a> that bubbles named
+  <code title="event-input-input"><a href="#event-input-input">input</a></code> at the <code><a href="the-input-element.html#the-input-element">input</a></code> element, and then
+  <a href="webappapis.html#fire-a-simple-event">fire a simple event</a> that bubbles named <code title="event-input-change"><a href="#event-input-change">change</a></code> at the <code><a href="the-input-element.html#the-input-element">input</a></code> element.</p>
+
+  <p class="example">An example of a user interface with a commit action would be a <a href="states-of-the-type-attribute.html#color-state-(type=color)" title="attr-input-type-color">Color</a> control that consists of a single button that brings
+  up a color wheel: if the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> only changes when the dialog
+  is closed, then that would be the explicit commit action. On the other hand, if manipulating the
+  control changes the color interactively, then there might be no commit action.</p>
+
+  <p class="example">Another example of a user interface with a commit action would be a <a href="states-of-the-type-attribute.html#date-state-(type=date)" title="attr-input-type-date">Date</a> control that allows both text-based user input and user
+  selection from a drop-down calendar: while text input might not have an explicit commit step,
+  selecting a date from the drop down calendar and then dismissing the drop down would be a commit
+  action.</p>
+
+  <p>For <code><a href="the-input-element.html#the-input-element">input</a></code> elements without a defined <a href="editing.html#activation-behavior">activation behavior</a>, but to
+  which these events <a href="the-input-element.html#concept-input-apply" title="concept-input-apply">apply</a>, any time the user causes the
+  element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> to change without an explicit commit
+  action, the user agent must <a href="webappapis.html#queue-a-task">queue a task</a> to <a href="webappapis.html#fire-a-simple-event">fire a simple event</a> that
+  bubbles named <code title="event-input-input"><a href="#event-input-input">input</a></code> at the <code><a href="the-input-element.html#the-input-element">input</a></code> element. The
+  corresponding <code title="event-input-change"><a href="#event-input-change">change</a></code> event, if any, will be fired when
+  the control <a href="editing.html#unfocus-causes-change-event">loses focus</a>.</p>
+
+  <p class="example">Examples of a user changing the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> would include the user typing into a text field, pasting a
+  new value into the field, or undoing an edit in that field. Some user interactions do not cause
+  changes to the value, e.g. hitting the "delete" key in an empty text field, or replacing some text
+  in the field with text from the clipboard that happens to be exactly the same text.</p>
+
+  <p class="example">A <a href="states-of-the-type-attribute.html#range-state-(type=range)" title="attr-input-type-range">Range</a> control in the form of a
+  slider that the user has <a href="editing.html#focused">focused</a> and is interacting with using a keyboard would be
+  another example of the user changing the element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a>
+  without a commit step.</p>
+
+  <p>In the case of <a href="webappapis.html#concept-task" title="concept-task">tasks</a> that just fire an <code title="event-input-input"><a href="#event-input-input">input</a></code> event, user agents may wait for a suitable break in the
+  user's interaction before <a href="webappapis.html#queue-a-task" title="queue a task">queuing</a> the tasks; for example, a
+  user agent could wait for the user to have not hit a key for 100ms, so as to only fire the event
+  when the user pauses, instead of continuously for each keystroke. <!-- similar text is present in
+  the <textarea> section -->
+
+  </p><p>When the user agent is to change an <code><a href="the-input-element.html#the-input-element">input</a></code> element's <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> on behalf of the user (e.g. as part of a form prefilling
+  feature), the user agent must <a href="webappapis.html#queue-a-task">queue a task</a> to first update the <a href="the-button-element.html#concept-fe-value" title="concept-fe-value">value</a> accordingly, then <a href="webappapis.html#fire-a-simple-event">fire a simple event</a> that
+  bubbles named <code title="event-input-input"><a href="#event-input-input">input</a></code> at the <code><a href="the-input-element.html#the-input-element">input</a></code> element,
+  then <a href="webappapis.html#fire-a-simple-event">fire a simple event</a> that bubbles named <code title="event-input-change"><a href="#event-input-change">change</a></code> at the <code><a href="the-input-element.html#the-input-element">input</a></code> element.</p>
+
+  <p class="note">These events are not fired in response to changes made to the values of form
+  controls by scripts. (This is to make it easier to update the values of form controls in response
+  to the user manipulating the controls, without having to then filter out the script's own changes
+  to avoid an infinite loop.)</p>
+
+  <p>The <a href="webappapis.html#task-source">task source</a> for these <a href="webappapis.html#concept-task" title="concept-task">tasks</a> is the
+  <a href="webappapis.html#user-interaction-task-source">user interaction task source</a>.</p>
+
+  </div>
+
+
+
+  </body></html>

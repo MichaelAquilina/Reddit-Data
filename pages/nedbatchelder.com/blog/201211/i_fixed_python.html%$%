@@ -1,0 +1,192 @@
+<!DOCTYPE HTML>
+
+
+<html lang='en'><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width"><title>Ned Batchelder: I fixed Python!</title><link rel='stylesheet' href='http://nedbatchelder.com/style.css' type='text/css'><link rel='stylesheet' href='http://nedbatchelder.com/printstyle.css' type='text/css' media='print'><link rel="alternate" type="application/rss+xml" href="http://nedbatchelder.com/blog/rss.xml" title="RSS feed for Ned's blog"><script type='text/javascript' src='http://nedbatchelder.com/nedbatchelder.js'></script><script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-32134006-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script></head><body><table id='logo_banner'><tr><td id='logo'><a href='/'><img src='/dodeca3_100.gif' width='100' height='120' alt='[*]'></a></td><td id='banner'><span class='path'><a href='/'>Ned Batchelder</a> : <a href='/blog'>Blog</a> | <a href='/code'>Code</a> | <a href='/text'>Text</a> | <a href='/site'>Site</a></span><br><span class='headslug'>I fixed Python!</span><br><span class='path'>
+                    &#xbb; <a href='/'>Home</a> : <a href='/blog'>Blog</a> : <a href='/blog/201211.html'>November 2012</a></span></td></tr></table><table id='content_menu'><tr><td id='content'><div class='body'><div id='searchwelcome'></div><div class='blog-entry' id='e20121104T083512'><div class='head'><h3 class='title'><a class='s' href='/blog/201211/i_fixed_python.html' rel='bookmark' title='Link to this post'>I fixed Python!</a></h3><p class='date'>Sunday 4 <a class='s' href='/blog/201211.html'>November 2012</a></p></div><p>About a month ago, I found a bad-behavior bug in the tokenize standard
+        library module, and with help from <a class="offsite" rel="external" href="http://arongriffis.com/">Aron Griffis</a>, submitted a patch to
+        fix it.  Yesterday was a Python bug day, and <a class="offsite" rel="external" href="http://wolfprojects.altervista.org/">Ezio Melotti</a> merged my
+        change, so I have officially contributed to CPython!</p><p>The <a class="offsite" rel="external" href="http://bugs.python.org/issue16152">bug in tokenize</a> was
+        an obscure case: if the code ends with a line that starts with
+        non-space, then ends with many spaces, and no newline, then the
+        tokenizer gets into an NÂ² run-time behavior, where N is the
+        number of spaces.  The problem is that each space is tokenized as an
+        error token (because it precedes no good token), so N tokens are
+        produced, but each token takes linear time for the regex to see that there's
+        no good token following it, leading to NÂ² behavior.</p><p>I discovered this working on code that grades student submissions at
+        <a class="offsite" rel="external" href="http://edx.org">edX</a>.  For some reason there was a
+        submission ending with 40,000 spaces and no newline, and it was taking
+        20 minutes to tokenize!</p><p>Simple demonstration:</p><blockquote class="code"><code><span class="kn">import</span>&#xA0;<span class="nn">tokenize</span><br><span class="kn">import</span>&#xA0;<span class="nn">time</span><br><span class="kn">from</span>&#xA0;<span class="nn">cStringIO</span>&#xA0;<span class="kn">import</span>&#xA0;<span class="n">StringIO</span><br><br><span class="k">def</span>&#xA0;<span class="nf">time_to_tokenize_trailing</span><span class="p">(</span><span class="n">spaces</span><span class="p">):</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="n">source</span>&#xA0;<span class="o">=</span>&#xA0;<span class="n">StringIO</span><span class="p">(</span><span class="s">&quot;@&quot;</span>&#xA0;<span class="o">+</span>&#xA0;<span class="s">&quot;&#xA0;&quot;</span><span class="o">*</span><span class="n">spaces</span><span class="p">)</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="n">start</span>&#xA0;<span class="o">=</span>&#xA0;<span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="nb">list</span><span class="p">(</span><span class="n">tokenize</span><span class="o">.</span><span class="n">generate_tokens</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">readline</span><span class="p">))</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="n">end</span>&#xA0;<span class="o">=</span>&#xA0;<span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="k">return</span>&#xA0;<span class="n">end</span>&#xA0;<span class="o">-</span>&#xA0;<span class="n">start</span><br><br><span class="k">for</span>&#xA0;<span class="n">spaces</span>&#xA0;<span class="ow">in</span>&#xA0;<span class="nb">xrange</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span>&#xA0;<span class="mi">15000</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>&#xA0;<span class="mi">1000</span><span class="p">):</span><br>&#xA0;&#xA0;&#xA0;&#xA0;<span class="k">print</span>&#xA0;<span class="s">&quot;</span><span class="si">%5d</span><span class="s">:&#xA0;</span><span class="si">%.2f</span><span class="s">s&quot;</span>&#xA0;<span class="o">%</span>&#xA0;<span class="p">(</span><span class="n">spaces</span><span class="p">,</span>&#xA0;<span class="n">time_to_tokenize_trailing</span><span class="p">(</span><span class="n">spaces</span><span class="p">))</span><br></code></blockquote><p>Ouch:</p><blockquote class="code"><code>Â 1000:Â 0.71s<br>Â 2000:Â 2.83s<br>Â 3000:Â 6.47s<br>Â 4000:Â 11.52s<br>Â 5000:Â 17.68s<br>Â 6000:Â 26.16s<br>Â 7000:Â 35.35s<br>Â 8000:Â 46.65s<br>Â 9000:Â 58.35s<br>10000:Â 72.80s<br>11000:Â 89.53s<br>12000:Â 107.27s<br>13000:Â 126.44s<br>14000:Â 147.60s<br>15000:Â 166.81s<br></code></blockquote><p>If you are running a server that tokenizes untrusted Python code, you
+        might want to throw an .rstrip() into it to prevent this case...</p><div class='foot'><span class='via'>
+
+    
+    
+        tagged: 
+        <a href='/blog/tag/python.html' rel='tag'>python</a></span><span class='react'>&#xbb;&#xa0;1 reaction</span></div></div><div class='comments' id='comments'>
+<h1>Comments</h1>
+
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/016471700bd46db9bb3ce8779c492990.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa74.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Jack Hamm</b></span>
+			<span class='when'><span class='adminlink'></span> 5:36 PM on 4 Nov 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Thanks, Ned! <br><br>Congrats on the first patch acceptance.  I am running the test code now and I'm getting timing on the same order that you did:<br><br> 1000: 0.66s<br> 2000: 2.59s<br> 3000: 5.86s<br> 4000: 10.39s<br> 5000: 16.44s<br> 6000: 23.83s<br> 7000: 32.91s<br> 8000: 42.12s<br> 9000: 52.77s<br>10000: 65.42s<br>11000: 80.21s<br>12000: 98.65s<br>13000: 114.85s<br>14000: 134.36s<br>15000: 156.47s<br><br>~Jack
+		</p>
+	</div>
+
+<div id='commentform'>
+<h2>Add a comment:</h2>
+<div>
+	<form method="post" action="http://nedbatchelder.com/blog/201211/i_fixed_python.html#commentform" id="commentformform">
+		<table>
+			<tr>
+				<td class="labels">
+					<div class='label'>name</div>
+				</td>
+				<td class="inputs">
+					<input class='edit' type="text" name="f7e032102978d0338c4b617a39ff5dcc7" id="f7e032102978d0338c4b617a39ff5dcc7" size="40" value="">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class='label'>email</div>
+				</td>
+				<td>
+					<div class="dn">
+                        Ignore this:
+                        <input class='edit' type="email" name="fe7d95f6e226e7306999a95c7146ad597" id="fe7d95f6e226e7306999a95c7146ad597" size="40">
+					</div>
+					<input class='edit' type="email" name="ffd3e5e59d774807b1f7025d9701cc7f0" id="ffd3e5e59d774807b1f7025d9701cc7f0" size="40" value="">
+					<span class='notice'>not displayed and no spam.</span>
+					<div class="dn">
+                        Leave this empty:
+                        <input class='edit' type="email" name="fe65b3ab15980b7b1098069fa5fe115bf" id="fe65b3ab15980b7b1098069fa5fe115bf" size="40">
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class='label'>www</div>
+				</td>
+				<td>
+					<input class='edit' type="url" name="fed742e1ce89a9971e90d5e75af8f420d" id="fed742e1ce89a9971e90d5e75af8f420d" size="40" value="">
+					<span class='notice'>not searched.</span>
+				</td>
+			</tr>
+			<tr>
+				<td>&nbsp;</td>
+				<td>
+					<div class="notice">Name and either email or www are required.</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="dn">
+						Don't put anything here:
+						<textarea name="fb7dfa49e68429fbe99f6194892c86ffc" id="fb7dfa49e68429fbe99f6194892c86ffc" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+					<div>
+						<textarea name="fdbc4383b2a05ce9d05bbddab11e43524" id="fdbc4383b2a05ce9d05bbddab11e43524" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+					<div class="dn">
+						Leave this empty:
+						<textarea name="fce49b4830d1cdd70322ba828a5b92d2a" id="fce49b4830d1cdd70322ba828a5b92d2a" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="notice right">
+					URLs auto-link and some tags are allowed: &lt;a&gt;&lt;b&gt;&lt;i&gt;&lt;p&gt;&lt;br&gt;&lt;pre&gt;.
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="notice right">
+						<label for="cbnotify">
+							<input type="checkbox" name="f7d6b9e65f60cd8207f022e7e9bd2c20f" id="cbnotify" >
+							<span class='label'>Email me future comments</span>
+						</label>&#160;&#160;
+						<input id="previewbtn" type="submit" name="feeb26bf039e58b7b04ba7d6a24a5a9a0" value="preview >>">
+						<span class="dn">
+                            <input type="submit" name="f08104574a277386d221d94e864909b43" value="I'm a spambot">
+						</span>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<input type='hidden' name='f1059a40178d66ef71a83dc909d59bed3' value='e20121104T083512'>
+		<input type='hidden' name='spinner' value='555df49d97719b4d9a1435636bba655f'>
+		<input type='hidden' name='f632e5412e1465f6f6b8be2070684a56b' value='1404132116'>
+
+
+	</form>
+</div>
+</div>
+
+</div>
+</div></td><td id='menu'><div class='sidebar'>
+
+
+<div class='blogroll'><ul class='first'><li class='first'>Search this site:
+            
+<form action="http://www.google.com/cse" id="searchbox_007818501792991951010:s9hiibxg-ty" style="margin-top:6px;"><input type="hidden" name="cx" value="007818501792991951010:s9hiibxg-ty"><table><tr><td class="vmid"><input type="text" name="q" style='border:1px solid #7e9db9;padding:2px;width:144px;height:16px;'></td><td class="vmid"><input id="submit" class="vmid" type="image" title="Search" alt="Search" src="/pix/search.png"></td></tr></table></form><script type="text/javascript">
+    (function() {
+        var f = document.getElementById('searchbox_007818501792991951010:s9hiibxg-ty');
+        if (f && f.q) {
+            var q = f.q;
+            var b = function() {
+                if (q.value == '') {
+                    q.style.background = '#fff url(http:\x2F\x2Fwww.google.com\x2Fcoop\x2Fintl\x2Fen\x2Fimages\x2Fgoogle_custom_search_watermark.gif) left no-repeat';
+                }
+            };
+            var f = function() {
+                q.style.background = '#fff';
+            };
+            q.onfocus = f;
+            q.onblur = b;
+            if (!/[&?]q=[^&]/.test(location.search)) {
+                b();
+            }
+        }
+    })();
+</script></li><li><a href='/site/aboutned.html' rel='author'>About me</a></li><li class='inline'>Also me:
+            <ul><li><a href='http://twitter.com/nedbat'>twitter</a>&#xa0;&#xb7; </li><li><a href='mailto:ned@nedbatchelder.com'>email</a></li></ul></li><li class='inline'>Tip me:
+            <ul><li><a href='http://gittip.com/nedbat'>gittip</a>&#xa0;&#xb7; </li><li><a href='https://coinbase.com/checkouts/c2a7f9652ecc0f6bf9c240c05109305f'>bitcoin</a></li></ul></li><li>Commerce:
+            <ul class='compact'><li>&#xbb;&#xa0;<a href='http://www.amazon.com/exec/obidos/redirect-home/nedbatchelder-20'>Amazon</a></li><li>&#xbb;&#xa0;<a href='http://susansenator.com/survivalguide.html'>Susan's books</a><br><a href='http://susansenator.com/makingpeace.html'><img src='/pix/makingpeacetiny.png' alt='Making Peace With Autism' width='83' height='127' style='margin: 10px 0 0 0'></a> <a href='http://susansenator.com/dirt.html'><img src='/pix/dirttiny.png' alt='Dirt, a novel' width='86' height='125' style='margin: 10px 0 0 0'></a><!--
+                    <a href='http://susansenator.com/survivalguide.html'><img src='pix/survivalguidetiny.png' alt='Autism Mom&#39;s Survival Guide' width='86' height='121' style='margin: 10px 0 0 0'></a>
+                    --></li></ul></li><li class='inline'>More blog:
+            <ul><li><a href='/blog/tag/python.html'>python</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/art.html'>art</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2014.html'>14</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/funny.html'>funny</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/webpage.html'>web</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2013.html'>13</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/tools.html'>tools</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/parenting.html'>parenting</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2012.html'>12</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/math.html'>math</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/politics.html'>politics</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2011.html'>11</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/movies.html'>movies</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/ling.html'>language</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2010.html'>10</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/mycode.html'>my code</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/history.html'>history</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2009.html'>09</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/books.html'>books</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/type.html'>typography</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2008.html'>08</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/business.html'>business</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/autism.html'>autism</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2007.html'>07</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/howto.html'>how-to</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/coverage.html'>coverage</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2006.html'>06</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/games.html'>games</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/quick.html'>quick links</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2005.html'>05</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/science.html'>science</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/windows.html'>windows</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2004.html'>04</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/friendfam.html'>friends & family</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/work.html'>work</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2003.html'>03</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/online.html'>online</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/photos.html'>photos</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2002.html'>02</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/crafts.html'>crafts</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/music.html'>music</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tags.html'><i>all tags</i></a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archiveall.html'><b><i>everything!</i></b></a></li></ul></li><li><a
+                href='/blog/rss.xml'
+                type='application/rss+xml'
+                style='
+                    padding: 0 .4em;
+                    background: #F60;
+                    color: white;
+                    border: 1px solid;
+                    border-color: #FC9 #630 #330 #F96;
+                    font-weight: bold;
+                    text-decoration: none;
+                    '
+                >RSS</a></li></ul></div>
+
+</div></td></tr><tr><td id='copyright' colspan='2'><p class='copyright'><a rel='copyright license' href='/site/legal.html'>
+                            &#xa9; Copyright
+                            
+                                2012,
+                            
+                            Ned Batchelder
+                        </a></p></td></tr></table></body></html>

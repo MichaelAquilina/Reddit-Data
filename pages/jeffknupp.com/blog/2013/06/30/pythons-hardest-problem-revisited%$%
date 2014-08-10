@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link href='/css/jeffknupp.min.css' rel='stylesheet' type='text/css'>
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,900' rel='stylesheet' type='text/css'>
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <title>Python's Hardest Problem, Revisited</title>
+  <meta name="author" content="Jeff Knupp">
+  <meta name="description" content=""> 
+  <link rel="icon" href="/images/favicon.png" >
+  <link rel="alternate" href="http://feeds.feedblitz.com/hackersgonnahack" title="Python Programming" type="application/atom+xml">
+
+  
+<style>
+td.linenos { background-color: #f0f0f0; padding-right: 10px; }
+span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
+table.codehilitetable .hll, .codehilite pre .hll { background-color: #ffffcc }
+table.codehilitetable, .codehilite  { background: #f8f8f8; }
+table.codehilitetable .c, .codehilite pre .c { color: #408080; font-style: italic } /* Comment */
+table.codehilitetable .err, .codehilite pre .err { border: 1px solid #FF0000 } /* Error */
+table.codehilitetable .k, .codehilite pre .k { color: #008000; font-weight: bold } /* Keyword */
+table.codehilitetable .o, .codehilite pre .o { color: #666666 } /* Operator */
+table.codehilitetable .cm, .codehilite pre .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+table.codehilitetable .cp, .codehilite pre .cp { color: #BC7A00 } /* Comment.Preproc */
+table.codehilitetable .c1, .codehilite pre .c1 { color: #408080; font-style: italic } /* Comment.Single */
+table.codehilitetable .cs, .codehilite pre .cs { color: #408080; font-style: italic } /* Comment.Special */
+table.codehilitetable .gd, .codehilite pre .gd { color: #A00000 } /* Generic.Deleted */
+table.codehilitetable .ge, .codehilite pre .ge { font-style: italic } /* Generic.Emph */
+table.codehilitetable .gr, .codehilite pre .gr { color: #FF0000 } /* Generic.Error */
+table.codehilitetable .gh, .codehilite pre .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+table.codehilitetable .gi, .codehilite pre .gi { color: #00A000 } /* Generic.Inserted */
+table.codehilitetable .go, .codehilite pre .go { color: #808080 } /* Generic.Output */
+table.codehilitetable .gp, .codehilite pre .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+table.codehilitetable .gs, .codehilite pre .gs { font-weight: bold } /* Generic.Strong */
+table.codehilitetable .gu, .codehilite pre .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+table.codehilitetable .gt, .codehilite pre .gt { color: #0040D0 } /* Generic.Traceback */
+table.codehilitetable .kc, .codehilite pre .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+table.codehilitetable .kd, .codehilite pre .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+table.codehilitetable .kn, .codehilite pre .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+table.codehilitetable .kp, .codehilite pre .kp { color: #008000 } /* Keyword.Pseudo */
+table.codehilitetable .kr, .codehilite pre .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+table.codehilitetable .kt, .codehilite pre .kt { color: #B00040 } /* Keyword.Type */
+table.codehilitetable .m, .codehilite pre .m { color: #666666 } /* Literal.Number */
+table.codehilitetable .s, .codehilite pre .s { color: #BA2121 } /* Literal.String */
+table.codehilitetable .na, .codehilite pre .na { color: #7D9029 } /* Name.Attribute */
+table.codehilitetable .nb, .codehilite pre .nb { color: #008000 } /* Name.Builtin */
+table.codehilitetable .nc, .codehilite pre .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+table.codehilitetable .no, .codehilite pre .no { color: #880000 } /* Name.Constant */
+table.codehilitetable .nd, .codehilite pre .nd { color: #AA22FF } /* Name.Decorator */
+table.codehilitetable .ni, .codehilite pre .ni { color: #999999; font-weight: bold } /* Name.Entity */
+table.codehilitetable .ne, .codehilite pre .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+table.codehilitetable .nf, .codehilite pre .nf { color: #0000FF } /* Name.Function */
+table.codehilitetable .nl, .codehilite pre .nl { color: #A0A000 } /* Name.Label */
+table.codehilitetable .nn, .codehilite pre .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+table.codehilitetable .nt, .codehilite pre .nt { color: #008000; font-weight: bold } /* Name.Tag */
+table.codehilitetable .nv, .codehilite pre .nv { color: #19177C } /* Name.Variable */
+table.codehilitetable .ow, .codehilite pre .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+table.codehilitetable .w, .codehilite pre .w { color: #bbbbbb } /* Text.Whitespace */
+table.codehilitetable .mf, .codehilite pre .mf { color: #666666 } /* Literal.Number.Float */
+table.codehilitetable .mh, .codehilite pre .mh { color: #666666 } /* Literal.Number.Hex */
+table.codehilitetable .mi, .codehilite pre .mi { color: #666666 } /* Literal.Number.Integer */
+table.codehilitetable .mo, .codehilite pre .mo { color: #666666 } /* Literal.Number.Oct */
+table.codehilitetable .sb, .codehilite pre .sb { color: #BA2121 } /* Literal.String.Backtick */
+table.codehilitetable .sc, .codehilite pre .sc { color: #BA2121 } /* Literal.String.Char */
+table.codehilitetable .sd, .codehilite pre .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+table.codehilitetable .s2, .codehilite pre .s2 { color: #BA2121 } /* Literal.String.Double */
+table.codehilitetable .se, .codehilite pre .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+table.codehilitetable .sh, .codehilite pre .sh { color: #BA2121 } /* Literal.String.Heredoc */
+table.codehilitetable .si, .codehilite pre .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+table.codehilitetable .sx, .codehilite pre .sx { color: #008000 } /* Literal.String.Other */
+table.codehilitetable .sr, .codehilite pre .sr { color: #BB6688 } /* Literal.String.Regex */
+table.codehilitetable .s1, .codehilite pre .s1 { color: #BA2121 } /* Literal.String.Single */
+table.codehilitetable .ss, .codehilite pre .ss { color: #19177C } /* Literal.String.Symbol */
+table.codehilitetable .bp, .codehilite pre .bp { color: #008000 } /* Name.Builtin.Pseudo */
+table.codehilitetable .vc, .codehilite pre .vc { color: #19177C } /* Name.Variable.Class */
+table.codehilitetable .vg, .codehilite pre .vg { color: #19177C } /* Name.Variable.Global */
+table.codehilitetable .vi, .codehilite pre .vi { color: #19177C } /* Name.Variable.Instance */
+table.codehilitetable .il, .codehilite pre .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
+  <style>
+body {
+    font-family: 'Roboto', sans-serif;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", 'Roboto', Arial, "Lucida Grande", sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+}
+.nav {
+    text-align: right;
+    padding-bottom: 20px;
+}
+
+.nav a {
+    padding-right: 2em;
+    color: black;
+    font-size: 14px;
+}
+
+.title {
+   width: 100%; 
+   text-align: center; 
+   border-bottom: 1px solid #000; 
+   line-height: 0.1em;
+   margin: 10px 0 40px; 
+} 
+
+.title span { 
+    background:#fff; 
+    padding:0 20px; 
+}
+
+/* Side notes for calling out things
+-------------------------------------------------- */
+ 
+/* Base styles (regardless of theme) */
+.bs-callout {
+  margin: 20px 0;
+  padding: 15px 30px 15px 15px;
+  border-left: 5px solid #eee;
+}
+.bs-callout h4 {
+  margin-top: 0;
+}
+.bs-callout p:last-child {
+  margin-bottom: 0;
+}
+.bs-callout code,
+.bs-callout .highlight {
+  background-color: #fff;
+}
+ 
+/* Themes for different contexts */
+.bs-callout-danger {
+  background-color: #fcf2f2;
+  border-color: #dFb5b4;
+}
+.bs-callout-warning {
+  background-color: #fefbed;
+  border-color: #f1e7bc;
+}
+.bs-callout-info {
+  background-color: #f0f7fd;
+  border-color: #d0e3f0;
+}
+.bs-callout-danger h4 {
+color: #B94A48;
+}
+
+.bs-callout-warning h4 {
+color: #C09853;
+}
+
+.bs-callout-info h4 {
+color: #3A87AD;
+}
+</style>
+
+  
+  
+  <!-- Google Analytics -->
+  <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-12615441-1', 'jeffknupp.com');
+    ga('send', 'pageview');
+  </script>
+  <!-- Google Plus Author Link -->
+  <link href="https://plus.google.com/102786441324515866525" rel="publisher" />
+
+</head>
+
+<body itemscope itemtype="http://schema.org/Blog">
+<header id="header">
+    <img src="/images/jeff.jpg" class="circular center-block">
+    <h1>Jeff Knupp</h1>
+    <h2>PYTHON PROGRAMMER</h2>
+    <nav>
+        <a href="/">BLOG</a>
+        <span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="/about-me/" itemprop="url">ABOUT</a></span>
+        <a href="/blog/archives">ARCHIVES</a>
+        <a href="/python-tutoring" title="python-tutoring">TUTORING</a>
+        <a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">BOOK</a>
+    </nav>
+</header>
+<div class="container-fluid content">
+    <h2 class="text-center"><span itemprop="name">Everything I know about Python...</span></h2>
+    <div class="col-md-8 col-md-offset-2 col-xs-12">
+        <div class="bs-callout bs-callout-danger">
+            <h4 class="text-center">Learn to Write Pythonic Code!</h4>
+            <p class="text-center"><a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">
+                Check out the book <em>Writing Idiomatic Python</em>!</a></p>
+        </div>
+        <div id="content">
+            
+<article itemscope itemtype="http://schema.org/BlogPosting">
+<header>
+    <h1 class="post-title"><a href="/blog/2013/06/30/pythons-hardest-problem-revisited"><span itemprop="headline">Python's Hardest Problem, Revisited</span></a><br/>
+</header>
+
+<div class="entry-content" itemprop="articleBody">
+    
+        <p>One of the first long-form articles I ever posted to this blog was a piece about
+Python's <em>Global Interpreter Lock (GIL)</em> entitled <a href="http://www.jeffknupp.com/blog/2012/03/31/pythons-hardest-problem/">"Python's Hardest Problem"</a>.
+Two weeks ago, it was posted to <a href="http://news.ycombinator.com">Hacker News</a> and sat
+on the front page for a while, driving a lot of traffic to the blog. </p>
+<p>In the discussion on Hacker News, some commenters mentioned that I had neglected
+to mention the various ways of working around the GIL. While that information 
+didn't fit the purpose of the original article, it is nonetheless useful.
+In this article, I'll describe the various ways the Python community has
+discovered/created to mitigate the effects of the <code>GIL</code>. I hope this  information
+is helpful to those who want practical advice for how  to take advantage of
+concurrency in Python.
+<!--more--></p>
+<h2>Batteries Included: Multiprocessing</h2>
+<p>For many workloads for which the GIL is a bottleneck, one need look no further
+than the Python standard library. The <a href="http://docs.python.org/3.4/library/multiprocessing.html">multiprocessing</a>
+package trades threads for processes, to great effect. The idea is simple: if a
+single instance of the Python interpreter is constrained by the GIL, one can
+achieve gains in concurrent workloads by through <em>multiple interpreter  processes</em>
+in place of multiple threads. Helpfully, <code>multiprocessing</code> was written
+with the same interface as the <code>threading</code> package, so code already using
+threads doesn't require a massive rewrite to make use of multiple processes.</p>
+<p>How does it work in practice? One spawns a process in much the same
+way one creates a thread. The most visible difference between processes
+and threads is the amount of access to shared data they permit. A quick
+example is useful here. Suppose we are writing a RSS feed reader and want to
+update our feeds with any new items. We store the contents of our various feeds
+as a dictionary whose keys are the URL of the RSS feed and whose values are a
+list of that feed's entries. When we "refresh" our feeds, we simply want to
+add new items to the end of the associated feed list.</p>
+<p>This is clearly a parallelizable task. With threads, we would simply give
+each thread a subset of the dictionary keys (i.e. feed URLs). For each key it 
+receives, a thread will fetch new items in the associated feed and append  them to the
+feed's item list in our dictionary. We needn't be concerned with locking
+the feed dictionary since we know that each thread will be appending to
+independent lists. </p>
+<p>With processes, the work is still divided as before. The default behavior
+for processes,  however, is to not share memory with the process that created them. Global variables
+are an exception to this, but if you're using global variables on a regular basis
+we have much more important things to discuss. Our child processes must share data via messaging rather than shared
+access to the feed dictionary. The usual issues associated with multithreaded 
+code (like data corruption, deadlocks, etc) are no longer a concern. Since no two 
+processes share access to memory, there is no chance of concurrent 
+modification. </p>
+<p>Well, that's mostly true. As it happens, there are two primary methods of
+communication available in multiprocessing: <code>Queues</code> and <code>Pipes</code>. While 
+the <code>Queue</code> class is internally synchronized and, thus, thread and process safe,
+the <code>Pipe</code> class is not. If more than one thread or process attempts to read
+from or write to the same end of the same <code>Pipe</code>, corruption of data
+may occur. To protect unsafe operations, <code>multiprocessing</code> makes available
+the same synchronization primitives as <code>threading</code>.</p>
+<p>Minor synchronization issues aside, all of this sounds great. That is, until we realize that 
+sharing data via messaging requires us to make <em>copies</em> of everything we'd
+like to share. In our example, the parent process sends a portion of the 
+keys in our dictionary (i.e. the feed URLs) to each child process. Copying keys is not
+an expensive operation. Retrieving the results is another matter.</p>
+<p>Each child process must send back the contents of the set of item lists that were updated. If
+we have many feeds and few processes, the resulting lists may be quite large (in terms of memory usage). Since no data is shared
+between processes, clearly the parent process must copy the data a child process
+sends to it. A workflow that includes copying data, possibly multiple times, is
+not a recipe for an especially quick program.</p>
+<p>To work around these limitations, one can make use of the two state-sharing methods that <code>multiprocessing</code>
+makes available: <em>shared memory</em> and <em>server processes</em>. Shared memory comes
+in the form of the <code>Value</code> and <code>Array</code> classes, and their names are indicative
+of what they're used for. Updates to a <code>Value</code> or <code>Array</code> object will be immediately
+visible to other processes with access to that object. Needless to say, proper
+use of synchronization primitives is important when using shared memory.</p>
+<p>Alternately, the <code>Manager</code> class can be used to manage
+access to shared state by way of <em>proxy</em> objects. The <code>Manager</code> takes the data
+to be shared and creates proxies of them. Code interacting with these
+proxy objects is written as if it were interacting with the underlying data
+itself. All access and modification of the proxy object, however, goes through the
+<code>Manager</code>.</p>
+<p>One advantage of the <code>Manager</code> over shared memory is that the
+<code>Manager</code> need to reside on the same physical machine as the processes using
+the proxy objects. Of course, that means that using a <code>Manager</code> is slower than
+shared memory (even when everything is on the same machine).</p>
+<p>Now, with the state-sharing methods provided by <code>multiprocessing</code>, we've
+come full circle. The burden of managing synchronization when using  separate processes
+for  concurrency essentially is place back on the developer. Once shared
+state, is introduced, the developer is subject to all the attendant headaches
+associated with multithreaded code.</p>
+<p>But there's a silver lining: processes can make progress on multiple threads
+of execution simultaneously. Since a parent process doesn't share the GIL with
+its child processes, <em>all</em> processes can execute simultaneously (subject to the
+constraints of the hardware and OS).</p>
+<h2>PyPy</h2>
+<p><a href="http://www.pypy.org">PyPy</a> is often described as "a Python interpreter written in Python".
+While that's a misleading description in a number of ways, suffice it to say that PyPy is an alternative implementation
+of the Python interpreter that achieves (sometimes drastic) performance gains
+ by using a JIT compiler (not unlike the JVM).
+The PyPy implementation does not (as many mistakenly believe) do away with the <code>GIL</code>. It's still present and functions
+much the same as the <code>GIL</code> in the cPython interpreter.</p>
+<p>In August of 2011, Armin Rigo (a PyPy developer and the creator of <a href="http://psyco.sourceforge.net/">Pysco</a>),
+wrote a <a href="http://morepypy.blogspot.com/2011/08/we-need-software-transactional-memory.html">post</a>
+on the PyPy blog that generated quite a bit of discussion. In it,
+he outlined a plan to add support for <em>Software Transactional Memory (STM)</em> to
+PyPy. Software Transactional Memory (and <em>Hardware Transactional Memory (HTM)</em>)
+treats modification of data as a <em>transaction</em>. A transaction is an atomic
+operation; it either proceeds in it's entirety or is completely rolled
+back. In PyPy's case, transactions encapsulate modification of Python
+objects.</p>
+<p>It's an idea that has been around for a quite a while,
+but one that's receiving more  attention due to the planned introduction of  <em>Hardware Transactional Memory</em> into
+general purpose CPUs (<em>some</em> of Intel's new Haswell CPUs have support for TSX,
+Intel's extensions for HTM). In the most aggressive form of HTM,  there is no need to use
+synchronization primitives to protect shared data. Each modification is recorded by the CPU; when a transaction finishes,
+the CPU checks if anyone else made changes to the memory in question. If no
+other modifications were made, the transaction succeeded and proceeds
+normally. If a modification was detected, the transaction is rolled back and
+and a "fallback" routine is executed. The fallback routine determines how
+(and if) the modification should be retried.</p>
+<p>This is a potential game-changer for multithreaded programming. As "Python's
+Hardest Problem" described, multithreaded programming is difficult due to
+both the cognitive load it burdens the developer with and the challenge in
+debugging and proving the correctness of code. If the hardware (or software)
+magically handled concurrent access to data without requiring anything from
+the developer, multithreaded programming would be <em>much</em> easier.</p>
+<p>But HTM remains quite experimental and hasn't yet gained traction. This is why,
+back in 2011, Armin Rigo decided that STM was the the most promising avenue for
+creating a "GIL-less" PyPy. Progress has been slow for the past two years
+(for all the reasons that progress on any Open Source project is slow),
+but there are signs this is about to change. In a <a href="http://morepypy.blogspot.com/2013/06/stm-on-drawing-board.html">post</a> earlier this month,
+Rigo cited a number of factors that would increase the pace of development
+and included a number of ideas for optimizing the implementation.</p>
+<p>The project's initial, stated goal was to include STM at a performance
+penalty between 2x and 5x, with the intention of reducing (and eventually
+eliminating) the penalty in subsequent releases. It remains to be seen if the
+approach taken by Rigo and others is a viable one, but PyPy's STM project is
+perhaps the Python community's best hope of C-based,
+GIL-less Python interpreter.</p>
+<h2>Alternative Python Implementations</h2>
+<p>While cPython is the official, "reference" interpreter implementation for the Python
+language, there are a number of alternate interpreters written in languages
+other than C. The two most popular are <a href="http://www.jython.org">Jython</a> and
+<a href="http://ironpython.net">IronPython</a>. Why are they of interest? <strong>Neither has
+a GIL.</strong></p>
+<h3>Jython</h3>
+<p>Jython is a compiled Python interpreter written in Java. It is the successor to the
+now defunct JPython project. The Jython project's focus, above all else,
+is compatibility with cPython (tested using a slightly modified version of
+cPython's extensive regression tests).</p>
+<p>So how did Jython do away with the <code>GIL</code>? Actually, it wasn't a conscious
+choice by the Jython developers. Because of the JVM's built-in garbage
+collection, there is no need to copy cPython's reference-counting
+implementation. Since there are no longer reference counts that need to be
+modified on every object, we are free to remove the <code>GIL</code> (which is primarily
+used for safe manipulation of reference counts on all <code>PyObject</code>s).</p>
+<p>That's not to say that, when using Jython, one can ignore modification of
+shared state <em>in one's own Python code</em>. The <code>GIL</code> doesn't protect one from
+multithreaded <em>Python programs</em> (otherwise there would be no need for
+<code>threading</code> to provide synchronization primitives). Rather,
+it protects <em>the interpreter itself</em> from corrupting the bookkeeping data
+associated with every Python object.</p>
+<p>Still, with no <code>GIL</code>, Jython programs can take full advantage of all of the
+cores on a machine (our "Holy Grail"). Jython, however,
+is not without its drawbacks.</p>
+<p>For starters, it does not support <em>any</em> C extensions. This is a deal-breaker for many people as a ton of popular Python
+packages make use C extensions. Additionally, development and feature support
+lag well behind cPython. The <em>beta</em> for Python 2.7 was released in February
+of this year (and has not seen a release since). Python 2.5 is the officially
+supported version of Python in Jython. For reference,
+2.5 was released <strong>September 2006</strong>. So it's fair to say that compatibility
+is a very real problem for Jython.</p>
+<p>Lastly, there a number of areas where Jython (by its own admission) is slower than cPython. Any Python standard
+library modules written in C (and there are a lot of them),
+Jython implements in Python. These could be rewritten in Java,
+but the amount of optimization done cPython's C-based modules is pretty
+extensive. Jython is unlikely to approach the speed of cPython modules
+written in C any time soon.</p>
+<h3>IronPython</h3>
+<p>Just as Jython is a compiled Python interpreter written in Java,
+IronPython is a compiled interpreter written in C#, making it compatible with
+the rest of the .NET ecosystem. Much like Jython, the <code>GIL</code> is rendered
+unnecessary due to the .NET DLR's garbage collector. Also like Jython,
+IronPython benefits from a JIT compiler to achieve speedups in longer running
+programs.</p>
+<p>While IronPython programs can take full advantage of multicore hardware,
+the drawbacks of IronPython are largely the same as those of Jython. C
+extensions are somewhat supported using "IronClad",
+a commercial tool developed by Resolver Systems. This support only extends to
+Python 2.6 extensions on (increasingly rare) 32-bit Windows systems, though,
+and no code has been committed to the project since 2011. I think it's fair
+to say that C extensions are basically unsupported (especially in the 2.7
+version of IronPython).</p>
+<p>Again, performance is a mixed bag. While the JIT compiler give IronPython a
+leg-up in certain areas, there are many areas in which IronPython is
+considerably slower than cPython (especially the built-in data structures that
+are written in highly-optimized C for cPython). Whether or not your code
+will run faster or slower on IronPython depends heavily on your workload.</p>
+<h3>Missing the forest for the trees</h3>
+<p>Our discussion of IronPython and Jython has focused on the fact that neither
+implementation has a <code>GIL</code>, but that's really of little interest to most
+developers using either of them. Both projects were created not to merely implement the cPython interpreter in
+another language, but to allow Python code to interact with other parts of
+each interpreter's ecosystem. Calling Java code from Jython is straightforward.
+To companies and individual developers operating in a Java-centric
+environment, this is a huge win. Likewise, IronPython allows Python code to
+interact with the rest of the .NET ecosystem.</p>
+<p>So while neither is likely to become the reference implementation for Python,
+that wasn't the goal of either project to begin with. It's not fair to judge
+them on their speed or knock their compatibility with C extensions. That was
+never their goal. Truly, they are both incredible projects that have been
+wildly successful at accomplishing what they set out to do. Most
+"vanilla" Python developers won't use alternate interpreters to increase
+performance of multithreaded code. <em>And that's just fine.</em></p>
+<h2>Third Party Libraries</h2>
+<p>There are a number of libraries that extend the capabilities of the cPython
+interpreter in some way. <strong>None, to my knowledge, affect the GIL in any way.</strong>
+Many people are under the assumption that <a href="www.stackless.com">Stackless Python</a>
+has somehow removed the <code>GIL</code> (it hasn't). The same goes for [eventlet] (http://eventlet.net),
+<a href="greenlet.readthedocs.org">greenlet</a>, <a href="http://twistedmatrix.com/trac/">Twisted</a>,
+<a href="http://www.gevent.org">gevent</a>, and <a href="http://www.tornadoweb.org/en/stable/">Tornado</a>
+(all of which I've been mistakenly told at some point have no <code>GIL</code>). Some of
+these packages and frameworks help alleviate the pain associated with the
+<code>GIL</code>, but all are subject to its limitations.</p>
+<h2>In Summary</h2>
+<p>When I originally wrote <a href="http://www.jeffknupp.com/blog/2012/03/31/pythons-hardest-problem/">"Python's Hardest Problem"</a>,
+my goal was to introduce Python novices to the <code>GIL</code>,  explain its function,
+discuss a bit of its history. "Hardest" in the title was meant to be
+interpreted as "most technically challenging," not "most important" or "most
+interesting to everyday programmers," but that's not how a
+number of people took it. This is surely due to a lack of clarity on my part,
+but I hope that this post will help rectify that. There are likely a number
+of approaches/tools to dealing with the <code>GIL</code> I did not mention here. Feel
+free to point them out in the comments.</p>
+<p>My goal for this post is to enumerate a number of ways the community has
+dealt with the issues the <code>GIL</code> presents for novice Python programmers. If
+you feel any of the information above is incorrect or misleading,
+please let me know in the comments or <a href="mailto: jeff@jeffknupp.com">via email at jeff@jeffknupp.com</a>.</p>
+        
+<small>Posted on <time datetime="2013-06-30 16:02:00" pubdate data-updated="true" itemprop="datePublished">Jun 30, 2013</time> by <span itemprop="author"> Jeff Knupp</span></small> </h1>
+<div class="sharing">
+    <div class="row">
+    <p class="meta" style="padding-top: 20px;">
+    <a class="basic-alignment left" href="/blog/2013/04/07/improve-your-python-yield-and-generators-explained" title="Previous Post: Improve Your Python: 'yield' and Generators Explained">&laquo; Improve Your Python: 'yield' and Generators Explained</a>
+    </p>
+    
+    <div id="mc_embed_signup" class="well">
+<form action="http://jeffknupp.us6.list-manage1.com/subscribe/post?u=51d2d98cf34cbcc20db22e5fa&amp;id=f15bb537ad" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+  <h4>Like this article?</h4>
+  <p>Why not sign up for <strong>Python Tutoring</strong>? Sessions can be held
+  remotely using Google+/Skype or in-person if you're in the NYC area. <a href="mailto:jeff@jeffknupp.com">Email jeff@jeffknupp.com</a> if interested.</p>
+  <p><strong>Sign up for the free jeffknupp.com email newsletter.</strong> Sent roughly once a month, it focuses on Python programming, scalable web development, and growing your freelance consultancy. And of course, you'll never be spammed, your privacy is protected, and you can opt out at any time.</p>
+<div class="mc-field-group">
+	<label for="mce-EMAIL">Email Address</label>
+	<input type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+</div>
+	<div id="mce-responses" class="clear">
+		<div class="response" id="mce-error-response" style="display:none"></div>
+		<div class="response" id="mce-success-response" style="display:none"></div>
+	</div>	<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+</form>
+</div>
+    
+  </footer>
+</article>
+</div>
+<section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Leaderboard -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-2922325862575361"
+     data-ad-slot="6191597138"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <div id="disqus_thread"></div>
+<script type="text/javascript">
+            var disqus_shortname = 'hackersgonnahack';
+
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+ 
+  </section>
+  </div>
+    
+</div>
+</article>
+
+        </div>
+        <div id="footer" class="text-center">
+        
+            <footer role="contentinfo">
+                <p>Copyright &copy; 2014 - Jeff Knupp- <span class="credit">Powered by <a href="http://www.github.com/jeffknupp/blug">Blug</a></span> </p>
+            </footer>
+         
+    </div>
+
+<a title="Web Analytics" href="http://clicky.com/66535137"><img alt="Web Analytics" src="//static.getclicky.com/media/links/badge.gif" border="0" /></a>
+<script type="text/javascript">
+var clicky_site_ids = clicky_site_ids || [];
+clicky_site_ids.push(66535137);
+(function() {
+  var s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.async = true;
+  s.src = '//static.getclicky.com/js';
+  ( document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0] ).appendChild( s );
+})();
+</script>
+<noscript><p><img alt="Clicky" width="1" height="1" src="//in.getclicky.com/66535137ns.gif" /></p></noscript> 
+</div>
+</html>

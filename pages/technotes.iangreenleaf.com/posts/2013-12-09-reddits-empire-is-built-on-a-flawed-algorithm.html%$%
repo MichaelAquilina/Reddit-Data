@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Reddit’s empire is founded on a flawed algorithm - Ian's Tech Notes</title>
+        <link href="http://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic" rel="stylesheet" type="text/css" />
+        <link href="http://fonts.googleapis.com/css?family=Source+Code+Pro:600" rel="stylesheet" type="text/css" />
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="alternate" type="application/atom+xml" href="../feed.xml" title="Atom Feed" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Tech Notes</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Posts</a>
+                <a href="../about.html">About</a>
+                <a class="feed-icon" href="../feed.xml">
+                    <img src="../images/rss.svg" alt="Blog feed" />
+                </a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Reddit’s empire is founded on a flawed algorithm</h1>
+
+            <div class="info">Posted on December  9, 2013</div>
+
+<p>Reddit has a bug in their code. This bug is currently present in their production platform, and has been for years. It affects one of the most important algorithms in the entire site, the “Hot” ranking algorithm for link popularity. It has real, demonstrable negative effects. It has been reported to Reddit’s technical team several times and never fixed.</p>
+<h2 id="the-bug">The Bug</h2>
+<p>Reddit needs to determine which articles are “hot” right now. Newer material is better than older material. Material with many positive votes is better than material with few votes, and both are better than material with mostly negative votes. This is pretty straightforward to calculate. One determines numeric values representing these two measures, and multiplies by some constants to determine exactly how much priority each measure gets<sup><a href="#fn1" class="footnoteRef" id="fnref1">1</a></sup>.</p>
+<p>The devil is in the details, or in this case, <a href="https://github.com/iangreenleaf/reddit/blob/45e8209d8d4236367a6f7247068c13ab2307afb4/r2/r2/lib/db/_sorts.pyx#L45">the implementation</a>.</p>
+<pre class="sourceCode python"><code class="sourceCode python">seconds = date - <span class="dv">1134028003</span></code></pre>
+<p>The time-dependent variable, named <code>seconds</code>, is based on a UNIX timestamp. It’s a bright way to do it: time is forever counting up, so every new submission receives a slightly higher score from the time variable than every submission that came before it.</p>
+<pre class="sourceCode python"><code class="sourceCode python">s = score(ups, downs)
+order = log10(<span class="dt">max</span>(<span class="dt">abs</span>(s), <span class="dv">1</span>))
+<span class="kw">if</span> s &gt; <span class="dv">0</span>:
+    sign = <span class="dv">1</span>
+<span class="kw">elif</span> s &lt; <span class="dv">0</span>:
+    sign = -<span class="dv">1</span>
+<span class="kw">else</span>:
+    sign = <span class="dv">0</span></code></pre>
+<p>The vote-dependent half of the equation has two parts. The <code>sign</code> variable simply designates if the total vote sentiment is positive or negative. If the material received more positive votes than negative votes, <code>sign</code> is <code>1</code>; if more negative votes, <code>sign</code> is <code>-1</code>. The other variable, <code>order</code>, is the <code>log₁₀</code><sup><a href="#fn2" class="footnoteRef" id="fnref2">2</a></sup> of the absolute value of the vote score.</p>
+<p>The actual problem stems, as so many problems do, from the transposition of two characters.</p>
+<pre class="sourceCode python"><code class="sourceCode python"><span class="kw">return</span> <span class="dt">round</span>(order + sign * seconds / <span class="dv">45000</span>, <span class="dv">7</span>)</code></pre>
+<p>Here we have our final score calculation. <code>seconds</code> is a large positive number. <code>order</code> will always be positive – it uses the absolute value, so a submission scored -389 will have the same value for <code>order</code> as a submission scored +389. We need to use <code>sign</code> to adjust <code>order</code> so that net-negative submissions are penalized accordingly. But <em>this</em> code multiplies <code>sign</code> and <code>seconds</code>, <em>not</em> <code>sign</code> and <code>order</code>.</p>
+<p>On net-positive submissions, this has no effect. <code>sign</code> is <code>1</code>, so <code>order</code> and <code>seconds</code> are added together and everything is good.</p>
+<p>What happens on a net-negative submission? <code>sign</code> is <code>-1</code>, so the very large <code>seconds</code> value becomes negative. Then a <em>positive</em> <code>order</code> is added to that. This has several surprising results!</p>
+<p>Imagine two submissions, submitted 5 seconds apart. Each receives two downvotes. <code>seconds</code> is larger for the newer submission, but because of a negative <code>sign</code>, the newer submission is actually rated <em>lower</em> than the older submission.</p>
+<p>Imagine two more submissions, submitted at exactly the same time. One receives 10 downvotes, the other 5 downvotes. <code>seconds</code> is the same for both, <code>sign</code> is -1 for both, but <code>order</code> is higher for the -10 submission. So it actually ranks <em>higher</em> than the -5 submission, even though people hate it twice as much.</p>
+<p>Now imagine one submission made a year ago, and another submission made just now. The year-old submission received 2 upvotes, and today’s submission received two downvotes. This is a small difference – perhaps today’s submission got off to a bad start and will rebound shortly with several upvotes. But under this implementation<sup><a href="#fn3" class="footnoteRef" id="fnref3">3</a></sup>, today’s submission now has a negative hotness score and will rate <em>lower</em> than the submission from last year.</p>
+<h2 id="consequences">Consequences</h2>
+<p>This is not a hypothetical problem. Curious to see if the code in Reddit’s public repository was what they had running in production, I found a recent post in a fairly inactive subreddit and downvoted it, bringing its total vote score negative. Sure enough, that post not only dropped off the first page (a first page which contained month-old submissions), but it was effectively banished from the “Hot” ranking entirely. I felt bad and removed my downvote, but that post never really recovered<sup><a href="#fn4" class="footnoteRef" id="fnref4">4</a></sup>.</p>
+<p>Indeed, by manipulating the query string, you can find a strange purgatory where damned submissions slowly rot, alone in the darkness<sup><a href="#fn5" class="footnoteRef" id="fnref5">5</a></sup>. Here is a collection of unfortunate articles from the iPhone subreddit:</p>
+<p><img src="../images/2013-12-09-reddits-empire-is-built-on-a-flawed-algorithm/post_purgatory.png" alt="Reddit’s purgatory for posts" /> </p>
+<p>These posts are sad, alone, and afraid. And notably, they are sorted oldest first, just as I predicted.</p>
+<p>This banishment flaw opens a door for more intentional gaming of the system as well. Imagine a hypothetical subreddit, /r/BirdPics, devoted to pictures of birds<sup><a href="#fn6" class="footnoteRef" id="fnref6">6</a></sup>. An attacker despises puffins, and wants to keep all pictures of puffins off the front page. This attacker can downvote every picture of puffins, but will be outgunned by the other users who like and upvote puffin pics. On average, 350 people are watching the front page of this subreddit at any one time, so that’s a lot of upvotes to contend with.</p>
+<p>Instead, our attacker will watch the new submissions very carefully, and the moment a puffin pic is submitted, immediately downvote it. If the attacker gets to the picture first, it will go negative and be utterly exiled, never again touching the front page. The only thing the attacker needs to worry about are the people watching the “New” ranking, which ignores votes. Our hypothetical subreddit only averages 10 people on the New page, so our attacker can defeat them simply by maintaining 10 sock puppet accounts, instead of the ~300 that would be needed to defeat the front page users. Just like that, our attacker has scrubbed the subreddit of all puffin pics, and the world is a poorer place for it.</p>
+<h2 id="remediation">Remediation</h2>
+<p>I wasn’t the first person to notice this error. Jonathan Rochkind covered it in <a href="http://bibwild.wordpress.com/2012/05/08/reddit-story-ranking-algorithm/">his well-written post on the subject</a>. He was <a href="http://www.reddit.com/r/programming/comments/td4tz/reddits_actual_story_ranking_algorithm_explained/">told by a Reddit developer</a> that he was “just incorrect” and that the algorithm as it exists is “not wrong”.</p>
+<p>I submitted <a href="https://github.com/reddit/reddit/pull/583">a pull request</a> fixing the bug, and was informed by a different Reddit developer that “it’s that way by design”. I do not understand, nor have received a satisfactory explanation of, in what sense this nonsensical behavior would be “by design”. But it is clear that Reddit is not interested in fixing this, and this behavior will probably persist for many more years.</p>
+<h2 id="denouement">Denouement</h2>
+<p>Programmers tend to nurture a definition of justice that revolves around rule conformance. It’s why many of us find worldly realms like relationships or politics so intractable, and why many of us were drawn to computer science in the first place. In computation, everything is strictly deterministic. If something happens that doesn’t make sense, it can only be because our understanding of the system is incomplete<sup><a href="#fn7" class="footnoteRef" id="fnref7">7</a></sup>. To be Right, capital-R Right, is a system that is fully understood and executes precisely as expected.</p>
+<p>When we hold this type of worldview, intentional propagation of a bug seems <em>unjust</em>. Myself and the other developer who pressed this issue seem to have a more complete understanding of the algorithm than the Reddit employees who responded to us. We’re certainly correct about the surprising and counterintuitive behavior of the unpatched algorithm. We are <em>Right</em> and Reddit is <em>Wrong</em>. And Reddit has a wildly popular site, a tremendous userbase, and tons of cash flowing in. All built on a foundation with an obviously <em>Wrong</em> component.</p>
+<p>What’s the moral here? Maybe it’s that an insufficiently tested system becomes an insufficiently understood system, and eventually a system that is defended with rationales like “it just works, stop asking questions”. Or not. Maybe the moral is that the perfect is the enemy of the good, that worse is better<sup><a href="#fn8" class="footnoteRef" id="fnref8">8</a></sup>, that splitting hairs can distract us from the haircut<sup><a href="#fn9" class="footnoteRef" id="fnref9">9</a></sup>. Maybe it’s that a good technical implementation is a distant second to a good <em>product</em>, and that hard data should always yield to a positive experience.</p>
+<p>Maybe there is no moral. Reddit screwed up. It could have hurt them, but it didn’t, and probably won’t. They are wrong but they are not Wrong because there is no such thing as capital-W Wrong. Moral codes are ideas that we construct, and there is no god of determinism that will one day smite Reddit for their crime of being bad at math. The world is a flawed place, has always been a flawed place, will always be a flawed place.</p>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>This is a simple yet powerful idea. You could create some wildly different sites that all relied on the same algorithm but with different constants. Want a site that surfaces very old content? Weight the time variable very low. Want Twitter? Weight the vote variable 0.<a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p>The logarithmic scale accounts for vast differences in popularity throughout Reddit - the difference between 1 and 11 votes is much more important than the difference between 10,001 and 10,011 votes.<a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p>This particular behavior is dependent on <code>seconds</code> being large enough to overpower <code>order</code>. In Reddit’s implementation, it is.<a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p>Throughout testing, I had trouble determining exactly what was happening to scores due to fluctuating vote totals. I now know that this was likely <a href="http://www.reddit.com/r/WTF/comments/eaqnf/pardon_me_but_5000_downvotes_wtf_is_worldnews_for/c16omup?context=3">vote fuzzing</a>, an anti-spam feature.<a href="#fnref4">↩</a></p></li>
+<li id="fn5"><p>I cannot provide a persistent link to this purgatory because the indexes seem to disappear after a day, but it’s easy enough to find. First, find a recent negatively-scored submission and take note of its ID, which can be found in the URL. From the URL <code>http://www.reddit.com/r/birdpics/comments/1s33tt/fear_the_shrike/</code> we get the ID <code>1s33tt</code>. Now insert it into the following URL, substituting as necessary: <code>http://www.reddit.com/r/SUBREDDIT/?count=9999&amp;after=t3_ID</code>. Our URL would become <code>http://www.reddit.com/r/birdpics/?count=9999&amp;after=t3_1s33tt</code> - note that the ID is prepended by <code>t3_</code>. And yes, you may change the <code>count</code> to whatever you wish; that number is totally made up.<a href="#fnref5">↩</a></p></li>
+<li id="fn6"><p><a href="http://www.reddit.com/r/birdpics">Of <em>course</em> it already exists</a>.<a href="#fnref6">↩</a></p></li>
+<li id="fn7"><p>This is also, I suspect, why the <a href="https://en.wikipedia.org/wiki/Heisenbug">heisenbug</a> is perhaps the most feared and hated event in all of Computer Science. See also: <a href="http://blog.izs.me/post/59142742143/designing-apis-for-asynchrony">releasing Zalgo</a>.<a href="#fnref7">↩</a></p></li>
+<li id="fn8"><p>The “worse is better” meme originates in <a href="http://www.jwz.org/doc/worse-is-better.html">Richard Gabriel’s seminal article</a> on the rise of C and fall of LISP. This article and the later follow-ups are some of the best writing the computer science world has ever seen.<a href="#fnref8">↩</a></p></li>
+<li id="fn9"><p>Can you guess which one of these analogies I just made up on the spot?<a href="#fnref9">↩</a></p></li>
+</ol>
+</div>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            <div class="attributions">
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html><!--[if IE 7]><html class="layout-wrapper ie ie7 lte9 lte8 lte7"><![endif]--><!--[if IE 8]><html class="layout-wrapper ie ie8 lte9 lte8"><![endif]--><!--[if IE 9]><html class="layout-wrapper ie ie9 lte9"><![endif]--><!--[if (gte IE 9)|!(IE)]<!--><html class="layout-wrapper"><head><title>Why Are There So Many Pythons? From Bytecode to JIT (with code) | Toptal</title><meta content="Is Python interpreted or compiled? Are CPython and Cython the same thing? And what on Earth is PyPy? Understand the alphabet of Pythons, from start to finish." name="description" /><meta charset="utf-8" /><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible" />
+<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info={"beacon":"beacon-6.newrelic.com","errorBeacon":"bam.nr-data.net","licenseKey":"e3359cee6b","applicationID":"2530279","transactionName":"JV0NEUYJCQkARxgVEwReCgYbFgoWEUYYFg4JRQ==","queueTime":0,"applicationTime":21,"ttGuid":"","agentToken":null,"agent":"js-agent.newrelic.com/nr-411.min.js","extra":""}</script>
+<script type="text/javascript">window.NREUM||(NREUM={}),__nr_require=function(t,n,e){function r(e){if(!n[e]){var o=n[e]={exports:{}};t[e][0].call(o.exports,function(n){var o=t[e][1][n];return r(o?o:n)},o,o.exports)}return n[e].exports}if("function"==typeof __nr_require)return __nr_require;for(var o=0;o<e.length;o++)r(e[o]);return r}({D5DuLP:[function(t,n){function e(t,n){var e=r[t];return e?e.apply(this,n):(o[t]||(o[t]=[]),void o[t].push(n))}var r={},o={};n.exports=e,e.queues=o,e.handlers=r},{}],handle:[function(t,n){n.exports=t("D5DuLP")},{}],G9z0Bl:[function(t,n){function e(){var t=l.info=NREUM.info;if(t&&t.agent&&t.licenseKey&&t.applicationID&&p&&p.body){l.proto="https"===f.split(":")[0]||t.sslForHttp?"https://":"http://",i("mark",["onload",a()]);var n=p.createElement("script");n.src=l.proto+t.agent,p.body.appendChild(n)}}function r(){"complete"===p.readyState&&o()}function o(){i("mark",["domContent",a()])}function a(){return(new Date).getTime()}var i=t("handle"),u=window,p=u.document,s="addEventListener",c="attachEvent",f=(""+location).split("?")[0],l=n.exports={offset:a(),origin:f,features:[]};p[s]?(p[s]("DOMContentLoaded",o,!1),u[s]("load",e,!1)):(p[c]("onreadystatechange",r),u[c]("onload",e)),i("mark",["firstbyte",a()])},{handle:"D5DuLP"}],loader:[function(t,n){n.exports=t("G9z0Bl")},{}]},{},["G9z0Bl"]);</script><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" /><meta content="authenticity_token" name="csrf-param" />
+<meta content="MHWGWegm+t7acACkyvepi0eoxtLC2PU7AGTPgXELFXw=" name="csrf-token" /><meta content="Why Are There So Many Pythons?" property="og:title" /><meta content="http://www.toptal.com/uploads/blog/post_image/13/toptal-blog-B.png" property="og:image" /><meta content="Toptal Engineering Blog" property="og:site_name" /><meta content="Is Python interpreted or compiled? Are CPython and Cython the same thing? And what on Earth is PyPy? Understand the alphabet of Pythons, from start to finish." property="og:description" /><link href="https://plus.google.com/100601164815113053596" rel="author" /><link href="/assets/favicons/favicon-a5173aa0a5d20de36b536216059b41ac.png" rel="icon" /><!--[if IE]><link href="/assets/favicons/favicon-df902fdb5f2fad2e38c444084cd2dcd5.ico" rel="shortcut icon" /><![endif]--><link href="/assets/favicons/touch_x57-b7bbea2ab94e028d8763d877ea57e003.png" rel="apple-touch-icon-precomposed" sizes="57x57" /><link href="/assets/favicons/touch_x72-d31b8e9543a50369f67a979121acefc6.png" rel="apple-touch-icon-precomposed" sizes="72x72" /><link href="/assets/favicons/touch_x114-d888198306815f26972b3c5bb6d1cbf2.png" rel="apple-touch-icon-precomposed" sizes="114x114" /><link href="/assets/favicons/touch_x57-b7bbea2ab94e028d8763d877ea57e003.png" rel="apple-touch-icon-precomposed" /><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" /><link href="/blog.rss" rel="alternate" title="Toptal Engineering Blog" type="application/rss+xml" /><meta content="authenticity_token" name="csrf-param" />
+<meta content="MHWGWegm+t7acACkyvepi0eoxtLC2PU7AGTPgXELFXw=" name="csrf-token" /><script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.7.1/modernizr.min.js" type="text/javascript"></script><script type="text/javascript">// TODO: Figure out how to override Modernizr test
+(function () {
+  var isIE, noFlexboxClassName;
+  isIE = /MSIE/.test(navigator.userAgent) && !/Opera/.test(navigator.userAgent);
+  isIE11 = !!window.MSInputMethodContext
+  if (Modernizr && (Modernizr.flexbox && (isIE || isIE11))) {
+    noFlexboxClassName = document.documentElement.className.replace('flexbox', 'no-flexbox');
+    document.documentElement.className = noFlexboxClassName;
+  }
+})();</script><!--[if (lte IE 8)]><script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js" type="text/javascript"></script><![endif]--><script type="text/javascript">
+//<![CDATA[
+window.gon = {};gon.flash={};
+//]]>
+</script><link href="/assets/public-71ddce1b200b3e1daedf2dfab32d02b9.css" media="all" rel="stylesheet" type="text/css" /><link href="/assets/portal-7359598eefa899e625755b9ae507105b.css" media="all" rel="stylesheet" type="text/css" /><link href="/assets/blog-4949a22537f77758c6d2e10caa877229.css" media="all" rel="stylesheet" type="text/css" /><!--[if (lte IE 8)]><script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" type="text/javascript"></script><![endif]--><!--[if (gte IE 9)|(!IE)]><!--><script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js" type="text/javascript"></script><![endif]--><script src="//cdn.optimizely.com/js/186204918.js" type="text/javascript"></script><script type="text/javascript">window.optimizely = window.optimizely || [];</script></head><body class="layout" id="top"><div class="layout_layer" data-view="layout#layout"><header class="page_header" data-role="fixed-header"><div class="page_header_line"></div><div class="page_header" data-view="layout#menu"><div class="grid-row is-light_gray"><div class="grid-row-inner is-wide has-padding page_header_top"><div class="page_header_top-logotype_wrapper"><div class="page_header_top-logotype"><a class="logo is-big is-link" href="http://www.toptal.com/">Toptal</a></div></div><a class="page_header_top-expand" data-role="expand_menu" href="#"><span class="page_header_top-expand_icon"></span></a><nav class="page_header_top-nav_wrapper"><ul class="page_header_top-nav"><li class="page_header_top-nav_item">Join <span class="page_header_top-label_chunk is-toptal">Toptal </span>as a</li><li class="page_header_top-nav_item"><a class="button is-green_candy is-small page_header_top-nav_link is-button" href="https://www.toptal.com/companies/apply">Company</a></li><li class="page_header_top-nav_item has-right_border"><a class="button is-green_candy is-small page_header_top-nav_link is-button" href="/developers">Developer</a></li><li class="page_header_top-nav_item"><a class="button is-small is-light page_header_top-nav_link is-button" href="https://www.toptal.com/users/login">Login</a></li></ul></nav></div></div><nav class="grid-row has-top_border is-light_gray page_header_menu-wrapper" data-role="menu_wrapper"><div class="grid-row-inner is-wide has-small_padding page_header_menu"><div class="page_header_menu-items-wrapper"><ul class="page_header_menu-items" data-role="menu"><li class="page_header_menu-item is-home"><a class="page_header_menu-link" href="http://www.toptal.com/"></a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/why">Why</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/how">How</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/what">What</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/clients">Clients</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/team">Team</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/community">Community</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/blog">Blog</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/contact">Contact</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/faq">FAQ</a></li><li class="page_header_menu-item is-join"><a class="button is-green_candy is-small page_hader_menu-button" href="https://www.toptal.com/companies/apply">Hire a developer</a></li><li class="page_header_menu-item is-join"><a class="button is-green_candy is-small page_hader_menu-button" href="/developers">Apply as a developer</a></li><li class="page_header_menu-item is-login"><a class="button is-light is-small page_hader_menu-button is-login" href="https://www.toptal.com/users/login">Login</a></li><li class="page_header_menu-item is-contacts"><ul class="page_header_menu-contact-items is-replacable"><li class="page_header_menu-contact-item">Call us:</li><li class="page_header_menu-contact-item"><a class="link is-dark page_header_menu-contact-link" href="tel:8886043188">888.604.3188</a></li><li class="page_header_menu-contact-item"><a class="page_header_menu-contact-link is-social is-facebook" href="https://www.facebook.com/pages/toptal/141928212544793"><span class="page_header_menu-contact-link-icon"></span></a></li><li class="page_header_menu-contact-item"><a class="page_header_menu-contact-link is-social is-twitter" href="https://twitter.com/toptalllc"><span class="page_header_menu-contact-link-icon"></span></a></li><li class="page_header_menu-contact-item"><a class="page_header_menu-contact-link is-social is-google_plus" href="https://plus.google.com/+Toptalllc/"><span class="page_header_menu-contact-link-icon"></span></a></li></ul></li></ul></div><a class="button is-green_candy is-tiny page_header_menu-hire" href="https://www.toptal.com/companies/apply">Hire a developer</a><ul class="page_header_menu-contact-items is-replacable"><li class="page_header_menu-contact-item">Call us:</li><li class="page_header_menu-contact-item"><a class="link is-dark page_header_menu-contact-link" href="tel:8886043188">888.604.3188</a></li><li class="page_header_menu-contact-item"><a class="page_header_menu-contact-link is-social is-facebook" href="https://www.facebook.com/pages/toptal/141928212544793"><span class="page_header_menu-contact-link-icon"></span></a></li><li class="page_header_menu-contact-item"><a class="page_header_menu-contact-link is-social is-twitter" href="https://twitter.com/toptalllc"><span class="page_header_menu-contact-link-icon"></span></a></li><li class="page_header_menu-contact-item"><a class="page_header_menu-contact-link is-social is-google_plus" href="https://plus.google.com/+Toptalllc/"><span class="page_header_menu-contact-link-icon"></span></a></li></ul></div></nav></div></header><main class="layout-main"><div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_GB/all.js#xfbml=1&appId=565054136848482";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+<header class="grid-row has-top_border has-bottom_border post_cover is-post"><div class="grid-row-inner is-wide has-big_padding blog_title for-show"></div></header><article class="grid-row is-transparent"><div class="grid-row-inner is-wide"><div class="post_title"><h1 class="post_title-text">Why Are There So Many Pythons?</h1><a class="post_title-back" href="/blog">View all articles</a></div></div></article><section class="grid-row has-top_border is-transparent has-no_border" id="main_content"><div class="grid-row-inner has-medium_padding two_columns_layout is-wide"><div class="two_columns_layout-content"><div class="post is-full"><div class="post-meta-wrapper post_header"><div class="post_header-triangle"></div><div class="post_avatar post-meta-avatar"><img alt="Toptal-blog-screen_shot_2013-09-18_at_1.33.10_pm" class="post_avatar-image" src="/uploads/avatar/external_author_photo/33/toptal-blog-Screen_Shot_2013-09-18_at_1.33.10_PM.png" width="50" /></div><div class="post-meta is-full"><div class="post-meta-author"><p>by <strong><a href="http://www.princeton.edu/~crmarsh/" class="link is-blue" target="_blank">Charles Marsh</a></strong> - Head of Community
+@ <a href="http://www.toptal.com" class="link is-blue" target="_blank">Toptal</a>
+</p>
+</div><div class="post-meta-tags"><a href="/blog#python-posts">#Python</a> <a href="/blog#pypy-posts">#PyPy</a> <a href="/blog#ironpython-posts">#IronPython</a> <a href="/blog#jython-posts">#Jython</a> <a href="/blog#rubypython-posts">#RubyPython</a> <a href="/blog#rpython-posts">#RPython</a> </div></div><div class="post-meta-extra"><div class="post-meta-extra-row"><div class="post-meta-extra-icon"><div class="post-meta-extra-icon-image is-locales"></div></div><div class="post_locales">This article was translated by <a href="https://www.transbunko.com/profile/rakhim-davletkaliyev" class="post_locales-translator" target="translator">Rakhim Davletkaliyev</a> into <a href="/python/%D0%BF%D0%BE%D1%87%D0%B5%D0%BC%D1%83-%D1%81%D1%83%D1%89%D0%B5%D1%81%D1%82%D0%B2%D1%83%D0%B5%D1%82-%D1%82%D0%B0%D0%BA-%D0%BC%D0%BD%D0%BE%D0%B3%D0%BE-%D0%BF%D0%B8%D1%82%D0%BE%D0%BD%D0%BE%D0%B2/ru" class="post_locales-language is-ru">Russian</a>, <a href="https://www.transbunko.com/profile/pablo-fabregat" class="post_locales-translator" target="translator">Pablo Fabregat</a> into <a href="/python/por-que-hay-tantos-pythons/es" class="post_locales-language is-es">Spanish</a> and <a href="https://www.transbunko.com/profile/eduardo-kienetz" class="post_locales-translator" target="translator">Eduardo Kienetz</a> into <a href="/python/por-que-h-tantos-pythons/pt" class="post_locales-language is-pt">Portuguese</a></div></div><div class="post-meta-extra-row"><div class="post-meta-extra-icon"><div class="post-meta-extra-icon-image is-share"></div></div><div class="post-share"><ul class="social_share"><li class="social_share-item is-facebook"><div class="fb-like" data-href="http://www.toptal.com/python/why-are-there-so-many-pythons" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false"></div>
+</li><li class="social_share-item is-google_plus"><!-- Place this tag where you want the share button to render. -->
+<div class="g-plus" data-action="share" data-annotation="bubble" data-href="http://www.toptal.com/python/why-are-there-so-many-pythons"></div>
+
+<!-- Place this tag after the last share tag. -->
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script>
+</li><li class="social_share-item is-linkedin"><script src="//platform.linkedin.com/in.js" type="text/javascript"> lang: en_US</script><script type="IN/Share" data-url="http://www.toptal.com/python/why-are-there-so-many-pythons" data-counter="right"></script>
+</li><li class="social_share-item is-twitter"><a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.toptal.com/python/why-are-there-so-many-pythons" data-text="" data-via="toptalllc">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+</li></ul></div></div></div></div><div class="content_body" data-subscribe="true" data-view="content#body"><p>Python is amazing.</p>
+
+<p>Surprisingly, that’s a fairly ambiguous statement. What do I mean by ‘Python’? Do I mean Python the abstract <em>interface</em>? Do I mean CPython, the common Python <em>implementation</em> (and not to be confused with the similarly named Cython)? Or do I mean something else entirely? Maybe I’m obliquely referring to Jython, or IronPython, or PyPy. Or maybe I’ve really gone off the deep end and I’m talking about RPython or RubyPython (which are very, very different things).</p>
+
+<p>While the technologies mentioned above are commonly-named and commonly-referenced, some of them serve completely different purposes (or, at least, operate in completely different ways).</p>
+
+<p>Throughout my time working with Python, I’ve run across tons of these .*ython tools. But not until recently did I take the time to understand what they are, how they work, and why they’re necessary (in their own ways).</p>
+
+<p>In this post, I’ll start from scratch and move through the various Python implementations, concluding with a thorough introduction to PyPy, which I believe is the future of the language.</p>
+
+<p>It all starts with an understanding of what ‘Python’ actually is.</p>
+
+<p><em>If you have a good understanding for machine code, virtual machines, and the like, feel free to <a href="#PyPy">skip ahead</a>.</em></p>
+
+<h2 id="is-python-interpreted-or-compiled">“Is Python interpreted or compiled?”</h2>
+
+<p>This is a common point of confusion for Python beginners.</p>
+
+<p>The first thing to realize is that ‘Python’ is an <em>interface</em>. There’s a <a href="http://docs.python.org/2/reference/index.html">specification</a> of what Python <em>should</em> do and how it <em>should</em> behave (as with any interface). And there are multiple <em>implementations</em> (as with any interface).</p>
+
+<p>The second thing to realize is that ‘interpreted’ and ‘compiled’ are properties of an <em>implementation</em>, not an <em>interface</em>.</p>
+
+<p>So the question itself isn’t really well-formed.</p>
+
+<div class="pop_out_box is-full_width is-big">
+Is Python interpreted or compiled? The question isn't really well-formed.
+</div>
+
+<p>That said, for the most common implementation (CPython: written in C, often referred to as simply ‘Python’, and surely what you’re using if you have no idea what I’m talking about), the answer is: <strong>interpreted</strong>, with <em>some</em> compilation. CPython <em>compiles</em>* Python source code to bytecode, and then <em>interprets</em> this bytecode, executing it as it goes.</p>
+
+<p>* <em>Note: this isn’t ‘compilation’ in the traditional sense of the word. Typically, we’d say that ‘compilation’ is taking a high-level language and converting it to machine code. But it is a ‘compilation’ of sorts.</em></p>
+
+<p>Let’s look at that answer more closely, as it will help us understand some of the concepts that come up later in the post.</p>
+
+<h2 id="bytecode-vs-machine-code">Bytecode vs. Machine Code</h2>
+
+<p>It’s very important to understand the difference between bytecode and machine (or native) code, perhaps best illustrated by example:</p>
+
+<ul>
+  <li>C compiles to machine code, which is then run directly on your processor. Each instruction instructs your CPU to move stuff around.</li>
+  <li>Java compiles to bytecode, which is then run on the Java Virtual Machine (JVM), an abstraction of a computer that executes programs. Each instruction is then handled by the JVM, which interacts with your computer.</li>
+</ul>
+
+<p>In very brief terms: <strong>machine code is much faster, but bytecode is more portable and secure</strong>.</p>
+
+<p>Machine code looks different depending on your machine, but bytecode looks the same on all machines. One might say that machine code is <em>optimized</em> to your setup.</p>
+
+<p>Returning to CPython, the toolchain process is as follows:</p>
+
+<ol>
+  <li>CPython compiles your Python source code into bytecode.</li>
+  <li>That bytecode is then executed on the CPython Virtual Machine.</li>
+</ol>
+
+<div class="pop_out_box">
+Beginners often assume Python is compiled because of .pyc files. There's some truth to that: the .pyc file is the compiled bytecode, which is then interpreted. So if you've run your Python code before and have the .pyc file handy, it will run faster the second time, as it doesn't have to re-compile the bytecode.
+</div>
+
+<h2 id="alternative-vms-jython-ironpython-and-more">Alternative VMs: Jython, IronPython, and More</h2>
+
+<p>As I mentioned earlier, Python has <em>several</em> implementations. Again, as mentioned earlier, the most common is CPython. This a Python implementation written in C and considered the ‘default’ implementation.</p>
+
+<p>But what about the alternatives? One of the more prominent is <a href="http://www.jython.org/archive/21/docs/whatis.html">Jython</a>, a Python implementation written Java that utilizes the JVM. While CPython produces bytecode to run on the CPython VM, Jython produces <strong>Java bytecode</strong> to run on the JVM (this is the same stuff that’s produced when you compile a Java program).</p>
+
+<p><img src="/uploads/blog/image/127/toptal-blog-C.png" alt="" /></p>
+
+<p>“Why would you ever use an alternative implementation?”, you might ask. Well, for one, these <strong>different implementations play nicely with different technology stacks</strong>.</p>
+
+<p>CPython makes it very easy to write C-extensions for your Python code because in the end it is executed by a C interpreter. Jython, on the other hand, makes it very easy to work with other Java programs: you can import <em>any</em> Java classes with no additional effort, summoning up and utilizing your Java classes from within your Jython programs. <em>(Aside: if you haven’t thought about it closely, this is actually nuts. We’re at the point where you can mix and mash different languages and compile them all down to the same substance. (As mentioned by <a href="http://www.reddit.com/user/Rostin">Rostin</a>, programs that mix Fortran and C code have been around for a while. So, of course, this isn’t necessarily new. But it’s still cool.))</em></p>
+
+<p>As an example, this is valid Jython code:</p>
+
+<pre><code>[Java HotSpot(TM) 64-Bit Server VM (Apple Inc.)] on java1.6.0_51
+&gt;&gt;&gt; from java.util import HashSet
+&gt;&gt;&gt; s = HashSet(5)
+&gt;&gt;&gt; s.add("Foo")
+&gt;&gt;&gt; s.add("Bar")
+&gt;&gt;&gt; s
+[Foo, Bar]
+</code></pre>
+
+<p><a href="http://ironpython.net">IronPython</a> is another popular Python implementation, written entirely in C# and targeting the .NET stack. In particular, it runs on what you might call the .NET Virtual Machine, Microsoft’s <a href="http://en.wikipedia.org/wiki/Common_Language_Runtime">Common Language Runtime (CLR)</a>, comparable to the JVM.</p>
+
+<p>You might say that <em>Jython : Java :: IronPython : C#</em>. They run on the same respective VMs, you can import C# classes from your IronPython code and Java classes from your Jython code, etc.</p>
+
+<p>It’s totally possible to survive without ever touching a non-CPython Python implementation. But there are advantages to be had from switching, most of which are dependent on your technology stack. Using a lot of JVM-based languages? Jython might be for you. All about the .NET stack? Maybe you should try IronPython (and maybe you already have).</p>
+
+<p><img src="/uploads/blog/image/128/toptal-blog-A.png" alt="" /></p>
+
+<p>By the way: while this wouldn’t be a <em>reason</em> to use a different implementation, note that these implementations do actually differ in behavior beyond how they treat your Python source code. However, these differences are typically minor, and dissolve or emerge over time as these implementations are under active development. For example, IronPython <a href="http://ironpython.codeplex.com/wikipage?title=IPy1.0.xCPyDifferences&amp;referringTitle=Home">uses Unicode strings by default</a>; CPython, however, <a href="http://docs.python.org/2/howto/unicode.html#encodings">defaults to ASCII</a> for versions 2.x (failing with a UnicodeEncodeError for non-ASCII characters), but does support  <a href="http://docs.python.org/3/howto/unicode.html#python-s-unicode-support">Unicode strings by default for 3.x</a>.</p>
+
+<h2 id="PyPy">Just-in-Time Compilation: PyPy, and the Future</h2>
+
+<p>So we have a Python implementation written in C, one in Java, and one in C#. The next logical step: a Python implementation written in… Python.  (The educated reader will note that this is slightly misleading.)</p>
+
+<p>Here’s where things might get confusing. First, lets discuss just-in-time (JIT) compilation.</p>
+
+<h3 id="jit-the-why-and-how">JIT: The Why and How</h3>
+
+<p>Recall that native machine code is much faster than bytecode. <em>Well, what if we could compile some of our bytecode and then run it as native code?</em> We’d have to pay some price to compile the bytecode (i.e., time), but if the end result was faster, that’d be great! This is the motivation of JIT compilation, a hybrid technique that mixes the benefits of interpreters and compilers. In basic terms, JIT wants to utilize compilation to speed up an interpreted system.</p>
+
+<p>For example, a common approach taken by JITs:</p>
+
+<ol>
+  <li>Identify bytecode that is executed frequently.</li>
+  <li>Compile it down to native machine code.</li>
+  <li>Cache the result.</li>
+  <li>Whenever the same bytecode is set to be run, instead grab the pre-compiled machine code and reap the benefits (i.e., speed boosts).</li>
+</ol>
+
+<p>This is what PyPy is all about: bringing JIT to Python (see the <em>Appendix</em> for previous efforts). There are, of course, other goals: PyPy aims to be cross-platform, memory-light, and stackless-supportive. But JIT is really its selling point. As an average over a bunch of time tests, it’s said to improve performance by a factor of <a href="http://speed.pypy.org">6.27</a>. For a breakdown, see this chart from the <a href="http://speed.pypy.org">PyPy Speed Center</a>:</p>
+
+<p><img src="/uploads/blog/image/85/toptal-blog-PyPy.png" alt="" /></p>
+
+<h3 id="pypy-is-hard-to-understand">PyPy is Hard to Understand</h3>
+
+<p>PyPy has huge potential, and at this point it’s <a href="http://doc.pypy.org/en/latest/faq.html#is-pypy-a-drop-in-replacement-for-cpython">highly compatible</a> with CPython (so <a href="http://pypy.org/compat.html">it can run Flask, Django</a>, etc.).</p>
+
+<p>But there’s a lot of confusion around PyPy (see, for example, this nonsensical proposal to create a <a href="http://stackoverflow.com/questions/2591879/pypy-how-can-it-possibly-beat-cpython">PyPyPy…</a>). In my opinion, that’s primarily because PyPy is actually two things:</p>
+
+<ol>
+  <li>
+    <p>A Python interpreter written in <a href="http://doc.pypy.org/en/latest/coding-guide.html#id1">RPython</a> (not Python (I lied before)). RPython is a subset of Python with static typing. In Python, it’s <a href="http://doc.pypy.org/en/latest/faq.html#can-rpython-compile-normal-python-programs-to-c">“mostly impossible”</a> to reason rigorously about types (Why is it so hard? Well consider the fact that:</p>
+
+    <pre><code> x = random.choice([1, "foo"])
+</code></pre>
+
+    <p>would be valid Python code (credit to <a href="http://www.reddit.com/user/Ademan">Ademan</a>). What is the type of <code>x</code>? How can we reason about types of variables when the types aren’t even strictly enforced?). With RPython, you sacrifice some flexibility, but instead make it much, much easier to reason about memory management and whatnot, which allows for optimizations.</p>
+  </li>
+  <li>
+    <p>A compiler that compiles RPython code for various targets and adds in JIT. <a href="http://doc.pypy.org/en/latest/translation.html#overview">The default platform is C</a>, i.e., an RPython-to-C compiler, but you could also target the JVM and others.</p>
+  </li>
+</ol>
+
+<p>Solely for clarity, I’ll refer to these as PyPy (1) and PyPy (2).</p>
+
+<p>Why would you need these two things, and why under the same roof? Think of it this way: PyPy (1) is an interpreter written in RPython. So it takes in the user’s Python code and compiles it down to bytecode. But the interpreter itself (written in RPython) must be interpreted by another Python implementation in order to run, right?</p>
+
+<p>Well, we could just <a href="http://www.stavros.io/posts/what-is-pypy/">use CPython</a> to run the interpreter. But that wouldn’t be very fast.</p>
+
+<p>Instead, the idea is that we use PyPy (2) (referred to as the <a href="http://doc.pypy.org/en/latest/translation.html">RPython Toolchain</a>) to compile PyPy’s interpreter down to code for another platform (e.g., C, JVM, or CLI) to run on our machine, adding in JIT as well. It’s magical: PyPy dynamically adds JIT to an interpreter, generating its own compiler! (<em>Again, this is nuts: we’re compiling an interpreter, adding in another separate, standalone compiler.</em>)</p>
+
+<p>In the end, the result is a standalone executable that interprets Python source code and exploits JIT optimizations. Which is just what we wanted! It’s a mouthful, but maybe this diagram will help:</p>
+
+<p><img src="/uploads/blog/image/129/toptal-blog-B.png" alt="" /></p>
+
+<p>To reiterate, the real beauty of PyPy is that we could write ourselves a bunch of different Python interpreters in RPython without worrying about JIT (barring <a href="http://doc.pypy.org/en/latest/jit/pyjitpl5.html#jit-hints">a few hints</a>). <em>PyPy would then implement JIT for us</em> using the RPython Toolchain/PyPy (2).</p>
+
+<p>In fact, if we get even more abstract, you could theoretically write an interpreter for <em>any</em> language, feed it to PyPy, and get a JIT for that language. This is because PyPy focuses on optimizing the actual interpreter, rather than the details of the language it’s interpreting.</p>
+
+<div class="pop_out_box is-full_width is-big">
+You could theoretically write an interpreter for any language, feed it to PyPy, and get a JIT for that language.
+</div>
+
+<p>As a brief digression, I’d like to mention that the JIT itself is absolutely fascinating. It uses a technique called tracing, which executes <a href="http://morepypy.blogspot.com/2009/03/applying-tracing-jit-to-interpreter.html">as follows</a>:</p>
+
+<ol>
+  <li>Run the interpreter and interpret everything (adding in no JIT).</li>
+  <li>Do some light profiling of the interpreted code.</li>
+  <li>Identify operations you’ve performed before.</li>
+  <li>Compile these bits of code down to machine code.</li>
+</ol>
+
+<p><em>For more, <a href="https://bitbucket.org/pypy/extradoc/src/tip/talk/icooolps2009/bolz-tracing-jit-final.pdf">this paper</a> is highly accessible and very interesting.</em></p>
+
+<p>To wrap up: we use PyPy’s RPython-to-C (or other target platform) compiler to compile PyPy’s RPython-implemented interpreter.</p>
+
+<h2 id="wrapping-up">Wrapping Up</h2>
+
+<p>Why is this so great? Why is this crazy idea worth pursuing? I think <a href="http://pypy.org/people.html#alex-gaynor">Alex Gaynor</a> put it well on his <a href="http://alexgaynor.net/2010/may/15/pypy-future-python/">blog</a>: “[PyPy is the future] because [it] offers better speed, more flexibility, and is a better platform for Python’s growth.”</p>
+
+<p>In short:</p>
+
+<ul>
+  <li><strong>It’s fast because it compiles source code to native code</strong> (using JIT).</li>
+  <li><strong>It’s flexible because it adds the JIT to your interpreter</strong> with very little additional work.</li>
+  <li><strong>It’s flexible (again) because you can write your interpreters in RPython</strong>, which is easier to extend than, say, C (in fact, it’s so easy that there’s a <a href="http://morepypy.blogspot.com/2011/04/tutorial-writing-interpreter-with-pypy.html">tutorial for writing your own interpreters</a>).</li>
+</ul>
+
+<h2 id="appendix-other-names-you-may-have-heard">Appendix: Other Names You May Have Heard</h2>
+<ul>
+  <li>
+    <p><a href="http://www.python.org/dev/peps/pep-3000/">Python 3000 (Py3k)</a>: an alternative naming for Python 3.0, a major, <a href="http://www.python.org/dev/peps/pep-3000/#compatibility-and-transition">backwards-incompatible</a> Python release that hit the stage in <a href="http://python.org/download/releases/3.0/">2008</a>. The Py3k team predicted that it would take about <a href="http://programmers.stackexchange.com/questions/63859/why-do-people-hesitate-to-use-python-3#answer-63935">five years</a> for this new version to be fully adopted. And while <em>most</em> (warning: anecdotal claim) Python developers continue to use Python 2.x, people are increasingly conscious of Py3k.</p>
+  </li>
+  <li><a href="http://cython.org">Cython</a>: a superset of Python that includes bindings to call C functions.
+    <ul>
+      <li>Goal: allow you to write C extensions for your Python code.</li>
+      <li>Also lets you add <a href="http://docs.cython.org/src/quickstart/cythonize.html">static typing</a> to your existing Python code, allowing it to be compiled and reach C-like performance.</li>
+      <li>This is similar to PyPy, but not the same. In this case, you’re enforcing typing in the user’s code before passing it to a compiler. With PyPy, you write plain old Python, and the compiler handles any optimizations.<br />
+<br /></li>
+    </ul>
+  </li>
+  <li>
+    <p><a href="http://numba.pydata.org">Numba</a>: a “just-in-time specializing compiler” that adds JIT to <em>annotated</em> Python code. In the most basic terms, you give it some hints, and it speeds up portions of your code. Numba comes as part of the <a href="http://docs.continuum.io/anaconda/index.html">Anaconda</a> distribution, a set of packages for data analysis and management.</p>
+  </li>
+  <li>
+    <p><a href="http://ipython.org/index.html">IPython</a>: very different from anything else discussed. A computing environment for Python. Interactive with support for GUI toolkits and browser experience, etc.</p>
+  </li>
+  <li><a href="http://psyco.sourceforge.net">Psyco</a>: a <a href="http://rayli.net/blog/2010/04/what-is-the-purpose-of-pypy/">Python extension module</a>, and one of the early Python JIT efforts. However, it’s since been marked as <a href="http://psyco.sourceforge.net">“unmaintained and dead”</a>. In fact, the lead developer of Psyco, <a href="http://pypy.org/people.html#armin-rigo">Armin Rigo, now works on PyPy</a>. </li>
+</ul>
+
+<h3 id="language-bindings">Language Bindings</h3>
+
+<div style="height:20px"></div>
+
+<ul>
+  <li>
+    <p><a href="http://rubypython.rubyforge.org">RubyPython</a>: a bridge between the Ruby and Python VMs. Allows you to embed Python code into your Ruby code. You define where the Python starts and stops, and RubyPython marshals the data between the VMs.</p>
+  </li>
+  <li>
+    <p><a href="http://pythonhosted.org/pyobjc/#release-information">PyObjc</a>: language-bindings between Python and Objective-C, acting as a bridge between them. Practically, that means you can utilize Objective-C libraries (including everything you need to create OS X applications) from your Python code, and Python modules from your Objective-C code. In this case, it’s convenient that CPython is written in C, which is a subset of Objective-C.</p>
+  </li>
+  <li>
+    <p><a href="http://www.riverbankcomputing.com/software/pyqt/intro">PyQt</a>: while PyObjc gives you binding for the OS X GUI components, PyQt does the same for the Qt application framework, letting you create rich graphic interfaces, access SQL databases, etc. Another tool aimed at bringing Python’s simplicity to other frameworks.</p>
+  </li>
+</ul>
+
+<h3 id="javascript-frameworks">JavaScript Frameworks</h3>
+
+<div style="height:20px"></div>
+
+<ul>
+  <li>
+    <p><a href="http://pyjs.org">pyjs (Pyjamas)</a>: a framework for creating web and desktop applications in Python. Includes a Python-to-JavaScript compiler, a widget set, and some more tools.</p>
+  </li>
+  <li>
+    <p><a href="http://www.brython.info">Brython</a>: a Python VM written in JavaScript to allow for Py3k code to be executed in the browser.</p>
+  </li>
+</ul>
+<div class="post-join"><a class="button is-white_and_green is-default is-full_width" href="/python">Looking to hire top engineers? Check out Toptal's Python developers!</a></div><div class="template" data-role="subscribe_template"><form action="/blog/subscribe" class="blog_subscribe for-post" data-placement="post" data-remote="" data-type="text" data-view="blog_subscribe#subscribe" method="post"><div class="blog_subscribe-row"><div class="blog_subscribe-label">Editor&#39;s note: want posts just like this delivered straight to your inbox? Subscribe below to receive our latest engineering articles.</div></div><div class="blog_subscribe-row"><input class="input is-medium" data-role="email" name="email" placeholder="Enter your email address..." /></div><div class="blog_subscribe-row-wrapper is-footer"><div class="blog_subscribe-row is-submit"><input class="button is-green_candy is-default is-full_width" data-role="submit" type="submit" value="Subscribe Now" /></div><div class="blog_subscribe-row is-privacy"><div class="blog_subscribe-privacy"><div class="blog_subscribe-privacy-icon"></div><div class="blog_subscribe-privacy_text">We will never share your email with any 3rd party or spam you</div></div></div></div><div class="blog_subscribe-template" data-role="success_template" style="display:none"><div class="blog_subscribe-row"><div class="blog_subscribe-label">Subscribe to Engineering Articles by Email</div></div><div class="blog_subscribe-row"><div class="blog_subscribe-label is-header">Thank you for subscribing!</div></div><div class="blog_subscribe-row"><div class="blog_subscribe-done"><ul class="blog_follow_us"><li class="blog_follow_us-source"><div class="fb-like" data-href="http://www.toptal.com/blog" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false"></div</li><li class="blog_follow_us-source is-twitter"><a href="https://twitter.com/toptalllc" class="twitter-follow-button" data-show-count="true">Follow @toptalllc</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></li><li class="blog_follow_us-source"><div class="g-follow" data-annotation="bubble" data-height="20" data-href="https://plus.google.com/109028009576318848424" data-rel="publisher"></div>
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/platform.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script></li></ul></div></div></div></form></div></div><form action="/blog/subscribe" class="blog_subscribe for-below" data-placement="below" data-remote="" data-type="text" data-view="blog_subscribe#subscribe" method="post"><div class="blog_subscribe-row"><div class="blog_subscribe-label">Subscribe to our engineering blog for the latest tips</div></div><div class="blog_subscribe-row"><input class="input is-medium" data-role="email" name="email" placeholder="Enter your email address..." /></div><div class="blog_subscribe-row-wrapper is-footer"><div class="blog_subscribe-row is-submit"><input class="button is-green_candy is-default is-full_width" data-role="submit" type="submit" value="Subscribe Now" /></div><div class="blog_subscribe-row is-privacy"><div class="blog_subscribe-privacy"><div class="blog_subscribe-privacy-icon"></div><div class="blog_subscribe-privacy_text">We will never share your email with any 3rd party or spam you</div></div></div></div><div class="blog_subscribe-template" data-role="success_template" style="display:none"><div class="blog_subscribe-row"><div class="blog_subscribe-label">Subscribe to Engineering Articles by Email</div></div><div class="blog_subscribe-row"><div class="blog_subscribe-label is-header">Thank you for subscribing!</div></div><div class="blog_subscribe-row"><div class="blog_subscribe-done"><ul class="blog_follow_us"><li class="blog_follow_us-source"><div class="fb-like" data-href="http://www.toptal.com/blog" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false"></div</li><li class="blog_follow_us-source is-twitter"><a href="https://twitter.com/toptalllc" class="twitter-follow-button" data-show-count="true">Follow @toptalllc</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></li><li class="blog_follow_us-source"><div class="g-follow" data-annotation="bubble" data-height="20" data-href="https://plus.google.com/109028009576318848424" data-rel="publisher"></div>
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/platform.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script></li></ul></div></div></div></form><div class="post_comments"><div id="disqus_thread_container"><div id="disqus_thread"><div class="d-noscript-comments"><h3>Comments</h3><div class="post-comment"><div class="post-comment-author">Alex Rodionov</div><div class="post-comment-body">Nice article! Request the same overview of Ruby implementations.</div></div><div class="post-comment"><div class="post-comment-author">krukmat</div><div class="post-comment-body">Excellent article! So we should prepare to PyPy!? When?</div></div><div class="post-comment"><div class="post-comment-author">Radan Skoric</div><div class="post-comment-body">Interesting article! Don&#39;t forget, that while very young there&#39;s also Topaz: http://www.topazruby.com/ 
+Sort of an inverse of RubyPython. :)</div></div><div class="post-comment"><div class="post-comment-author">Eike Post</div><div class="post-comment-body">Yes, great article!</div></div><div class="post-comment"><div class="post-comment-author">ironmagma</div><div class="post-comment-body">Don&#39;t forget Skulpt!</div></div><div class="post-comment"><div class="post-comment-author">fisadev</div><div class="post-comment-body">Really nice article!!
+
+But there is one little thing that isn&#39;t correct: you wrote that in python 3 and ironpython the &quot;default string encoding&quot; is unicode. Unicode is *not* an encoding, it&#39;s a specification, just a list of known chars, and you can&#39;t encode strings in unicode. Encodings define how to convert from unicode chars to binary representations and back. You just can&#39;t encode a string in unicode, because encoding is precisely the act of transforming from unicode to binary representations. For more information, read this excelent article on the topic: http://www.joelonsoftware.com/articles/Unicode.html 
+
+
+But again, the rest of the article is just great :)</div></div><div class="post-comment"><div class="post-comment-author">Prasanna Venkadesh</div><div class="post-comment-body">Informative. I still don&#39;t get this. If both Java and Python produces Bytecodes which in-turn is run by VM&#39;s why Java is called as Compiled language and Python is called Interpreted language? Can we say Interpretation is an additionally implemented feature that Python has and Java misses?</div></div><div class="post-comment"><div class="post-comment-author">Carl Friedrich Bolz</div><div class="post-comment-body">Because Java has better marketing :-). More seriously, in Java you need to invoke the bytecode compiler explicitly (javac), whereas in Python it is invoked under the covers.</div></div><div class="post-comment"><div class="post-comment-author">Ray Mears</div><div class="post-comment-body">Or Python the bad-ass, big fucking snake.</div></div><div class="post-comment"><div class="post-comment-author">Terrel Shumway</div><div class="post-comment-body">Get it now. Use it now. It works now.
+
+
+The few changes you have to make to your code were probably a good idea anyway.</div></div><div class="post-comment"><div class="post-comment-author">krukmat</div><div class="post-comment-body">Hey Eike! How is it going?</div></div><div class="post-comment"><div class="post-comment-author">krukmat</div><div class="post-comment-body">Thanks Terrel! I&#39;ll follow your piece of advice</div></div><div class="post-comment"><div class="post-comment-author">crm416</div><div class="post-comment-body">Very good suggestion--thanks! I&#39;ve modified the text to reflect this comment.</div></div><div class="post-comment"><div class="post-comment-author">shawnfumo</div><div class="post-comment-body">Besides what Carl said, I think the fact that Java is more static typed probably contributes to the impression people have. &quot;Scripting language&quot; doesn&#39;t really tell you much but most assume they are interpreted. 
+
+</div></div><div class="post-comment"><div class="post-comment-author">Fei Fan</div><div class="post-comment-body">Nice article!</div></div><div class="post-comment"><div class="post-comment-author">gcavalcante8808</div><div class="post-comment-body">Awesome Article!! Congratz!</div></div><div class="post-comment"><div class="post-comment-author">neuruss</div><div class="post-comment-body">Good summary. Let me add two more projects to the list: Shedskin and HotPy.
+
+https://code.google.com/p/shedskin/
+http://www.hotpy.org/</div></div><div class="post-comment"><div class="post-comment-author">asmeurer</div><div class="post-comment-body">In my experience, CPython and PyPy are the only ones you should take seriously, in the sense that they are the only ones that implement the core language well enough to run a full application or library. And PyPy is only half serious because you can&#39;t run compiled libraries on it, and it is still stuck on Python 2.</div></div><div class="post-comment"><div class="post-comment-author">David Jensen</div><div class="post-comment-body">The Sku[pt compiler which compiles Python into JavaScript, similar to Brython, is active. There a currently many messages from it on Google Code. In may have come out of inactivity when Brython became very active on Google Code. When Brython started, an elaborate post on a site explained why it could not be done. I do not remember the reasoning, but I do not think this is correct.</div></div><div class="post-comment"><div class="post-comment-author">Sebastian Raschka</div><div class="post-comment-body">Great work! This article will be referenced in future, I am sure. I am just wondering: Why would someone come up with something like RubyPython, what&#39;s the point, and what&#39;s the benefit?</div></div><div class="post-comment"><div class="post-comment-author">disillusioned</div><div class="post-comment-body">Brilliant! You lost this Python noob when you started going into PyPy, but up to that point I found your explanation of the various Pythons incredibly clear and extraordinarily helpful. Thank you so much for this article!</div></div><div class="post-comment"><div class="post-comment-author">raj</div><div class="post-comment-body">Thanks for the link.!</div></div><div class="post-comment"><div class="post-comment-author">shawnfumo</div><div class="post-comment-body">While I like this article overall, I think a big part of the JIT topic is missing. First is info on how Jython and IronPython allow interoperability with those platforms&#39; libraries. Then JIT is brought up, but only in relation to CPython vs PyPy.
+
+
+This seems a bit odd since the default implementations of the JVM (HotSpot) and CLR (and V8 for that matter) are themselves JIT compilers. V8 doesn&#39;t even have an interpreter per se. It has two different JIT compilers (one which optimizes more based on previous inline cache data).
+
+
+I just wanted to bring this up since the article text and top diagram might lead someone to believe that Java is normally just &quot;interpreted&quot; at the bytecode level the same as Python is. My understanding is that it is at first, but then any functions called enough times will be JIT to optimized machine code. My guess would be that Jython, IronPython and maybe even a good JS implementation could be faster than CPython.
+
+
+Brython probably is slower right now since it looks like it does a big eval to translate the code and then at least one eval in each function to get parameters as local variables. If it was pre-compiled to JS outside of the browser and params created a different way (manual vars created in the function body?) it might actually be decently fast.</div></div><div class="post-comment"><div class="post-comment-author">Dan Stromberg</div><div class="post-comment-body">Nice article, but a few comments:
+1) I don&#39;t think Jython compiles to JVM bytecode anymore.  It was once possible to compile a Python program and run it in a webpage as JVM bytecode, but no more.
+2) I don&#39;t think Pypy supports its JVM backend anymore.
+3) Cython isn&#39;t really a superset.  It&#39;s more of a dialect of Python.  In particular, you have to declare the types of your class attributes, making it related to Python.</div></div><div class="post-comment"><div class="post-comment-author">yegle</div><div class="post-comment-body">Maybe it&#39;s because people distributing Python packages using raw source code file, while in Java world people tends to distribute the jar file.</div></div><div class="post-comment"><div class="post-comment-author">Mathew</div><div class="post-comment-body">This is an incredible article. You should make a Python magazine and make more awesome articles like these.</div></div><div class="post-comment"><div class="post-comment-author">Ashish Agarwal</div><div class="post-comment-body">Great article...I am new to python and it will definately help me...!!!</div></div><div class="post-comment"><div class="post-comment-author">Mark Lawrence</div><div class="post-comment-body">Not checked out Nuitka yet http://nuitka.net/pages/overview.html? :)</div></div><div class="post-comment"><div class="post-comment-author">Peter Wang</div><div class="post-comment-body">I&#39;ve never really understood why a JVM-based Python couldn&#39;t really pick up the mantle of performance.  Granted, it does lose compatibility with all compiled extension code (at least PyPy has CFFI) but the JVM has had tremendous amount of manpower put into its JIT and GC technologies.</div></div><div class="post-comment"><div class="post-comment-author">paulo_jpinto</div><div class="post-comment-body">Nice article, although you fail to mention that also C and Java have multiple implementations.
+
+When you describe C, you mention it as a language that compiles to native code, yet there are quite a few interpreters available.
+
+Same thing regarding Java. The Sun/Oracle implementation is JIT based only, yet other vendors do exist that support ahead of time compilation to native code.</div></div><div class="post-comment"><div class="post-comment-author">Kristján Valur Jónsson</div><div class="post-comment-body">Conspicuously absent is Stackless Python: http://stackless.com</div></div><div class="post-comment"><div class="post-comment-author">Anthony Jude De-Gol</div><div class="post-comment-body">So PyPy on average is about two pi faster... I&#39;m not sorry. :)</div></div><div class="post-comment"><div class="post-comment-author">atc</div><div class="post-comment-body">just after making your point about python being an interface and the question of interpreted versus compiled being an implementation question, you go on to confuse your readers by talking about C and Java, which are languages (interfaces). one can certainly write interpreters for C, and gcj compiles java to machine code.</div></div><div class="post-comment"><div class="post-comment-author">Tshepang Lekhonkhobe</div><div class="post-comment-body">Imagine someone who prefers using language A, but wants to benefit from the ecosystem of language B.</div></div><div class="post-comment"><div class="post-comment-author">Seth @ FBT</div><div class="post-comment-body">Hey Charles, this is an interesting introduction to Python and I thoroughly enjoyed reading it. We at http://www.fireboxtraining.com/ also provide high quality tutorials on Python and a host of other technologies. Visit us for some awesome tips and tricks</div></div><div class="post-comment"><div class="post-comment-author">eternalko</div><div class="post-comment-body">Great article. 
+Sorry for offtopic, but what tool do you use to generate such great charts?</div></div><div class="post-comment"><div class="post-comment-author">Cees Timmerman</div><div class="post-comment-body">Shed Skin (compiles to C++) and CorePy (inline ASM) are also interesting.</div></div></div></div></div><script type="text/javascript">function isIos() {
+  return /(iPad|iPhone|iPod)/g.test(navigator.userAgent);
+}
+
+function adjustHeightInIos() {
+  if (isIos()) {
+    var height = $('#disqus_thread').outerHeight();
+    $('#disqus_thread_container').height(height);
+  }
+}
+
+if (isIos()) {
+  var el = document.getElementById('disqus_thread_container');
+  el.style.height = '1px';
+  el.style.overflow = 'hidden';
+  el.style.width = '100%';
+}
+
+function disqus_config() {
+  this.callbacks.onNewComment = [function() {
+    $.post('/blog/comments/on_create');
+    adjustHeightInIos();
+  }];
+
+  this.callbacks.onReady = [adjustHeightInIos];
+}
+
+var disqus_shortname = 'toptal';
+var disqus_identifier = 'python/why-are-there-so-many-pythons';
+
+(function() {
+  var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript><a class="dsq-brlink" href="http://disqus.com">comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div><div class="two_columns_layout-extra"><div class="blog-block-wrapper"><div class="blog-block-header">Subscribe</div><div class="blog-block"><div class="blog-block-row"><form action="/blog/subscribe" class="blog_subscribe for-extra" data-placement="extra" data-remote="" data-type="text" data-view="blog_subscribe#subscribe" method="post"><div class="blog_subscribe-row"><div class="blog_subscribe-label">Subscribe to Engineering Articles by Email</div></div><div class="blog_subscribe-row"><input class="input is-medium" data-role="email" name="email" placeholder="Enter your email address..." /></div><div class="blog_subscribe-row-wrapper is-footer"><div class="blog_subscribe-row is-submit"><input class="button is-green_candy is-default is-full_width" data-role="submit" type="submit" value="Subscribe Now" /></div><div class="blog_subscribe-row is-privacy"><div class="blog_subscribe-privacy"><div class="blog_subscribe-privacy-icon"></div><div class="blog_subscribe-privacy_text">We will never share your email with any 3rd party or spam you</div></div></div></div><div class="blog_subscribe-template" data-role="success_template" style="display:none"><div class="blog_subscribe-row"><div class="blog_subscribe-label">Subscribe to Engineering Articles by Email</div></div><div class="blog_subscribe-row"><div class="blog_subscribe-label is-header">Thank you for subscribing!</div></div><div class="blog_subscribe-row"><div class="blog_subscribe-done"><ul class="blog_follow_us"><li class="blog_follow_us-source"><div class="fb-like" data-href="http://www.toptal.com/blog" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false"></div</li><li class="blog_follow_us-source is-twitter"><a href="https://twitter.com/toptalllc" class="twitter-follow-button" data-show-count="true">Follow @toptalllc</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></li><li class="blog_follow_us-source"><div class="g-follow" data-annotation="bubble" data-height="20" data-href="https://plus.google.com/109028009576318848424" data-rel="publisher"></div>
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/platform.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script></li></ul></div></div></div></form></div></div><div class="blog-block-header">Trending articles</div><div class="blog-block"><nav class="blog-trending"><a class="post is-preview blog-trending-item" href="/emberjs/a-thorough-guide-to-ember-data"><span class="post_cover is-preview for-technology"><span class="post_cover-image" style="background-image: url(&#39;/uploads/blog/cover_image/77/side_list_cover-cover.png&#39;);"></span></span><span class="post-preview"><span class="post-title">A Thorough Guide to Ember Data</span><span class="post-meta"><span class="post-meta-date">11 days ago</span></span></span></a><a class="post is-preview blog-trending-item" href="/python/top-10-mistakes-that-python-programmers-make"><span class="post_cover is-preview for-technology"><span class="post_cover-image" style="background-image: url(&#39;/uploads/blog/cover_image/69/side_list_cover-cover.png&#39;);"></span></span><span class="post-preview"><span class="post-title">10 Most Common Mistakes that Python Programmers Make</span><span class="post-meta"><span class="post-meta-date">about 1 month ago</span></span></span></a><a class="post is-preview blog-trending-item" href="/ruby-on-rails/top-10-mistakes-that-rails-programmers-make"><span class="post_cover is-preview for-technology"><span class="post_cover-image" style="background-image: url(&#39;/uploads/blog/cover_image/74/side_list_cover-cover.png&#39;);"></span></span><span class="post-preview"><span class="post-title">10 Most Common Mistakes that Rails Programmers Make</span><span class="post-meta"><span class="post-meta-date">26 days ago</span></span></span></a><a class="post is-preview blog-trending-item" href="/c-sharp/top-10-mistakes-that-c-sharp-programmers-make"><span class="post_cover is-preview for-technology"><span class="post_cover-image" style="background-image: url(&#39;/uploads/blog/cover_image/67/side_list_cover-cover.png&#39;);"></span></span><span class="post-preview"><span class="post-title">10 Most Common Mistakes that C# Programmers Make</span><span class="post-meta"><span class="post-meta-date">2 months ago</span></span></span></a><a class="post is-preview blog-trending-item" href="/api-developers/5-golden-rules-for-designing-a-great-web-api"><span class="post_cover is-preview for-technology"><span class="post_cover-image" style="background-image: url(&#39;/uploads/blog/cover_image/75/side_list_cover-cover.png&#39;);"></span></span><span class="post-preview"><span class="post-title">5 Golden Rules for Designing a Great Web API</span><span class="post-meta"><span class="post-meta-date">19 days ago</span></span></span></a><a class="post is-preview blog-trending-item" href="/ruby/the-many-shades-of-the-ruby-programming-language"><span class="post_cover is-preview for-technology"><span class="post_cover-image" style="background-image: url(&#39;/uploads/blog/cover_image/76/side_list_cover-cover.png&#39;);"></span></span><span class="post-preview"><span class="post-title">The Many Shades of the Ruby Programming Language</span><span class="post-meta"><span class="post-meta-date">17 days ago</span></span></span></a></nav></div><div class="blog-block-header">Relevant technologies</div><div class="blog-block"><div class="blog-block-row"><ul class="blog-relevant"><li class="blog-relevant-item"><a class="link is-blue" href="/python">Python</a></li><li class="blog-relevant-item"><a class="link is-blue" href="/pyobjc">PyObjc</a></li><li class="blog-relevant-item"><a class="link is-blue" href="/pyqt">PyQT</a></li></ul></div></div></div></div></div></section></main><footer><section class="grid-row page_footer_map-wrapper"><div class="grid-row-inner has-huge_padding page_footer_map"><p>At <strong>Toptal</strong>, we connect the best developers all over the world.</p>
+</div></section><section class="grid-row has-top_border"><div class="grid-row-inner has-padding page_footer_join"><h2 class="page_footer_join-header">Join the Toptal community.</h2><nav class="page_footer_join-actions"><div class="page_footer_join-item"><a class="button is-green_candy is-big is-fixed page_footer_join-button" href="https://www.toptal.com/companies/apply">Hire a Developer</a></div><div class="page_footer_join-item is-or">or</div><div class="page_footer_join-item"><a class="button is-green_candy is-big is-fixed page_footer_join-button" href="/developers">Apply as a Developer</a></div></nav></div></section><section class="grid-row page_footer_links-wrapper"><div class="grid-row-inner is-wide has-big_padding"><nav class="page_footer_links"><section class="page_footer_links-column is-1"><h3 class="page_footer_links-column-header">Trending on blog</h3><ul class="page_footer_links-list is-trending"><li class="page_footer_links-item"><a class="page_footer_links-link" href="/emberjs/a-thorough-guide-to-ember-data">A Thorough Guide to Ember Data</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/python/top-10-mistakes-that-python-programmers-make">10 Most Common Mistakes that Python Programmers Make</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/ruby-on-rails/top-10-mistakes-that-rails-programmers-make">10 Most Common Mistakes that Rails Programmers Make</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/c-sharp/top-10-mistakes-that-c-sharp-programmers-make">10 Most Common Mistakes that C# Programmers Make</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/api-developers/5-golden-rules-for-designing-a-great-web-api">5 Golden Rules for Designing a Great Web API</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/ruby/the-many-shades-of-the-ruby-programming-language">The Many Shades of the Ruby Programming Language</a></li></ul></section><section class="page_footer_links-column is-2"><h3 class="page_footer_links-column-header">Navigation</h3><ul class="page_footer_links-list is-main"><li class="page_footer_links-item"><a class="page_footer_links-link" href="/why">Why</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/how">How</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/what">What</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/clients">Clients</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/team">Team</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/community">Community</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/blog">Blog</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/contact">Contact</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/faq">FAQ</a></li></ul></section><section class="page_footer_links-column is-3"><h3 class="page_footer_links-column-header">Contact</h3><ul class="page_footer_links-list"><li class="page_footer_links-item"><a class="page_footer_links-link" href="/developers">Apply for work</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/talent_partners">Become a partner</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/contact">Send us an email</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="tel:8886043188">Call 888.604.3188</a></li></ul></section><section class="page_footer_links-column is-4"><h3 class="page_footer_links-column-header">Social</h3><ul class="page_footer_links-list"><li class="page_footer_links-item"><a class="page_footer_links-link" href="https://www.facebook.com/pages/toptal/141928212544793" target="_blank">Facebook</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="https://twitter.com/toptalllc" target="_blank">Twitter</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="https://plus.google.com/+Toptalllc/" target="_blank">Google+</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="https://github.com/toptal" target="_blank">GitHub</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="http://dribbble.com/toptal" target="_blank">Dribbble</a></li></ul></section></nav></div></section><section class="grid-row page_footer_legal-wrapper"><div class="grid-row-inner is-wide has-medium_padding page_footer_legal"><div class="logo-wrapper page_footer_legal-logotype"><a class="logo is-mini is-link" href="/">Toptal</a><p class="logo-motto is-mini">Exclusive access to top developers</p></div><ul class="page_footer_legal-links"><li class="page_footer_legal-links_item is-copyright"><p class="page_footer_legal-copyright">© Copyright 2010 - 2014 Toptal, LLC</p></li><li class="page_footer_legal-links_item"><a class="page_footer_legal-link" href="/privacy">Privacy Policy</a>,</li><li class="page_footer_legal-links_item"><a class="page_footer_legal-link" href="/developers/tos">Terms of Service</a></li></ul></div></section></footer></div><div class="layout-overlay" data-view="layout#overlay"></div><div class="notification-container" data-view="notifications#service"></div><script type="text/javascript">setTimeout(function () {
+  classNameWithFont = document.documentElement.className + ' wf-active'
+  document.documentElement.className = classNameWithFont
+}, 0);</script><script src="/assets/public-2a61b67bebbcdc9a4b67d266ce9e7055.js" type="text/javascript"></script><script src="/assets/blog-636ea15588c60c125b834ec87204def9.js" type="text/javascript"></script><div class="layout-counters"><script type="text/javascript">window.googleAnalytics = new Widgets.GoogleAnalytics('UA-21104039-1', 'auto');
+window.googleAnalytics.trackPageview();
+window.googleAnalytics.track15secondsRead();</script><script type="text/javascript">(function(d) {
+  var e = d.createElement('script');
+  e.src = d.location.protocol + '//bounceexchange.com/tag/929/i.js';
+  e.async = true;
+  d.getElementsByTagName("head")[0].appendChild(e);
+}(document));</script><!-- begin olark code --><script type='text/javascript'>/*{literal}<![CDATA[*/window.olark||(function(i){var e=window,h=document,a=e.location.protocol=="https:"?"https:":"http:",g=i.name,b="load";(function(){e[g]=function(){(c.s=c.s||[]).push(arguments)};var c=e[g]._={},f=i.methods.length; while(f--){(function(j){e[g][j]=function(){e[g]("call",j,arguments)}})(i.methods[f])} c.l=i.loader;c.i=arguments.callee;c.f=setTimeout(function(){if(c.f){(new Image).src=a+"//"+c.l.replace(".js",".png")+"&"+escape(e.location.href)}c.f=null},20000);c.p={0:+new Date};c.P=function(j){c.p[j]=new Date-c.p[0]};function d(){c.P(b);e[g](b)}e.addEventListener?e.addEventListener(b,d,false):e.attachEvent("on"+b,d); (function(){function l(j){j="head";return["<",j,"></",j,"><",z,' onl'+'oad="var d=',B,";d.getElementsByTagName('head')[0].",y,"(d.",A,"('script')).",u,"='",a,"//",c.l,"'",'"',"></",z,">"].join("")}var z="body",s=h[z];if(!s){return setTimeout(arguments.callee,100)}c.P(1);var y="appendChild",A="createElement",u="src",r=h[A]("div"),G=r[y](h[A](g)),D=h[A]("iframe"),B="document",C="domain",q;r.style.display="none";s.insertBefore(r,s.firstChild).id=g;D.frameBorder="0";D.id=g+"-loader";if(/MSIE[ ]+6/.test(navigator.userAgent)){D.src="javascript:false"} D.allowTransparency="true";G[y](D);try{D.contentWindow[B].open()}catch(F){i[C]=h[C];q="javascript:var d="+B+".open();d.domain='"+h.domain+"';";D[u]=q+"void(0);"}try{var H=D.contentWindow[B];H.write(l());H.close()}catch(E){D[u]=q+'d.write("'+l().replace(/"/g,String.fromCharCode(92)+'"')+'");d.close();'}c.P(2)})()})()})({loader:(function(a){return "static.olark.com/jsclient/loader0.js?ts="+(a?a[1]:(+new Date))})(document.cookie.match(/olarkld=([0-9]+)/)),name:"olark",methods:["configure","extend","declare","identify"]});
+/* custom configuration goes here (www.olark.com/documentation) */
+olark.identify('5230-809-10-4522');/*]]>{/literal}*/</script>
+<!-- end olark code --><script type="text/javascript">
+adroll_adv_id = "6ZOMR2QLHZBEFEIMAJHJ4K";
+adroll_pix_id = "FBQUGOS3RRAI3PZP2HVOYG";
+(function () {
+var oldonload = window.onload;
+window.onload = function(){
+   __adroll_loaded=true;
+   var scr = document.createElement("script");
+   var host = (("https:" == document.location.protocol) ? "https://s.adroll.com" : "http://a.adroll.com");
+   scr.setAttribute('async', 'true');
+   scr.type = "text/javascript";
+   scr.src = host + "/j/roundtrip.js";
+   ((document.getElementsByTagName('head') || [null])[0] ||
+    document.getElementsByTagName('script')[0].parentNode).appendChild(scr);
+   if(oldonload){oldonload()}};
+}());
+</script><img src="//ib.adnxs.com/seg?add=308219&t=2" width="1" height="1" /></div></body></html>

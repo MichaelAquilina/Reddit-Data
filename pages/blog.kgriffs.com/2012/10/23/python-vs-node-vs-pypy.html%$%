@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="author" content="Kurt Griffiths">
+<meta name="description" content="OpenStack has proven that you can build robust, scalable cloud services with Python. On the other hand, startups like Voxer are doing brilliant things with Node.js. That made me curious, so I took some time to learn Node, then ported a web-scale message bus project of mine from Python to JavaScript. ">
+<meta name="generator" content="mynt v0.2.3">
+
+<link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
+<link rel="icon" href="/assets/images/favicon.gif" type="image/gif">
+
+<link rel="alternate" type="application/atom+xml" title="Feed for blog.kgriffs.com" href="http://feeds.feedblitz.com/kgriffs" >
+
+<link href='http://fonts.googleapis.com/css?family=Londrina+Shadow|PT+Sans:400,700,400italic,700italic|Annie+Use+Your+Telescope|Chelsea+Market' rel='stylesheet'>
+
+
+
+<link rel="stylesheet" href="/assets/css/screen.css" type="text/css">
+<link rel="stylesheet" href="/assets/css/pygments.css" type="text/css">
+
+<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="/assets/js/excanvas.min.js"></script><![endif]-->
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="/assets/js/jquery.flot.min.js"></script>
+
+  <title>Python vs. Node vs. PyPy &ndash; Fluffy White Stuff</title>
+</head>
+
+<body>
+  <div id="container">
+    <div id="nav">
+      <ul>
+        <li><a href="/index.html">Blog</a></li>
+        <li><a href="/archives/index.html">Archives</a></li>
+        <li><a href="http://feeds.feedblitz.com/kgriffs">Feed</a></li>
+        <li><a href="/2012/08/14/a-first-cloud-blog-post.html">About</a></li>
+      </ul>
+
+
+      
+      <ul id="social">
+        
+        
+        <li><a href="https://github.com/kgriffs"><img src="/assets/images/social/github.png" width="16" height="16" alt="GitHub"></a></li>
+        <li><a href="https://plus.google.com/101128010261665489254"><img src="/assets/images/social/google-plus.png" width="16" height="16" alt="Google+"></a></li>
+        
+        
+        
+        <li><a href="https://twitter.com/#!/kgriffs"><img src="/assets/images/social/twitter.png" width="16" height="16" alt="Twitter"></a></li>
+      </ul>
+      
+    </div>
+
+    <div id="header">
+      <div>
+        <h1><a href="/">Fluffy White Stuff</a></h1>
+        <h2>Kurt's cloud tips, essays, and research</h2>
+      </div>
+    </div>
+
+<!--
+    <div id="header">
+      <img width="101px" alt="Merry Christmas!" src="/assets/images/christmas-tree.png " />
+      <div>
+        <h1 style="font-size: 62px"><a href="/">Fluffy White Stuff</a></h1>
+        <h2>Kurt's cloud tips, essays, and research</h2>
+      </div>
+    </div>
+ -->
+
+    <div id="content">
+      
+<div class="item">
+  <div id="sidebar">
+    <div>
+      <iframe id="wiz" width="160" height="80" src="https://wizpert.com/wizapi/widget?beta_key=3ba42&ep=30529&size=small&topic_slug=python-programming" frameborder="0" scrolling="no" allowfullscreen></iframe>
+    </div>
+    <div>
+      <p class="instructions">Share this post for much win.</p>
+      <div class="body">
+        <a href="http://www.reddit.com/submit" onclick="window.location = 'http://www.reddit.com/submit?url=' + encodeURIComponent(window.location); return false"> <img class="inline" height=19 style="padding-bottom: 1px" src="http://www.reddit.com/static/spreddit1.gif" alt="submit to reddit" border="0" /> </a>
+        <span class="g-plusone" data-size="medium" data-annotation="none"></span>
+        <a href="https://twitter.com/share" class="twitter-share-button" data-via="kgriffs" data-count="none">Tweet</a>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div>
+      <form name="FeedBlitz_ab2334388e7c11e3b3c1002590771251" style="display:block" method="POST" action="http://www.feedblitz.com/f/f.fbz?AddNewUserDirect"><p class="instructions">Enter your email address for free updates and stuff. This is a low-volume list.<p> <input style="display:none" name="EMAIL" maxlength="64" type="text" size="25" value=""> <input name="EMAIL_" maxlength="64" type="hidden" size="25" value=""> <input name="EMAIL_ADDRESS" maxlength="64" type="hidden" size="25" value=""> <input name="FEEDID" type="hidden" value="939857"> <input name="PUBLISHER" type="hidden" value="35511520"> <input type="button" value="subscribe" onClick="FeedBlitz_ab2334388e7c11e3b3c1002590771251s(this.form);">
+      <p class="subtext"><a href="http://www.feedblitz.com/f?previewfeed=939857">Preview</a> | Powered by <a href="http://www.feedblitz.com">FeedBlitz</a></p>
+      </form> <script language="Javascript">function FeedBlitz_ab2334388e7c11e3b3c1002590771251i(){var x=document.getElementsByName('FeedBlitz_ab2334388e7c11e3b3c1002590771251');for(i=0;i<x.length;i++){x[i].EMAIL.style.display='block'; x[i].action='http://www.feedblitz.com/f/f.fbz?AddNewUserDirect';}} function FeedBlitz_ab2334388e7c11e3b3c1002590771251s(v){v.submit();}FeedBlitz_ab2334388e7c11e3b3c1002590771251i();</script>
+    </div>
+  </div>
+
+  <div class="header">
+    <h1>Python vs. Node vs. PyPy </h1>
+    <h2>Tuesday, October 23, 2012 <span>&raquo;</span> <a href="/tags/Science-Projects/">Science Projects</a></h2>
+  </div>
+
+  <div class="body">
+    <p>OpenStack has proven that you can build robust, scalable cloud services with Python. On the other hand, startups like Voxer are doing brilliant things with Node.js. That made me curious, so I took some time to learn Node, then ported a web-scale message bus project of mine from Python to JavaScript. </p>
+
+<p>With Python and Node implementations in hand, I compared the two in terms of performance, community, developer productivity, etc. I also took the opportunity to test-drive PyPy; it seemed appropriate, given that both PyPy and V8<sup><a name="id-1" href="#id-1.ftn">1</a></sup> rely on JIT compilation to boost performance. </p>
+
+<p>In this particular post, I&#39;d like to share my discoveries concerning Python vs. Node performance. </p>
+
+<hr>
+
+<p><em><strong>Update:</strong> See my followup post on <a href="/2012/11/13/python-vs-node-vs-pypy-benchmarks.html">Python vs. Node</a>, in which I share my results from a more formal, rigorous round of performance testing.</em></p>
+
+<hr>
+<h2>Testing Methodology</h2>
+<p>For each test, I executed 5,000 GETs with ApacheBench (ab). I ran each benchmark 3 times from localhost<sup><a name="id-2" href="#id-2.ftn">2</a></sup> on a 4-core Rackspace Cloud Server<sup><a name="id-3" href="#id-3.ftn">3</a></sup>, retaining only the numbers for the best-performing iteration<sup><a name="id-4" href="#id-4.ftn">4</a></sup>.</p>
+
+<p>All stacks were configured to spawn 4 worker processes, backed by a single, local mongod<sup><a name="id-5" href="#id-5.ftn">5</a></sup> for storage. The DB was primed so that each GET resulted in a non-empty response body of about 420 bytes<sup><a name="id-6" href="#id-6.ftn">6</a></sup>.</p>
+
+<p><em>~ Insert obligatory benchmark disclaimer here. ~</em></p>
+<h2>Teh Contenders</h2>
+<p><strong>CPython (Sync Worker)</strong> <br>
+Python v2.7 + Gunicorn<sup><a name="id-7" href="#id-7.ftn">7</a></sup> v0.14.6 + Rawr<sup><a name="id-8" href="#id-8.ftn">8</a></sup> </p>
+
+<p><strong>CPython (Eventlet Worker)</strong> <br>
+Python v2.7 + Gunicorn v0.14.6 + Eventlet v0.9.17 + Rawr</p>
+
+<p><strong>PyPy (Sync worker)</strong> <br>
+PyPy 1.8 + Gunicorn v0.14.6 + Rawr</p>
+
+<p><strong>PyPy (Tornado Worker)</strong> <br>
+Gunicorn v0.14.6 + Tornado<sup><a name="id-9" href="#id-9.ftn">9</a></sup> + Rawr</p>
+
+<p><strong>Node v0.8.11</strong> <br>
+Node v0.8.11 + Cluster + Connect<sup><a name="id-10" href="#id-10.ftn">10</a></sup> v2.6.0</p>
+<h2>Throughput Benchmarks</h2>
+<p>In terms of throughput, Node.js is hard to beat. It&#39;s almost twice as fast as CPython/Eventlet workers. Interestingly, Node.js spanks Eventlet even while serving a single request at a time. It&#39;s obvious that Node&#39;s async framework is far more efficient than Eventlet&#39;s.</p>
+
+<p>PyPy comes to the rescue, demonstrating the power of a good JIT compiler. The big surprise here is how well the PyPy/Sync workers perform. But there&#39;s more to the story&hellip; </p>
+
+<p>Not shown in the graph (below) are a few informal tests I ran to see what would happen at even higher levels of concurrency. At 5,000 concurrent requests, PyPy/Tornado and Node.js exhibited the best performance at ~4100 req/sec, followed closely by PyPy/Sync at ~3800 req/sec, then CPython/Sync at ~2200 req/sec. I couldn&#39;t get CPython/Eventlet to finish all 5,000 requests without ab giving up due to socket errors.</p>
+
+<p><img class="block" src="/assets/images/node-bench/throughput.png" alt="Python vs. PyPy vs. Node.js - Throughput Benchmark" /></p>
+<h2>Latency Benchmarks</h2>
+<p>CPython/Eventlet demonstrates high per-request overhead, turning around requests about 30% slower (in the worst case) than non-evented CPython workers. </p>
+
+<p><img class="block" src="/assets/images/node-bench/latency.png" alt="Python vs. PyPy vs. Node.js - Latency Benchmark" /></p>
+<h2>Stability Benchmarks</h2>
+<p>With a high number of concurrent connections, PyPy&#39;s performance is very consistent. CPython/Sync also does well in this regard. </p>
+
+<p>Node is less consistent than I expected, given its finely-tuned event loop. It&#39;s possible that node-mongodb-native is to blame&mdash;but that&#39;s pure conjecture on my part.</p>
+
+<p><img class="block" src="/assets/images/node-bench/stability.png" alt="Python vs. PyPy vs. Node.js - Stability Benchmark" /></p>
+<h2>Conclusions</h2>
+<p>Node&#39;s <a href="/2012/09/18/demystifying-async-io.html">asynchronous</a> subsystem incurs far less overhead than Eventlet, and is slightly faster than Tornado running under PyPy. However, it appears that for moderate numbers of concurrent requests, the overhead inherent in any async framework simply isn&#39;t worthwhile<sup><a name="id-11" href="#id-11.ftn">11</a></sup>. I.e., async only makes sense in the context of serving several thousand concurrent requests per second.</p>
+
+<p>CPython&#39;s lackluster performance makes a strong case for migrating to PyPy for existing projects, and for considering Node.js as a viable alternative to Python for new projects. That being said, PyPy is not nearly as battle-tested as CPython; caveat emptor!</p>
+
+<ul class="footnotes">
+  <li>
+    <sup><a name="id-1.ftn" href="#id-1">1</a></sup> Node uses Google&rsquo;s V8 JavaScript engine under the hood. 
+  </li>
+  <li>
+    <sup><a name="id-2.ftn" href="#id-2">2</a></sup> Running ab on the same box as the server avoids networking anomalies that could bias test results.
+  </li>
+  <li>
+    <sup><a name="id-3.ftn" href="#id-3">3</a></sup> CentOs 5.5, 8 GB RAM, ORD region, first-generation cloud server platform.
+  </li>
+  <li>
+    <sup><a name="id-4.ftn" href="#id-4">4</a></sup> What can I say? I&rsquo;m an insufferable optimist.
+  </li>
+  <li>
+    <sup><a name="id-5.ftn" href="#id-5">5</a></sup> A lot of FUD has gone around re MongoDB. I&rsquo;m convinced that most bad experiences with Mongo are due to one or more of the following: (1) Developers consciously (or subconsciously) expecting MongoDB to act like an RDBMS, (2) the perpetuation of the myth that MongoDB is not durable, and (3) trying to run MongoDB on servers with slow disks and/or insufficient RAM.
+  </li>
+  <li>
+    <sup><a name="id-6.ftn" href="#id-6">6</a></sup> The response body was chosen as an example of a typical JSON document that might be returned from the message bus service.
+  </li>
+  <li>
+    <sup><a name="id-7.ftn" href="#id-7">7</a></sup> Gunicorn is a very fast WSGI worker proxy, similar to Node&rsquo;s Cluster module. Gunicorn supports running various worker types, including basic synchronous workers, Eventlet workers, and Tornado workers.
+  </li>
+  <li>
+    <sup><a name="id-8.ftn" href="#id-8">8</a></sup> Based on extensive benchmarking, I ended up writing a custom micro web-services framework. Protip: Don&rsquo;t use webob for parsing requests; it&rsquo;s dog-slow.
+  </li>
+  <li>
+    <sup><a name="id-9.ftn" href="#id-9">9</a></sup> Used in lieu of Eventlet, since Eventlet was extremely slow under PyPy in my  benchmarks.
+  </li>
+  <li>
+    <sup><a name="id-10.ftn" href="#id-10">10</a></sup> Connect adds virtually no overhead; I wanted to use a framework that was fast, yet mainstream.
+  </li>
+  <li>
+    <sup><a name="id-11.ftn" href="#id-11">11</a></sup> Warning: Don&rsquo;t expose sync processes to the Internet; run behind a non-blocking server such as Nginx to guard against not only malicious attacks (ala Slowloris), but also against the Thundering Herd.
+  </li>
+</ul>
+
+  </div>
+
+  <script type="text/javascript">
+    (function() {
+      var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+      po.src = '//apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+    })();
+  </script>
+
+  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    var disqus_shortname = 'fluffywhitestuff';
+    var disqus_identifier = 'A60C497E-FD13-11E1-B940-7C49F4FE7012';
+    var disqus_url = 'http://blog.kgriffs.com/2012/10/23/python-vs-node-vs-pypy.html';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+</div>
+
+    </div>
+
+    <div id="footer">
+      <p>
+        Copyright &copy; 2014 Kurt Griffiths &ndash; 
+        powered by <a href="http://mynt.mirroredwhite.com/">mynt</a>
+      </p>
+      <p>
+        <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en_US"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-nd/3.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en_US">Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported License</a>.
+      </p>
+      <p>
+        Disclaimer: The posts on this site are my own and donât necessarily represent the positions, strategies, or opinions of my employer (Rackspace Hosting, Inc.)
+      </p>
+    </div>
+  </div>
+  
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-33985284-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+  
+</body>
+</html>

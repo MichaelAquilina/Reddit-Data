@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0" />
+	<title>Elegant exact string match using BWT - FM Index | Read Through Transcription</title>
+	<link rel="profile" href="http://gmpg.org/xfn/11" />
+	<link rel="stylesheet" href="http://blog.avadis-ngs.com/wp-content/themes/ari/style.css" type="text/css" media="all" />
+		<link rel="pingback" href="http://blog.avadis-ngs.com/xmlrpc.php" />
+		
+<!-- This site is optimized with the Yoast WordPress SEO plugin v1.0.3 - http://yoast.com/wordpress/seo/ -->
+<meta name='description' content='&nbsp; This post is the first of a series where we describe some interesting algorithms used in our product Avadis NGS. The first po'/>
+<link rel="canonical" href="http://blog.avadis-ngs.com/2012/04/elegant-exact-string-match-using-bwt-2/" />
+<!-- / Yoast WordPress SEO plugin. -->
+
+<link rel="alternate" type="application/rss+xml" title="Read Through Transcription &raquo; Feed" href="http://blog.avadis-ngs.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Read Through Transcription &raquo; Comments Feed" href="http://blog.avadis-ngs.com/comments/feed/" />
+				
+	<script type="text/javascript">//<![CDATA[
+	// Google Analytics for WordPress by Yoast v4.2.2 | http://yoast.com/wordpress/google-analytics/
+	var _gaq = _gaq || [];
+	_gaq.push(['_setAccount','UA-27062628-1']);
+	_gaq.push(['_setCustomVar',1,'author','santhosh-kumar',3],['_setCustomVar',3,'year','2012',3],['_setCustomVar',4,'category','avadis-ngs',3],['_setCustomVar',5,'categories','avadis-ngs',3],['_trackPageview'],['_trackPageLoadTime']);
+	(function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	})();
+	//]]></script>
+<link rel="alternate" type="application/rss+xml" title="Read Through Transcription &raquo; Elegant exact string match using BWT &#8211; FM Index Comments Feed" href="http://blog.avadis-ngs.com/2012/04/elegant-exact-string-match-using-bwt-2/feed/" />
+<script type='text/javascript' src='http://blog.avadis-ngs.com/wp-includes/js/l10n.js?ver=20101110'></script>
+<script type='text/javascript' src='http://blog.avadis-ngs.com/wp-includes/js/comment-reply.js?ver=20090102'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://blog.avadis-ngs.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://blog.avadis-ngs.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress 3.2.1" />
+<link rel='shortlink' href='http://blog.avadis-ngs.com/?p=443' />
+<script charset="utf-8" type="text/javascript">var switchTo5x=true;</script><script charset="utf-8" type="text/javascript" src="http://w.sharethis.com/button/buttons.js"></script><script type="text/javascript">stLight.options({publisher:'13eb6fe3-8258-4cba-83a4-e0ebe0a14cc9'});var st_type='wordpress3.2.1';</script><style type="text/css">
+a, ul.sidebar li.widget_text a { color:#0099CC; }
+#content h2 a:hover, ul.sidebar a:hover, .comment-meta a:hover, p.logged-in-as a:hover, p.meta a:hover, a.post-edit-link:hover, #footer a:hover { color:#0099CC; }
+#searchsubmit:hover, form#commentform p.form-submit input#submit:hover, input.wpcf7-submit:hover  {
+	background:#0099CC;
+}
+</style>
+</head>
+
+<body class="single single-post postid-443 single-format-standard">
+
+<div id="wrap" class="clearfix">
+	<div id="sidebar-primary">
+
+	<div class="logo">
+		<a href="http://blog.avadis-ngs.com"><img src="http://blog.avadis-ngs.com/wp-content/uploads/2011/11/RTT1.jpg" alt="Read Through Transcription" /></a>
+
+		</div><!--end Logo-->
+
+	
+	<ul class="sidebar">
+
+	<li id="text-3" class="widget-container widget_text">			<div class="textwidget"><b>Welcome</b>
+<p>
+This blog is a cache of our thoughts on sequencing, bioinformatics, and genomics. Hopefully it will be a fruitful distraction for both you and us!</p>
+<br/>
+<b>Who We Are</b>
+<p>
+We are a <a href="http://strandls.com" onclick="javascript:_gaq.push(['_trackEvent','outbound-widget','http://strandls.com']);" target="_blank">team</a> of computer and life scientists in San Francisco and Bangalore.</p>
+<br/>
+
+<b>What We Do</b>
+<p>
+We are continuously improving <a href="http://avadis-ngs.com"  target="_blank">Avadis NGS</a> – a bioinformatics tool for next-generation sequencing data analysis.</p><br/></div>
+		</li><li id="nav_menu-3" class="widget-container widget_nav_menu"><div class="menu-primary-menu-container"><ul id="menu-primary-menu" class="menu"><li id="menu-item-45" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-45"><a title="Get a free 20-day trial of Avadis NGS for your Mac, Windows, or Linux computer" href="http://www.avadis-ngs.com/signup/freetrial" >Download Avadis – Free Trial</a></li>
+<li id="menu-item-43" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-43"><a title="Technical support is freely available by phone and email 24/5" href="http://avadis-ngs.com/support" >Bioinformatics Support &#038; Help</a></li>
+</ul></div></li><li id="social_links-3" class="widget-container widget_social_links"><h3 class="widget-title"> </h3><ul><li class="widget_sociallinks"><a href=" feed" class="rss" target="_blank">RSS</a></li><li class="widget_sociallinks"><a href=" http://twitter.com/StrandLife" class="twitter" target="_blank">Twitter</a></li></ul></li><li id="archives-3" class="widget-container widget_archive"><h3 class="widget-title">Archives</h3>		<select name="archive-dropdown" onchange='document.location.href=this.options[this.selectedIndex].value;'> <option value="">Select Month</option> 	<option value='http://blog.avadis-ngs.com/2014/02/'> February 2014 </option>
+	<option value='http://blog.avadis-ngs.com/2014/01/'> January 2014 </option>
+	<option value='http://blog.avadis-ngs.com/2013/04/'> April 2013 </option>
+	<option value='http://blog.avadis-ngs.com/2012/06/'> June 2012 </option>
+	<option value='http://blog.avadis-ngs.com/2012/04/'> April 2012 </option>
+	<option value='http://blog.avadis-ngs.com/2012/03/'> March 2012 </option>
+	<option value='http://blog.avadis-ngs.com/2012/02/'> February 2012 </option>
+	<option value='http://blog.avadis-ngs.com/2012/01/'> January 2012 </option>
+	<option value='http://blog.avadis-ngs.com/2011/12/'> December 2011 </option>
+	<option value='http://blog.avadis-ngs.com/2011/11/'> November 2011 </option>
+ </select>
+</li>	</ul>
+	<!--end Sidebar -->
+
+	</div>
+	<!--end Sidebar One-->
+
+<div id="main">
+	<div id="content">
+
+
+<div id="post-443" class="post-443 post type-post status-publish format-standard hentry category-avadis-ngs">
+		<h2>Elegant exact string match using BWT &#8211; FM Index</h2>
+
+		<p class="entry-meta"><span>April 23, 2012 by Santhosh Kumar</span><br/>				
+
+        <!--- pavan: hiding categories and tags
+				        			Categories: <a href="http://blog.avadis-ngs.com/category/avadis-ngs/" title="View all posts in Avadis NGS" rel="category tag">Avadis NGS</a>					| 
+								        -->
+        <!---pavan: remove comment label
+				<a href="http://blog.avadis-ngs.com/2012/04/elegant-exact-string-match-using-bwt-2/#comments" title="Comment on Elegant exact string match using BWT &#8211; FM Index">7 comments</a>        -->
+				</p>
+
+			<p>&nbsp;</p>
+<p><script type="text/javascript" src="http://blog.avadis-ngs.com/files/js/underscore-min.js"></script><br />
+<script type="text/javascript" src="http://blog.avadis-ngs.com/files/js/jquery-1.7.1.min.js"></script><br />
+<script type="text/javascript" src="http://blog.avadis-ngs.com/files/js/raphael.js"></script><br />
+<script type="text/javascript" src="http://blog.avadis-ngs.com/files/js/popup.js"></script><br />
+<script type="text/javascript" src="http://blog.avadis-ngs.com/files/js/utils.js"></script><br />
+<script type="text/javascript" src="http://blog.avadis-ngs.com/files/js/cmap.js"></script><br />
+<script type="text/javascript" src="http://blog.avadis-ngs.com/files/js/bwt.js"></script><br />
+<script type="text/javascript" src="http://blog.avadis-ngs.com/files/js/view.js"></script><br />
+<script type="text/javascript" src="http://blog.avadis-ngs.com/files/js/main.js"></script><br />
+</p>
+<blockquote><p>This post is the first of a series where we describe some interesting algorithms used in our product <a href="http://avadis-ngs.com" >Avadis NGS</a>. The first post in this series is about string matching using FM index, a technique that forms the core of our aligner <a href="http://www.avadis-ngs.com/applications/cobweb" >COBWeb</a>. We have intentionally kept the usage of bioinformatics jargon minimum to benefit a wider audience.</p></blockquote>
+<p>This post describes an elegant and fast algorithm to perform exact string match. Why another string matching algorithm? To answer the question, let&#8217;s first understand the problem we are trying to solve.</p>
+<p>In short, the problem is to match billions of short strings (about 50-100 characters long) to a text which is 3 billion characters long. The 3 billion character string (also called reference) is known ahead and is fixed (at least for a species). The shorter strings (also called reads) are generated as a result of an experiment. The problem arises due to the way the <a href="http://en.wikipedia.org/wiki/DNA_sequencing" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://en.wikipedia.org']);">sequencing technology</a> works, which in its current form, breaks the DNA into small fragments and &#8216;reads&#8217; them. The information about where the fragments came from is lost and hence the need to &#8216;map&#8217; them back to the reference sequence.</p>
+<p>We need an algorithm that allows repeatedly searching on a text as <em>fast</em> as possible. We are allowed to perform some preprocessing on the text once if that will help us achieve this goal. FM index is one such algorithm. It requires a one-time preprocessing of the reference to build an index, after which the query time is of the order of the length of the query (instead of the reference).</p>
+<p><a href="http://en.wikipedia.org/wiki/Burrows%E2%80%93Wheeler_transform" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://en.wikipedia.org']);">Burrows Wheeler transform</a> is a reversible string transformation that has been widely used in data compression. However the application of BWT to perform string matching was discovered fairly recently in these papers &#8211; <a href="http://dl.acm.org/citation.cfm?doid=1082036.1082039" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://dl.acm.org']);">http://dl.acm.org/citation.cfm?doid=1082036.1082039</a>, <a href="http://www.computer.org/csdl/proceedings/focs/2000/0850/00/08500390-abs.html" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.computer.org']);">http://www.computer.org/csdl/proceedings/focs/2000/0850/00/08500390-abs.html</a>, by Paolo Ferragina and Giovanni Manzini. This technique is the topic of this post. Before we get to the searching application, a little background on how BWT is constructed and some properties of BWT.</p>
+<p>BWT for a given text T is constructed as follows:</p>
+<ul>
+<li>Append an end of string character (say &#8216;$&#8217;) to the text. This character should not be present in the text and is treated as the lexicographically largest character.</li>
+<li>Collect all the cyclic permutations of the text and sort them.</li>
+<li>Arrange all the sorted strings one below the other. The last column forms the BWT.</li>
+</ul>
+<p>The image below shows the BWT transform for banana$.<br />
+<img src="http://blog.avadis-ngs.com/files/images/bwt.png" alt="" /><br />
+A few things to note from the image</p>
+<ul>
+<li>The red column, as indicated, is the BWT of BANANA$&#8217;</li>
+<li>The yellow column, as indicated, is the <a href="http://en.wikipedia.org/wiki/Suffix_array" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://en.wikipedia.org']);">Suffix Array</a>. For every row, the element in the suffix array is the index into the original text of the suffix starting in that row. Note that if you have the suffix array, constructing BWT is straightforward. The above algorithm of performing a full sort on all suffixes to find the suffix array and BWT is very inefficient. Efficiently finding the suffix array will be the topic for our next post in this series.</li>
+<li>The green column is just the sorted characters in the text.</li>
+</ul>
+<p>Before proceeding we need to understand one interesting property of the BWT. The rank of a character in the BWT column is the same as that of the corresponding character in the first column. This is illustrated in the image above using colors. The 2nd N in the BWT column correponds to the 2nd N in the first column, the 3rd A in the BWT column corresponds to the 3rd A in the first column and so on. To see why this is the case, remember that all the rows in the grid are cyclic permutations of a single string. Let AX1, AX2, AX3 be three consecutive rows in the grid where A is the first character and X1, X2, X3 denote the rest of the row. As the rows are sorted lexicographically, X1, X2, X3 are sorted too. On cyclic shifts, we get X1A, X2A, X3A which are again sorted, hence in the same relative order in the grid. Note that now the A&#8217;s are entries in the BWT <em>in the same relative order</em>. This is illustrated in the figure below.</p>
+<p><img src="http://blog.avadis-ngs.com/files/images/text2.png" alt="" /></p>
+<h3>Search using FM Index</h3>
+<p>Our index data structure has the following</p>
+<ol>
+<li>BWT &#8211; Indexed access. We will denote this by BWT(i).</li>
+<li>Suffix Array &#8211; Indexed access. We will denote this by SA(i).</li>
+<li>First column &#8211; Queries : Start index, end index of an alphabet and index given alphabet and a rank. For example, find the index of letter &#8216;G&#8217; with rank 3. This can be achieved by just storing the frequency of each alphabet in order. For example, for BANANA$, its enough to store 3A1B2N1$. This query can be answered by a simple walk over this compressed structure. We will denote the queries by Start(alphabet), End(alphabet) and IndexOf(alphabet, rank).</li>
+<li>Ranks in BWT &#8211; We need fast access to the following query : Get number of occurences of a particular character above a particular row in the BWT. For example, get the number of &#8216;A&#8217;s above row 5. One way to achieve this is to store at each row the frequency of each alphabet till that row. This can be achieved by a single pass over the BWT. In practice though, we don&#8217;t store this at every row, but store at regular intervals. We will assume here that it is stored at every row for simplicity. We will denote this query by RankOf(index, alphabet)</li>
+</ol>
+<p>Let T be the text searched on and Q be the query string. The algorithm is as follows</p>
+<pre>          index = len(Q) # Walk the query backwords
+          nextChar = Q[index--]
+          (start, end) = (Start(nextChar), End(nextChar))
+          while index &gt;= 0:
+            nextChar = Q[index--]
+            (startrank, endrank) = (RankOf(start, nextChar), RankOf(end, nextChar))
+            (start, end) = (IndexOf(nextChar, startrank), IndexOf(nextChar, endrank))
+          for i in range(start, end):
+            print SA(i)</pre>
+<p>The output of this algorithm are the indices into the original text where the query is present. Note that error condition handling has been skipped in the pseudocode above for brevity. It involves checking if the range found at every iteration of the loop is a valid range.</p>
+<p>The visualization below explains the algorithm. Few points about the visualization</p>
+<ul>
+<li>Yellow text at the top indicates the text to search on and the yellow text at the bottom, the query</li>
+<li>Red column indicates BWT, orange the suffix array</li>
+<li>The grey part of the grid is not stored as part of the index. It is shown here just for clarity</li>
+<li>Rows highlighted in blue indicates the range where search till that point is successful. This appears once the search animation starts.</li>
+</ul>
+<p>Let&#8217;s step through the visualization for text ABRACADABRA and query DAB. Follow the points below by hitting on &#8216;Step&#8217; button after each point.</p>
+<ul>
+<li>Remember that the query is walked from the last to first. The first character is &#8216;B&#8217;, which results in the range shown</li>
+<li>Next character is &#8216;A&#8217;. Get the rank of &#8216;A&#8217; on the BWT for the first and last rows on the current range. The ranks as shown in the tooltips are 0 and 2. The new range is determined by the rows where &#8216;A&#8217; has rank 0 and rank 2 on the first column. This is shown by the new range</li>
+<li>Now the final character &#8216;D&#8217;. Performing the the same steps as above, we get the final range as the row &#8217;9&#8242;. The corresponding element on the suffix array is &#8217;6&#8242; which is the index in the original text where &#8216;DAB&#8217; starts</li>
+</ul>
+<p>Play around with the visualization with different texts and queries to understand the algorithm better.</p>
+
+<div id="bwtparent">
+<div id="controls"><button id="play" type="button">Play</button>
+<button id="step" type="button">Step</button></div>
+<div id="inputs"><label for="inptext">Text:</label> <input id="inptext" type="text" name="inptext" value="abracadabra" /> <label for="query">Query:</label> <input id="query" type="text" name="query" value="dab" /> <button id="submit" type="button">Load</button></div>
+</div>
+<p>How does this search work? Let&#8217;s first understand what the loop invariant here is. Let &#8216;i&#8217; be the index into the query string at some point of time when the range in the grid is (s,e). Remember that we are walking the search query backwards. The loop invariant is that Q[i:] is the prefix of all strings in the range (s,e). To prove that that is indeed the case, let&#8217;s move one more character on the query. Consider the characters on the BWT for the indices between s and e. All these characters precede various occurences of the prefix Q[i:] in the text. The rank data structure enables us to quickly check if any of those characters are the character we want to match. If yes we get the start and end rank of the character. Note that if the character is not present in that range, the start and end rank of the character would be same, ending our search. Then we use the property of BWT described above to jump to the corresponding character on the first column and continue our search. Thus when we exhaust all the characters in the query, we are left with the range on the grid where the prefix of every row is the query.</p>
+<p>On the next post in this series, we will describe how to find the BWT index of a very long string efficiently.
+<p><span class='st_facebook' st_title='Elegant exact string match using BWT &#8211; FM Index' st_url='http://blog.avadis-ngs.com/2012/04/elegant-exact-string-match-using-bwt-2/' displayText='share'></span><span class='st_twitter' st_title='Elegant exact string match using BWT &#8211; FM Index' st_url='http://blog.avadis-ngs.com/2012/04/elegant-exact-string-match-using-bwt-2/' displayText='share'></span><span class='st_linkedin' st_title='Elegant exact string match using BWT &#8211; FM Index' st_url='http://blog.avadis-ngs.com/2012/04/elegant-exact-string-match-using-bwt-2/' displayText='share'></span><span class='st_email' st_title='Elegant exact string match using BWT &#8211; FM Index' st_url='http://blog.avadis-ngs.com/2012/04/elegant-exact-string-match-using-bwt-2/' displayText='share'></span><span class='st_plusone' st_title='Elegant exact string match using BWT &#8211; FM Index' st_url='http://blog.avadis-ngs.com/2012/04/elegant-exact-string-match-using-bwt-2/' displayText='share'></span></p>
+			<div class="clear"></div>
+			
+									
+							<div id="author-info" class="clearfix">
+						<div id="author-avatar">
+							<img alt='' src='http://0.gravatar.com/avatar/ae85fa10ef0054bb09088b2f9c22ddab?s=50&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D50&amp;r=G' class='avatar avatar-50 photo' height='50' width='50' />						</div>
+						<div id="author-description">
+							<h2>About <span>Santhosh Kumar</span></h2>
+							<p>Santhosh is a software engineer at Strand. He is one of the engineers behind Avadis NGS. He did his BTech and MTech in Computer Science from IIT Madras and interned at Google before joining Strand.</p>
+						</div>
+					</div><!-- end Author Info -->
+								
+
+
+				
+
+<div id="comments-content" class="clearfix">
+
+
+			<h3 id="comments">Comments (7)</h3>
+
+			<ol class="commentlist">
+					<li class="post pingback">
+		<p>Pingback: <a href="http://tysonzinn.com/?p=4795" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://tysonzinn.com']);"  rel='external nofollow' class='url'>Cool Algorithm &#8211; Fast text search using BWT &laquo; Tyson Zinn &laquo; Tyson Zinn</a></p>
+	</li>
+	<li class="post pingback">
+		<p>Pingback: <a href="http://robertmcghee.co.uk/2012/april-24th-2/" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://robertmcghee.co.uk']);"  rel='external nofollow' class='url'>Robert McGhee &raquo; April 24th</a></p>
+	</li>
+	<li class="post pingback">
+		<p>Pingback: <a href="http://arnoldit.com/wordpress/2012/05/16/high-speed-searching-possible-with-jazzy-algorithm/" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://arnoldit.com']);"  rel='external nofollow' class='url'>High Speed Searching Possible with Jazzy Algorithm : Beyond Search</a></p>
+	</li>
+	<li class="post pingback">
+		<p>Pingback: <a href="http://tm.durusau.net/?p=25288" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://tm.durusau.net']);"  rel='external nofollow' class='url'>Elegant exact string match using BWT &laquo; Another Word For It</a></p>
+	</li>
+	<li class="post pingback">
+		<p>Pingback: <a href="http://hemprasad.wordpress.com/2012/08/26/129/" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://hemprasad.wordpress.com']);"  rel='external nofollow' class='url'>Hemprasad Badgujar</a></p>
+	</li>
+	<li class="post pingback">
+		<p>Pingback: <a href="http://www.pZzPJm983.net" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://www.pZzPJm983.net']);"  rel='external nofollow' class='url'>URL</a></p>
+	</li>
+	<li class="post pingback">
+		<p>Pingback: <a href="http://raybanwayfarer.ethicalbase.com/" onclick="javascript:_gaq.push(['_trackEvent','outbound-commentauthor','http://raybanwayfarer.ethicalbase.com']);"  rel='external nofollow' class='url'>ray ban wayfarer</a></p>
+	</li>
+			</ol>
+
+
+
+								
+</div>
+<!--end Comments Content-->
+
+	</div>
+	<!--end Post-->
+	
+		<p class="previous"><a href="http://blog.avadis-ngs.com/2012/04/webinar-find-significant-snps-in-your-samples/" rel="prev">&larr;  Previous Post</a></p>
+		<p class="next"><a href="http://blog.avadis-ngs.com/2012/06/benfords-law-and-ngs-gene-counts/" rel="next">Next Post &rarr;</a></p>
+	
+	</div>
+	<!--end Content-->
+
+
+<div id="sidebar-secondary">
+
+
+</div>
+<!--end Sidebar Secondary-->
+</div>
+<!--end Main-->
+
+<div id="footer" class="clearfix">
+		<p class="alignright">&copy; 2014 <a href="http://www.avadis-ngs.com">Strand Scientific Intelligence, inc</a> </p>
+</div>
+<!--end Footer-->
+
+</div>
+<!--end Wrap-->
+
+</body>
+</html>
+

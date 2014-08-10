@@ -1,0 +1,574 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" media="all" href="http://www.leancrew.com/all-this/wp-content/themes/drang/style.css" />
+    <link  rel="stylesheet" type="text/css" media="all" href="/all-this/wp-content/themes/drang/bigfoot.css" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.leancrew.com/all-this/feed/" />
+     <link rel="icon" type="image/png" href="/all-this/wp-content/themes/drang/snowman16.png" mce_href="/all-this/wp-content/themes/drang/snowman16.png" />
+     
+    <!-- MathJax configuration -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        extensions: ["TeX/AMSmath.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        preRemoveClass: "MathJax_Preview",
+        showProcessingMessages: true,
+        tex2jax: {
+          inlineMath: [ ["\\(","\\)"] ],
+          displayMath: [ ["\\[","\\]"] ],
+          skipTags: ["script","noscript","style","textarea","pre","code"],
+          processEscapes: false,
+          processEnvironments: true
+        },
+        "HTML-CSS": {
+          availableFonts: ["STIX", "TeX"],
+          preferredFont: "TeX",
+          imageFont: "TeX",
+          showMathMenu: true,
+        },
+        MathMenu: {
+          showFontMenu: true
+        }
+      });
+    </script>
+    <script type="text/javascript"
+      src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"">
+    </script>
+    
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    
+    <title>Python and fileinput - All this</title>
+    <link rel="alternate" type="application/rss+xml" title="And now it’s all this &raquo; Python and fileinput Comments Feed" href="http://www.leancrew.com/all-this/2011/08/python-and-fileinput/feed/" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://www.leancrew.com/all-this/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://www.leancrew.com/all-this/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Coffee, tea, and Joulies' href='http://www.leancrew.com/all-this/2011/08/coffee-tea-and-joulies/' />
+<link rel='next' title='Sweet SpringHill' href='http://www.leancrew.com/all-this/2011/08/sweet-springhill/' />
+<meta name="generator" content="WordPress 3.9.1" />
+<link rel='canonical' href='http://www.leancrew.com/all-this/2011/08/python-and-fileinput/' />
+<link rel='shortlink' href='http://www.leancrew.com/all-this/?p=1617' />
+ 
+  </head>
+  <body onload="styleCode()">
+    <div id="container">
+
+      <div id="header">
+        <img src="/all-this/wp-content/themes/drang/snowman-200.jpg" />
+        <h1><a href="/all-this/">And now it’s all this</a></h1>
+        <h2>I just said what I said and it was wrong. Or was taken wrong.</h2>
+      </div> <!-- header -->
+  
+
+
+	<div id="content">
+
+	
+		<p class="navigation">
+			<span style="float: right"><a href="http://www.leancrew.com/all-this/2011/08/sweet-springhill/" rel="next">Sweet SpringHill</a> &raquo;</span>
+			&laquo; <a href="http://www.leancrew.com/all-this/2011/08/coffee-tea-and-joulies/" rel="prev">Coffee, tea, and Joulies</a>		</p>
+
+		<h1><a href="http://www.leancrew.com/all-this/2011/08/python-and-fileinput/" rel="bookmark" title="Permanent Link: Python and fileinput">Python and fileinput</a></h1>
+    <p class="postdate">August 17th, 2011 at 9:46 am by Dr. Drang</p>
+				<p>In last week&#8217;s <a href="http://www.leancrew.com/all-this/2011/08/learning-awk/">post about Awk</a>, I mentioned that my Perl has gotten rusty through lack of use. Considering how much Perl code I wrote back in the late ’90s and early ’00s, its surprising how clumsy I&#8217;ve become with it. I can still read and tweak older programs, but writing a new Perl script from scratch is pretty much impossible. It just doesn&#8217;t flow anymore.</p>
+
+<p>Which is fine. I&#8217;m happy with Python and prefer it overall. But there are certain aspects of Perl that are very nice, and when I see them in my old code I miss them.</p>
+
+<p>Mostly, I miss the <code>while(&lt;&gt;)</code> construct. Like many things in Perl, this does different things under different circumstances, but it almost always does exactly what you want it to. It reads sequential lines of text, which is about as prosaic as you can get, but there&#8217;s magic in <em>where</em> it gets the text.</p>
+
+<p>Let&#8217;s use this little program, which we&#8217;ll call <em>initial.pl</em>, as an example:</p>
+
+<pre><code>perl:
+#!/usr/bin/perl
+while(&lt;&gt;) {
+  print substr($_,0,1) . "\n";
+}
+</code></pre>
+
+<p>It prints out the first letter of every line. If we make it executable call it from the command line this way</p>
+
+<pre><code>initial.pl /usr/share/dict/words
+</code></pre>
+
+<p>it&#8217;ll get its lines from the spelling dictionary. If we call it this way</p>
+
+<pre><code>initial.pl /usr/share/dict/words /etc/passwd
+</code></pre>
+
+<p>it&#8217;ll get its lines first from the spelling dictionary and then from the password file, as if the two files were concatenated into one. If we call it in a pipeline, like this</p>
+
+<pre><code>ls | initial.pl
+</code></pre>
+
+<p>it knows to get its lines from standard input rather than open a file.</p>
+
+<p>In short, the <code>while(&lt;&gt;)</code> construct is ideally suited for making Unix command line tools.</p>
+
+<p>The Python language itself doesn&#8217;t have a file reading feature that can figure out from context where its input is coming from. The usual file reading examples you see in Python tutorials look like this:</p>
+
+<pre><code>python:
+#!/usr/bin/python
+for line in open('/usr/share/dict/words'):
+  print line[0]
+</code></pre>
+
+<p>This, obviously, isn&#8217;t as flexible as the Perl version,<sup id="fnref:error"><a href="#fn:error" rel="footnote">1</a></sup> because we have the file name hard-coded into the source. Here&#8217;s a better way:</p>
+
+<pre><code>python:
+#!/usr/bin/python
+import sys
+for line in open(sys.argv[1]):
+  print line[0]
+</code></pre>
+
+<p>Now it reads the input file name from the command line, so we can call</p>
+
+<pre><code>initial.py /usr/share/dict/words
+</code></pre>
+
+<p>or</p>
+
+<pre><code>initial.py /etc/password  
+</code></pre>
+
+<p>and it will work. Of course, it won&#8217;t work if you try to pass it both files, nor can it handle standard input. To get those features you have to add a much more Byzantine scaffolding of logic.</p>
+
+<p>Or simply use the <a href="http://docs.python.org/library/fileinput.html"><em>fileinput</em> module</a>. This is a curiously underpromoted part of the Python Standard Library that gives you all the magic of Perl&#8217;s <code>while(&lt;&gt;)</code>. Rewriting <em>initial.py</em> like this</p>
+
+<pre><code>python:
+#!/usr/bin/python
+import fileinput
+for line in fileinput.input():
+  print line[0]
+</code></pre>
+
+<p>we get a program that works exactly like <em>initial.pl</em>.</p>
+
+<p>The <em>fileinput</em> module has several useful functions in addition to <code>input()</code>. There&#8217;s <code>lineno()</code>, which acts like the Perl special variable <code>$.</code>, giving you the cumulative line number of the last line read. It also has <code>filename()</code>, <code>filelineno()</code>, <code>isfirstline()</code>, and <code>isstdin()</code>, which all do exactly what you would guess from their names.</p>
+
+<p>The <em>fileinput</em> module has been part of the Standard Library (which means it&#8217;s a library that comes with Python) for ages, but it doesn&#8217;t get the publicity it deserves. It is featured in <a href="http://www.doughellmann.com/PyMOTW/fileinput/">one of Doug Hellmann&#8217;s Python Module of the Week articles</a>, but it&#8217;s not in Guido&#8217;s Python Tutorial despite how useful it is. In most Python books I&#8217;ve seen, it&#8217;s hidden away in that long list of libraries that come with Python. It&#8217;s not until you see it in action that you appreciate all the work it&#8217;s doing for you.</p>
+
+<p>I confess I haven&#8217;t used <em>fileinput</em> nearly as often as I should have, often hard-coding filenames into my scripts and then changing the code when I need to run it against a different input. I hope this post shames me into using it as much as I used to use <code>while(&lt;&gt;)</code>.</p>
+
+<div class="footnotes">
+<hr />
+<ol>
+
+<li id="fn:error">
+<p>Nor does it have the kind of error handling that a well-written program would have. I didn&#8217;t want to clutter it up with code that isn&#8217;t germane to our topic.&#160;<a href="#fnref:error" rev="footnote">&#8617;</a></p>
+</li>
+
+</ol>
+</div>
+        <hr class="end" />
+				<p class="postmetadata">Tags: <a href="http://www.leancrew.com/all-this/tag/fileinput/" rel="tag">fileinput</a>, <a href="http://www.leancrew.com/all-this/tag/programming/" rel="tag">programming</a>, <a href="http://www.leancrew.com/all-this/tag/python/" rel="tag">python</a></p>
+			
+			    <!-- There was an ad here once -->
+			
+<!-- You can start editing here. -->
+
+	<h2 id="comments">5 Responses to &#8220;Python and fileinput&#8221;</h2>
+
+	<ol class="commentlist">
+
+	
+		<li class="alt" id="comment-15634">
+			<p class="commentheader"><img alt='' src='http://1.gravatar.com/avatar/16bbc7f782efd1c489a0d0d9e6075291?s=40&amp;d=identicon&amp;r=PG' class='avatar avatar-40 photo' height='40' width='40' />			<cite><a href='http://www.lri.me/' rel='external nofollow' class='url'>Lri</a></cite> says:
+						<br />
+
+			<span class="commentmetadata"><a href="#comment-15634" title="">August 17th, 2011 at 1:44 pm</a> </span></p>
+
+			<p>Ruby&#8217;s equivalent to fileinput is <a href="http://www.ruby-doc.org/core/classes/ARGF.html" rel="nofollow">ARGF</a> or $&lt;.</p>
+
+<pre><code>$&lt;.each {|l| puts l[0,1]}
+</code></pre>
+
+		</li>
+
+	
+	
+		<li class="alt" id="comment-15643">
+			<p class="commentheader"><img alt='' src='http://1.gravatar.com/avatar/3199adc87e7d5a279106a35a21e238a8?s=40&amp;d=identicon&amp;r=PG' class='avatar avatar-40 photo' height='40' width='40' />			<cite><a href='http://blog.carlsensei.com' rel='external nofollow' class='url'>Carl</a></cite> says:
+						<br />
+
+			<span class="commentmetadata"><a href="#comment-15643" title="">August 17th, 2011 at 5:31 pm</a> </span></p>
+
+			<p>Neat module! I had never heard of it before, but I&#8217;ll try rewriting some of my old scripts to use it. I even learned a little Perl. :-)</p>
+
+<p>If you&#8217;d be interested in doing a MOTW segment, I&#8217;d be happy to see it…</p>
+
+		</li>
+
+	
+	
+		<li class="alt" id="comment-15656">
+			<p class="commentheader"><img alt='' src='http://0.gravatar.com/avatar/a7b634c0191d04c3dce31ce0ad0c9d46?s=40&amp;d=identicon&amp;r=PG' class='avatar avatar-40 photo' height='40' width='40' />			<cite>td</cite> says:
+						<br />
+
+			<span class="commentmetadata"><a href="#comment-15656" title="">August 18th, 2011 at 8:45 am</a> </span></p>
+
+			<p>Learned/relearned something new today.</p>
+
+<p>With Python which I assume is often the case with Perl is finding what work has already been done for you.  I bought Doug Hellman&#8217;s &#8220;Standard Library by Example&#8221; book several months back and just through a brief scan discovered a lot of useful modules I was unaware of.</p>
+
+<p><a href="http://www.doughellmann.com/books/byexample/" rel="nofollow">http://www.doughellmann.com/books/byexample/</a></p>
+
+		</li>
+
+	
+	
+		<li class="alt" id="comment-15662">
+			<p class="commentheader"><img alt='' src='http://0.gravatar.com/avatar/894e38cc9bfb63af70ba1903da9b8f55?s=40&amp;d=identicon&amp;r=PG' class='avatar avatar-40 photo' height='40' width='40' />			<cite><a href='http://shoorick.ru/' rel='external nofollow' class='url'>Shoorick</a></cite> says:
+						<br />
+
+			<span class="commentmetadata"><a href="#comment-15662" title="">August 18th, 2011 at 1:23 pm</a> </span></p>
+
+			<p>Make perl scripts simply!</p>
+
+<pre><code>#!/usr/bin/perl -nl
+print substr($_, 0, 1);
+</code></pre>
+
+<p>Or even:</p>
+
+<pre><code>#!/usr/bin/perl -pl
+s/^(.).*$/$1/;
+</code></pre>
+
+<p>And you can write this command as single line:</p>
+
+<pre><code>ls | perl -nle 'print substr($_, 0, 1)'
+</code></pre>
+
+<p>See man perlrun.</p>
+
+		</li>
+
+	
+	
+		<li class="alt" id="comment-16750">
+			<p class="commentheader"><img alt='' src='http://1.gravatar.com/avatar/16600e12ca6e0cf625f602298a0059e7?s=40&amp;d=identicon&amp;r=PG' class='avatar avatar-40 photo' height='40' width='40' />			<cite><a href='http://www.rhodesblogs.com' rel='external nofollow' class='url'>Tim Cole</a></cite> says:
+						<br />
+
+			<span class="commentmetadata"><a href="#comment-16750" title="">September 10th, 2011 at 12:46 am</a> </span></p>
+
+			<p>Tremendously enlightening bless you, I reckon your trusty followers would probably want significantly more reviews similar to this maintain the excellent work.</p>
+
+		</li>
+
+	
+	
+	</ol>
+
+ 
+
+
+	
+	</div> <!-- content -->
+
+<div id="sidebar">
+
+  <h1>Site search</h1>
+  <form method="get" id="searchform" action="http://www.leancrew.com/all-this/">
+<div><input type="text" value="" name="s" id="s" size="25" />
+<input type="submit" id="searchsubmit" value="Find it" />
+</div>
+</form>
+<p></p>
+
+      <!-- <hr /> -->
+
+  <h1>Meta</h1>
+    <ul>
+      <li>drdrang at gmail</li>
+      <li><a href="http://www.twitter.com/drdrang">@drdrang</a></li>
+      <li><a href="http://www.leancrew.com/all-this/feed/">RSS feed</a></li>
+      <li><a href="http://flickr.com/photos/drdrang">Flickr stream</a></li>
+      <li><a href="http://github.com/drdrang">GitHub repositories</a></li>
+    </ul>
+
+  <h1>Recent posts</h1>
+    <ul>
+      	<li><a href='http://www.leancrew.com/all-this/2014/06/blogging-from-bbedit-redux/'>Blogging from BBEdit, redux</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2014/06/cleaning-up-my-markdown-table-cleanup-script/'>Cleaning up my Markdown table cleanup script</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2014/06/quick-invoicing-emails-with-mailmate/'>Quick invoicing emails with MailMate</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2014/06/battery-post/'>Battery post</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2014/06/a-simple-numbers-workflow/'>A simple Numbers workflow</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2014/06/mapping-photos-with-pythonista-1-5/'>Mapping photos with Pythonista 1.5</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2014/06/trajectory/'>Trajectory</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2014/06/better-markdown-folding-in-bbedit/'>Better Markdown folding in BBEdit</a></li>
+    </ul>
+
+
+  <h1>Tags</h1>
+    <p class="tag-cloud"><a href='http://www.leancrew.com/all-this/tag/afghanistan/' class='tag-link-399' title='50 topics' style='font-size: 102.950310559%;'>afghanistan</a>
+<a href='http://www.leancrew.com/all-this/tag/apple/' class='tag-link-431' title='21 topics' style='font-size: 85.7142857143%;'>apple</a>
+<a href='http://www.leancrew.com/all-this/tag/applescript/' class='tag-link-386' title='67 topics' style='font-size: 108.540372671%;'>applescript</a>
+<a href='http://www.leancrew.com/all-this/tag/bbc/' class='tag-link-384' title='14 topics' style='font-size: 78.2608695652%;'>bbc</a>
+<a href='http://www.leancrew.com/all-this/tag/bbedit/' class='tag-link-730' title='27 topics' style='font-size: 90.8385093168%;'>bbedit</a>
+<a href='http://www.leancrew.com/all-this/tag/biking/' class='tag-link-79' title='30 topics' style='font-size: 92.701863354%;'>biking</a>
+<a href='http://www.leancrew.com/all-this/tag/blogging/' class='tag-link-7' title='159 topics' style='font-size: 125.776397516%;'>blogging</a>
+<a href='http://www.leancrew.com/all-this/tag/calendar/' class='tag-link-401' title='19 topics' style='font-size: 83.850931677%;'>calendar</a>
+<a href='http://www.leancrew.com/all-this/tag/drtwoot/' class='tag-link-478' title='19 topics' style='font-size: 83.850931677%;'>drtwoot</a>
+<a href='http://www.leancrew.com/all-this/tag/education/' class='tag-link-288' title='24 topics' style='font-size: 88.5093167702%;'>education</a>
+<a href='http://www.leancrew.com/all-this/tag/engineering/' class='tag-link-432' title='47 topics' style='font-size: 101.552795031%;'>engineering</a>
+<a href='http://www.leancrew.com/all-this/tag/entertainment/' class='tag-link-4' title='121 topics' style='font-size: 120.652173913%;'>entertainment</a>
+<a href='http://www.leancrew.com/all-this/tag/flickr/' class='tag-link-476' title='13 topics' style='font-size: 76.8633540373%;'>flickr</a>
+<a href='http://www.leancrew.com/all-this/tag/google/' class='tag-link-466' title='16 topics' style='font-size: 80.5900621118%;'>google</a>
+<a href='http://www.leancrew.com/all-this/tag/ical/' class='tag-link-403' title='13 topics' style='font-size: 76.8633540373%;'>ical</a>
+<a href='http://www.leancrew.com/all-this/tag/internet/' class='tag-link-17' title='90 topics' style='font-size: 114.596273292%;'>internet</a>
+<a href='http://www.leancrew.com/all-this/tag/ipad/' class='tag-link-430' title='13 topics' style='font-size: 76.8633540373%;'>ipad</a>
+<a href='http://www.leancrew.com/all-this/tag/iphone/' class='tag-link-56' title='206 topics' style='font-size: 131.366459627%;'>iphone</a>
+<a href='http://www.leancrew.com/all-this/tag/iraq/' class='tag-link-398' title='24 topics' style='font-size: 88.5093167702%;'>iraq</a>
+<a href='http://www.leancrew.com/all-this/tag/itunes/' class='tag-link-485' title='15 topics' style='font-size: 79.1925465839%;'>itunes</a>
+<a href='http://www.leancrew.com/all-this/tag/javascript/' class='tag-link-382' title='34 topics' style='font-size: 95.0310559006%;'>javascript</a>
+<a href='http://www.leancrew.com/all-this/tag/lion/' class='tag-link-663' title='13 topics' style='font-size: 76.8633540373%;'>lion</a>
+<a href='http://www.leancrew.com/all-this/tag/local/' class='tag-link-13' title='17 topics' style='font-size: 81.9875776398%;'>local</a>
+<a href='http://www.leancrew.com/all-this/tag/mac/' class='tag-link-11' title='520 topics' style='font-size: 150%;'>mac</a>
+<a href='http://www.leancrew.com/all-this/tag/markdown/' class='tag-link-377' title='32 topics' style='font-size: 94.099378882%;'>markdown</a>
+<a href='http://www.leancrew.com/all-this/tag/math/' class='tag-link-10' title='65 topics' style='font-size: 108.074534161%;'>math</a>
+<a href='http://www.leancrew.com/all-this/tag/mechanics/' class='tag-link-189' title='45 topics' style='font-size: 100.621118012%;'>mechanics</a>
+<a href='http://www.leancrew.com/all-this/tag/media/' class='tag-link-15' title='54 topics' style='font-size: 104.347826087%;'>media</a>
+<a href='http://www.leancrew.com/all-this/tag/miscellaneous/' class='tag-link-6' title='12 topics' style='font-size: 75%;'>miscellaneous</a>
+<a href='http://www.leancrew.com/all-this/tag/music/' class='tag-link-424' title='21 topics' style='font-size: 85.7142857143%;'>music</a>
+<a href='http://www.leancrew.com/all-this/tag/news/' class='tag-link-14' title='27 topics' style='font-size: 90.8385093168%;'>news</a>
+<a href='http://www.leancrew.com/all-this/tag/omnifocus/' class='tag-link-125' title='16 topics' style='font-size: 80.5900621118%;'>omnifocus</a>
+<a href='http://www.leancrew.com/all-this/tag/perl/' class='tag-link-428' title='23 topics' style='font-size: 87.5776397516%;'>perl</a>
+<a href='http://www.leancrew.com/all-this/tag/personal/' class='tag-link-19' title='379 topics' style='font-size: 143.47826087%;'>personal</a>
+<a href='http://www.leancrew.com/all-this/tag/photos/' class='tag-link-9' title='19 topics' style='font-size: 83.850931677%;'>photos</a>
+<a href='http://www.leancrew.com/all-this/tag/podcasts/' class='tag-link-648' title='18 topics' style='font-size: 82.9192546584%;'>podcasts</a>
+<a href='http://www.leancrew.com/all-this/tag/politics/' class='tag-link-3' title='159 topics' style='font-size: 125.776397516%;'>politics</a>
+<a href='http://www.leancrew.com/all-this/tag/productivity/' class='tag-link-5' title='220 topics' style='font-size: 132.298136646%;'>productivity</a>
+<a href='http://www.leancrew.com/all-this/tag/programming/' class='tag-link-16' title='402 topics' style='font-size: 144.875776398%;'>programming</a>
+<a href='http://www.leancrew.com/all-this/tag/python/' class='tag-link-370' title='166 topics' style='font-size: 126.708074534%;'>python</a>
+<a href='http://www.leancrew.com/all-this/tag/rss/' class='tag-link-454' title='18 topics' style='font-size: 82.9192546584%;'>rss</a>
+<a href='http://www.leancrew.com/all-this/tag/safari/' class='tag-link-539' title='19 topics' style='font-size: 83.850931677%;'>safari</a>
+<a href='http://www.leancrew.com/all-this/tag/software/' class='tag-link-21' title='154 topics' style='font-size: 125.310559006%;'>software</a>
+<a href='http://www.leancrew.com/all-this/tag/text-editing/' class='tag-link-18' title='100 topics' style='font-size: 116.459627329%;'>text editing</a>
+<a href='http://www.leancrew.com/all-this/tag/textexpander/' class='tag-link-405' title='40 topics' style='font-size: 98.2919254658%;'>textexpander</a>
+<a href='http://www.leancrew.com/all-this/tag/textmate/' class='tag-link-407' title='22 topics' style='font-size: 86.6459627329%;'>textmate</a>
+<a href='http://www.leancrew.com/all-this/tag/twitter/' class='tag-link-235' title='75 topics' style='font-size: 110.869565217%;'>twitter</a>
+<a href='http://www.leancrew.com/all-this/tag/unix/' class='tag-link-526' title='20 topics' style='font-size: 84.7826086957%;'>unix</a>
+<a href='http://www.leancrew.com/all-this/tag/war/' class='tag-link-400' title='51 topics' style='font-size: 103.416149068%;'>war</a>
+<a href='http://www.leancrew.com/all-this/tag/wordpress/' class='tag-link-375' title='15 topics' style='font-size: 79.1925465839%;'>wordpress</a></p>
+
+
+
+
+  <!--
+  <h1>Archive</h1>
+    <ul>
+      	<li><a href='http://www.leancrew.com/all-this/2014/06/'>June 2014</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2014/05/'>May 2014</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2014/04/'>April 2014</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2014/03/'>March 2014</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2014/02/'>February 2014</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2014/01/'>January 2014</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2013/12/'>December 2013</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2013/11/'>November 2013</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2013/10/'>October 2013</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2013/09/'>September 2013</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2013/08/'>August 2013</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2013/07/'>July 2013</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2013/06/'>June 2013</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2013/05/'>May 2013</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2013/04/'>April 2013</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2013/03/'>March 2013</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2013/02/'>February 2013</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2013/01/'>January 2013</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2012/12/'>December 2012</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2012/11/'>November 2012</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2012/10/'>October 2012</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2012/09/'>September 2012</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2012/08/'>August 2012</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2012/07/'>July 2012</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2012/06/'>June 2012</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2012/05/'>May 2012</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2012/04/'>April 2012</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2012/03/'>March 2012</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2012/02/'>February 2012</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2012/01/'>January 2012</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2011/12/'>December 2011</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2011/11/'>November 2011</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2011/10/'>October 2011</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2011/09/'>September 2011</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2011/08/'>August 2011</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2011/07/'>July 2011</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2011/06/'>June 2011</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2011/05/'>May 2011</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2011/04/'>April 2011</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2011/03/'>March 2011</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2011/02/'>February 2011</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2011/01/'>January 2011</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2010/12/'>December 2010</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2010/11/'>November 2010</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2010/10/'>October 2010</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2010/09/'>September 2010</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2010/08/'>August 2010</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2010/07/'>July 2010</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2010/06/'>June 2010</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2010/05/'>May 2010</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2010/04/'>April 2010</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2010/03/'>March 2010</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2010/02/'>February 2010</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2010/01/'>January 2010</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2009/12/'>December 2009</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2009/11/'>November 2009</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2009/10/'>October 2009</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2009/09/'>September 2009</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2009/08/'>August 2009</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2009/07/'>July 2009</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2009/06/'>June 2009</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2009/05/'>May 2009</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2009/04/'>April 2009</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2009/03/'>March 2009</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2009/02/'>February 2009</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2009/01/'>January 2009</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2008/12/'>December 2008</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2008/11/'>November 2008</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2008/10/'>October 2008</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2008/09/'>September 2008</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2008/08/'>August 2008</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2008/07/'>July 2008</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2008/06/'>June 2008</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2008/05/'>May 2008</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2008/04/'>April 2008</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2008/03/'>March 2008</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2008/02/'>February 2008</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2008/01/'>January 2008</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2007/12/'>December 2007</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2007/11/'>November 2007</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2007/10/'>October 2007</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2007/09/'>September 2007</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2007/08/'>August 2007</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2007/07/'>July 2007</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2007/06/'>June 2007</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2007/05/'>May 2007</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2007/04/'>April 2007</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2007/03/'>March 2007</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2007/02/'>February 2007</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2007/01/'>January 2007</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2006/12/'>December 2006</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2006/11/'>November 2006</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2006/10/'>October 2006</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2006/09/'>September 2006</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2006/08/'>August 2006</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2006/07/'>July 2006</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2006/06/'>June 2006</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2006/05/'>May 2006</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2006/04/'>April 2006</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2006/03/'>March 2006</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2006/02/'>February 2006</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2006/01/'>January 2006</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2005/12/'>December 2005</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2005/11/'>November 2005</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2005/10/'>October 2005</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2005/09/'>September 2005</a></li>
+	<li><a href='http://www.leancrew.com/all-this/2005/08/'>August 2005</a></li>
+    </ul>
+
+  -->
+  <!-- <hr /> -->
+  <!--
+  <h1>Popular posts</h1>
+    <ul>
+      <li><a href="/all-this/2005/09/ical-to-hpda-printing/">
+        iCal to Hipster PDA printing</a></li>
+      <li><a href="/all-this/2005/08/ruler-card-for-hipster-pda/">
+        Ruler card for Hipster PDA</a></li>
+      <li><a href="/all-this/2005/08/hpda-temperature-conversion-ca/">
+        Temperature conversion card for Hipster PDA</a></li>
+      <li><a href="/all-this/2007/03/improved-currency-conversion-card/">
+        Improved currency conversion card for Hipster PDA</a></li>
+      <li><a href="/all-this/2009/07/improved-mac-screenshotupload-utility/">
+        Screenshot uploading utility</a></li>
+      <li><a href="/all-this/2005/08/file-folder-labels/">
+        Printing file folder labels</a></li>
+      <li><a href="/all-this/2006/03/markdown-links-in-textmate-the/">
+        Markdown links in TextMate</a></li>
+      <li><a href="/all-this/2007/04/superduper-reports-with-geektool/">
+        SuperDuper! reports with GeekTool</a></li>
+      <li><a href="/all-this/2007/11/long-and-shortened-url-scripts/">
+        Automatic shortening of URLs</a></li>
+      <li><a href="/all-this/2008/02/leopard-screen-sharing-over-the-internet/">
+        Leopard screen sharing over the internet</a></li>
+      <li><a href="/all-this/2008/04/emacs-lisp-as-a-scripting-language/">
+        Emacs Lisp as a scripting language</a></li>
+      <li><a href="/all-this/2007/04/more-desktop-weather-with-geektool/">
+        Desktop weather with GeekTool</a></li>
+      <li><a href="/all-this/2008/09/latex-figure-captions/">
+        LaTeX figure captions</a></li>
+      <li><a href="/all-this/2009/08/camry-smart-key-battery-replacement/">
+        Camry smart key battery replacement</a></li>
+      <li><a href="/all-this/2008/04/time-practice-sheet-for-kids/">
+        Time practice sheets for kids</a></li>
+      <li><a href="/all-this/2009/09/math-practice-sheets/">
+        Math practice sheets for kids</a></li>
+      <li><a href="/all-this/2008/08/tables-for-markdown-and-textmate/">
+        Tables for Markdown and TextMate</a></li>
+      <li><a href="/all-this/2009/07/notebook-paper-pdfs/">
+        Notebook paper PDFs</a></li>
+      <li><a href="/all-this/2011/02/iphone-notes-app-comparison/">
+        iPhone notes app comparison</a></li>
+      <li><a href="/all-this/2011/03/notesy/">
+        Notesy review</a></li>
+    </ul>
+    -->
+
+  <!-- <hr /> -->
+
+
+  <h1>Credits</h1>
+
+  <div class="credit"><a href="http://www.wordpress.org" alt="Powered by WordPress"><img src="/all-this/wp-content/themes/drang/wordpress.png"</a></div>
+
+  <div class="credit"><a href="http://www.mathjax.org/">
+    <img title="Powered by MathJax"
+         src="http://www.mathjax.org/badge.gif"
+         border="0" alt="Powered by MathJax" />
+  </a></div>
+
+  <p style="margin-top: 1em;">This work is licensed under a
+  <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-Share Alike 3.0 Unported License</a>.</p>
+
+
+
+
+
+</div> <!-- sidebar -->
+
+
+
+
+  <div id="footer"></div>
+  </div> <!-- container -->
+  <!--
+  <script type="text/javascript">
+
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-1138672-1']);
+    _gaq.push(['_trackPageview']);
+    _gaq.push(['_trackPageLoadTime']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+  </script>
+  -->
+  <script type="text/javascript" src="/all-this/wp-content/themes/drang/highlight.pack.js"></script>
+  <script type="text/javascript" src="/all-this/wp-content/themes/drang/styleCode.js"></script>
+  <script type="text/javascript" src="/all-this/wp-content/themes/drang/bigfoot.js"></script>
+  <script type="text/javascript">
+    $.bigfoot();
+  </script>
+
+  <!-- <script type="text/javascript" src="/all-this/wp-content/themes/drang/footnote-popup.js"></script> -->
+  <!-- <script type="text/javascript" src="/all-this/wp-content/themes/drang/styleTweets.js"></script> -->
+  <!-- <script type="text/javascript" src="http://twitter.com/javascripts/blogger.js"></script> -->
+  <!-- <script type="text/javascript" src="http://twitter.com/statuses/user_timeline/drdrang.json?callback=twitterCallback2&count=3"></script> -->
+  </body>
+</html><!-- hyper cache: a2a500f3df253615eb3c03d9fa1c082e 14-06-29 01:55:13 -->

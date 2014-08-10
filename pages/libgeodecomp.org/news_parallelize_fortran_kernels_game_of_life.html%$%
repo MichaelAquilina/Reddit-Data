@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta name="author" content="Andreas Schaefer">
+    <title>LibGeoDecomp - How to Parallelize Fortran Kernels with LibGeoDecomp</title>
+
+    <!-- HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Javascript includes -->
+    <link rel="stylesheet" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" href="assets/css/bootstrap-responsive.css">
+    <link rel="stylesheet" href="assets/css/docs.css">
+    <link rel="stylesheet" href="assets/js/google-code-prettify/prettify.css">
+    <link rel="stylesheet" href="assets/local.css">
+
+    <!-- Favicons and friends -->
+    <link rel="shortcut icon" href="images/libgeodecomp_logo_small.png">
+    <link rel="apple-touch-icon" href="images/libgeodecomp_logo_small.png">
+
+    <!-- reference google analytics -->
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-24963804-1']);
+      _gaq.push(['_setDomainName', 'libgeodecomp.org']);
+      _gaq.push(['_setAllowHash', 'false']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+  </head>
+
+  <body data-spy="scroll" data-target=".subnav" data-offset="50">
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="index.html">LibGeoDecomp</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li  >
+                <a href="download.html">
+                  <img height=15
+                       src="images/libgeodecomp_logo2_plain_white.png"
+                       alt="libgeodecomp plain white logo">
+                  Download
+                </a>
+              </li>
+              <li  >
+                <a href="about.html">
+                  <img height=15
+                       src="images/libgeodecomp_logo2_plain_white.png"
+                       alt="libgeodecomp plain white logo">
+                  About
+                </a>
+              </li>
+              <li  >
+                <a href="gallery.html">
+                  <img height=15
+                       src="images/libgeodecomp_logo2_plain_white.png"
+                       alt="libgeodecomp plain white logo">
+                  Gallery
+                </a>
+              </li>
+              <li  >
+                <a href="documentation.html">
+                  <img height=15
+                       src="images/libgeodecomp_logo2_plain_white.png"
+                       alt="libgeodecomp plain white logo">
+                  Documentation
+                </a>
+              </li>
+              <li  >
+                <a href="developers.html">
+                  <img height=15
+                       src="images/libgeodecomp_logo2_plain_white.png"
+                       alt="libgeodecomp plain white logo">
+                  Developers
+                </a>
+              </li>
+              <li  >
+                <a href="publications.html">
+                  <img height=15
+                       src="images/libgeodecomp_logo2_plain_white.png" 
+                       alt="libgeodecomp plain white logo">
+                  Publications
+                </a>
+              </li>
+              <li  >
+                <a href="mailing_lists.html">
+                  <img height=15
+                       src="images/libgeodecomp_logo2_plain_white.png"
+                       alt="libgeodecomp plain white logo">
+                  Mailing Lists
+                </a>
+              </li>
+              <li  >
+                <a href="faq.html">
+                  <img height=15
+                       src="images/libgeodecomp_logo2_plain_white.png"
+                       alt="libgeodecomp plain white logo">
+                  FAQ
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+<div class="container">
+  <ul class="breadcrumb">
+    <li><a href="index.html">Home</a> <span class="divider">/</span></li>
+    <li><a href="news.html" >Blog</a> <span class="divider">/</span></li>
+    <li class="active">How to Parallelize Fortran Kernels with LibGeoDecomp</li>
+  </ul>
+
+  <div class="page-header" style="padding-top: 18px">
+    <h1>How to Parallelize Fortran Kernels with LibGeoDecomp <small>2013-09-19T00:00:00+02:00</small></h3></h1>
+  </div>
+
+  <div class="row">
+    <div class="span12">
+      <p>
+  
+
+  Recently the question popped up on <a
+  href="http://slashdot.org/comments.pl?sid=4193753&cid=44817575">Slashdot</a>
+  whether you use LibGeoDecomp in Fortran. I took a look at it and, to
+  cut a long story short, the answer is: yes, it's surprisingly easy,
+  but you lose some features. Here is the long story:
+
+
+  
+              </p>
+            </div> <!-- closes span12 -->
+          </div> <!-- closes row -->
+
+          <div class="row">
+            <div class="span12">
+            </div>
+          </div>
+          <div class="row">
+            <div class="span8">
+              <p>I never had much exposure to Fortran as all of our
+              users roll C++ codes. But a lot of scientific codes are
+              written in Fortran and developers presumably agonize
+              about how these could be ported to
+              state-of-the-art HPC resources. One of the design goals
+              of LibGeoDecomp was to make the library well suited for
+              interfacing with legacy codes -- rewriting the complete
+              application is a thing you just cannot ask from a
+              user.</p>
+
+              <p> My idea for this post was to take an simple 3rd
+              party program and try to marry it with LibGeoDecomp
+              while preserving as much as possible of its original
+              code and structure. The <emph>Hello World</emph>
+              equivalent for computer simulations is <a
+              href="http://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's
+              Game of Life</a>. My choice fell on <a
+              href"http://www.pdc.kth.se/education/tutorials/summer-school/mpi-exercises/mpi-lab-codes/game_of_life-serial.f90/view">this
+              code</a>, kindly provided by KTH, Sweden. The code has
+              several advantages:</p>
+
+              <ul>
+
+                <li>Well written and simple; no cryptic code or
+                complexity diverts attention from the real problem at
+                hands: interfacing with LibGeoDecomp.</li>
+
+                <li>3rd party code: so I can't cheat by conjuring up a
+                Fortran code which makes life easy for me.</li>
+
+                <li>It's a sequential code, is has not been prepared
+                for parallelization. Just like most legacy codes.</li>
+              </ul>
+
+              <p> Of course one could argue that Game of Life is too
+              simple and that <emph>real</emph> codes would not be as
+              easy to port. And that's true. But this post is really just a
+              primer to get people started. Feel free to post on our
+              <a href="mailto:users@libgeodecomp.org">mailing
+              list</a> if you need help.</p>
+
+              <p>
+                You can grab the complete source used for this post here:
+                <code>hg clone https://bitbucket.org/gentryx/game_of_life</code>
+              </p>
+
+
+
+            </div>
+
+            <div class="span4">
+              <div class="well">
+                <h3>Example: Conway's Game of Life</h3>
+                <img
+                   src="images/game_of_life_animated.gif"
+                   alt="Game of Life animation"
+                   width="225"
+                   height="225" >
+                <p></p>
+                <p>
+                  <a href="https://bitbucket.org/gentryx/game_of_life">
+                    <button class="btn btn-primary"
+                            type="button">
+                      Bitbucket Repository
+                    </button>
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div> <!-- closes row -->
+
+          <div class="row">
+            <div class="span6">
+              <h3>1. Understanding the Original Code</h3>
+
+              <p>The original code can be split into three phases:</p>
+
+              <ol>
+                <li>initialization with random values (lines 20-25) </li>
+                <li>evolution (lines 29-75, temporal loop with nested spatial loops)</li>
+                <li>output (lines 79-83, count number of <emph>living</emph> cells)</li>
+              </ol>
+
+              <p>
+                What's interesting is that the original code (shown
+                on the right) handles the boundary cases separately:
+                cells on the edges are copied over to their
+                counterparts on the opposite edges. This creates a
+                torus topology: the left and right boundaries can be
+                imagined as being glued together, which transforms the 2D
+                simulation plane into a pipe. Glueing together the top
+                and bottom edges transforms the pipe (topologically)
+                into a doughnut.
+              </p>
+
+              <img src="images/torus.png"
+                   alt="torus"
+                   title="torus topology; image taken from Creative Commons, license: public domain"
+                   width="464"
+                   height="387">
+              <p>
+                <strong>Fig. 1: Torus Topology</strong>
+              </p>
+
+              <h3>2. Porting It</h3>
+              <p>
+                The basic behind LibGeoDecomp is that it takes over
+                grid storage and controls which cells get updated
+                when. That's not much, yet it allows the library to
+                add features such as multi-node parallelization and
+                parallel IO. We can map the three phases of the
+                sequential code mentioned above to components of
+                LibGeoDecomp:
+              </p>
+
+              <ol>
+                <li>An Initializer will set up the grid before the simulation starts.</li>
+                <li>The Simulator controls the temporal and spatial loops.</li>
+                <li>A Writer handles output. It will be periodically notified by the Simulator.</li>
+              </ol>
+
+              <p>
+                If you've checked out the <a
+                href="https://bitbucket.org/gentryx/game_of_life">repository</a>
+                then you'll have noticed that the parallel version
+                comes with a couple of additional files. These files
+                mainly act as the glue between the Fortran kernel and
+                the C++ library. Fig. 2 illustrates the workflow of
+                the ported code. Here is how it works:
+              </p>
+
+              <ul>
+                <li>
+                  We can't instantiate the components directly in the
+                  Fortran program -- but we can call a C function
+                  which will do this for us. This function is
+                  called <code>simulate()</code> and lives
+                  in <code>wrapper.cpp</code>.
+                </li>
+                <li>
+                  The Initializer and Simulator will need a way to
+                  call back the relevant portions of the Fortran code,
+                  which is why I've packaged those in two subroutines,
+                  <code>initialize()</code>, which sets the initial
+                  state of a single cell, and <code>update()</code>,
+                  which is responsible for the evolution of a row of
+                  cells.
+                </li>
+                <li>
+                  <code>update()</code> in turn will need to access
+                  data stored within LibGeoDecomp. I've added macros
+                  named <code>LGD_GET()</code>
+                  and <code>LGD_SET()</code> for reading/writing cell
+                  data.
+                </li>
+              </ul>
+
+              <p>
+                The code in <code>wrapper.cpp</code>
+                and <code>libgeodecomp.F90</code> is fairly generic
+                and could be moved within the library, should there be
+                more interest in using it with Fortran apps. This
+                would leave decomposing the Fortran code into
+                appropriate functions as the only task left to the
+                user.
+              </p>
+
+              <img src="images/game_of_life_fortran_source_layout.png"
+                   alt="source laying"
+                   >
+
+              <p>
+                <strong>Fig. 2: Simulation Callgraph</strong>
+              </p>
+
+              <h3>3. How Does the Wrapper Work?</h3>
+
+              <p>
+                The wrapper was meant to be generic, but since it's
+                the first time I wrote such a piece of code, it's not.
+                A quick examination might be interesting for those
+                wishing to reuse it. To facilitate the two-way
+                callback from C++ to Fortran (for the update) and back
+                to C++ (for reading/writing data), I've defined a
+                class <code>Cell</code> as shown below.
+              </p>
+
+<pre class="prettyprint linenums">
+class Cell
+{
+public:
+    class API :
+        public APITraits::HasTorusTopology<2>,
+        public APITraits::HasUpdateLineX,
+        public APITraits::HasFixedCoordsOnlyUpdate
+    {};
+
+    inline Cell(int alive = 0) :
+        alive(alive)
+    {}
+
+    template<typename COORD_MAP>
+    void update(const COORD_MAP& hood, const unsigned& nanoStep)
+    { ... }
+
+    template<typename NEIGHBORHOOD>
+    static void updateLineX(Cell *targetLine, long *index, long indexEnd, const NEIGHBORHOOD& hood, const unsigned& nanoStep)
+    { ... }
+
+    int alive;
+};
+</pre>
+
+              <p>
+                The class <code>Cell::API</code> inherits from a
+                couple of classes defined
+                in LibGeoDecomp's <code>APITraits</code>. These type
+                traits are used as flags which enable the library to
+                discover which features the user code supports. The
+                code above tells the library that it requests a 2D
+                torus topology. Accesses to neighboring cells will
+                automatically be wrapped around the edges of the grid
+                -- this makes user code much shorter and easier to
+                read and maintain. It also specifies
+                that <code>Cell</code> has a
+                function <code>updateLineX()</code> which will update
+                a whole row of cells -- as opposed
+                to <code>update()</code>, which operates on a single
+                cell. It's more efficient to update multiple cells in
+                one go, so this is a good thing. And it doesn't really
+                add much complexity since the original code was capable
+                of this already. Finally the <code>API</code> specifies
+                that the update routines will only use a certain type
+                (<code>FixedCoord</code>) to address neighbors. At this
+                point it's not really important how this works; what
+                is important though is that this gives us access to
+                some compile time optimizations. Many of the
+                performance benefits in LibGeoDecomp come from using
+                templates as a code generator. And that's the
+                downside of using Fortran: templates don't cross the
+                language barrier. Without templates within the kernel,
+                LibGeoDecomp can't apply all of its optimizations.
+              </p>
+
+              <h3>4. Performance Evaluation</h3>
+
+              <p>
+
+                Game of Life is probably not the kernel that comes
+                first to mind when thinking about HPC benchmarks. But
+                LibGeoDecomp is an HPC library after all, so let's
+                take a look. I ran both programs on my notebook, which
+                has an Intel Core i7-3610QM (Ivy Bridge quad-core at
+                2.3 GHz) at its heart. The table below gives the
+                measured run times for a grid of 2000x2000 cells and
+                500 time steps:
+
+              </p>
+
+              <table class="table table-hover table-striped table-bordered">
+                <thead>
+                  <tr>
+                    <th>Cores</th>
+                    <th>Program</th>
+                    <th>Time</th>
+                    <th>Speedup</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>game_of_life-serial</td>
+                    <td>8.0s</td>
+                    <td>1.0</td>
+                  </tr>
+
+                  <tr>
+                    <td>1</td>
+                    <td>game_of_life-parallel</td>
+                    <td>6.9s</td>
+                    <td>1.2</td>
+                  </tr>
+
+                  <tr>
+                    <td>2</td>
+                    <td>game_of_life-parallel</td>
+                    <td>4.9s</td>
+                    <td>1.6</td>
+                  </tr>
+
+                  <tr>
+                    <td>3</td>
+                    <td>game_of_life-parallel</td>
+                    <td>3.8s</td>
+                    <td>2.1</td>
+                  </tr>
+
+
+                  <tr>
+                    <td>4</td>
+                    <td>game_of_life-parallel</td>
+                    <td>2.9s</td>
+                    <td>2.8</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <p>
+                What can we observe? First of all: yay, we get a
+                speedup -- even with just one core. Why is that? The
+                original code did copy over the new state to the old
+                grid (line 73). That may be convenient in Fortran, but
+                it's also needlessly slow. LibGeoDecomp simply swaps
+                pointers internally. But what's more interesting is
+                that adding more cores (e.g. by running <code>mpirun
+                -np 4 ./game_of_life-parallel</code>) further reduces
+                the run time. The code does by no means scale
+                perfectly, 4 cores don't give us a speedup of 4. This
+                is because the matrix size is really really small and
+                we would probably have gotten better results when
+                using OpenMP and not MPI. So, why did I choose MPI in
+                the first place? Because it's usually much harder to
+                embrace and requires more modifications to the code.
+                With LibGeoDecomp it doesn't matter which types of
+                parallelism the Simulator exploits. Its (almost) all
+                hidden in the library. If we wanted to run this
+                example with really huge matrices (e.g. 1M x 1M cells)
+                on a cluster
+                we could directly go ahead, no further code
+                modifications required.
+              </p>
+
+              <h3>5. Summary</h3>
+
+              <p>
+                In this longer-than-expected post I've shown how you
+                can use LibGeoDecomp to parallelize legacy Fortran
+                codes. What's the gist of it?
+              </p>
+
+              <ul>
+                <li>shorter, faster code</li>
+                <li>scales on clusters (supercomputers even)</li>
+                <li>convenient to add IO</li>
+                <li>right now: no CUDA, sadly</li>
+              </ul>
+
+              <p>
+                Chances are that the port will benefit performance
+                even on notebooks and workstation, but what's better
+                is that it will also run on much larger systems.
+                Apart from that, it's interesting to note
+                that the resulting Fortran program is actually shorter
+                than the original code (I'm discounting the wrapper
+                code as this should be moved into the library). You
+                also get access to LibGeoDecomp's IO infrastructure:
+                With just a couple lines of code I've added
+                the <code>PPMWriter</code> to the simulation (in <code>wrapper.cpp</code>), which
+                can render the matrix to PPM image files.
+              </p>
+
+              <h3>P.S.: Why no CUDA?</h3>
+              <p>
+                What's a bit sad though is that we can't yet interface
+                with CUDA. In C++ a user would simply chose a
+                CUDA-capable Simulator and flag his update function
+                with <code>__host__ __device__</code> to
+                make <code>nvcc</code> compile the code for both, the
+                CPU and the GPU. For Fortran there is no counterpart
+                to <code>nvcc</code>. PGI
+                has <a href="http://www.pgroup.com/resources/cudafortran.htm">CUDA
+                Fortran</a>. We could probably build something on top
+                of that to bring Fortran kernels together with
+                LibGeoDecomp on NVIDIA GPUs. But right now only few
+                people have access to the PGI compiler suite. Perhaps
+                this will change in the aftermath of the acquisition
+                of PGI by NVIDIA. Another avenue of approach would be
+                to convert Fortran to C, either
+                via <a href="http://www.netlib.org/f2c/">f2c</a> or
+                with LLVM's C backend, and to paste the result into a
+                C++ class.
+              </p>
+              <p>
+                I've also toyed with this idea. In my trials f2c could
+                not parse my Fortran code and LLVM lacks a Fortran
+                frontend. Any ideas <a href="mailto:users@libgeodecomp.org">welcome</a>.
+              </p>
+            </div>
+
+            <div class="span6">
+              <h3>game_of_life-serial.f90 -- The Original Code</h3>
+
+<pre class="prettyprint linenums">
+!----------------------
+!  Conway Game of Life
+!    serial version
+!----------------------
+
+program life
+
+  implicit none
+  integer, parameter :: ni=2000, nj=2000, nsteps = 500
+  integer :: i, j, n, im, ip, jm, jp, nsum, isum
+  integer, allocatable, dimension(:,:) :: old, new
+  real :: arand
+
+  ! allocate arrays, including room for ghost cells
+
+  allocate(old(0:ni+1,0:nj+1), new(0:ni+1,0:nj+1))
+
+  ! initialize elements of old to 0 or 1
+
+  do j = 1, nj
+     do i = 1, ni
+        call random_number(arand)
+        old(i,j) = nint(arand)
+     enddo
+  enddo
+
+  !  iterate
+
+  time_iteration: do n = 1, nsteps
+
+     ! corner boundary conditions
+
+     old(0,0) = old(ni,nj)
+     old(0,nj+1) = old(ni,1)
+     old(ni+1,nj+1) = old(1,1)
+     old(ni+1,0) = old(1,nj)
+
+     ! left-right boundary conditions
+
+     old(1:ni,0) = old(1:ni,nj)
+     old(1:ni,nj+1) = old(1:ni,1)
+
+     ! top-bottom boundary conditions
+
+     old(0,1:nj) = old(ni,1:nj)
+     old(ni+1,1:nj) = old(1,1:nj)
+
+     do j = 1, nj
+        do i = 1, ni
+
+           im = i - 1
+           ip = i + 1
+           jm = j - 1
+           jp = j + 1
+           nsum = old(im,jp) + old(i,jp) + old(ip,jp) &
+                + old(im,j )             + old(ip,j ) &
+                + old(im,jm) + old(i,jm) + old(ip,jm)
+
+           select case (nsum)
+           case (3)
+              new(i,j) = 1
+           case (2)
+              new(i,j) = old(i,j)
+           case default
+              new(i,j) = 0
+           end select
+
+        enddo
+     enddo
+
+     ! copy new state into old state
+
+     old = new
+
+  enddo time_iteration
+
+  ! Iterations are done; sum the number of live cells
+
+  isum = sum(new(1:ni,1:nj))
+
+  ! Print final number of live cells.
+
+  write(*,"(/'Number of live cells = ', i6/)") isum
+
+  deallocate(old, new)
+
+end program life
+</pre>
+
+              <h3>game_of_life-parallel.F90 -- The LibGeoDecomp-enabled Code</h3>
+<pre class="prettyprint linenums">
+!----------------------
+!  Conway Game of Life
+!    parallel version
+!----------------------
+
+#include "libgeodecomp.F90"
+
+subroutine initialize(target_cell, x, y)
+  use, intrinsic :: iso_c_binding
+  implicit none
+
+  integer (c_int), intent (out) :: target_cell
+  integer (c_int), intent (in) :: x
+  integer (c_int), intent (in) :: y
+  real :: arand
+
+  call random_number(arand)
+  target_cell = nint(arand)
+end
+
+subroutine update(LIBGEODECOMP_UPDATE_ARGS)
+#include "libgeodecomp_declare_args.F90"
+
+  integer :: x
+  integer :: nsum
+
+  do x = start_x, end_x
+     nsum = LGD_GET(x, NW) + LGD_GET(x, N) + LGD_GET(x, NE) &
+          + LGD_GET(x,  W)                 + LGD_GET(x,  E) &
+          + LGD_GET(x, SW) + LGD_GET(x, S) + LGD_GET(x, SE)
+
+     select case (nsum)
+     case (3)
+        LGD_SET(x) = 1
+     case (2)
+        LGD_SET(x) = LGD_GET(x, C)
+     case default
+        LGD_SET(x) = 0
+     end select
+  enddo
+end subroutine update
+
+program life
+
+  implicit none
+  integer, parameter :: ni=2000, nj=2000, nsteps = 500
+  integer :: i, j, n, im, ip, jm, jp, nsum, isum
+  integer, allocatable, dimension(:,:) :: old, new
+  real :: arand
+
+  ! "io_period" is used to control IO (for tracing execution time and
+  ! printing to PPM image files).
+  !
+  ! "io_period = 0" to switch off
+  ! "io_period = 5" to output every fifth step
+  integer, parameter :: io_period = 1
+
+  call simulate(ni, nj, nsteps, io_period)
+
+end program life
+</pre>
+</div>
+</div>
+
+  <div class="row">
+    <div class="span12">
+      <p>
+              
+
+
+      </p>
+      <p></p>
+
+      <p><a class="btn btn-primary" href="news.html">News archive &raquo;</a></p>
+    </div>
+  </div>
+
+</div>
+
+    <div class="container">
+      <div class="row">
+        <div class="span12">
+          last modified:         Thu Oct 10 12:05:46 2013 +0200
+<br>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer" style="margin-top: 18px">
+
+      <div class="container">
+        <div class="row">
+          <div class="span3">
+            <a href="http://www.uni-erlangen.de">
+              <img src="images/fau_logo.png"
+                   width="201"
+                   height="66"
+                   alt="Friedrich-Alexander-UniversitÃ¤t Erlangen Logo">
+            </a>
+          </div>
+
+          <div class="span3">
+            <a href="http://www3.informatik.uni-erlangen.de/index.html">
+              <img src="images/i3_logo.png"
+                   width="100"
+                   height="100"
+                   alt="Chair of Computer Science 3 Logo">
+            </a>
+          </div>
+
+          <div class="span6">
+            <p class="pull-right">
+              Â© 2006-2014
+<br>
+              <a href="contact.html">contact/imprint</a><br>
+              <a href="http://validator.w3.org/check?uri=http%3A%2F%2Fwww.libgeodecomp.org%2Fnews_parallelize_fortran_kernels_game_of_life.html">
+                <img src="http://www.w3.org/html/logo/downloads/HTML5_1Color_Black.svg"
+                     alt="Sort of Valid HTML 5.0"
+                     height="48"
+                     width="48">
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="assets/js/jquery.js"></script>
+    <script src="assets/js/google-code-prettify/prettify.js"></script>
+    <script src="assets/js/bootstrap-transition.js"></script>
+    <script src="assets/js/bootstrap-alert.js"></script>
+    <script src="assets/js/bootstrap-modal.js"></script>
+    <script src="assets/js/bootstrap-dropdown.js"></script>
+    <script src="assets/js/bootstrap-scrollspy.js"></script>
+    <script src="assets/js/bootstrap-tab.js"></script>
+    <script src="assets/js/bootstrap-tooltip.js"></script>
+    <script src="assets/js/bootstrap-popover.js"></script>
+    <script src="assets/js/bootstrap-button.js"></script>
+    <script src="assets/js/bootstrap-collapse.js"></script>
+    <script src="assets/js/bootstrap-carousel.js"></script>
+    <script src="assets/js/bootstrap-typeahead.js"></script>
+    <script src="assets/js/application.js"></script>
+  </body>
+</html>
+

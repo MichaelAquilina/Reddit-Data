@@ -1,0 +1,433 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset=utf-8>
+  
+    <title>Everything you did not want to know about Unicode in Python 3 | Armin Ronacher's Thoughts and Writings</title>
+    <link rel="stylesheet" href="/static/style.css" type="text/css">
+    <link href="/feed.atom" rel="alternate" title="Recent Blog Posts" type="application/atom+xml">
+    <link rel="stylesheet" href="/static/_pygments.css" type="text/css">
+  
+  </head>
+  <body>
+    <div class=container>
+      <div class=header>
+        <a href="/about/">Armin Ronacher</a>'s Thoughts and Writings
+      </div>
+      <div class=navigation>
+        <ul>
+          <li><a href="/">blog</a>
+          <li><a href="/archive/">archive</a>
+          <li><a href="/tags/">tags</a>
+          <li><a href="/projects/">projects</a>
+          <li><a href="/talks/">talks</a>
+          <li><a href="/about/">about</a>
+        </ul>
+      </div>
+      <div class=body>
+        
+  <h1 class="title">Everything you did not want to know about Unicode in Python 3</h1>
+
+  
+  <p class=date>written on Monday, May 12, 2014
+  
+
+  <p>Readers of this blog on my twitter feed know me as a person that likes to
+rant about Unicode in Python 3 a lot.  This time will be no different.
+I'm going to tell you more about how painful &quot;doing Unicode right&quot; is and
+why.  &quot;Can you not just shut up Armin?&quot;.  I spent two weeks fighting with
+Python 3 again and I need to vent my frustration somewhere.  On top of
+that there is still useful information in those rants because it teaches
+you how to deal with Python 3.  Just don't read it if you get annoyed by
+me easily.</p>
+<p>There is one thing different about this rant this time.  It won't be
+related to WSGI or HTTP or any of that other stuff at all.  Usually I'm
+told that I should stop complaining about the Python 3 Unicode system
+because I wrote code nobody else writes (HTTP libraries and things of that
+sort) I decided to write something else this time: a command line
+application.  And not just the app, I wrote a handy little library called
+<a class="reference external" href="http://click.pocoo.org/">click</a> to make this easier.</p>
+<p>Note that I'm doing what about every newby Python programmer does: writing
+a command line application.  The &quot;Hello World&quot; of Python programs.  But
+unlike the newcomer to Python I wanted to make sure the application is as
+stable and Unicode supporting as possible for both Python 2 and Python 3
+and make it possible to unittest it.  So this is my report on how that
+went.</p>
+<div class="section" id="what-we-want-to-do">
+<h2>What we want to do</h2>
+<p>In Python 3 we're doing Unicode right as developers.  Apparently.  I
+suppose what means is that all text data is Unicode and all non text data
+is bytes.  In this wonderful world of everything being black and white,
+the &quot;Hello World&quot; example is pretty straightforward.  So let's write some
+helpful shell utilties.</p>
+<p>Let's say we want to implement a simple <tt class="docutils literal">cat</tt>  In other terms, these are
+the applications we want to write in Python 2 terms:</p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+
+<span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span>
+    <span class="k">if</span> <span class="n">filename</span> <span class="o">!=</span> <span class="s">&#39;-&#39;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#39;cat.py: </span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+            <span class="k">continue</span>
+    <span class="k">with</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+</pre></div>
+<p>Obviously neither commands are particularly great as they do not handle
+any command line options or anything but at least they roughly work.  So
+that's what we start out with.</p>
+</div>
+<div class="section" id="unicode-in-unix">
+<h2>Unicode in Unix</h2>
+<p>In Python 2 the above code is dead simple because you implicitly work with
+bytes everywhere.  The command line arguments are bytes, the filenames are
+bytes (ignore Windows users for a moment) and the file contents are bytes
+too.  Purists will point out that this is incorrect and really that's
+where the problem is coming from, but if you start thinking about it more,
+you will realize that this is an unfixable problem.</p>
+<p>UNIX is bytes, has been defined that way and will always be that way.  To
+understand why you need to see the different contexts in which data is
+being passed through:</p>
+<ul class="simple">
+<li>the terminal</li>
+<li>command line arguments</li>
+<li>the operating system io layer</li>
+<li>the filesystem driver</li>
+</ul>
+<p>That btw, is not the only thing this data might be going through but let's
+go with this for the moment.  In how many of the situations do we know an
+encoding?  The answer is: in none of them.  The closest we have to
+understanding an encoding is that the terminal exports locale information.
+This information can be used to show translations but also to understand
+what encoding text information has.</p>
+<p>For instance an <tt class="docutils literal">LC_CTYPE</tt> of <tt class="docutils literal"><span class="pre">en_US.utf-8</span></tt> tells an application that
+the system is running US English and that most text data is <tt class="docutils literal"><span class="pre">utf-8</span></tt>.  In
+practice there are more variables but let's assume that this is the only
+one we need to look at.  Note that <tt class="docutils literal">LC_CTYPE</tt> does not say that all data
+now is <tt class="docutils literal"><span class="pre">utf-8</span></tt>.  It instead informs the application how text characters
+should be classified and what case conversion rules should be applied.</p>
+<p>This is important because of the <tt class="docutils literal">C</tt> locale.  The <tt class="docutils literal">C</tt> locale is the
+only locale that POSIX actually specifies and it says: encoding is ASCII
+and all responses from command line tools in regards to languages are like
+they are defined in the POSIX spec.</p>
+<p>In the above case of our <tt class="docutils literal">cat</tt> tool there is no other way
+to treat this data as if it was bytes.  The reason for this is, that there
+is no indication on the shell what the data is.  For instance if you
+invoke <tt class="docutils literal">cat hello.txt</tt> the terminal will pass <tt class="docutils literal">hello.txt</tt> encoded in
+the encoding of the terminal to your application.</p>
+<p>But now imagine the other case: <tt class="docutils literal">echo *</tt>.  The shell will now pass all
+the filenames of the current directory to your application.  Which
+encoding are they in?  In whatever encoding the filenames are in.  There
+is no filename encoding!</p>
+</div>
+<div class="section" id="unicode-madness">
+<h2>Unicode Madness?</h2>
+<p>Now a Windows person will probably look at this and say: what the hell are
+the UNIX people doing.  But it's not that dire or not dire at all.  The
+reason this all works is because some clever people designed the system to
+be backwards compatible.  Unlike Windows where all APIs are defined twice,
+on POSIX the best way to deal with all of this is to assume it's a byte
+mess that for display purposes is decoded with an encoding hint.</p>
+<p>For instance let's take the case of the <cite>cat</cite> command above.  As you might
+have noticed there is an error message for files it cannot open because
+they either don't exist or because they are protected or whatever else.
+In the simple case above let's assume the file is encoded in latin1
+garbage because it came from some external drive from 1995.  The terminal
+will get our standard output and will try to decode it as utf-8 because
+that's what it thinks it's working with.  Because that string is latin1
+and not the right encoding it will now not decode properly.  But fear not,
+nothing is crashing, because your terminal will just ignore the things it
+cannot deal with.  It's clever like this.</p>
+<p>How does it look like for GUIs?  They have two versions of each.  When a
+GUI like Nautilus lists all files it makes a symbol for each file.  It
+associates the internal bytes of that filename with the icon for double
+clicking and secondly it attempts to make a filename it can show for
+display purposes which might be decoded from something.  For instance it
+will attempt decoding from utf-8 with replacing decoding errors with
+question marks.  Your filename might not be entirely readable but you can
+still open the file.  Success!</p>
+<p>Unicode on UNIX is only madness if you force it on everything.  But that's
+not how Unicode on UNIX works.  UNIX does not have a distinction between
+unicode and byte APIs.  They are one and the same which makes them easy to
+deal with.</p>
+</div>
+<div class="section" id="the-c-locale">
+<h2>The C Locale</h2>
+<p>Nowhere does this show up as much as with the <tt class="docutils literal">C</tt> locale.  The <tt class="docutils literal">C</tt>
+locale is the escape hatch of the POSIX specification to enforce everybody
+to behave the same.  A POSIX compliant operating system needs to support
+setting <tt class="docutils literal">LC_CTYPE</tt> to <tt class="docutils literal">C</tt> and to force everything to be ASCII.</p>
+<p>This locale is traditionally picked in a bunch of different situations.
+Primarily you will find this locale for any program launched from cron,
+your init system, subprocesses with an empty environment etc.  The <tt class="docutils literal">C</tt>
+locale restores a sane <tt class="docutils literal">ASCII</tt> land on environments where you otherwise
+could not trust anything.</p>
+<p>But the word ASCII implies that this is an 7bit encoding.  This is not a
+problem because your operating system is dealin in bytes!  Any 8 bit byte
+based content can pass through just fine, but you are following the
+contract with the operating system that any character processing will be
+limited to the first 7 bit.  Also any message your tool generates out of
+it's own translations will be ASCII and the language will be English.</p>
+<p>Note that the POSIX spec does not say your application should die in
+flames.</p>
+</div>
+<div class="section" id="python-3-dies-in-flames">
+<h2>Python 3 Dies in Flames</h2>
+<p>Python 3 takes a very difference stance on Unicode than UNIX does.  Python
+3 says: everything is Unicode (<em>by default, except in certain situations,
+and except if we send you crazy reencoded data, and even then it's
+sometimes still unicode, albeit wrong unicode</em>).  Filenames are Unicode,
+Terminals are Unicode, stdin and out are Unicode, there is so much
+Unicode!  And because UNIX is not Unicode, Python 3 now has the stance
+that it's right and UNIX is wrong, and people should really change the
+POSIX specification to add a <tt class="docutils literal"><span class="pre">C.UTF-8</span></tt> encoding which is Unicode.  And
+then filenames are Unicode, and terminals are Unicode and never ever will
+you see bytes again although obviously everything still is bytes and will
+fail.</p>
+<p>And it's not just me saying this.  These are bugs in Python related to
+this braindead idea of doing Unicode:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://bugs.python.org/issue13643#msg149941">ASCII is a bad filesystem default encoding</a></li>
+<li><a class="reference external" href="http://bugs.python.org/issue19977">Use surrogateescape as default error handler</a></li>
+<li><a class="reference external" href="http://bugs.python.org/issue19846">Python 3 raises Unicode errors in the C locale</a></li>
+<li><a class="reference external" href="http://bugs.python.org/issue21398">LC_CTYPE=C:  pydoc leaves terminal in an unusable state</a> (this is relevant to Click
+because the pager support is provided by the stdlib pydoc module)</li>
+</ul>
+<p>But then if you Google around you will find so much more.  Just check how
+many people failed to install their pip packages because the changelog had
+umlauts in it.  Or because their home folder has an accent in it.  Or
+because their SSH session negotates ASCII, or because they are connecting
+from Putty.  The list goes on and one.</p>
+</div>
+<div class="section" id="python-3-cat">
+<h2>Python 3 Cat</h2>
+<p>Now let's start fixing cat for Python 3.  How do we do this?  Well first
+of all we now established that we need to deal with bytes because someone
+might echo something which is not in the encoding the shell says.  So at
+the very least the file contents need to be bytes.  But then we also need
+to open the standard output to support bytes which it does not do by
+default.  We also need to deal with the case separately where the Unicode
+APIs crap out on us because the encoding is <tt class="docutils literal">C</tt>.  So here it is, feature
+compatible <tt class="docutils literal">cat</tt> for Python 3:</p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+
+<span class="k">def</span> <span class="nf">_is_binary_reader</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="nb">bytes</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">default</span>
+
+<span class="k">def</span> <span class="nf">_is_binary_writer</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="k">False</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">default</span>
+    <span class="k">return</span> <span class="k">True</span>
+
+<span class="k">def</span> <span class="nf">get_binary_stdin</span><span class="p">():</span>
+    <span class="c"># sys.stdin might or might not be binary in some extra cases.  By</span>
+    <span class="c"># default it&#39;s obviously non binary which is the core of the</span>
+    <span class="c"># problem but the docs recomend changing it to binary for such</span>
+    <span class="c"># cases so we need to deal with it.  Also someone might put</span>
+    <span class="c"># StringIO there for testing.</span>
+    <span class="n">is_binary</span> <span class="o">=</span> <span class="n">_is_binary_reader</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="p">,</span> <span class="k">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_binary</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span>
+    <span class="n">buf</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="p">,</span> <span class="s">&#39;buffer&#39;</span><span class="p">,</span> <span class="k">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">buf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="k">None</span> <span class="ow">and</span> <span class="n">_is_binary_reader</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="k">True</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">buf</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&#39;Did not manage to get binary stdin&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_binary_stdout</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">_is_binary_writer</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="k">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+    <span class="n">buf</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="s">&#39;buffer&#39;</span><span class="p">,</span> <span class="k">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">buf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="k">None</span> <span class="ow">and</span> <span class="n">_is_binary_writer</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="k">True</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">buf</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&#39;Did not manage to get binary stdout&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">filename_to_ui</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="c"># The bytes branch is unecessary for *this* script but otherwise</span>
+    <span class="c"># necessary as python 3 still supports addressing files by bytes</span>
+    <span class="c"># through separate APIs.</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">getfilesystemencoding</span><span class="p">(),</span> <span class="s">&#39;replace&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">,</span> <span class="s">&#39;surrogateescape&#39;</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">,</span> <span class="s">&#39;replace&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+<span class="n">binary_stdout</span> <span class="o">=</span> <span class="n">get_binary_stdout</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+    <span class="k">if</span> <span class="n">filename</span> <span class="o">!=</span> <span class="s">&#39;-&#39;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s">&#39;cat.py: %s: %s&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">filename_to_ui</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span>
+                <span class="n">err</span>
+            <span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+            <span class="k">continue</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">get_binary_stdin</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">binary_stdout</span><span class="p">)</span>
+</pre></div>
+<p>And this is not the worst version.  Not because I want to make things
+extra complicated but because it is complicated now.  For instance what's
+not done in this example is to forcefully flush the text stdout before
+fetching the binary one.  In this example it's not necessary because print
+calls here go to stderr instead of stdout, but if you would want to print
+to stdout instead, you would have to flush.  Why?  Because stdout is a
+buffer on top of another buffer and if you don't flush it forefully you
+might get output in wrong order.</p>
+<p>And it's not just me.  For instance see <a class="reference external" href="https://github.com/twisted/twisted/blob/log-booyah-6750-4/twisted/python/compat.py">twisted's compat module</a>
+for the same mess in slightly different color.</p>
+</div>
+<div class="section" id="dancing-the-encoding-dance">
+<h2>Dancing The Encoding Dance</h2>
+<p>To understand the live of a filename parameter to the shell, this is btw
+now what happens on Python 3 worst case:</p>
+<ol class="arabic simple">
+<li>the shell passes the filename as bytes to the script</li>
+<li>the bytes are being decoded from the expected encoding by Python
+before they ever hit your code.  Because this is a lossy process,
+Python 3 applies an special error handler that encodes encoding errors
+as surrogates into the string.</li>
+<li>the python code then encounters a file not existing error and needs to
+format an error message.  Because we write to a text stream we cannot
+write surrogates out as they are not valid unicode.  Instead we now</li>
+<li>encode the unicode string with the surrogates to utf-8 and tell it to
+handle the surrogate escapes as it.</li>
+<li>then we decode from utf-8 and tell it to ignore errors.</li>
+<li>the resulting string now goes back out to our text only stream
+(stderr)</li>
+<li>after which the terminal will decode our string for displaying
+purposes.</li>
+</ol>
+<p>Here is what happens on Python 2:</p>
+<ol class="arabic simple">
+<li>the shell passes the filename as bytes to the script.</li>
+<li>the shell decodes our string for displaying purposes.</li>
+</ol>
+<p>And because no string handling happens anywhere there the Python 2 version
+is just as correct if not more correct because the shell then can do a
+better job at showing the filename (for instance it could highlight the
+encoding errors if it woudl want.  In case of Python 3 we need to handle
+the encoding internally so that's no longer possible to detect for the
+shell).</p>
+<p>Note that this is not making the script less correct.  In case you would
+need to do actual string handling on the input data you would switch to
+Unicode handling in 2.x or 3.x.  But in that case you also want to support
+a <tt class="docutils literal"><span class="pre">--charset</span></tt> parameter on your script explicitly so the work is pretty
+much the same on 2.x and 3.x anyways.  Just that it's worse because for
+that to work on 3.x you need to construct the binary stdout first which is
+unnecessary on 2.x.</p>
+</div>
+<div class="section" id="but-you-re-wrong-armin">
+<h2>But You're Wrong Armin</h2>
+<p>Clearly I'm wrong.  I have been told so far that:</p>
+<ul class="simple">
+<li>I only feel it's painful because I don't think like a beginner and
+the new Unicode system is so much easier for beginners.</li>
+<li>I don't consider Windows users and how much more correct this new text
+model is for Windows users.</li>
+<li>The problem is not Python, the problem is the POSIX specification.</li>
+<li>The linux distributions really need to start supporting <tt class="docutils literal"><span class="pre">C.UTF-8</span></tt>
+because they are stuck in the past.</li>
+<li>The problem is SSH because it passes incorrect encodings.  This is a
+problem that needs to be fixed in SSH.</li>
+<li>The real problem with lots of unicode errors in Python 3 is that
+people just don't pass explicit encodings and instead assume that
+Python 3 does the right thing to figure it out (which it really can't
+so you should pass explicit encodings).  Then there would be no
+problems.</li>
+<li>I work with &quot;boundary code&quot; so obviously that's harder on Python
+3 now (duh).</li>
+<li>I should spend my time fixing Python 3 instead of complaining on
+Twitter and my blog.</li>
+<li>You're making problems where there are none.  Just let everybody fix
+their environment and encodings everywhere and everything is fine.
+It's a user problem.</li>
+<li>Java had this problem for ages, it worked just fine for developers.</li>
+</ul>
+<p>You know what?  I did stop complaining while I was working with HTTP for a
+while, because I buy the idea that a lot of the problems with HTTP/WSGI
+are something normal people don't need to deal with.  But you know what?
+The same problem appears in simple Hello World style scenarios.  Maybe I
+should give up trying to achieve a high quality of Unicode support in my
+libraries and just live with broken stuff.</p>
+<p>I can bring up counter arguments for each of the point above, but
+ultimately it does not matter.  If Python 3 was the only Python language I
+would use, I would eat up all the problems and roll with it.  But it's
+not.  There is a perfectly other language available called Python 2, it
+has the larger user base and that user base is barely at all migrating
+over.  At the moment it's just very frustrating.</p>
+<p>Python 3 might be large enough that it will start to force UNIX to go the
+Windows route and enforce Unicode in many places, but really, I doubt it.</p>
+<p>The much more likely thing to happen is that people stick to Python 2 or
+build broken stuff on Python 3.  Or they go with Go.  Which uses an even
+simpler model than Python 2: everything is a byte string.  The assumed
+encoding is UTF-8.  End of the story.</p>
+</div>
+
+
+  
+  <p class=tags>This entry was tagged
+    
+      <a href="/tags/linux/">linux</a>, 
+      <a href="/tags/python/">python</a> and 
+      <a href="/tags/unicode/">unicode</a>
+  
+
+  
+
+
+        <div class=adspace>
+          <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+          <ins class="adsbygoogle"
+               style="display:inline-block;width:728px;height:90px"
+               data-ad-client="ca-pub-6757320953560275"
+               data-ad-slot="8324866143"></ins>
+          <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+      </div>
+      <div class=footer>
+        <p>&copy; Copyright 2014 by Armin Ronacher.
+        <p>
+          Content licensed under the Creative Commons
+          attribution-noncommercial-sharealike License.
+        <p>
+          Contact me via <a href="mailto:armin.ronacher@active-4.com">mail</a>,
+          <a href="http://twitter.com/mitsuhiko">twitter</a>,
+          <a href="http://github.com/mitsuhiko">github</a> or
+          <a href="http://bitbucket.org/mitsuhiko">bitbucket</a>.
+          Tip me via <a href="https://www.gittip.com/mitsuhiko/">gittip</a>.
+          More info: <a href="/about#imprint">imprint</a>.
+          (<a href="/feed.atom" rel="alternate" title="Recent Blog Posts">feed</a>)
+      </div>
+    </div>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-20909083-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

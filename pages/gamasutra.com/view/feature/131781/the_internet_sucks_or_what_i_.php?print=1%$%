@@ -1,0 +1,629 @@
+<html>
+<head>
+
+<style type="text/css">
+table, body {font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px;}
+h3.title {font-size: 16px; background: #eeeeee; width: 100%; padding: 3px;}
+span.gamacode {
+	/*font-family: "courier new";*/
+	display: block;
+	padding-left: 20px;
+	text-align: left;
+}
+</style>
+
+<title>Gamasutra - The Internet Sucks: Or, What I Learned Coding X-Wing vs. TIE Fighter</title>
+</head>
+<div style="width: 750px; margin:auto;">
+<div style="border: 2px solid #ccc; width: 100%;"><a href="http://gamasutra.com"><img border="0" src="http://twimgs.com/gamasutra/db_area/images/print/gamalogo.gif" /></a>
+	<a href="javascript:window.print()"><img src="http://twimgs.com/gamasutra/db_area/images/print/print.gif" style="border: 0pt none ; float: right; margin-top: 10px;"></a>
+</div>
+<div style="clear:both;"></div>
+<h3 class="title">The Internet Sucks: Or, What I Learned Coding X-Wing vs. TIE Fighter</h3>
+By Peter Lincroft
+<p>
+<em>Editor's 
+note: This paper was originally published in the 1999 <a href="http://www.gdconf.com/" target="_blank">Game 
+Developer's Conference</a> proceedings.</em>
+</p>
+<p>
+When we 
+started the<em> X-Wing vs. TIE Fighter</em> project, our goal was to create 
+the first multi-player space combat simulator to be playable over the 
+Internet. There were several major problems that we had to be overcome 
+to accomplish this goal, not the least of which was the Internet itself. 
+I will review the problems we faced, the approach we took, and the results 
+we achieved. I hope the lessons I learned will prove to be valuable to 
+those who read this paper.
+</p>
+<p>
+<strong>The Problems 
+We Knew About</strong>
+</p>
+<p>
+<em>X-Wing 
+vs. TIE Fighter</em> is the third game in the <em>Star Wars</em> space combat 
+simulator series. The Internet was definitely not one of the things that 
+we were thinking about when we created the engine for the original <em>X-Wing</em> 
+game. This was the first problem we faced. Adding Internet capability 
+to an existing engine is significantly more difficult when the engine 
+was not designed with the Internet in mind.
+</p>
+<p>
+Our second 
+problem was the complexity of the game design. We had always felt that 
+one of the strongest features of our engine was its ability to simulate 
+fairly complex missions. We were proud to have fairly large numbers of 
+craft in each mission, which had reasonably complex behaviors. Our goal 
+in creating <em>X-Wing vs. TIE Fighter</em> was to create a multi-payer 
+game that had this same level of complexity. We wanted to give gamers 
+a multi-player experience that was more complex than &quot;deathmatch.&quot; 
+This requirement dramatically increases the amount of data that the players 
+need to have in order to play the game. 
+</p>
+<p>
+<img src="http://www.gamasutra.com/features/19990903/boxshot.jpg" alt="X-Wind vs. TIE Fighter box" hspace="4" vspace="4" width="150" height="195" align="left" />
+Third on 
+our list of problems was that we would not have a dedicated server available; 
+we would have to use a peer-to-peer network model. The expense of providing 
+servers with sufficient processing power and bandwidth for our expected 
+audience size was considered unreasonably high. And because of the nature 
+of the license we were working with, allowing gamers to set up their own 
+servers was not a viable alternative. A peer-to-peer system avoids the 
+problem, but it poses a significantly more challenging engineering problem, 
+because each player must communicate with several other players, instead 
+of with a single server. Because the Internet does not have a viable multi-casting 
+capability, sending the same message to three destinations requires three 
+times as much bandwidth as sending it to a single destination.
+</p>
+<p>
+The fourth 
+problem, of course, was the Internet itself. When we started the project 
+we assumed that we would need to handle latency that varied from 200ms 
+to a full second. We also knew that we would be limited to the bandwidth 
+available from a 28K modem. These two constraints were our primary focus 
+when we designed our network model, but they would turn out to be among 
+the easiest problems to solve.
+</p>
+<hr name="false" />
+<p>
+<strong>The 
+Approach</strong>
+</p>
+<p align="left">
+Given 
+this set of problems, we designed a network model that we hoped would 
+address all of these issues in a satisfactory way. The first decision 
+we made was the biggest, and would be the source of most of our headaches 
+later on. We decided that we did not want the network model to restrict 
+the complexity of the missions, and we knew that there was no way to compress 
+all of the data relevant to each player into the available bandwidth. 
+We thought of three possible solutions to the problem. The first alternative, 
+and one we knew was being used successfully by other games, was to send 
+only the most &quot;important&quot; data, and allow the rest of the data 
+to be filled in by some form of prediction. The second alternative was 
+to only provide the data necessary to accurately display the world. The 
+third alternative was to send only the actions taken by each player, and 
+simulate the consequences of those actions on each machine.
+</p>
+<p>
+The first 
+alternative requires the ability to quickly determine which data is &quot;important,&quot; 
+and which data is not. In our previous games, players were given a lot 
+of capability to find out what was going on in the game. We even had a 
+real-time map that allowed the player to view all of the craft in the 
+mission simultaneously. In addition, the player could use the &quot;targeting 
+computer&quot; to instantly find out the current status of any craft in 
+the world. If we took the &quot;relevance&quot; approach to the problem, 
+we would have to modify or remove these features.
+</p>
+<p>
+The second 
+alternative sounded like a good possibility. The typical view from the 
+player cockpit would normally only display a few objects, and if the player 
+<em>could</em> see many objects, the player would be far away and the view 
+would not necessarily need to be completely accurate. The problem was 
+that the player was in open space, flying a very maneuverable craft. They 
+could complete a 360-degree turn very quickly, and in that time they would 
+likely see almost all of the objects in the game. We knew this approach 
+had been successful in games with interior environments, but our game 
+could not use walls to divide the world into manageable chunks. We considered 
+the possibility of introducing a &quot;fog&quot; which would restrict 
+the player&rsquo;s view to only those objects within a certain distance, but 
+let&rsquo;s face it - that's just a bad idea.
+</p>
+<p align="center">
+<img src="http://www.gamasutra.com/features/19990903/xvt1.jpg" alt="Boom" width="320" height="240" align="middle" />
+</p>
+<p>
+The third 
+alternative was immediately attractive to us. The bandwidth required to 
+send only the player&rsquo;s actions would be constant regardless of the complexity 
+of the mission. We had used a similar technique in the past to allow players 
+to make &quot;recordings&quot; of a game that could be played back in 
+a &quot;VCR&quot; room, so we knew the engine was compatible with the 
+concept. We decided to do a quick test of this approach, and we got our 
+first multi-player mission working in a matter of days.
+</p>
+<hr name="false" />
+<p>
+<strong>Hosting 
+the Game</strong>
+</p>
+<p>
+The second 
+major decision we made was to have one player act as the &quot;host&quot; 
+for the game. Our decision to send the player&rsquo;s input only meant that 
+in a true peer-to-peer system, each player would have to send their messages 
+to every other player. Since there is no broadcast or multicast capability 
+over the Internet, this decision meant that every message would have to 
+be duplicated and sent N-1 times, where N is the number of players in 
+the game. This means that the 28K bandwidth available to the player is 
+really divided by the number of players in the game.
+</p>
+<p align="left">
+If 
+one player acts as the &quot;host&quot; of the game, we can significantly 
+reduce the burden on the other players, while only slightly increasing 
+the burden on the player that is the host. Each player sends data to the 
+host, who compiles all the data into one large packet, and then sends 
+a copy to each &quot;client.&quot; The advantage of this approach is that 
+if the &quot;host&quot; has a faster connection, that person can support 
+a game containing several low-speed players. This did eventually pay off 
+when the game was released, as players with fast connections were able 
+to host eight-player games with the other seven players all playing over 
+modem connections.
+</p>
+<p align="center">
+<img src="http://www.gamasutra.com/features/19990903/xvt2.jpg" alt="The odds of surviving an asteroid field are..." width="400" height="300" />
+</p>
+<p>
+The other 
+major advantage of having one player act as the &quot;host&quot; is that 
+we do not have to worry about synchronizing the data on every player&rsquo;s 
+machine with every other machine. Instead, we can focus on every player 
+being synchronized with the game data on the &quot;host&quot; machine. 
+We expected that this would make &quot;late join&quot; easier to implement, 
+but unfortunately that feature never made it into the game.
+</p>
+<p>
+Despite 
+the ease with which we got our test case working, we did not think our 
+job was going to be easy. We knew this approach would have its own problems. 
+The problem we anticipated with the most anxiety was the one we had seen 
+many times before in our &quot;VCR&quot; feature. When playing back a 
+recording of the player&rsquo;s input, the game would sometimes produce results 
+that were completely different from the original flight. In the past, 
+bugs in the code that were otherwise harmless inevitably caused these 
+&quot;divergence&quot; problems. For example, we might use a local variable 
+as a Boolean flag to decide between two possible actions for a non-player 
+craft. If the variable were accidentally used before being set, the decisions 
+would be random depending on the value of the variable&rsquo;s location on the 
+stack. This type of bug was usually not noticeable, except when playing 
+back a film. But when playing back a film, the bug could cause a craft 
+to take a different action from the action it had taken when the film 
+was recorded. This difference would quickly &quot;ripple&quot; through 
+the rest of the game world, as craft that were dependent on the actions 
+of that craft made different decisions as well.
+</p>
+<p>
+If this 
+kind of thing happened during a multi-player game, the players would quickly 
+be experiencing two completely different simulations. We hoped to deal 
+with this &quot;out of sync&quot; problem in two ways. First, we hoped 
+that we would be able to find most of these bugs, and thereby avoid the 
+problem occurring in the first place. Second, we devised a mechanism for 
+detecting when the problem occurred, and &quot;re-syncing&quot; the game 
+by sending the data that had diverged.
+</p>
+<p>
+The big 
+advantage of this approach was the low bandwidth requirements. We still 
+had to deal with the issue of latency. After some quick tests we realized 
+that even 100ms of latency made our controls unusable. It was incredibly 
+frustrating to try to hit a target when there was a delay between when 
+you pressed the trigger and when your weapons fired. Rather than change 
+the controls and the way the game played to compensate for the problem, 
+we decided to devise a system in which the player would experience nearly 
+zero latency between their actions and the response of their craft. The 
+key to making this work was to use a technique similar to what is sometimes 
+called &quot;dead reckoning&quot;.
+</p>
+<p>
+Our solution 
+was to maintain two simultaneous copies of the game&rsquo;s data. The first 
+copy of the world was based exclusively on the actual actions taken by 
+each player, and was not updated until that information was available. 
+The second copy always represented the state of the game at the current 
+time, and was the version we would render each frame. This second copy 
+of the game data wasn&rsquo;t able to account for the actions of the players 
+because the information about those actions was delayed by the latency 
+of the Internet. Instead, this copy of the game data was based on a prediction 
+of what those players&rsquo; actions were likely to be. The higher the latency 
+of the connection, the longer the gap of time between the two copies, 
+and the more inaccurate the predicted version became.
+</p>
+<p>
+Our approach 
+seemed to solve the two Internet problems we had heard the most about: 
+bandwidth and latency. Bandwidth was kept to a bare minimum by only sending 
+data about each player&rsquo;s actions. Latency would cause some inaccuracy 
+in the world (what we called &quot;warping&quot;), but would not affect 
+the player&rsquo;s flight controls. We were pretty pleased with ourselves, and 
+thought we must be very clever.
+</p>
+<hr name="false" />
+<p>
+<strong>Implementing 
+the Design</strong>
+</p>
+<p>
+Our first 
+step was to implement the network model and test it on our LAN. This process 
+went pretty smoothly. Our first implementation was a simple &quot;synchronous&quot; 
+version, in which all the players would wait until all of the input from 
+a frame was received before processing the simulation. This first pass 
+used very little bandwidth, but would not work at all with significant 
+amounts of latency. It also had the significant drawback that if one player 
+had a slow frame rate, all the other players would be slowed down to match 
+the slowest player&rsquo;s frame rate. This was why we called it &quot;synchronous&quot;: 
+all of the payers were &quot;synchronized&quot; to the slowest frame rate.
+</p>
+<p>
+This version 
+was fairly easy to code because we did not implement the &quot;predicted&quot; 
+copy of the world, and we did not even try to address the issue of latency. 
+Also, we used DirectPlay, so we have very little work to do to create 
+a game session and get the players joined into it. We got this version 
+up and running quickly so that our mission designers could begin working 
+on multi-player missions. We actually used the &quot;synchronous&quot; 
+version for quite awhile. It was good enough to test with, so finishing 
+the network code was considered a lower priority than the other issues 
+we needed to address at that stage of development. When we finally came 
+back to the network code we were behind schedule, and that affected some 
+of the decisions we make later in the process. And it meant we were absolutely 
+committed to the complexity of the missions, and the user interface.
+</p>
+<p>
+<img src="http://www.gamasutra.com/features/19990903/xvt3.jpg" alt="Nebulon Hospital Ship" width="283" height="222" align="right" />One 
+big benefit of having implemented this first version early was that we 
+were able to develop some pretty effective techniques for finding &quot;out-of-sync&quot; 
+bugs. Thanks to those techniques and the long period of testing, we actually 
+found most of those bugs. We were also able to work on the &quot;re-sync&quot; 
+mechanism, and we found that on the LAN, we could re-sync a game so quickly 
+that you hardly even noticed when an &quot;out-of-sync&quot; bug had occurred.
+</p>
+<p>
+When we 
+came back to the network code, we knew the first task was to create a 
+second copy of the world that would be based on the first copy. Unfortunately, 
+our game engine was not coded with this concept in mind, and this turned 
+out to be much more difficult that it should have been. However, once 
+we had the code working, we added some artificial latency to our LAN and 
+tested it out. It worked great!
+</p>
+<p>
+We now had 
+a version of the game that worked great on the LAN. It used very little 
+bandwidth, and it tolerated 500ms of latency so well you hardly even noticed 
+it. Brimming with confidence, we set up a couple of systems to test it 
+over the Internet. And it worked! We wouldn&rsquo;t realize our mistake until 
+weeks later when we finally did some real testing.
+</p>
+<hr name="false" />
+<p>
+<strong>Lessons 
+Learned (The Internet Sucks)</strong>
+</p>
+<p>
+<strong>First 
+lesson:</strong> 
+If all players dial into the same phone number, you are not testing the 
+Internet. You are testing the modems and the POP server, but you are not 
+testing the Internet. It&rsquo;s obvious when you think about it. Your packets 
+go over the modem to the POP server, and it sends them right back out 
+to the other player. The packets never get past the POP server.
+</p>
+<p>
+When we 
+finally tried our game on some real network connections, it would fail 
+within seconds. We were mystified. It worked great on the LAN, even with 
+500ms of artificial latency. When we ran some diagnostics we discovered 
+that we were seeing some simply unbelievable latencies. 5 and 10 seconds 
+was frequent, and we saw some as long as 50 seconds! Our game would simply 
+fall apart under those conditions.
+</p>
+<p>
+What was 
+actually happening was that a packet would get lost. The TCP protocol 
+specifies that packets will always be delivered, and furthermore, that 
+they will always be delivered in order. TCP uses a system of acknowledgements 
+to verify that packets are successfully delivered, and will re-send packets 
+if they are lost in transmission. The &quot;in order&quot; specification 
+means that if a packet must be re-sent, the packets that follow it are 
+delayed until the lost packet is received. The problem is that when an 
+Internet connection starts dropping packets, it becomes very likely that 
+the re-sent packet will also get dropped. This means it can take several 
+seconds for a packet to arrive at its destination.
+</p>
+<p>
+<img src="http://www.gamasutra.com/features/19990903/xvt5.jpg" alt="" width="300" height="211" align="right" /><strong>Lesson 
+two:</strong> TCP is evil. Don&rsquo;t use TCP for a game. You would rather spend 
+the rest of your life watching Titanic over and over in a theater full 
+of 13 year old girls. First of all, TCP refuses to deliver any of the 
+other packets in the stream while it waits for the next &quot;in order&quot; 
+packet. This is why we would see latencies in the 5-second range. Second 
+of all, if a packet is having a tough time getting to its destination, 
+TCP will actually stop re-sending it! The theory is that if packets are 
+being dropped that it's due to congestion. Therefore, it is worthless 
+to try re-sending because that will only make the congestion worse. So 
+TCP will actually stop sending packets, and start sending occasional little 
+test packets. When the test packets start to get through reliably, TCP 
+will gradually start sending real packets again. This &quot;slow re-start&quot; 
+algorithm explains why we would see latencies in the 50-second range.
+</p>
+<p>
+<strong>Lesson 
+three:</strong> Use UDP. The solution to this evil protocol seems simple at 
+first. Don&rsquo;t use TCP, use UDP instead. Unlike TCP, UDP is an unreliable 
+protocol. It does nothing to guarantee that a packet is delivered, and 
+it does nothing to guarantee that a packet is delivered in order. In other 
+words, it does nothing. So if you really need a packet to be delivered, 
+you need to handle the re-sending and acknowledgements. There is one other 
+extremely annoying thing about UDP. Modem connections are made using a 
+protocol called PPP. When you end TCP packets over a PPP connection, it 
+does some very clever compression of the Internet header data, reducing 
+it from 22 bytes to 3 bytes (or less). When you send UDP packets over 
+a PPP connection it does not perform this clever compression and sends 
+the entire 22-byte header over the modem. So if you are using UDP, you 
+shouldn&rsquo;t send small packets.
+</p>
+<p>
+Of course, 
+our network system absolutely requires that every packet be delivered. 
+If TCP actually worked, this would not be a problem. But TCP is hopelessly 
+broken, so we had to write our own protocol to handle acknowledgements 
+and re-sends. Unfortunately, we didn&rsquo;t realize that right away, and it 
+took us awhile to get there.
+</p>
+<p>
+Our first 
+step was to switch from TCP to UDP. This was as simple as passing a flag 
+to DirectPlay. Of course, now the game would fail miserably as soon as 
+the first packet was dropped. So, we implemented a simple re-sending mechanism 
+to handle the dropped packets. This seemed to work a little better, but 
+occasionally things would go horribly wrong exactly as they had before. 
+Our first guess was that DirectPlay was actually ignoring the flag and 
+using TCP anyway. But our diagnostics quickly showed us that the problem 
+was even more evil than Microsoft: it was the Internet.
+</p>
+<p>
+<strong>Lesson 
+four:</strong> UDP is better than TCP, but it still sucks. We expected packets 
+to be dropped occasionally, but the Internet is much worse than that. 
+It turned out that on some connections, about every fifth packet we sent 
+would just disappear into the Ethernet. When they say UDP is unreliable, 
+they aren&rsquo;t kidding! Our simple re-sending mechanism just didn&rsquo;t perform 
+well enough under these conditions. It was quite common for a re-sent 
+packet to be dropped, and we saw several cases where the original packet 
+and 4 or 5 re-sends of that packet would all be dropped. We were re-sending 
+so many packets, we were starting to exceed the bandwidth of the modem, 
+and then the latency would start to climb, and all hell would break loose.
+</p>
+<p>
+Our solution 
+was simple and surprisingly effective. Every packet would send copy of 
+the last packet. This way if a packet were dropped, a copy of it would 
+arrive with the next packet, and we could continue on our merry way. This 
+would require nearly twice as much bandwidth, but fortunately our system 
+required so little bandwidth that this was acceptable. This would only 
+fail if two consecutive packets were dropped, and this seemed unlikely. 
+If it did happen, then we would fall back on the re-sending code.
+</p>
+<p>
+This seemed 
+to work pretty well! We finally had the game working on the Internet! 
+Sure the Internet had turned out to be far worse than we had thought, 
+but we could deal with it.
+</p>
+<p>
+<strong>Lesson 
+five:</strong> Whenever you think the Internet can&rsquo;t get any worse, it gets 
+worse. More extensive testing showed that we still had some serious problems. 
+Apparently we had some kind of bug in our re-sending code, because it 
+seemed that occasionally players would just lose their connection and 
+nothing would get through. After spending endless hours trying to find 
+the bug in our code, we finally realized that our code was fine, it was 
+the Internet that was broken!
+</p>
+<p>
+It turns 
+out that sometimes the Internet gets so bad, that practically no packets 
+get through at all! We documented periods of 10 and even 20 seconds during 
+which only 3 or 4 packets would be delivered. No wonder TCP decides to 
+just give up! How can you possibly play a game under conditions like that? 
+We had a major problem on our hands. This &quot;lost connection&quot; 
+phenomenon was something we just weren&rsquo;t prepared to deal with.
+</p>
+<p>
+Fortunately, 
+this condition is usually pretty short, on the order of a few seconds. 
+We managed to get our code to handle that by just tweaking the re-sending 
+code. The player who is suffering this condition will frequently have 
+their game stopped while we wait for the connection to clear, but once 
+the condition passes, they can resume playing.
+</p>
+<p>
+Unfortunately, 
+this &quot;lost connection&quot; condition can last pretty long, and when 
+that happens, we just can&rsquo;t handle it, and we end up having to disconnect 
+that player from the game. This isn&rsquo;t really a solution, but at least 
+it meant one bad connection wouldn&rsquo;t ruin everyone&rsquo;s game.
+</p>
+<p>
+One of the 
+last refinements we made to the game to deal with the Internet involved 
+dealing with the inaccuracy of the predicted world. Since latencies could 
+be very long, we need a way to deal with the inaccuracy of the predicted 
+world. 
+</p>
+<p>
+Our first 
+clue that we had to address this issue was the result of implementing 
+what we thought would be an improvement. We realized that if any one player 
+had trouble getting their data to the host computer, then every player 
+would suffer because the host would not send out the compiled data packets 
+until it had received data from every player. We decided that if a player 
+failed to get their data to the host within a reasonable amount of time, 
+then we would simply drop that data and send out the compiled packet without 
+it.
+</p>
+<p>
+If you follow 
+through the consequences of that action you will realize that it creates 
+a very evil situation. Players normally predict the position of their 
+own craft with perfect accuracy. After all, they know exactly what they 
+have done, so they know exactly where they should be. But if the host 
+drops their input from the &quot;official&quot; version of the world which 
+is the basis of their predicted version of the world, then they will actually 
+have to change their own position if they are going to stay in sync with 
+the other players. The visual result of changing the local player&rsquo;s position 
+is that the position of everything in the world, including the star-field, 
+will change position.
+</p>
+<p>
+This effect, 
+dubbed &quot;star-field warping,&quot; is extremely disconcerting, and 
+makes the game practically unplayable. We eventually compromised by only 
+dropping a player&rsquo;s data if it was extremely late, which made this event 
+fairly rare. However, in hindsight it might have been better to use the 
+same solution we eventually implemented for the other players.
+</p>
+<p>
+This instantaneous 
+jump in position, or &quot;warp&quot;, will always occur for the other 
+players, since their position is always incorrectly predicted. If latency 
+is fairly low (less than 200ms) this jumping is not very noticeable, but 
+as latency increases the inaccuracy of the predicted world increases, 
+and this &quot;warping&quot; effect becomes more noticeable.
+</p>
+<p>
+To address 
+this problem we implemented a &quot;smoothing&quot; effect. The smoothing 
+algorithm keeps track of our last prediction of each player&rsquo;s position. 
+It then takes the current prediction and moves it closer to the last prediction. 
+This effectively smoothes out the motion of the other player&rsquo;s craft, 
+and it looks much better, even though it is probably less accurate.
+</p>
+<hr name="false" />
+<p>
+<strong>Conclusions 
+Drawn</strong>
+</p>
+<p>
+The conclusion 
+is obvious: the Internet sucks. We were pretty disappointed in how our 
+game performed over bad Internet connections. But looking back on it now, 
+I believe we did as good a job as anyone else, given the style of game 
+we were building, and the constraints we were forced to deal with.
+</p>
+<p>
+The lack 
+of a dedicated server turned out to be a huge problem. In cases where 
+the &quot;lost connection&quot; phenomenon lasted more than a few seconds, 
+it was clearly easier to send the entire state of the world than it was 
+to re-send all the packets that had been lost. This was not practical, 
+however, because the computer that would have to do that would be one 
+of the players', and could not spare the bandwidth. A dedicated serer 
+could have addressed this problem, and doing so would have been equivalent 
+to allowing a player to &quot;join&quot; a game that was already in progress. 
+&quot;Late join&quot; was a feature we really wanted to have in the game, 
+but we felt it just wasn&rsquo;t practical without a dedicated server.
+</p>
+<p align="center">
+<img src="http://www.gamasutra.com/features/19990903/xvt4.jpg" alt="I can't think of anything clever" width="312" height="225" />
+</p>
+<p align="left">
+A 
+dedicated server would also have made it easier to support more simultaneous 
+players. The latency would be cut nearly in half, because messages would 
+not have to go through modems before being re-sent to the other players, 
+as they do with the &quot;host&quot; player. In addition, a dedicated 
+server would make it significantly easier for a player to evaluate the 
+quality of their connection to the game, since they would only have to 
+worry about their connection to the server. With a player acting as a 
+host, the other players must be concerned with the quality of the host&rsquo;s 
+connection to the Internet, as well as their connection.
+</p>
+<p>
+One of the 
+biggest problems we faced with our network model was the requirement that 
+packets be processed in order. Out-of-order packets could be used to improve 
+the predicted copy of the world, but in XVT they are not. Even if they 
+were there would still be a significant performance problem. The problem 
+is that when the in-order packet finally does arrive, we must process 
+it, and all the out-of-order packets that have come since. This can be 
+time-consuming because the simulation must be run on each packet.
+</p>
+<p>
+Both of 
+these problems would have been much easier to address if we had started 
+from scratch. But because we were modifying an existing engine we were 
+limited by its capabilities. If the engine had been able to simulate large 
+time steps more efficiently, that would have helped a great deal. We were 
+effectively required to use a fixed time step, and this made simulating 
+a long time step very inefficient. In addition, if the engine had been 
+able to use out-of-order data to improve the predictions, then the long 
+lag for a re-sent packet would have been much less noticeable.
+</p>
+<p>
+One of the 
+advantages of our approach to the problem is that it is pretty much completely 
+independent of the game&rsquo;s content. The packets we send only contain data 
+about the player&rsquo;s input device, and this technique could work virtually 
+unchanged for almost any kind of real-time game. The really nice thing 
+about this aspect of the model is that we did not have to worry about 
+changing the content of the game, requiring us to change the network code. 
+The fact that no game-specific data is included in the packets also makes 
+it much more difficult for players to cheat by using &quot;bots&quot;. 
+In order to give an advantage, a &quot;bot&quot; would have to be able 
+to create a stream of input data that is more effective than a human player 
+and I think this would be extremely difficult. 
+</p>
+<p>
+<strong>Currently, 
+Peter Lincroft is President and Lead Programmer at <a href="http://www.ansiblesoftware.com/" target="_blank">Ansible 
+Software.</a> He graduated with honors from the University of California 
+in computer science. His first title was <em>Pipe Dream</em>, which he programmed 
+single-handedly in just seven weeks. He went on to program his first 3D 
+graphics engine for Lawrence Holland on the <em>Secret Weapons of the Luftwaffe</em> 
+project. Peter continued to work with Lawrence, helping to create the 
+game software development company that would eventually become Totally 
+Games, Inc. Peter was the lead technical programmer for Totally Games 
+until April of 1998, when he left to form his own company, Ansible Software, 
+Inc. His list of published titles includes <em>Pipe Dream, Secret Weapons 
+of the Luftwaffe, X-Wing: Star Wars Space Combat Simulator, X-Wing CD, 
+TIE Fighter, TIE Fighter CD,</em> and <em>X-Wing vs. TIE Fighter</em>. These 
+titles have sold over 3 million copies, and won numerous &quot;game of the 
+year&quot; awards. <em>TIE Fighter</em> CD was recently named the &quot;best game 
+ever&quot; by PC Gamer magazine.</strong>
+</p>
+
+
+<p style="background: #eee; text-align: center; padding: 5px;"><a href="/view/feature/131781/the_internet_sucks_or_what_i_.php">Return to the full version of this article</a><br />
+Copyright &#169; 
+<script type="text/javascript">
+  <!--
+  var currentTime = new Date()
+  var year = currentTime.getFullYear()
+  document.write( year)
+  //-->
+</script>
+
+UBM Tech, All rights reserved
+</p>
+
+
+</div> 
+</body>
+</html>

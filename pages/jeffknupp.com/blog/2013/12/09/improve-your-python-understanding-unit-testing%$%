@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link href='/css/jeffknupp.min.css' rel='stylesheet' type='text/css'>
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,900' rel='stylesheet' type='text/css'>
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <title>Improve Your Python: Understanding Unit Testing</title>
+  <meta name="author" content="Jeff Knupp">
+  <meta name="description" content=""> 
+  <link rel="icon" href="/images/favicon.png" >
+  <link rel="alternate" href="http://feeds.feedblitz.com/hackersgonnahack" title="Python Programming" type="application/atom+xml">
+
+  
+<style>
+td.linenos { background-color: #f0f0f0; padding-right: 10px; }
+span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
+table.codehilitetable .hll, .codehilite pre .hll { background-color: #ffffcc }
+table.codehilitetable, .codehilite  { background: #f8f8f8; }
+table.codehilitetable .c, .codehilite pre .c { color: #408080; font-style: italic } /* Comment */
+table.codehilitetable .err, .codehilite pre .err { border: 1px solid #FF0000 } /* Error */
+table.codehilitetable .k, .codehilite pre .k { color: #008000; font-weight: bold } /* Keyword */
+table.codehilitetable .o, .codehilite pre .o { color: #666666 } /* Operator */
+table.codehilitetable .cm, .codehilite pre .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+table.codehilitetable .cp, .codehilite pre .cp { color: #BC7A00 } /* Comment.Preproc */
+table.codehilitetable .c1, .codehilite pre .c1 { color: #408080; font-style: italic } /* Comment.Single */
+table.codehilitetable .cs, .codehilite pre .cs { color: #408080; font-style: italic } /* Comment.Special */
+table.codehilitetable .gd, .codehilite pre .gd { color: #A00000 } /* Generic.Deleted */
+table.codehilitetable .ge, .codehilite pre .ge { font-style: italic } /* Generic.Emph */
+table.codehilitetable .gr, .codehilite pre .gr { color: #FF0000 } /* Generic.Error */
+table.codehilitetable .gh, .codehilite pre .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+table.codehilitetable .gi, .codehilite pre .gi { color: #00A000 } /* Generic.Inserted */
+table.codehilitetable .go, .codehilite pre .go { color: #808080 } /* Generic.Output */
+table.codehilitetable .gp, .codehilite pre .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+table.codehilitetable .gs, .codehilite pre .gs { font-weight: bold } /* Generic.Strong */
+table.codehilitetable .gu, .codehilite pre .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+table.codehilitetable .gt, .codehilite pre .gt { color: #0040D0 } /* Generic.Traceback */
+table.codehilitetable .kc, .codehilite pre .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+table.codehilitetable .kd, .codehilite pre .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+table.codehilitetable .kn, .codehilite pre .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+table.codehilitetable .kp, .codehilite pre .kp { color: #008000 } /* Keyword.Pseudo */
+table.codehilitetable .kr, .codehilite pre .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+table.codehilitetable .kt, .codehilite pre .kt { color: #B00040 } /* Keyword.Type */
+table.codehilitetable .m, .codehilite pre .m { color: #666666 } /* Literal.Number */
+table.codehilitetable .s, .codehilite pre .s { color: #BA2121 } /* Literal.String */
+table.codehilitetable .na, .codehilite pre .na { color: #7D9029 } /* Name.Attribute */
+table.codehilitetable .nb, .codehilite pre .nb { color: #008000 } /* Name.Builtin */
+table.codehilitetable .nc, .codehilite pre .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+table.codehilitetable .no, .codehilite pre .no { color: #880000 } /* Name.Constant */
+table.codehilitetable .nd, .codehilite pre .nd { color: #AA22FF } /* Name.Decorator */
+table.codehilitetable .ni, .codehilite pre .ni { color: #999999; font-weight: bold } /* Name.Entity */
+table.codehilitetable .ne, .codehilite pre .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+table.codehilitetable .nf, .codehilite pre .nf { color: #0000FF } /* Name.Function */
+table.codehilitetable .nl, .codehilite pre .nl { color: #A0A000 } /* Name.Label */
+table.codehilitetable .nn, .codehilite pre .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+table.codehilitetable .nt, .codehilite pre .nt { color: #008000; font-weight: bold } /* Name.Tag */
+table.codehilitetable .nv, .codehilite pre .nv { color: #19177C } /* Name.Variable */
+table.codehilitetable .ow, .codehilite pre .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+table.codehilitetable .w, .codehilite pre .w { color: #bbbbbb } /* Text.Whitespace */
+table.codehilitetable .mf, .codehilite pre .mf { color: #666666 } /* Literal.Number.Float */
+table.codehilitetable .mh, .codehilite pre .mh { color: #666666 } /* Literal.Number.Hex */
+table.codehilitetable .mi, .codehilite pre .mi { color: #666666 } /* Literal.Number.Integer */
+table.codehilitetable .mo, .codehilite pre .mo { color: #666666 } /* Literal.Number.Oct */
+table.codehilitetable .sb, .codehilite pre .sb { color: #BA2121 } /* Literal.String.Backtick */
+table.codehilitetable .sc, .codehilite pre .sc { color: #BA2121 } /* Literal.String.Char */
+table.codehilitetable .sd, .codehilite pre .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+table.codehilitetable .s2, .codehilite pre .s2 { color: #BA2121 } /* Literal.String.Double */
+table.codehilitetable .se, .codehilite pre .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+table.codehilitetable .sh, .codehilite pre .sh { color: #BA2121 } /* Literal.String.Heredoc */
+table.codehilitetable .si, .codehilite pre .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+table.codehilitetable .sx, .codehilite pre .sx { color: #008000 } /* Literal.String.Other */
+table.codehilitetable .sr, .codehilite pre .sr { color: #BB6688 } /* Literal.String.Regex */
+table.codehilitetable .s1, .codehilite pre .s1 { color: #BA2121 } /* Literal.String.Single */
+table.codehilitetable .ss, .codehilite pre .ss { color: #19177C } /* Literal.String.Symbol */
+table.codehilitetable .bp, .codehilite pre .bp { color: #008000 } /* Name.Builtin.Pseudo */
+table.codehilitetable .vc, .codehilite pre .vc { color: #19177C } /* Name.Variable.Class */
+table.codehilitetable .vg, .codehilite pre .vg { color: #19177C } /* Name.Variable.Global */
+table.codehilitetable .vi, .codehilite pre .vi { color: #19177C } /* Name.Variable.Instance */
+table.codehilitetable .il, .codehilite pre .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
+  <style>
+body {
+    font-family: 'Roboto', sans-serif;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", 'Roboto', Arial, "Lucida Grande", sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+}
+.nav {
+    text-align: right;
+    padding-bottom: 20px;
+}
+
+.nav a {
+    padding-right: 2em;
+    color: black;
+    font-size: 14px;
+}
+
+.title {
+   width: 100%; 
+   text-align: center; 
+   border-bottom: 1px solid #000; 
+   line-height: 0.1em;
+   margin: 10px 0 40px; 
+} 
+
+.title span { 
+    background:#fff; 
+    padding:0 20px; 
+}
+
+/* Side notes for calling out things
+-------------------------------------------------- */
+ 
+/* Base styles (regardless of theme) */
+.bs-callout {
+  margin: 20px 0;
+  padding: 15px 30px 15px 15px;
+  border-left: 5px solid #eee;
+}
+.bs-callout h4 {
+  margin-top: 0;
+}
+.bs-callout p:last-child {
+  margin-bottom: 0;
+}
+.bs-callout code,
+.bs-callout .highlight {
+  background-color: #fff;
+}
+ 
+/* Themes for different contexts */
+.bs-callout-danger {
+  background-color: #fcf2f2;
+  border-color: #dFb5b4;
+}
+.bs-callout-warning {
+  background-color: #fefbed;
+  border-color: #f1e7bc;
+}
+.bs-callout-info {
+  background-color: #f0f7fd;
+  border-color: #d0e3f0;
+}
+.bs-callout-danger h4 {
+color: #B94A48;
+}
+
+.bs-callout-warning h4 {
+color: #C09853;
+}
+
+.bs-callout-info h4 {
+color: #3A87AD;
+}
+</style>
+
+  
+  
+  <!-- Google Analytics -->
+  <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-12615441-1', 'jeffknupp.com');
+    ga('send', 'pageview');
+  </script>
+  <!-- Google Plus Author Link -->
+  <link href="https://plus.google.com/102786441324515866525" rel="publisher" />
+
+</head>
+
+<body itemscope itemtype="http://schema.org/Blog">
+<header id="header">
+    <img src="/images/jeff.jpg" class="circular center-block">
+    <h1>Jeff Knupp</h1>
+    <h2>PYTHON PROGRAMMER</h2>
+    <nav>
+        <a href="/">BLOG</a>
+        <span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="/about-me/" itemprop="url">ABOUT</a></span>
+        <a href="/blog/archives">ARCHIVES</a>
+        <a href="/python-tutoring" title="python-tutoring">TUTORING</a>
+        <a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">BOOK</a>
+    </nav>
+</header>
+<div class="container-fluid content">
+    <h2 class="text-center"><span itemprop="name">Everything I know about Python...</span></h2>
+    <div class="col-md-8 col-md-offset-2 col-xs-12">
+        <div class="bs-callout bs-callout-danger">
+            <h4 class="text-center">Learn to Write Pythonic Code!</h4>
+            <p class="text-center"><a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">
+                Check out the book <em>Writing Idiomatic Python</em>!</a></p>
+        </div>
+        <div id="content">
+            
+<article itemscope itemtype="http://schema.org/BlogPosting">
+<header>
+    <h1 class="post-title"><a href="/blog/2013/12/09/improve-your-python-understanding-unit-testing"><span itemprop="headline">Improve Your Python: Understanding Unit Testing</span></a><br/>
+</header>
+
+<div class="entry-content" itemprop="articleBody">
+    
+        <p>One frequent source of confusion for novice developers is the subject of
+testing. They are vaguely aware that "unit testing" is something that's good 
+and that they should do, but don't understand what the term actually means. If
+that sounds like you, fear not! In this article, I'll describe what <code>unit testing</code>
+is, why it's useful, and how to <code>unit test</code> Python code.</p>
+<!--more-->
+
+<h2>What is Testing?</h2>
+<p>Before discussing <em>why</em> testing is useful and <em>how</em> to do it, let's take a
+minute to define <em>what</em> <code>unit testing</code> actually is. "Testing", in general programming
+terms, is the practice of writing code (separate from your actual application
+code) that invokes the code it tests to help determine if there are any
+errors. It <strong>does not</strong> prove that code is correct (which is only possible under
+very restricted circumstances). It merely reports if the conditions the tester thought
+of are handled correctly.</p>
+<p><em>Note: when I use the term "testing", I'm always referring to "automated testing", where the tests are run by the machine. "Manual testing", where a human runs the program and interacts with it to find bugs, is a separate subject.</em> </p>
+<p>What kinds of things can be caught in testing? <strong>Syntax errors</strong> are
+unintentional misuses of the language, like the extra <code>.</code> in
+<code>my_list..append(foo)</code>. <strong>Logical errors</strong> are created when the algorithm (which
+can be thought of as "the way the problem is solved") is not correct. Perhaps the programmer
+forgot that Python is "zero-indexed" and tried to print the last character in a
+string by writing <code>print(my_string[len(my_string)])</code> (which will cause an
+<code>IndexError</code> to be raised). Larger, more systemic errors can also be checked for. 
+Perhaps the program always crashes when the user inputs a number greater 
+than <code>100</code>, or hangs if the web site it's retrieving is not available. </p>
+<p>All of these errors can be caught through careful testing of the code. <code>Unit
+testing</code>, specifically tests a single "unit" of code <strong>in isolation</strong>. A <code>unit</code>
+could be an entire module, a single class or function, or almost anything in between.
+What's important, however, is that the code is isolated from <em>other</em> code we're
+not testing (which itself could have errors and would thus confuse test results). 
+Consider the following example:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">is_prime</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return True if *number* is prime.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">number</span> <span class="o">%</span> <span class="n">element</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">return</span> <span class="bp">True</span>
+
+<span class="k">def</span> <span class="nf">print_next_prime</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Print the closest prime number larger than *number*.&quot;&quot;&quot;</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">number</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+</pre></div>
+
+
+<p>We have two functions, <code>is_prime</code> and <code>print_next_prime</code>. If we wanted to test
+<code>print_next_prime</code>, we would need to be sure that <code>is_prime</code> is correct, as
+<code>print_next_prime</code> makes use of it. In this case, the function
+<code>print_next_prime</code> is one unit, and <code>is_prime</code> is another. Since <code>unit tests</code>
+test only a <strong>single</strong> unit at a time, we would need to think carefully about
+how we could accurately test <code>print_next_prime</code> (more on how this is
+accomplished later).</p>
+<p>So what does test code look like? If the previous example is stored in a file
+named <code>primes.py</code>, we may write test code in a file named <code>test_primes.py</code>.
+Here are the minimal contents of <code>test_primes.py</code>, with an example test:</p>
+<div class="codehilite"><pre><span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">from</span> <span class="nn">primes</span> <span class="kn">import</span> <span class="n">is_prime</span>
+
+<span class="k">class</span> <span class="nc">PrimesTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Tests for `primes.py`.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">test_is_five_prime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is five successfully determined to be prime?&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+
+<p>The file creates a <code>unit test</code> with a single <code>test case</code>: <code>test_is_five_prime</code>.
+Using Python's built-in <code>unittest</code> framework, any member function whose name begins
+with <code>test</code> in a class deriving from <code>unittest.TestCase</code> will be run, and its
+assertions checked, when <code>unittest.main()</code> is called. If we "run the tests" by
+running <code>python test_primes.py</code>, we'll see the output of the <code>unittest</code>
+framework printed on the console:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>python test_primes.py
+<span class="nv">E</span>
+<span class="o">======================================================================</span>
+ERROR: test_is_five_prime <span class="o">(</span>__main__.PrimesTestCase<span class="o">)</span>
+----------------------------------------------------------------------
+Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+File <span class="s2">&quot;test_primes.py&quot;</span>, line 8, in test_is_five_prime
+    self.assertTrue<span class="o">(</span>is_prime<span class="o">(</span>5<span class="o">))</span>
+File <span class="s2">&quot;/home/jknupp/code/github_code/blug_private/primes.py&quot;</span>, line 4, in is_prime
+    <span class="k">if </span>number % <span class="nv">element</span> <span class="o">==</span> 0:
+ZeroDivisionError: integer division or modulo by zero
+
+----------------------------------------------------------------------
+Ran 1 <span class="nb">test </span>in 0.000s
+</pre></div>
+
+
+<p>The single "E" represents the results of our single test (if it was successful,
+a "." would have been printed). We can see that our test failed, the line that
+caused the failure, and any exceptions raised.</p>
+<h2>Why Testing?</h2>
+<p>Before we continue with the example, it's important to ask the question, "Why is testing
+a valuable use of my time?" It's a fair question, and it's the question those
+unfamiliar with testing code often ask. After all, testing takes time that could
+otherwise be spend writing code, and isn't that the most productive thing to be
+doing?</p>
+<p>There are a number of valid answers to this question. I'll list a few here:</p>
+<h4>Testing makes sure your code works properly under a given set of conditions</h4>
+<p>Testing assures correctness under a basic set of conditions. Syntax errors will
+almost certainly be caught by running tests, and the basic logic of a unit of
+code can be tested to ensure correctness under certain conditions. Again, it's
+not about proving the code is correct <em>under any set of conditions</em>. We're
+simply aiming for a reasonably complete set of possible conditions (i.e. you may
+write a test for what happens when you call <code>my_addition_function(3,
+'refrigerator</code>), but you needn't test all possible strings for each argument).</p>
+<h4>Testing allows one to ensure that changes to the code did not break existing functionality</h4>
+<p>This is especially helpful when <code>refactoring</code><sup id="fnref:1"><a class="footnote-ref" href="#fn:1" rel="footnote">1</a></sup> code. Without tests in place,
+you have no assurances that your code changes did not break things that were
+previously working fine. <strong>If you want to be able to change or rewrite your code and know you didn't break anything, proper unit testing is imperative.</strong></p>
+<h4>Testing forces one to think about the code under unusual conditions, possibly revealing logical errors</h4>
+<p>Writing tests forces you to think about the non-normal conditions your code may
+encounter. In the example above, <code>my_addition_function</code> adds two numbers. A
+simple test of basic correctness would call <code>my_addition_function(2, 2)</code> and
+assert that the result was <code>4</code>. Further tests, however, might test that the
+function works correctly with <code>float</code>s  by running <code>my_addition_function(2.0, 2.0)</code>. 
+<em>Defensive coding</em> principles suggest that your code should be able to
+gracefully fail on invalid input, so testing that an exception is properly raised
+when strings are passed as arguments to the function.</p>
+<h4>Good testing requires modular, decoupled code, which is a hallmark of good system design</h4>
+<p>The whole practice of unit testing is made much easier by code that is <em>loosely coupled</em><sup id="fnref:2"><a class="footnote-ref" href="#fn:2" rel="footnote">2</a></sup>. If your
+application code has direct database calls, for example, testing the logic of
+your application depends on having a valid database connection available and
+test data to be present in the database. Code that isolates external resources,
+on the other hand, can easily replace them during testing using <em>mock objects</em>.
+Applications designed with test-ability in mind usually end up being modular and
+loosely coupled out of necessity.</p>
+<h2>The Anatomy of A Unit Test</h2>
+<p>We'll see how to write and organize unit tests by continuing the example from earlier.
+Recall that <code>primes.py</code> contains the following code:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">is_prime</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return True if *number* is prime.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">number</span> <span class="o">%</span> <span class="n">element</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">return</span> <span class="bp">True</span>
+
+<span class="k">def</span> <span class="nf">print_next_prime</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Print the closest prime number larger than *number*.&quot;&quot;&quot;</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">number</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+</pre></div>
+
+
+<p>The file <code>test_primes.py</code>, meanwhile, contains the following:</p>
+<div class="codehilite"><pre><span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">from</span> <span class="nn">primes</span> <span class="kn">import</span> <span class="n">is_prime</span>
+
+<span class="k">class</span> <span class="nc">PrimesTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Tests for `primes.py`.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">test_is_five_prime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is five successfully determined to be prime?&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+
+<h3>Making Assertions</h3>
+<p><a href="http://docs.python.org/3/library/unittest.html"><code>unittest</code></a> is part of the Python standard 
+library and a good place to start our <code>unit test</code> walk-through. A <code>unit test</code>
+consists of one or more <em>assertions</em> (statements that assert that some property
+of the code being tested is true). Recall from your grade school days that the
+word "assert" literally means, "to state as fact." This is what assertions
+in <code>unit tests</code> do as well.</p>
+<p><code>self.assertTrue</code> is rather self explanatory, it asserts that the argument
+passed to it evaluates to <code>True</code>. The <code>unittest.TestCase</code> class contains a
+number of <a href="http://docs.python.org/3/library/unittest.html#assert-methods">assert methods</a>,
+so be sure to check the list and pick the appropriate methods for your tests.
+Using <code>assertTrue</code> for every test should be considered an anti-pattern as it
+increases the cognitive burden on the reader of tests. Proper use of <code>assert</code>
+methods state explicitly exactly what is being asserted by the test (e.g. it is
+clear what <code>assertIsInstance</code> is saying about its argument just by glancing at 
+the method name).</p>
+<p>Each test should test a single, specific property of the code and be named
+accordingly. To be found by the <code>unittest</code> test discovery mechanism (present in Python
+2.7+ and 3.2+), test methods should be prepended by <code>test_</code> (this is configurable, but 
+the purpose is to differentiate test methods and non-test utility methods). If we had 
+named the method <code>test_is_five_prime</code> <code>is_five_prime</code> instead, the output when 
+running <code>python test_primes.py</code> would be the following:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>python test_primes.py
+
+----------------------------------------------------------------------
+Ran 0 tests in 0.000s
+
+OK
+</pre></div>
+
+
+<p>Don't be fooled by the "OK" in the output above. "OK" is only reported because
+no tests actually ran! I think running zero tests should result in an error, but
+personal feelings aside, this is behavior you should be aware of, especially
+when programatically running and inspecting test results (e.g. with a
+<em>continuous integration</em> tool like <a href="http://travis-ci.org">TravisCI</a>).</p>
+<h3>Exceptions</h3>
+<p>Returning to the <em>actual</em> contents of <code>test_primes.py</code>, recall that the output of
+<code>python test_primes.py</code> is the following:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>python test_primes.py
+<span class="nv">E</span>
+<span class="o">======================================================================</span>
+ERROR: test_is_five_prime <span class="o">(</span>__main__.PrimesTestCase<span class="o">)</span>
+----------------------------------------------------------------------
+Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+File <span class="s2">&quot;test_primes.py&quot;</span>, line 8, in test_is_five_prime
+    self.assertTrue<span class="o">(</span>is_prime<span class="o">(</span>5<span class="o">))</span>
+File <span class="s2">&quot;/home/jknupp/code/github_code/blug_private/primes.py&quot;</span>, line 4, in is_prime
+    <span class="k">if </span>number % <span class="nv">element</span> <span class="o">==</span> 0:
+ZeroDivisionError: integer division or modulo by zero
+
+----------------------------------------------------------------------
+Ran 1 <span class="nb">test </span>in 0.000s
+</pre></div>
+
+
+<p>This output shows us that our single test resulted in failure due <strong>not</strong> to an
+assertion failing but rather because an un-caught exception was raised. In fact,
+the <code>unittest</code> framework didn't get a chance to properly run our test because it
+raised an exception before returning.</p>
+<p>The issue here is clear: we are preforming the <code>modulo</code> operation over a range
+of numbers that includes zero, which results in a division by zero being
+performed. To fix this, we simply change the range to begin at <code>2</code> rather than
+<code>0</code>, noting that modulo by <code>0</code> would be an error and modulo by <code>1</code> will always
+be True (and a prime number is one wholly divisible only by itself <em>and</em> 1, so we needn't
+check for <code>1</code>). </p>
+<h3>Fixing Things</h3>
+<p>A failing test has resulted in a code change. Once we fix the error (changing
+the line in <code>is_prime</code> to <code>for element in range(2, number):</code>), we get the
+following output:</p>
+<div class="codehilite"><pre><span class="nv">$ </span>python test_primes.py
+.
+----------------------------------------------------------------------
+Ran 1 <span class="nb">test </span>in 0.000s
+</pre></div>
+
+
+<p>Now that the error is fixed, does that mean we should delete the test
+method <code>test_is_five_prime</code> (since clearly it will now always pass)? <strong>No</strong>.
+<code>unit tests</code> should rarely be deleted as <em>passing</em> tests are the end goal. We've
+tested that the syntax of <code>is_prime</code> is valid and, at least in one case, it
+returns the proper result. Our goal is to build a <em>suite</em> (a logical grouping 
+of <code>unit tests</code>) of tests that all pass, though some may fail at first.</p>
+<p><code>test_is_five_prime</code> worked for an "un-special" prime number. Let's make sure it
+works for non-primes as well. Add the following method to the <code>PrimesTestCase</code>
+class:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">test_is_four_non_prime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Is four correctly determined not to be prime?&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;Four is not prime!&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Note that this time we added the optional <code>msg</code> argument to the <code>assert</code> call.
+If this test had failed, our message would have been printed to the console,
+giving additional information to whoever ran the test.</p>
+<h3>Edge Cases</h3>
+<p>We've successfully tested two general cases. Let us now consider <em>edge cases</em>,
+or cases with unusual or unexpected input. When testing a function that whose
+range is all positive integers, examples of edge cases include <code>0</code>, <code>1</code>, a negative 
+number, and a very large number. Let's test some of these now.</p>
+<p>Adding a test for zero is straightforward. We expect <code>is_prime(0)</code> to return
+<code>False</code>, since, by definition, prime numbers must be greater than one:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">test_is_zero_not_prime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Is zero correctly determined not to be prime?&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+</pre></div>
+
+
+<p>Alas, the output is:</p>
+<div class="codehilite"><pre><span class="n">python</span> <span class="n">test_primes</span><span class="o">.</span><span class="n">py</span>
+<span class="o">..</span><span class="n">F</span>
+<span class="o">======================================================================</span>
+<span class="n">FAIL</span><span class="p">:</span> <span class="n">test_is_zero_not_prime</span> <span class="p">(</span><span class="n">__main__</span><span class="o">.</span><span class="n">PrimesTestCase</span><span class="p">)</span>
+<span class="n">Is</span> <span class="n">zero</span> <span class="n">correctly</span> <span class="n">determined</span> <span class="ow">not</span> <span class="n">to</span> <span class="n">be</span> <span class="n">prime</span><span class="err">?</span>
+<span class="o">----------------------------------------------------------------------</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+<span class="n">File</span> <span class="s">&quot;test_primes.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">17</span><span class="p">,</span> <span class="ow">in</span> <span class="n">test_is_zero_not_prime</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+<span class="ne">AssertionError</span><span class="p">:</span> <span class="bp">True</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">false</span>
+
+<span class="o">----------------------------------------------------------------------</span>
+<span class="n">Ran</span> <span class="mi">3</span> <span class="n">tests</span> <span class="ow">in</span> <span class="mf">0.000</span><span class="n">s</span>
+
+<span class="n">FAILED</span> <span class="p">(</span><span class="n">failures</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Zero is incorrectly determined to be prime . We forgot that we decided to skip checks of zero and one in
+our <code>range</code>. Let's add a special check for them:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">is_prime</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return True if *number* is prime.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">number</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">number</span> <span class="o">%</span> <span class="n">element</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">return</span> <span class="bp">True</span>
+</pre></div>
+
+
+<p>The tests now pass. How will our function handle a negative number? It's
+important to know <em>before writing the test</em> what the output <em>should</em> be. In this
+case, any negative number should return <code>False</code>:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">test_negative_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Is a negative number correctly determined not to be prime?&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+</pre></div>
+
+
+<p>Here we decide to check all numbers from <code>-1 .. -9</code>. Calling a <code>test</code> method in
+a loop is perfectly valid, as are multiple calls to assert methods in a single
+test. We could have rewritten this in the following (more verbose) fashion:</p>
+<div class="codehilite"><pre><span class="n">def</span> <span class="n">test_negative_number</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
+    <span class="s">&quot;&quot;&quot;Is a negative number correctly determined not to be prime?&quot;&quot;&quot;</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">))</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">))</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">))</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="o">-</span><span class="mi">8</span><span class="p">))</span>
+    <span class="n">self</span><span class="p">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="o">-</span><span class="mi">9</span><span class="p">))</span>
+</pre></div>
+
+
+<p>The two are essentially equivalent. Except when we run the loop version, we get
+a little less information than we'd like:</p>
+<div class="codehilite"><pre>python test_primes.py
+...F
+<span class="o">======================================================================</span>
+FAIL: test_negative_number <span class="o">(</span>__main__.PrimesTestCase<span class="o">)</span>
+Is a negative number correctly determined not to be prime?
+----------------------------------------------------------------------
+Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+File <span class="s2">&quot;test_primes.py&quot;</span>, line 22, in test_negative_number
+    self.assertFalse<span class="o">(</span>is_prime<span class="o">(</span>index<span class="o">))</span>
+AssertionError: True is not <span class="nb">false</span>
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+FAILED <span class="o">(</span><span class="nv">failures</span><span class="o">=</span>1<span class="o">)</span>
+</pre></div>
+
+
+<p>Hmm, we know the test failed, <em>but on which negative number</em>? Rather
+unhelpfully, the Python <code>unittest</code> framework does not print out the <em>expected</em>
+and <em>actual</em> values. We can side-step the issue in one of two ways: through the
+<code>msg</code> parameter or through the use of a third-party unit testing framework.</p>
+<p>Using the <code>msg</code> parameter to <code>assertFalse</code> is simply a matter of recognizing
+that we can use string formatting to solve our problem:</p>
+<div class="codehilite"><pre><span class="n">def</span> <span class="n">test_negative_number</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
+    <span class="s">&quot;&quot;&quot;Is a negative number correctly determined not to be prime?&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">:</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">is_prime</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="n">msg</span><span class="o">=</span><span class="err">&#39;</span><span class="p">{}</span> <span class="n">should</span> <span class="n">not</span> <span class="n">be</span> <span class="n">determined</span> <span class="n">to</span> <span class="n">be</span> <span class="n">prime</span><span class="err">&#39;</span><span class="p">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+</pre></div>
+
+
+<p>which gives the following output:</p>
+<div class="codehilite"><pre>python test_primes
+...F
+<span class="o">======================================================================</span>
+FAIL: test_negative_number <span class="o">(</span>test_primes.PrimesTestCase<span class="o">)</span>
+Is a negative number correctly determined not to be prime?
+----------------------------------------------------------------------
+Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+File <span class="s2">&quot;./test_primes.py&quot;</span>, line 22, in test_negative_number
+    self.assertFalse<span class="o">(</span>is_prime<span class="o">(</span>index<span class="o">)</span>, <span class="nv">msg</span><span class="o">=</span><span class="s1">&#39;{} should not be determined to be prime&#39;</span>.format<span class="o">(</span>index<span class="o">))</span>
+AssertionError: True is not <span class="nb">false</span> : -1 should not be determined to be prime
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+FAILED <span class="o">(</span><span class="nv">failures</span><span class="o">=</span>1<span class="o">)</span>
+</pre></div>
+
+
+<h3>Fixing Code <em>Properly</em></h3>
+<p>We see that the failing negative number was the first tested: <code>-1</code>. To fix this,
+we could add yet another special check for negative numbers, but the purpose of
+writing <code>unit tests</code> is not to blindly add code to check for edge cases. When a
+test fails, take a step back and determine the <em>best</em> way to fix the issue. In
+this case, rather than adding an additional <code>if</code>:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">is_prime</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return True if *number* is prime.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">number</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">if</span> <span class="n">number</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">number</span> <span class="o">%</span> <span class="n">element</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">return</span> <span class="bp">True</span>
+</pre></div>
+
+
+<p>the following should be preferred:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">is_prime</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return True if *number* is prime.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">number</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">number</span> <span class="o">%</span> <span class="n">element</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">return</span> <span class="bp">True</span>
+</pre></div>
+
+
+<p>In the latter, we recognize that the two <code>if</code> statements can be merged into a
+single statement that returns <code>False</code> if the argument is less than 1. This is
+both more succinct and properly aligned with the definition of a prime number (a
+number <em>greater than one</em> wholly divisible only by one and itself).</p>
+<h3>Third-Party Test Frameworks</h3>
+<p>We could have also solved the problem of too little information on test
+failure by using a third-party testing framework. The two most used are
+<a href="http://pytest.org">py.test</a> and <a href="http://nose.readthedocs.org">nose</a>. Running
+our tests with <code>py.test -l</code> (<code>-l</code> "shows the values of local variables") gives the following:</p>
+<div class="codehilite"><pre><span class="c">#! bash</span>
+
+py.test -l test_primes.py
+<span class="o">=============================</span> <span class="nb">test </span>session <span class="nv">starts</span> <span class="o">==============================</span>
+platform linux2 -- Python 2.7.6 -- pytest-2.4.2
+collected 4 items
+
+test_primes.py ...F
+
+<span class="o">===================================</span> <span class="nv">FAILURES</span> <span class="o">===================================</span>
+_____________________ PrimesTestCase.test_negative_number ______________________
+
+<span class="nv">self</span> <span class="o">=</span> &lt;test_primes.PrimesTestCase <span class="nv">testMethod</span><span class="o">=</span>test_negative_number&gt;
+
+    def test_negative_number<span class="o">(</span>self<span class="o">)</span>:
+        <span class="s2">&quot;&quot;&quot;Is a negative number correctly determined not to be prime?&quot;&quot;&quot;</span>
+        <span class="k">for </span>index in range<span class="o">(</span>-1, -10, -1<span class="o">)</span>:
+&gt;           self.assertFalse<span class="o">(</span>is_prime<span class="o">(</span>index<span class="o">))</span>
+E           AssertionError: True is not <span class="nb">false</span>
+
+<span class="nv">index</span>      <span class="o">=</span> -1
+<span class="nv">self</span>       <span class="o">=</span> &lt;test_primes.PrimesTestCase <span class="nv">testMethod</span><span class="o">=</span>test_negative_number&gt;
+
+test_primes.py:22: AssertionError
+</pre></div>
+
+
+<p>A bit more useful, as you can see. These frameworks provide far more
+functionality than simply more verbose output, but the point is just to be aware
+that they exist and extend the functionality of the built-in <code>unittest</code> package.</p>
+<h2>Wrapping Up</h2>
+<p>In this article, you learned <em>what</em> <code>unit tests</code> are, <em>why</em> they're important,
+and <em>how</em> to write them. That said, be aware we've merely scratched the surface
+of the topic of testing methodologies. More advanced topics such as <em>test case organization, continuous integration,</em>
+and <em>test case management</em> are good subjects for readers interested in further studying testing in Python.</p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>Reorganizing/cleaning up code without changing functionality&#160;<a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p>Code that does not expose its internal data or functions and does not make use of the internal data or functions of other code&#160;<a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+        
+<small>Posted on <time datetime="2013-12-09 23:45:00" pubdate data-updated="true" itemprop="datePublished">Dec 09, 2013</time> by <span itemprop="author"> Jeff Knupp</span></small> </h1>
+<div class="sharing">
+    <div class="row">
+    <p class="meta" style="padding-top: 20px;">
+    <a class="basic-alignment left" href="/blog/2013/12/04/my-development-environment-for-python" title="Previous Post: My Development Environment For Python">&laquo; My Development Environment For Python</a>
+    </p>
+    
+    <div id="mc_embed_signup" class="well">
+<form action="http://jeffknupp.us6.list-manage1.com/subscribe/post?u=51d2d98cf34cbcc20db22e5fa&amp;id=f15bb537ad" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+  <h4>Like this article?</h4>
+  <p>Why not sign up for <strong>Python Tutoring</strong>? Sessions can be held
+  remotely using Google+/Skype or in-person if you're in the NYC area. <a href="mailto:jeff@jeffknupp.com">Email jeff@jeffknupp.com</a> if interested.</p>
+  <p><strong>Sign up for the free jeffknupp.com email newsletter.</strong> Sent roughly once a month, it focuses on Python programming, scalable web development, and growing your freelance consultancy. And of course, you'll never be spammed, your privacy is protected, and you can opt out at any time.</p>
+<div class="mc-field-group">
+	<label for="mce-EMAIL">Email Address</label>
+	<input type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+</div>
+	<div id="mce-responses" class="clear">
+		<div class="response" id="mce-error-response" style="display:none"></div>
+		<div class="response" id="mce-success-response" style="display:none"></div>
+	</div>	<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+</form>
+</div>
+    
+  </footer>
+</article>
+</div>
+<section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Leaderboard -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-2922325862575361"
+     data-ad-slot="6191597138"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <div id="disqus_thread"></div>
+<script type="text/javascript">
+            var disqus_shortname = 'hackersgonnahack';
+
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+ 
+  </section>
+  </div>
+    
+</div>
+</article>
+
+        </div>
+        <div id="footer" class="text-center">
+        
+            <footer role="contentinfo">
+                <p>Copyright &copy; 2014 - Jeff Knupp- <span class="credit">Powered by <a href="http://www.github.com/jeffknupp/blug">Blug</a></span> </p>
+            </footer>
+         
+    </div>
+
+<a title="Web Analytics" href="http://clicky.com/66535137"><img alt="Web Analytics" src="//static.getclicky.com/media/links/badge.gif" border="0" /></a>
+<script type="text/javascript">
+var clicky_site_ids = clicky_site_ids || [];
+clicky_site_ids.push(66535137);
+(function() {
+  var s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.async = true;
+  s.src = '//static.getclicky.com/js';
+  ( document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0] ).appendChild( s );
+})();
+</script>
+<noscript><p><img alt="Clicky" width="1" height="1" src="//in.getclicky.com/66535137ns.gif" /></p></noscript> 
+</div>
+</html>

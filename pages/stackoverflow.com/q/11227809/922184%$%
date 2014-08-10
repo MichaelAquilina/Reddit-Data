@@ -1,0 +1,3688 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <title>java - Why is processing a sorted array faster than an unsorted array? - Stack Overflow</title>
+    <link rel="shortcut icon" href="//cdn.sstatic.net/stackoverflow/img/favicon.ico?v=038622610830">
+    <link rel="apple-touch-icon image_src" href="//cdn.sstatic.net/stackoverflow/img/apple-touch-icon.png?v=fd7230a85918">
+    <link rel="search" type="application/opensearchdescription+xml" title="Stack Overflow" href="/opensearch.xml">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:domain" content="stackoverflow.com"/>
+    <meta name="og:type" content="website" />
+    <meta name="og:image" content="http://cdn.sstatic.net/stackoverflow/img/apple-touch-icon@2.png?v=fde65a5a78c6"/>
+    <meta name="og:title" content="Why is processing a sorted array faster than an unsorted array?" />
+    <meta name="og:description" content="Here is a piece of C++ code that seems very peculiar. For some strange reason, sorting the data miraculously makes the code almost six times faster:
+
+#include &amp;lt;algorithm&amp;gt;
+#include &amp;lt;ctime&amp;gt;
+" />
+    <meta name="og:url" content="http://stackoverflow.com/questions/11227809/why-is-processing-a-sorted-array-faster-than-an-unsorted-array"/>
+    <link rel="canonical" href="http://stackoverflow.com/questions/11227809/why-is-processing-a-sorted-array-faster-than-an-unsorted-array" />
+
+    
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="//cdn.sstatic.net/Js/stub.en.js?v=d142d951ee55"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.sstatic.net/stackoverflow/all.css?v=dc5a5d7ef830">
+    
+    <link rel="alternate" type="application/atom+xml" title="Feed for question &#39;Why is processing a sorted array faster than an unsorted array?&#39;" href="/feeds/question/11227809">
+    <script>
+        
+        StackExchange.ready(function () {
+            StackExchange.using("postValidation", function () {
+                StackExchange.postValidation.initOnBlurAndSubmit($('#post-form'), 2, 'answer');
+            });
+
+            
+            StackExchange.question.init({showAnswerHelp:true,totalCommentCount:29,shownCommentCount:5,highlightColor:'#F4A83D',backgroundColor:'#FFF',questionId:11227809});
+
+            styleCode();
+
+                StackExchange.realtime.subscribeToQuestion('1', '11227809');
+            
+                    });
+    </script>
+
+
+    <script>
+        StackExchange.init({"locale":"en","stackAuthUrl":"https://stackauth.com","serverTime":1404248394,"networkMetaHostname":"meta.stackexchange.com","styleCode":true,"enableUserHovercards":true,"site":{"name":"Stack Overflow","description":"Q&A for professional and enthusiast programmers","isNoticesTabEnabled":true,"recaptchaPublicKey":"6LdchgIAAAAAAJwGpIzRQSOFaO0pU6s44Xt8aTwc","recaptchaAudioLang":"en","enableNewTagCreationWarning":true,"nonAsciiTags":true,"enableSocialMediaInSharePopup":true},"user":{"fkey":"8c6b727b7d57e168eb0f1d8a05eba522","isAnonymous":true}});
+        StackExchange.using.setCacheBreakers({"js/prettify-full.en.js":"12ef2711e474","js/moderator.en.js":"e2c6bab58c56","js/full-anon.en.js":"a66b4586d8f3","js/full.en.js":"d43401f72f80","js/wmd.en.js":"d25c057c3f48","js/third-party/jquery.autocomplete.min.js":"e5f01e97f7c3","js/third-party/jquery.autocomplete.min.en.js":"","js/mobile.en.js":"5f0b5c72eaa8","js/help.en.js":"43b6b771d4d9","js/tageditor.en.js":"afabf8d8de91","js/tageditornew.en.js":"140e973e4037","js/inline-tag-editing.en.js":"21223186b436","js/revisions.en.js":"989c474e85a9","js/review.en.js":"c261687765b3","js/tagsuggestions.en.js":"bb4721d888d2","js/post-validation.en.js":"62fe2d3d1730","js/explore-qlist.en.js":"8b8b631bd679","js/events.en.js":"7263182fd2c2"});
+        StackExchange.using("gps", function() {
+             StackExchange.gps.init(true);
+        });
+    </script>
+    
+        <script>
+            StackExchange.ready(function () {
+                $('#nav-tour').click(function () {
+                    StackExchange.using("gps", function() {
+                        StackExchange.gps.track("aboutpage.click", { aboutclick_location: "headermain" }, true);
+                    });
+                });
+            });
+        </script>
+</head>
+<body class="question-page new-topbar">
+    <noscript><div id="noscript-padding"></div></noscript>
+    <div id="notify-container"></div>
+    <div id="overlay-header"></div>
+    <div id="custom-header"></div>
+<div class="topbar">
+    <div class="topbar-wrapper">
+        
+        <div class="js-topbar-dialog-corral">
+
+<div class="topbar-dialog siteSwitcher-dialog dno">
+    <div class="header">
+        <h3><a href="//stackoverflow.com">current community</a></h3>
+    </div>
+    <div class="modal-content current-site-container">
+        <ul class="current-site">
+                <li>
+                        <div class="related-links">
+            <a href="http://chat.stackoverflow.com"     data-gps-track="site_switcher.click({ item_type:6 })"
+>chat</a>
+                    <a href="http://blog.stackoverflow.com"     data-gps-track="site_switcher.click({ item_type:7 })"
+>blog</a>
+            </div>
+
+
+
+
+    <a href="//stackoverflow.com"
+       class="current-site-link site-link js-gps-track"
+       data-id="1"
+       data-gps-track="
+        site_switcher.click({ item_type:3 })">
+        <div class="site-icon favicon favicon-stackoverflow" title="Stack Overflow"></div>
+        Stack Overflow
+    </a>
+
+                </li>
+                <li class="related-site">
+                        <div class="L-shaped-icon-container">
+        <span class="L-shaped-icon"></span>
+    </div>
+
+                    
+
+
+
+    <a href="http://meta.stackoverflow.com"
+       class="site-link js-gps-track"
+       data-id="552"
+       data-gps-track="
+            site.switch({ target_site:552, item_type:3 }),
+        site_switcher.click({ item_type:4 })">
+        <div class="site-icon favicon favicon-stackoverflowmeta" title="Meta Stack Overflow"></div>
+        Meta Stack Overflow
+    </a>
+
+                </li>
+                            <li class="related-site">
+                        <div class="L-shaped-icon-container">
+        <span class="L-shaped-icon"></span>
+    </div>
+
+                    <a class="site-link"
+                       href="//careers.stackoverflow.com"
+                            data-gps-track="site_switcher.click({ item_type:9 })"
+>
+                        <div class="site-icon favicon favicon-careers" title="Stack Overflow Careers"></div>
+                        Careers 2.0
+                    </a>
+                </li>
+        </ul>
+    </div>
+    
+    <div class="header" id="your-communities-header">
+        <h3>
+your communities        </h3>
+            
+    </div>
+    <div class="modal-content" id="your-communities-section">
+            
+            <div class="call-to-login">
+                        <a href="https://stackoverflow.com/users/signup?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f11227809%2fwhy-is-processing-a-sorted-array-faster-than-an-unsorted-array" class="js-gps-track"     data-gps-track="site_switcher.click({ item_type:10 })"
+>Sign up</a>
+                    or
+                    <a href="https://stackoverflow.com/users/login?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f11227809%2fwhy-is-processing-a-sorted-array-faster-than-an-unsorted-array" class="js-gps-track"     data-gps-track="site_switcher.click({ item_type:11 })"
+>log in</a>
+
+                    to customize your list.
+            </div>
+    </div>
+    
+    <div class="header">
+        <h3><a href="//stackexchange.com/sites">more stack exchange communities</a></h3>
+    </div>
+    <div class="modal-content">
+            <div class="child-content"></div>
+    </div>
+</div>
+        </div>
+
+        <div class="network-items">
+            
+            <a href="//stackexchange.com" 
+               class="topbar-icon icon-site-switcher yes-hover js-site-switcher-button js-gps-track"
+               data-gps-track="site_switcher.show"
+               title="A list of all 128 Stack Exchange sites">
+                <span class="hidden-text">Stack Exchange</span>
+            </a>
+            
+        </div>
+
+        <div class="topbar-links">
+            
+                <div class="links-container">
+                    <span class="topbar-menu-links">
+                            <a href="https://stackoverflow.com/users/signup?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f11227809%2fwhy-is-processing-a-sorted-array-faster-than-an-unsorted-array" class="login-link">sign up</a>
+                            <a href="https://stackoverflow.com/users/login?returnurl=http%3a%2f%2fstackoverflow.com%2fquestions%2f11227809%2fwhy-is-processing-a-sorted-array-faster-than-an-unsorted-array" class="login-link">log in</a>
+                            <a href="/tour">tour</a>
+
+                            <a href="#" class="icon-help js-help-button" title="Help Center and other resources">
+        help
+        <span class="triangle"></span>
+    </a>
+    <div class="topbar-dialog help-dialog js-help-dialog dno">
+        <div class="modal-content">
+            <ul>
+                                    <li>
+                        <a href="/tour"     class="js-gps-track" data-gps-track="help_popup.click({ item_type:1 })"
+>
+                            Tour
+                            <span class="item-summary">
+                                Start here for a quick overview of the site
+                            </span>
+                        </a>
+                    </li>
+                <li>
+                    <a href="/help"     class="js-gps-track" data-gps-track="help_popup.click({ item_type:4 })"
+>
+                        Help Center
+                        <span class="item-summary">
+                            Detailed answers to any questions you might have
+                        </span>
+                    </a>
+                </li>
+                    <li>
+                        <a href="//meta.stackoverflow.com"     class="js-gps-track" data-gps-track="help_popup.click({ item_type:2 })"
+>
+                            Meta
+                            <span class="item-summary">
+                                Discuss the workings and policies of this site
+                            </span>
+                        </a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+
+                            <a href="//careers.stackoverflow.com">careers 2.0</a>
+                    </span>
+                </div>
+
+			<div class="search-container">
+                <form id="search" action="/search" method="get" autocomplete="off">
+                    <input name="q" type="text" placeholder="search" value="" tabindex="1" autocomplete="off" maxlength="240" />
+                </form>
+			</div>
+            	
+        </div>      
+    </div> 
+</div>
+<script>
+    StackExchange.ready(function () { StackExchange.topbar.init(); });
+</script>
+    <div class="container">
+        <div id="header" class=headeranon>
+            <br class="cbt">
+            <div id="hlogo">
+                <a href="/">
+                    Stack Overflow
+                </a>
+            </div>
+            <div id="hmenus">
+                <div class="nav mainnavs mainnavsanon">
+                    <ul>
+                        <li class="youarehere"><a id="nav-questions" href="/questions">Questions</a></li>
+                        <li><a id="nav-tags" href="/tags">Tags</a></li>
+                        <li><a id="nav-users" href="/users">Users</a></li>
+                        <li><a id="nav-badges" href="/help/badges">Badges</a></li>
+                        <li><a id="nav-unanswered" href="/unanswered">Unanswered</a></li>
+                    </ul>
+                </div>
+                <div class="nav askquestion">
+                    <ul>
+                        <li>
+                            <a id="nav-askquestion"  href="/questions/ask">Ask Question</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+
+
+
+        <div id="content">
+            
+
+<div itemscope itemtype="http://schema.org/Article">
+	<link itemprop="image" href="//cdn.sstatic.net/stackoverflow/img/apple-touch-icon.png">
+			<!--googleoff: all-->
+
+<div id="herobox-mini">
+    <div id="hero-content">
+        <span id="controls">
+            <a href="/tour" id="tell-me-more" class="button">Take the 2-minute tour</a>
+            <span id="close"><a title="click to dismiss">&times;</a></span>
+        </span>
+        <div id="blurb">
+            Stack Overflow is a question and answer site for professional and enthusiast programmers. It&#39;s 100% free, no registration required.
+        </div>        
+    </div>
+    <script>
+        $('#tell-me-more').click(function () {
+            var clickSource = $("body").attr("class") + '-mini';
+            if ($("body").hasClass("questions-page")) {
+                clickSource = 'questionpagemini';
+            } else if ($("body").hasClass("question-page")) {
+                clickSource = 'questionpagemini';
+            } else if ($("body").hasClass("home-page")) {
+                clickSource = 'homepagemini';
+            }
+
+            StackExchange.using("gps", function () {
+                StackExchange.gps.track("aboutpage.click", { aboutclick_location: clickSource } , true);
+            });
+        });
+        $('#herobox-mini #close').click(function () {
+            StackExchange.using("gps", function () {
+                StackExchange.gps.track("hero.action", { hero_action_type: "close" }, true);
+            });
+            $.cookie("hero", "none", { path: "/" });
+            var $hero = $("#herobox-mini");
+            $hero.slideUp('fast', function () { $hero.remove(); });
+            return false;
+        });
+    </script>
+</div>
+			<!--googleon: all-->
+			<div id="question-header">
+			<h1 itemprop="name"><a href="/questions/11227809/why-is-processing-a-sorted-array-faster-than-an-unsorted-array" class="question-hyperlink">Why is processing a sorted array faster than an unsorted array?</a></h1>
+		</div>
+			<div id="mainbar">
+
+			
+
+<div class="question" data-questionid="11227809"  id="question">
+
+    <script>
+                var ados = ados || {};ados.run = ados.run || [];
+                ados.run.push(function() { ados_add_placement(22,8277,"adzerk119364452",4).setZone(43) ; });                    
+            </script>
+            <div class="everyonelovesstackoverflow" id="adzerk119364452">
+            </div>    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="11227809">
+    <a class="vote-up-off" title="This question shows research effort; it is useful and clear">up vote</a>
+    <span class="vote-count-post high-scored-post">8115</span>
+    <a class="vote-down-off" title="This question does not show any research effort; it is unclear or not useful">down vote</a>
+    
+    <a class="star-off" href="#" title="This is a favorite question (click again to undo)">favorite</a>
+    <div class="favoritecount"><b>4500</b></div>   
+
+</div>
+
+            </td>
+            
+<td class="postcell">
+<div>
+    <div class="post-text" itemprop="description">
+
+        <p>Here is a piece of C++ code that seems very peculiar. For some strange reason, sorting the data miraculously makes the code almost six times faster:</p>
+
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;algorithm&gt;
+#include &lt;ctime&gt;
+#include &lt;iostream&gt;
+
+int main()
+{
+    // Generate data
+    const unsigned arraySize = 32768;
+    int data[arraySize];
+
+    for (unsigned c = 0; c &lt; arraySize; ++c)
+        data[c] = std::rand() % 256;
+
+    // !!! With this, the next loop runs faster
+    std::sort(data, data + arraySize);
+
+    // Test
+    clock_t start = clock();
+    long long sum = 0;
+
+    for (unsigned i = 0; i &lt; 100000; ++i)
+    {
+        // Primary loop
+        for (unsigned c = 0; c &lt; arraySize; ++c)
+        {
+            if (data[c] &gt;= 128)
+                sum += data[c];
+        }
+    }
+
+    double elapsedTime = static_cast&lt;double&gt;(clock() - start) / CLOCKS_PER_SEC;
+
+    std::cout &lt;&lt; elapsedTime &lt;&lt; std::endl;
+    std::cout &lt;&lt; "sum = " &lt;&lt; sum &lt;&lt; std::endl;
+}
+</code></pre>
+
+<ul>
+<li>Without <code>std::sort(data, data + arraySize);</code>, the code runs in <strong>11.54</strong> seconds.</li>
+<li>With the sorted data, the code runs in <strong>1.93</strong> seconds.</li>
+</ul>
+
+<hr>
+
+<p>Initially, I thought this might be just a language or compiler anomaly. So I tried it in Java:</p>
+
+<pre class="lang-java prettyprint-override"><code>import java.util.Arrays;
+import java.util.Random;
+
+public class Main
+{
+    public static void main(String[] args)
+    {
+        // Generate data
+        int arraySize = 32768;
+        int data[] = new int[arraySize];
+
+        Random rnd = new Random(0);
+        for (int c = 0; c &lt; arraySize; ++c)
+            data[c] = rnd.nextInt() % 256;
+
+        // !!! With this, the next loop runs faster
+        Arrays.sort(data);
+
+        // Test
+        long start = System.nanoTime();
+        long sum = 0;
+
+        for (int i = 0; i &lt; 100000; ++i)
+        {
+            // Primary loop
+            for (int c = 0; c &lt; arraySize; ++c)
+            {
+                if (data[c] &gt;= 128)
+                    sum += data[c];
+            }
+        }
+
+        System.out.println((System.nanoTime() - start) / 1000000000.0);
+        System.out.println("sum = " + sum);
+    }
+}
+</code></pre>
+
+<p>With a somewhat similar, but less extreme result.</p>
+
+<hr>
+
+<p>My first thought was that sorting brings the data into the cache, but my next thought was how silly that is, because the array was just generated.</p>
+
+<ul>
+<li>What is going on? </li>
+<li>Why is a sorted array faster than an unsorted array? </li>
+<li>The code is summing up some independent terms, and the order should not matter. </li>
+</ul>
+
+    </div>
+    <div class="post-taglist">
+        <a href="/questions/tagged/java" class="post-tag" title="show questions tagged &#39;java&#39;" rel="tag">java</a> <a href="/questions/tagged/c%2b%2b" class="post-tag" title="show questions tagged &#39;c++&#39;" rel="tag">c++</a> <a href="/questions/tagged/performance" class="post-tag" title="show questions tagged &#39;performance&#39;" rel="tag">performance</a> <a href="/questions/tagged/optimization" class="post-tag" title="show questions tagged &#39;optimization&#39;" rel="tag">optimization</a> <a href="/questions/tagged/branch-prediction" class="post-tag" title="show questions tagged &#39;branch-prediction&#39;" rel="tag">branch-prediction</a> 
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/q/11227809" title="short permalink to this question" class="short-link" id="link-post-11227809">share</a><span class="lsep">|</span><a href="/posts/11227809/edit" class="suggest-edit-post" title="">improve this question</a></div>        
+    </td>
+    <td align="right" class="post-signature">
+<div class="user-info user-hover">
+    <div class="user-action-time">
+        <a href="/posts/11227809/revisions" title="show all edits to this post">edited <span title="2014-01-28 04:58:39Z" class="relativetime">Jan 28 at 4:58</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1136709/think123"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/a1cc91085ff58f273cce59129475c2b8?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1136709/think123">think123</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">5,071</span><span title="4 gold badges"><span class="badge1"></span><span class="badgecount">4</span></span><span title="22 silver badges"><span class="badge2"></span><span class="badgecount">22</span></span><span title="67 bronze badges"><span class="badge3"></span><span class="badgecount">67</span></span>
+    </div>
+</div>    </td>
+    <td class="post-signature owner">
+        <div class="user-info user-hover">
+    <div class="user-action-time">
+        asked <span title="2012-06-27 13:51:36Z" class="relativetime">Jun 27 '12 at 13:51</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/87234/gmannickg"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/FkjBe.png?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/87234/gmannickg">GManNickG</a><br>
+        <span class="reputation-score" title="reputation score 152996" dir="ltr">153k</span><span title="19 gold badges"><span class="badge1"></span><span class="badgecount">19</span></span><span title="259 silver badges"><span class="badge2"></span><span class="badgecount">259</span></span><span title="400 bronze badges"><span class="badge3"></span><span class="badgecount">400</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</div>
+</td>
+        </tr>
+                
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-11227809" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="24" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-14748127" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">268</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">What architecture did you run on? Did you compile with good optimization settings? I just tried your code, with and without the sort (the C++ variant) and did not find any runtime difference. Having a look at the assembler output (<a href="http://gcc.godbolt.org/" rel="nofollow">gcc.godbolt.org</a> is handy for that) I could also see that there is no branch done on the if, but a <code>cmovge</code> is being used. When using -O2 I see a difference in speed only, but not with -O3...</span>
+                &ndash;&nbsp;
+                    <a href="/users/833362/plasmahh"
+                       title="8187 reputation"
+                       class="comment-user">PlasmaHH</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-27 14:10:06Z" class="relativetime-clean">Jun 27 '12 at 14:10</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14748362" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">130</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@GManNickG: I did investigate a bit further, and things are &quot;funny&quot;. With O3, both versions (sort/non sort) are the same speed (4.5) but with O2, both are different (3.1/15.7) so I looked at the O2 version. There is a branch. So gcc seems to optimize for &quot;random data&quot; here. To further test if it is branch prediction, I tested the O2 code not with sort, but in the creation phase I set/removed the top bit of the byte for one half, but not the other. Things are the same result here, so it really has nothing to do with the data being sorted, but with the if condition being true/false for one half.</span>
+                &ndash;&nbsp;
+                    <a href="/users/833362/plasmahh"
+                       title="8187 reputation"
+                       class="comment-user">PlasmaHH</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-27 14:16:26Z" class="relativetime-clean">Jun 27 '12 at 14:16</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14749102" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">85</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Just to add more fun, on my CPU, when alternating the bits in the input, the branch predictor seems to be able to recognize the pattern. The same for some other alternating bit patterns.</span>
+                &ndash;&nbsp;
+                    <a href="/users/833362/plasmahh"
+                       title="8187 reputation"
+                       class="comment-user">PlasmaHH</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-27 14:37:40Z" class="relativetime-clean">Jun 27 '12 at 14:37</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14762729" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">66</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@JustinDanielson: I highly doubt that is the case. Even if you know what branch prediction was, you may not realize that is the case right away (although I admit you may be able to figure it out yourself). However, I do think this question can benefit future readers, so even if the OP knew the answer, it is valid question. 12,040 view in 9 hours (jeebus!)</span>
+                &ndash;&nbsp;
+                    <a href="/users/906773/jesse-good"
+                       title="22196 reputation"
+                       class="comment-user">Jesse Good</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-27 23:48:24Z" class="relativetime-clean">Jun 27 '12 at 23:48</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14763156" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">72</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@JustinDanielson: I knew what branch prediction was, but I&#39;ve never seen it make such a difference (it&#39;s just a background helper, after all) so it never came to mind. Most of my rep is from knowing the C++ language, not from knowing hardware. Sorry I&#39;m fallible.</span>
+                &ndash;&nbsp;
+                    <a href="/users/87234/gmannickg"
+                       title="152996 reputation"
+                       class="comment-user owner">GManNickG</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-28 00:29:38Z" class="relativetime-clean">Jun 28 '12 at 0:29</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-11227809" data-rep=50 data-anon=true
+			   class="comments-link " 
+			   title="Use comments to ask for more information or suggest improvements. Avoid answering questions in comments." 
+				>show <b>24</b> more comments</a>
+    </td>
+</tr>        </table>
+</div>
+
+
+			<div id="answers">
+
+				<a name="tab-top"></a>
+				<div id="answers-header">
+					<div class="subheader answers-subheader">
+						<h2>
+								9 Answers
+						</h2>
+						<div>
+							<div id="tabs">
+        <a href="/questions/11227809/why-is-processing-a-sorted-array-faster-than-an-unsorted-array?answertab=active#tab-top" title="Answers with the latest activity first">active</a>
+        <a href="/questions/11227809/why-is-processing-a-sorted-array-faster-than-an-unsorted-array?answertab=oldest#tab-top" title="Answers in the order they were provided">oldest</a>
+        <a class="youarehere" href="/questions/11227809/why-is-processing-a-sorted-array-faster-than-an-unsorted-array?answertab=votes#tab-top" title="Answers with the highest score first">votes</a>
+</div>
+						</div>
+					</div>    
+				</div>    
+
+
+
+
+  
+<a name="11227902"></a>
+<div id="answer-11227902" class="answer accepted-answer" data-answerid="11227902" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="11227902">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post high-scored-post">12310</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+        <span class="vote-accepted-on load-accepted-answer-date" title="loading when this answer was accepted...">accepted</span>
+<div class="bounty-award-container"><span class="bounty-award" title="This answer has been awarded bounties worth 1050 reputation by false, rebeliagamer, TLama and nicael">+1050</span></div></div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p><strong>You are the victim of <a href="//en.wikipedia.org/wiki/Branch_predictor">branch prediction</a> fail.</strong></p>
+
+<hr>
+
+<h2>What is Branch Prediction?</h2>
+
+<p>Consider a railroad junction:</p>
+
+<p><a href="//commons.wikimedia.org/wiki/File%3aEntroncamento_do_Transpraia.JPG"><img src="//i.stack.imgur.com/muxnt.jpg" alt=""></a>
+<sub><a href="//commons.wikimedia.org/wiki/File%3aEntroncamento_do_Transpraia.JPG">Image</a> by Mecanismo, via Wikimedia Commons. Used under the <a href="//creativecommons.org/licenses/by-sa/3.0/deed.en">CC-By-SA 3.0</a> license.</sub></p>
+
+<p>Now for the sake of argument, suppose this is back in the 1800s - before long distance or radio communication.</p>
+
+<p>You are the operator of a junction and you hear a train coming. You have no idea which way it will go. You stop the train to ask the captain which direction he wants. And then you set the switch appropriately.</p>
+
+<p><em>Trains are heavy and have a lot of inertia. So they take forever to start up and slow down.</em></p>
+
+<p>Is there a better way? You guess which direction the train will go!</p>
+
+<ul>
+<li>If you guessed right, it continues on.</li>
+<li>If you guessed wrong, the captain will stop, back up, and yell at you to flip the switch. Then it can restart down the other path.</li>
+</ul>
+
+<p><strong>If you guess right every time</strong>, the train will never have to stop.<br>
+<strong>If you guess wrong too often</strong>, the train will spend a lot of time stopping, backing up, and restarting.</p>
+
+<hr>
+
+<p><strong>Consider an if-statement:</strong> At the processor level, it is a branch instruction:</p>
+
+<p><img src="//i.stack.imgur.com/pyfwC.png" alt="enter image description here"></p>
+
+<p>You are a processor and you see a branch. You have no idea which way it will go. What do you do? You halt execution and wait until the previous instructions are complete. Then you continue down the correct path.</p>
+
+<p><em>Modern processors are complicated and have long pipelines. So they take forever to "warm up" and "slow down".</em></p>
+
+<p>Is there a better way? You guess which direction the branch will go!</p>
+
+<ul>
+<li>If you guessed right, you continue executing.</li>
+<li>If you guessed wrong, you need to flush the pipeline and roll back to the branch. Then you can restart down the other path.</li>
+</ul>
+
+<p><strong>If you guess right every time</strong>, the execution will never have to stop.<br>
+<strong>If you guess wrong too often</strong>, you spend a lot of time stalling, rolling back, and restarting.</p>
+
+<hr>
+
+<p>This is branch prediction. I admit it's not the best analogy since the train could just signal the direction with a flag. But in computers, the processor doesn't know which direction a branch will go until the last moment.</p>
+
+<p>So how would you strategically guess to minimize the number of times that the train must back up and go down the other path? You look at the past history! If the train goes left 99% of the time, then you guess left. If it alternates, then you alternate your guesses. If it goes one way every 3 times, you guess the same...</p>
+
+<p><em><strong>In other words, you try to identify a pattern and follow it.</em></strong> This is more or less how branch predictors work.</p>
+
+<p>Most applications have well-behaved branches. So modern branch predictors will typically achieve >90% hit rates. But when faced with unpredictable branches with no recognizable patterns, branch predictors are virtually useless.</p>
+
+<p>Further reading: <a href="//en.wikipedia.org/wiki/Branch_predictor">"Branch predictor" article on Wikipedia</a>.</p>
+
+<hr>
+
+<h2>As hinted from above, the culprit is this if-statement:</h2>
+
+<pre><code>if (data[c] &gt;= 128)
+    sum += data[c];
+</code></pre>
+
+<p>Notice that the data is evenly distributed between 0 and 255. 
+When the data is sorted, roughly the first half of the iterations will not enter the if-statement. After that, they will all enter the if-statement.</p>
+
+<p>This is very friendly to the branch predictor since the branch consecutively goes the same direction many times.
+Even a simple saturating counter will correctly predict the branch except for the few iterations after it switches direction.</p>
+
+<p><strong>Quick visualization:</strong></p>
+
+<pre><code>T = branch taken
+N = branch not taken
+
+data[] = 0, 1, 2, 3, 4, ... 126, 127, 128, 129, 130, ... 250, 251, 252, ...
+branch = N  N  N  N  N  ...   N    N    T    T    T  ...   T    T    T  ...
+
+       = NNNNNNNNNNNN ... NNNNNNNTTTTTTTTT ... TTTTTTTTTT  (easy to predict)
+</code></pre>
+
+<p>However, when the data is completely random, the branch predictor is rendered useless because it can't predict random data.
+Thus there will probably be around 50% misprediction. (no better than random guessing)</p>
+
+<pre><code>data[] = 226, 185, 125, 158, 198, 144, 217, 79, 202, 118,  14, 150, 177, 182, 133, ...
+branch =   T,   T,   N,   T,   T,   T,   T,  N,   T,   N,   N,   T,   T,   T,   N  ...
+
+       = TTNTTTTNTNNTTTN ...   (completely random - hard to predict)
+</code></pre>
+
+<hr>
+
+<p><strong>So what can be done?</strong></p>
+
+<p>If the compiler isn't able to optimize the branch into a conditional move, you can try some hacks if you are willing to sacrifice readability for performance.</p>
+
+<p>Replace:</p>
+
+<pre><code>if (data[c] &gt;= 128)
+    sum += data[c];
+</code></pre>
+
+<p>with:</p>
+
+<pre><code>int t = (data[c] - 128) &gt;&gt; 31;
+sum += ~t &amp; data[c];
+</code></pre>
+
+<p>This eliminates the branch and replaces it with some bitwise operations.</p>
+
+<p><sub>(Note that this hack is not strictly equivalent to the original if-statement. But in this case, it's valid for all the input values of <code>data[]</code>.)</sub></p>
+
+<p><strong>Benchmarks: Core i7 920 @ 3.5 GHz</strong></p>
+
+<p>C++ - Visual Studio 2010 - x64 Release</p>
+
+<pre><code>//  Branch - Random
+seconds = 11.777
+
+//  Branch - Sorted
+seconds = 2.352
+
+//  Branchless - Random
+seconds = 2.564
+
+//  Branchless - Sorted
+seconds = 2.587
+</code></pre>
+
+<p>Java - Netbeans 7.1.1 JDK 7 - x64</p>
+
+<pre><code>//  Branch - Random
+seconds = 10.93293813
+
+//  Branch - Sorted
+seconds = 5.643797077
+
+//  Branchless - Random
+seconds = 3.113581453
+
+//  Branchless - Sorted
+seconds = 3.186068823
+</code></pre>
+
+<p>Observations:</p>
+
+<ul>
+<li><strong>With the Branch:</strong> There is a huge difference between the sorted and unsorted data.</li>
+<li><strong>With the Hack:</strong> There is no difference between sorted and unsorted data.</li>
+<li>In the C++ case, the hack is actually a tad slower than with the branch when the data is sorted.</li>
+</ul>
+
+<p>A general rule of thumb is to avoid data-dependent branching in critical loops. (such as in this example)</p>
+
+<hr>
+
+<p><strong>Update :</strong></p>
+
+<ul>
+<li><p>GCC 4.6.1 with <code>-O3</code> or <code>-ftree-vectorize</code> on x64 is able to generate a conditional move. So there is no difference between the sorted and unsorted data - both are fast.</p></li>
+<li><p>VC++ 2010 is unable to generate conditional moves for this branch even under <code>/Ox</code>.</p></li>
+<li><p>Intel Compiler 11 does something miraculous. It <a href="//en.wikipedia.org/wiki/Loop_interchange">interchanges the two loops</a>, thereby hoisting the unpredictable branch to the outer loop. So not only is it immune the mispredictions, it is also twice as fast as whatever VC++ and GCC can generate! In other words, ICC took advantage of the test-loop to defeat the benchmark...</p></li>
+<li><p>If you give the Intel Compiler the branchless code, it just out-right vectorizes it... and is just as fast as with the branch (with the loop interchange).</p></li>
+</ul>
+
+<p>This goes to show that even mature modern compilers can vary wildly in their ability to optimize code...</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/11227902" title="short permalink to this answer" class="short-link" id="link-post-11227902">share</a><span class="lsep">|</span><a href="/posts/11227902/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info user-hover">
+    <div class="user-action-time">
+        <a href="/posts/11227902/revisions" title="show all edits to this post">edited <span title="2014-03-16 20:54:41Z" class="relativetime">Mar 16 at 20:54</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/411022/ilmari-karonen"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/9905bf9a7b8d5a587c1bdff07ef2e801?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/411022/ilmari-karonen">Ilmari Karonen</a><br>
+        <span class="reputation-score" title="reputation score 20380" dir="ltr">20.4k</span><span title="3 gold badges"><span class="badge1"></span><span class="badgecount">3</span></span><span title="28 silver badges"><span class="badge2"></span><span class="badgecount">28</span></span><span title="54 bronze badges"><span class="badge3"></span><span class="badgecount">54</span></span>
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2012-06-27 13:56:42Z" class="relativetime">Jun 27 '12 at 13:56</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/922184/mysticial"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/Wv6qh.jpg?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/922184/mysticial">Mysticial</a><br>
+        <span class="reputation-score" title="reputation score 163390" dir="ltr">163k</span><span title="27 gold badges"><span class="badge1"></span><span class="badgecount">27</span></span><span title="182 silver badges"><span class="badge2"></span><span class="badgecount">182</span></span><span title="221 bronze badges"><span class="badge3"></span><span class="badgecount">221</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-11227902" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="73" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-14748476" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">62</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Note that with the &quot;hack&quot; (which is equivalent to the <code>cmovge</code> optimization gcc does with -O3, as noted in my comment to the question) it might be possible that the speed is a bit slower than in the case where branch prediction works &quot;perfectly&quot;. So this is once more a case where you might want to optimize your code not only for the data structure, but also for its contents.</span>
+                &ndash;&nbsp;
+                    <a href="/users/833362/plasmahh"
+                       title="8187 reputation"
+                       class="comment-user">PlasmaHH</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-27 14:19:22Z" class="relativetime-clean">Jun 27 '12 at 14:19</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14752910" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">221</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">One way you can make the train analogy better is if you say that the only way the operator can know if the switch is correct is if the captain gives him a thumbs up or thumbs down, and the captain sits at the back of the train such that the operator can only see him when the captain passes him. This way if the switch is incorrect the train would have to stop, back up, and then take the correct route.</span>
+                &ndash;&nbsp;
+                    <a href="/users/375556/thomas"
+                       title="194 reputation"
+                       class="comment-user">Thomas</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-27 16:30:39Z" class="relativetime-clean">Jun 27 '12 at 16:30</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14804540" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">59</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I&#39;m amazed at both the question and the answer - this has explained something I only barely knew about.  But it raises a question for me.  Should you optimize your code to take into account things like branch prediction?  Or would that be a case of pre-mature optimization?  Knowing the data you are processing would seem to drive the implementation.</span>
+                &ndash;&nbsp;
+                    <a href="/users/31326/peter-m"
+                       title="4344 reputation"
+                       class="comment-user">Peter M</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-29 12:50:01Z" class="relativetime-clean">Jun 29 '12 at 12:50</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14985551" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">315</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I would like to point out that the reason the Intel compiler does the loop swap is actually far more impressive than just to help out branch prediction.  The loops written as is are almost 100% guaranteed to cause millions of cache misses on every iteration of the outer loop.  If you flip the two loops, you get at most 32768 cache misses (disregarding os preemption.)  A missed branch prediction here costs nanoseconds.  A cache miss can cause milliseconds if it has to fetch from memory.  That&#39;s a 10000000x improvement.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1301879/michael-graczyk"
+                       title="3413 reputation"
+                       class="comment-user">Michael Graczyk</a>
+                <span class="comment-date" dir="ltr"><span title="2012-07-07 05:45:18Z" class="relativetime-clean">Jul 7 '12 at 5:45</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-22543854" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">32</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Two roads diverged in a wood, and I—	 I took the one less traveled by,	 And that has made all the difference. To execution time. (with apologies to Robert Frost)</span>
+                &ndash;&nbsp;
+                    <a href="/users/2172780/maditya"
+                       title="3102 reputation"
+                       class="comment-user">maditya</a>
+                <span class="comment-date" dir="ltr"><span title="2013-04-05 20:43:30Z" class="relativetime-clean">Apr 5 '13 at 20:43</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-11227902" data-rep=50 data-anon=true
+			   class="comments-link " 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>show <b>73</b> more comments</a>
+    </td>
+</tr>    </table>
+</div>
+<script>
+                var ados = ados || {};ados.run = ados.run || [];
+                ados.run.push(function() { ados_add_placement(22,8277,"adzerk1671572921",4).setZone(44) ; });                    
+            </script>
+            <div class="everyonelovesstackoverflow" id="adzerk1671572921">
+            </div>
+  
+<a name="11227877"></a>
+<div id="answer-11227877" class="answer" data-answerid="11227877" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="11227877">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post high-scored-post">1290</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>Branch prediction. With a sorted array, the condition <code>data[c] &gt;= 128</code> is first false for a streak of values, then becomes true for all later values. That's easy to predict. With an unsorted array, you pay the branching cost.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/11227877" title="short permalink to this answer" class="short-link" id="link-post-11227877">share</a><span class="lsep">|</span><a href="/posts/11227877/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info user-hover">
+    <div class="user-action-time">
+        <a href="/posts/11227877/revisions" title="show all edits to this post">edited <span title="2013-10-09 04:51:58Z" class="relativetime">Oct 9 '13 at 4:51</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1458648/%ec%9b%83%ec%9b%83%ec%9b%83%ec%9b%83%ec%9b%83"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/lRL6G.jpg?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1458648/%ec%9b%83%ec%9b%83%ec%9b%83%ec%9b%83%ec%9b%83">웃웃웃웃웃</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">7,172</span><span title="7 gold badges"><span class="badge1"></span><span class="badgecount">7</span></span><span title="19 silver badges"><span class="badge2"></span><span class="badgecount">19</span></span><span title="44 bronze badges"><span class="badge3"></span><span class="badgecount">44</span></span>
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2012-06-27 13:54:45Z" class="relativetime">Jun 27 '12 at 13:54</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1011995/daniel-fischer"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/ztWNo.jpg?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1011995/daniel-fischer">Daniel Fischer</a><br>
+        <span class="reputation-score" title="reputation score 112710" dir="ltr">113k</span><span title="11 gold badges"><span class="badge1"></span><span class="badgecount">11</span></span><span title="170 silver badges"><span class="badge2"></span><span class="badgecount">170</span></span><span title="284 bronze badges"><span class="badge3"></span><span class="badgecount">284</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-11227877" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-14747662" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">98</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Wow. I knew branch prediction was important - never thought of this speedup factor though.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1100552/eugen-rieck"
+                       title="31913 reputation"
+                       class="comment-user">Eugen Rieck</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-27 13:56:20Z" class="relativetime-clean">Jun 27 '12 at 13:56</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14747877" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">3</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@EugenRieck: Ha, yeah, didn&#39;t even cross my mind this would be it. Never seen such a large difference because of it.</span>
+                &ndash;&nbsp;
+                    <a href="/users/87234/gmannickg"
+                       title="152996 reputation"
+                       class="comment-user owner">GManNickG</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-27 14:02:54Z" class="relativetime-clean">Jun 27 '12 at 14:02</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14762611" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">37</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">That is because the body of the loop is small (a single statement). If it had been a larger block, then the cost of the wrong path would be less.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1408646/vsoverflow"
+                       title="782 reputation"
+                       class="comment-user">VSOverFlow</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-27 23:38:51Z" class="relativetime-clean">Jun 27 '12 at 23:38</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-15783472" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">3</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@Shubham: Because the branch is eventually executed (and then the surrounding context is completely known)? It might be possible to determine this earlier, but when the branch is executed is at least a lower bound in some sense.</span>
+                &ndash;&nbsp;
+                    <a href="/users/4771/cic"
+                       title="2194 reputation"
+                       class="comment-user">cic</a>
+                <span class="comment-date" dir="ltr"><span title="2012-08-08 13:00:41Z" class="relativetime-clean">Aug 8 '12 at 13:00</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-11227877" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="11237235"></a>
+<div id="answer-11237235" class="answer" data-answerid="11237235" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="11237235">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">821</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>The reason why the performance improves drastically when the data are sorted is that the branch prediction penalty is removed, as explained beautifully in Mysticial's answer.</p>
+
+<p>Now, if we look at the code</p>
+
+<pre><code>if (data[c] &gt;= 128)
+    sum += data[c];
+</code></pre>
+
+<p>we can find that the meaning of this particular <code>if... else...</code> branch is to add something when a condition is satisfied. This type of branch can be easily transformed into a <strong>conditional move</strong> statement, which would be compiled into a conditional move instruction, <code>cmovl</code>, in an <code>x86</code> system. The branch and thus the potential branch prediction penalty is removed. <br/></p>
+
+<p>In <code>C</code>, thus <code>C++</code>, the statment, which would compile directly (without any optimization) into the conditional move instruction in <code>x86</code>, is the ternary operator <code>... ? ... : ...</code>. So we rewrite the above statement into an equivalent one:</p>
+
+<pre><code>sum += data[c] &gt;=128 ? data[c] : 0;
+</code></pre>
+
+<p>While maintaining readability, we can check the speedup factor.</p>
+
+<p>On an Intel <a href="http://en.wikipedia.org/wiki/Intel_Core#Core_i7">Core&nbsp;i7</a>-2600K @ 3.4&nbsp;GHz and Visual Studio 2010 Release Mode,
+the benchmark is (format copied from Mysticial):</p>
+
+<p><strong>x86</strong></p>
+
+<pre><code>//  Branch - Random
+seconds = 8.885
+
+//  Branch - Sorted
+seconds = 1.528
+
+//  Branchless - Random
+seconds = 3.716
+
+//  Branchless - Sorted
+seconds = 3.71
+</code></pre>
+
+<p><strong>x64</strong></p>
+
+<pre><code>//  Branch - Random
+seconds = 11.302
+
+//  Branch - Sorted
+ seconds = 1.830
+
+//  Branchless - Random
+seconds = 2.736
+
+//  Branchless - Sorted
+seconds = 2.737
+</code></pre>
+
+<p>The result is robust in multiple tests. We get great speedup when the branch result is unpredictable, but we suffer a little bit when it is predictable. In fact, when using a conditional move, the performance is the same regardless of the data pattern.</p>
+
+<p>Now let's look more closely by investigating at the <code>x86</code> assembly they generate. For simplicity, we use two functions <code>max1</code> and <code>max2</code>.</p>
+
+<p><code>max1</code> uses the conditional branch <code>if... else ...</code>:</p>
+
+<pre><code>int max1(int a, int b) {
+    if (a &gt; b)
+        return a;
+    else
+        return b;
+}
+</code></pre>
+
+<p><code>max2</code> uses the ternary operator <code>... ? ... : ...</code>:</p>
+
+<pre><code>int max2(int a, int b) {
+    return a &gt; b ? a : b;
+}
+</code></pre>
+
+<p>On a x86-64 machine, <code>GCC -S</code> generates the assembly below.</p>
+
+<pre><code>:max1
+    movl    %edi, -4(%rbp)
+    movl    %esi, -8(%rbp)
+    movl    -4(%rbp), %eax
+    cmpl    -8(%rbp), %eax
+    jle     .L2
+    movl    -4(%rbp), %eax
+    movl    %eax, -12(%rbp)
+    jmp     .L4
+.L2:
+    movl    -8(%rbp), %eax
+    movl    %eax, -12(%rbp)
+.L4:
+    movl    -12(%rbp), %eax
+    leave
+    ret
+
+:max2
+    movl    %edi, -4(%rbp)
+    movl    %esi, -8(%rbp)
+    movl    -4(%rbp), %eax
+    cmpl    %eax, -8(%rbp)
+    cmovge  -8(%rbp), %eax
+    leave
+    ret
+</code></pre>
+
+<p><code>max2</code> uses much less code due to the usage of instruction <code>cmovge</code>. But the real gain is that <code>max2</code> does not involve branch jumps, <code>jmp</code>, which would have a significant performance penalty if the predicted result is not right.</p>
+
+<p>So why can a conditional move perform better?</p>
+
+<p>In a typical <code>x86</code> processor, the execution of an instruction is divided to several stages. Roughly, we have different hardware to deal with different stages. So we do not have to wait for one instruction to finish to start a new one. This is called <strong><a href="http://en.wikipedia.org/wiki/Pipeline_%28computing%29">pipelining</a></strong>.</p>
+
+<p>In a branch case, the following instruction is determined by the preceding one, so we can not do pipelining. We have to either wait or predict.</p>
+
+<p>In a conditional move case, the execution conditional move instruction is divided into several stages, but the earlier stages like <code>Fetch</code>, <code>Decode</code>, does not depend on the result of previous instruction, only latter stages need the result. So we wait a fraction of one instruction's execution time. This is why the conditional move version is slower than the branch when prediction is easy.</p>
+
+<p>The book <em><a href="http://rads.stackoverflow.com/amzn/click/0136108040">Computer Systems: A Programmer's Perspective, second edition</a></em> explains this in detail. You can check Section 3.6.6 for <em>Conditional Move Instructions</em>, entire Chapter 4 for <em>Processor Architecture</em>, and Section 5.11.2 for a special treatment for <em>Branch Prediction and Misprediction Penalties</em>.</p>
+
+<p>Sometimes, some modern compilers can optimize our code to assembly with better performance, sometimes some compilers can't (the code in question is using Visual Studio's native compiler). Knowing the performance difference between branch and conditional move when unpredictable can help us write code with better performance when the scenario gets so complex that the compiler can not optimize them automatically.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/11237235" title="short permalink to this answer" class="short-link" id="link-post-11237235">share</a><span class="lsep">|</span><a href="/posts/11237235/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info user-hover">
+    <div class="user-action-time">
+        <a href="/posts/11237235/revisions" title="show all edits to this post">edited <span title="2014-03-03 09:07:49Z" class="relativetime">Mar 3 at 9:07</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/51/yaakov-ellis"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/c55f4bccc99a9d23cd4f42c237eec90b?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/51/yaakov-ellis">Yaakov Ellis</a><span class="mod-flair" title="moderator">&#9830;</span><br>
+        <span class="reputation-score" title="reputation score 15345" dir="ltr">15.3k</span><span title="13 gold badges"><span class="badge1"></span><span class="badgecount">13</span></span><span title="65 silver badges"><span class="badge2"></span><span class="badgecount">65</span></span><span title="115 bronze badges"><span class="badge3"></span><span class="badgecount">115</span></span>
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2012-06-28 02:14:03Z" class="relativetime">Jun 28 '12 at 2:14</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/866732/wisagan"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/f09f0253204000d6083ed1de21afc6fd?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/866732/wisagan">WiSaGaN</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">9,137</span><span title="2 gold badges"><span class="badge1"></span><span class="badgecount">2</span></span><span title="9 silver badges"><span class="badge2"></span><span class="badgecount">9</span></span><span title="34 bronze badges"><span class="badge3"></span><span class="badgecount">34</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-11237235" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="14" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-14764728" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">49</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I&#39;m confused as to how you got those results. Isn&#39;t the ternary operator just an inline branch?</span>
+                &ndash;&nbsp;
+                    <a href="/users/130200/tullo"
+                       title="1079 reputation"
+                       class="comment-user">Tullo</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-28 03:12:57Z" class="relativetime-clean">Jun 28 '12 at 3:12</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14766092" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="hot">24</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@Tullo For a function below: <code>int max(int a, int b) {       return a &gt; b ? a : b;     }</code> On a x86-64 machine, GCC -S generates assembly below <code>movl    %edi, -4(%rbp) |     movl    %esi, -8(%rbp) |     movl    -4(%rbp), %eax |     cmpl    %eax, -8(%rbp) |     cmovge  -8(%rbp), %eax |     leave |     ret</code> It uses conditional move &quot;cmovge&quot; instead of a jump instruction. It could be better pipelined in the processor than a branch. A bit nasty to insert code into comment,btw.</span>
+                &ndash;&nbsp;
+                    <a href="/users/866732/wisagan"
+                       title="9137 reputation"
+                       class="comment-user">WiSaGaN</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-28 05:25:34Z" class="relativetime-clean">Jun 28 '12 at 5:25</span></span>
+                    <span class="edited-yes" title="this comment was edited 4 times"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14776481" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">10</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">In your Edit section, you forgot to ask the compiler to optimize the code. By default, GCC doesn&#39;t perform any optimisation. Adding -O2 will give the same assembler code for max1() and max2()</span>
+                &ndash;&nbsp;
+                    <a href="/users/611560/ydroneaud"
+                       title="1930 reputation"
+                       class="comment-user">ydroneaud</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-28 12:58:31Z" class="relativetime-clean">Jun 28 '12 at 12:58</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-14778577" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">8</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">There&#39;s no default optimization level unless you add -O to your GCC command lines. (And you can&#39;t have a worst english than mine ;)</span>
+                &ndash;&nbsp;
+                    <a href="/users/611560/ydroneaud"
+                       title="1930 reputation"
+                       class="comment-user">ydroneaud</a>
+                <span class="comment-date" dir="ltr"><span title="2012-06-28 14:04:45Z" class="relativetime-clean">Jun 28 '12 at 14:04</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-17352101" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">14</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Please please please please don&#39;t benchmark unoptimized code.  If GCC compiles your two examples to the same assembly with -O2, then the two pieces of code are equivalent, <i>end of story</i>.</span>
+                &ndash;&nbsp;
+                    <a href="/users/61394/justin-l"
+                       title="1412 reputation"
+                       class="comment-user">Justin L.</a>
+                <span class="comment-date" dir="ltr"><span title="2012-10-10 19:38:16Z" class="relativetime-clean">Oct 10 '12 at 19:38</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-11237235" data-rep=50 data-anon=true
+			   class="comments-link " 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>show <b>14</b> more comments</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="11303693"></a>
+<div id="answer-11303693" class="answer" data-answerid="11303693" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="11303693">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">669</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>If you are curious about even more optimizations that can be done to this code, consider this... Starting with the original loop:</p>
+
+<pre><code>for (unsigned i = 0; i &lt; 100000; ++i)
+{
+    for (unsigned j = 0; j &lt; arraySize; ++j)
+    {
+        if (data[j] &gt;= 128)
+            sum += data[j];
+    }
+}
+</code></pre>
+
+<p>With loop interchange, we can safely change this loop to:</p>
+
+<pre><code>for (unsigned j = 0; j &lt; arraySize; ++j)
+{
+    for (unsigned i = 0; i &lt; 100000; ++i)
+    {
+        if (data[j] &gt;= 128)
+            sum += data[j];
+    }
+}
+</code></pre>
+
+<p>Then, you can see that the "if" conditional is constant throughout the execution of the "i" loop, so you can hoist the "if" out:</p>
+
+<pre><code>for (unsigned j = 0; j &lt; arraySize; ++j)
+{
+    if (data[j] &gt;= 128)
+    {
+        for (unsigned i = 0; i &lt; 100000; ++i)
+        {
+            sum += data[j];
+        }
+    }
+}
+</code></pre>
+
+<p>Then, you see that the inner loop can be collapsed into one single expression, assuming the floating point model allows it (/fp:fast is thrown, for example)</p>
+
+<pre><code>for (unsigned j = 0; j &lt; arraySize; ++j)
+{
+    if (data[j] &gt;= 128)
+    {
+        sum += data[j] * 100000;
+    }
+}
+</code></pre>
+
+<p>That one is 100,000x faster than before (-8</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/11303693" title="short permalink to this answer" class="short-link" id="link-post-11303693">share</a><span class="lsep">|</span><a href="/posts/11303693/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/11303693/revisions" title="show all edits to this post">edited <span title="2012-07-03 15:05:26Z" class="relativetime">Jul 3 '12 at 15:05</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/31818/seh"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/3487ce6ed9ec277bac79a838537b46a8?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/31818/seh">seh</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">8,443</span><span title="14 silver badges"><span class="badge2"></span><span class="badgecount">14</span></span><span title="35 bronze badges"><span class="badge3"></span><span class="badgecount">35</span></span>
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2012-07-03 02:25:30Z" class="relativetime">Jul 3 '12 at 2:25</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/863980/vulcan-raven"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/ea08c9063ae1de86e8d576fb569d513a?s=128&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/863980/vulcan-raven">vulcan raven</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">8,244</span><span title="3 gold badges"><span class="badge1"></span><span class="badgecount">3</span></span><span title="15 silver badges"><span class="badge2"></span><span class="badgecount">15</span></span><span title="43 bronze badges"><span class="badge3"></span><span class="badgecount">43</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-11303693" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="3" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-14985597" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">59</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">+1 for commenting on loop swap.  See my comment on Mystical&#39;s answer.  People reading this thread should note that thinking about memory layout and caching is almost always WAY more important than optimizing for branch prediction.  (100000x improvement versus 3x improvement)</span>
+                &ndash;&nbsp;
+                    <a href="/users/1301879/michael-graczyk"
+                       title="3413 reputation"
+                       class="comment-user">Michael Graczyk</a>
+                <span class="comment-date" dir="ltr"><span title="2012-07-07 05:49:14Z" class="relativetime-clean">Jul 7 '12 at 5:49</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-15091065" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">105</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Yes, but the 100,000 loop was just to make the benchmark long enough that the timings would be significant.  In a real application, this kind of opportunity is rare, and the branch prediction remains a significant factor.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1386054/adrian-mccarthy"
+                       title="16795 reputation"
+                       class="comment-user">Adrian McCarthy</a>
+                <span class="comment-date" dir="ltr"><span title="2012-07-11 17:22:58Z" class="relativetime-clean">Jul 11 '12 at 17:22</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-15123398" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">34</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@JasonWilliams: I think you misunderstood the point I was trying to make.  The loop to 100,000 is part of the benchmarking framework--it&#39;s not part of the code we&#39;re trying to optimize.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1386054/adrian-mccarthy"
+                       title="16795 reputation"
+                       class="comment-user">Adrian McCarthy</a>
+                <span class="comment-date" dir="ltr"><span title="2012-07-12 17:59:22Z" class="relativetime-clean">Jul 12 '12 at 17:59</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-15266759" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">2</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I love the optimizations but Agree with Adrian that they don&#39;t necessarily apply in this case because it&#39;s specifically a benchmark test.... in &quot;real code&quot;, you execute the portion commented as &quot;primary loop&quot; only once.  They are executing it 100K times to even out any glitches from context switches, startup time, cache warming, etc.  It&#39;s standard practice to run a loop N times or to execute code benchmarks several times to find the best and/or average time.  These optimizations effectly eliminate the benchmarking of the &quot;real code&quot;.</span>
+                &ndash;&nbsp;
+                    <a href="/users/14904/adisak"
+                       title="3328 reputation"
+                       class="comment-user">Adisak</a>
+                <span class="comment-date" dir="ltr"><span title="2012-07-18 15:54:49Z" class="relativetime-clean">Jul 18 '12 at 15:54</span></span>
+                    <span class="edited-yes" title="this comment was edited 2 times"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-17358678" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="supernova">36</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">If you want to cheat, you might as well take the multiplication outside the loop and do sum*=100000 after the loop.</span>
+                &ndash;&nbsp;
+                    <a href="/users/81614/jyaif"
+                       title="180 reputation"
+                       class="comment-user">Jyaif</a>
+                <span class="comment-date" dir="ltr"><span title="2012-10-11 01:48:01Z" class="relativetime-clean">Oct 11 '12 at 1:48</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-11303693" data-rep=50 data-anon=true
+			   class="comments-link " 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>show <b>3</b> more comments</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="12853037"></a>
+<div id="answer-12853037" class="answer" data-answerid="12853037" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="12853037">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">469</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>No doubt some of us would be interested in ways of identifying code that is problematic for the CPU's branch-predictor. The Valgrind tool <code>cachegrind</code> has a branch-predictor simulator, enabled by using the <code>--branch-sim=yes</code> flag. Running it over the examples in this question, with the number of outer loops reduced to 10000 and compiled with <code>g++</code>, gives these results:</p>
+
+<p><strong>Sorted:</strong></p>
+
+<pre><code>==32551== Branches:        656,645,130  (  656,609,208 cond +    35,922 ind)
+==32551== Mispredicts:         169,556  (      169,095 cond +       461 ind)
+==32551== Mispred rate:            0.0% (          0.0%     +       1.2%   )
+</code></pre>
+
+<p><strong>Unsorted:</strong></p>
+
+<pre><code>==32555== Branches:        655,996,082  (  655,960,160 cond +  35,922 ind)
+==32555== Mispredicts:     164,073,152  (  164,072,692 cond +     460 ind)
+==32555== Mispred rate:           25.0% (         25.0%     +     1.2%   )
+</code></pre>
+
+<p>Drilling down into the line-by-line output produced by <code>cg_annotate</code> we see for the loop in question:</p>
+
+<p><strong>Sorted:</strong></p>
+
+<pre><code>          Bc    Bcm Bi Bim
+      10,001      4  0   0      for (unsigned i = 0; i &lt; 10000; ++i)
+           .      .  .   .      {
+           .      .  .   .          // primary loop
+ 327,690,000 10,016  0   0          for (unsigned c = 0; c &lt; arraySize; ++c)
+           .      .  .   .          {
+ 327,680,000 10,006  0   0              if (data[c] &gt;= 128)
+           0      0  0   0                  sum += data[c];
+           .      .  .   .          }
+           .      .  .   .      }
+</code></pre>
+
+<p><strong>Unsorted:</strong></p>
+
+<pre><code>          Bc         Bcm Bi Bim
+      10,001           4  0   0      for (unsigned i = 0; i &lt; 10000; ++i)
+           .           .  .   .      {
+           .           .  .   .          // primary loop
+ 327,690,000      10,038  0   0          for (unsigned c = 0; c &lt; arraySize; ++c)
+           .           .  .   .          {
+ 327,680,000 164,050,007  0   0              if (data[c] &gt;= 128)
+           0           0  0   0                  sum += data[c];
+           .           .  .   .          }
+           .           .  .   .      }
+</code></pre>
+
+<p>This lets you easily identify the problematic line - in the unsorted version the <code>if (data[c] &gt;= 128)</code> line is causing 164,050,007 mispredicted conditional branches (<code>Bcm</code>) under cachegrind's branch-predictor model, whereas it's only causing 10,006 in the sorted version.</p>
+
+<hr>
+
+<p>Alternatively, on Linux you can use the performance counters subsystem to accomplish the same task, but with native performance using CPU counters.</p>
+
+<pre><code>perf stat ./sumtest_sorted
+</code></pre>
+
+<p><strong>Sorted:</strong></p>
+
+<pre><code> Performance counter stats for './sumtest_sorted':
+
+  11808.095776 task-clock                #    0.998 CPUs utilized          
+         1,062 context-switches          #    0.090 K/sec                  
+            14 CPU-migrations            #    0.001 K/sec                  
+           337 page-faults               #    0.029 K/sec                  
+26,487,882,764 cycles                    #    2.243 GHz                    
+41,025,654,322 instructions              #    1.55  insns per cycle        
+ 6,558,871,379 branches                  #  555.455 M/sec                  
+       567,204 branch-misses             #    0.01% of all branches        
+
+  11.827228330 seconds time elapsed
+</code></pre>
+
+<p><strong>Unsorted:</strong></p>
+
+<pre><code> Performance counter stats for './sumtest_unsorted':
+
+  28877.954344 task-clock                #    0.998 CPUs utilized          
+         2,584 context-switches          #    0.089 K/sec                  
+            18 CPU-migrations            #    0.001 K/sec                  
+           335 page-faults               #    0.012 K/sec                  
+65,076,127,595 cycles                    #    2.253 GHz                    
+41,032,528,741 instructions              #    0.63  insns per cycle        
+ 6,560,579,013 branches                  #  227.183 M/sec                  
+ 1,646,394,749 branch-misses             #   25.10% of all branches        
+
+  28.935500947 seconds time elapsed
+</code></pre>
+
+<p>It can also do source code annotation with dissassembly.</p>
+
+<pre><code>perf record -e branch-misses ./sumtest_unsorted
+perf annotate -d sumtest_unsorted
+</code></pre>
+
+
+
+<pre><code> Percent |      Source code &amp; Disassembly of sumtest_unsorted
+------------------------------------------------
+...
+         :                      sum += data[c];
+    0.00 :        400a1a:       mov    -0x14(%rbp),%eax
+   39.97 :        400a1d:       mov    %eax,%eax
+    5.31 :        400a1f:       mov    -0x20040(%rbp,%rax,4),%eax
+    4.60 :        400a26:       cltq   
+    0.00 :        400a28:       add    %rax,-0x30(%rbp)
+...
+</code></pre>
+
+<p>See <a href="https://perf.wiki.kernel.org/index.php/Tutorial">the performance tutorial</a> for more details.</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/12853037" title="short permalink to this answer" class="short-link" id="link-post-12853037">share</a><span class="lsep">|</span><a href="/posts/12853037/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info user-hover">
+    <div class="user-action-time">
+        <a href="/posts/12853037/revisions" title="show all edits to this post">edited <span title="2012-10-18 19:20:21Z" class="relativetime">Oct 18 '12 at 19:20</span></a>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/63550/peter-mortensen"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/RIZKi.png?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/63550/peter-mortensen">Peter Mortensen</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">7,406</span><span title="8 gold badges"><span class="badge1"></span><span class="badgecount">8</span></span><span title="51 silver badges"><span class="badge2"></span><span class="badgecount">51</span></span><span title="82 bronze badges"><span class="badge3"></span><span class="badgecount">82</span></span>
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2012-10-12 05:53:33Z" class="relativetime">Oct 12 '12 at 5:53</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/134633/caf"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/dc6be45ddcfd038ba5e1e5fca319c7fa?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/134633/caf">caf</a><br>
+        <span class="reputation-score" title="reputation score 113831" dir="ltr">114k</span><span title="8 gold badges"><span class="badge1"></span><span class="badgecount">8</span></span><span title="117 silver badges"><span class="badge2"></span><span class="badgecount">117</span></span><span title="248 bronze badges"><span class="badge3"></span><span class="badgecount">248</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-12853037" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-29933133" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Perhaps but it doesn&#39;t explain why the sorted array is faster if you don&#39;t know anything about Branch prediction. It is however a very inspiring post.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1146585/arlaud-pierre"
+                       title="1481 reputation"
+                       class="comment-user">Arlaud Pierre</a>
+                <span class="comment-date" dir="ltr"><span title="2013-11-20 08:47:54Z" class="relativetime-clean">Nov 20 '13 at 8:47</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-29965599" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">3</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@ArlaudAgbePierre: I didn&#39;t see any point in reiterating what several other answers had said about that.</span>
+                &ndash;&nbsp;
+                    <a href="/users/134633/caf"
+                       title="113831 reputation"
+                       class="comment-user">caf</a>
+                <span class="comment-date" dir="ltr"><span title="2013-11-21 00:09:00Z" class="relativetime-clean">Nov 21 '13 at 0:09</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-29977197" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Of course not, your answer is very interesting. I&#39;m merely explaining why the answer that nurettin found &quot;less inspiring&quot; got chosen in the first place instead of yours. But we&#39;re both totally fine with that.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1146585/arlaud-pierre"
+                       title="1481 reputation"
+                       class="comment-user">Arlaud Pierre</a>
+                <span class="comment-date" dir="ltr"><span title="2013-11-21 09:20:24Z" class="relativetime-clean">Nov 21 '13 at 9:20</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-30576818" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">2</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">This is scary, in the unsorted list, there should be 50% chance of hitting the add.  Somehow the branch prediction only has a 25% miss rate, how can it do better than 50% miss?</span>
+                &ndash;&nbsp;
+                    <a href="/users/2383730/tall-b-lo"
+                       title="238 reputation"
+                       class="comment-user">tall.b.lo</a>
+                <span class="comment-date" dir="ltr"><span title="2013-12-09 04:00:09Z" class="relativetime-clean">Dec 9 '13 at 4:00</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-30577316" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">9</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@tall.b.lo: The 25% is of all branches - there are <i>two</i> branches in the loop, one for <code>data&#91;c&#93; &gt;= 128</code> (which has a 50% miss rate as you suggest) and one for the loop condition <code>c &lt; arraySize</code> which has ~0% miss rate.</span>
+                &ndash;&nbsp;
+                    <a href="/users/134633/caf"
+                       title="113831 reputation"
+                       class="comment-user">caf</a>
+                <span class="comment-date" dir="ltr"><span title="2013-12-09 04:29:25Z" class="relativetime-clean">Dec 9 '13 at 4:29</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-12853037" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="14889969"></a>
+<div id="answer-14889969" class="answer" data-answerid="14889969" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="14889969">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">183</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>As data is distributed between 0 and 255 when array is sorted, around first half of the iterations will not enter the if-statement (if statement shared below).</p>
+
+<pre><code>if (data[c] &gt;= 128)
+    sum += data[c];
+</code></pre>
+
+<p>Question is what make the above statement not execute in certain case as in case of sorted data? Here comes the "Branch predictor" a branch predictor is a digital circuit that tries to guess which way a branch (e.g. an if-then-else structure) will go before this is known for sure. The purpose of the branch predictor is to improve the flow in the instruction pipeline. Branch predictors play a critical role in achieving high effective performance!</p>
+
+<p><strong>Lets do some bench marking to understand it better</strong></p>
+
+<p>The performance of an if-statement depends on whether its condition has a predictable pattern. If the condition is always true or always false, the branch prediction logic in the processor will pick up the pattern. On the other hand, if the pattern is unpredictable, the if-statement will be much more expensive.</p>
+
+<p>Let’s measure the performance of this loop with different conditions:</p>
+
+<pre><code>for (int i = 0; i &lt; max; i++) if (condition) sum++;
+</code></pre>
+
+<p>Here are the timings of the loop with different True-False patterns:</p>
+
+<pre><code>Condition           Pattern              Time (ms)
+
+(i &amp; 0×80000000) == 0   T repeated        322
+
+(i &amp; 0xffffffff) == 0   F repeated        276
+
+(i &amp; 1) == 0            TF alternating    760
+
+(i &amp; 3) == 0            TFFFTFFF…         513
+
+(i &amp; 2) == 0            TTFFTTFF…         1675
+
+(i &amp; 4) == 0            TTTTFFFFTTTTFFFF… 1275
+
+(i &amp; 8) == 0            8T 8F 8T 8F …     752
+
+(i &amp; 16) == 0           16T 16F 16T 16F … 490
+</code></pre>
+
+<p>A “<strong>bad</strong>” true-false pattern can make an if-statement up to six times slower than a “<strong>good</strong>” pattern! Of course, which pattern is good and which is bad depends on the exact instructions generated by the compiler and on the specific processor.</p>
+
+<p>So there is no doubt about impact of branch prediction on performance!</p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/14889969" title="short permalink to this answer" class="short-link" id="link-post-14889969">share</a><span class="lsep">|</span><a href="/posts/14889969/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/14889969/revisions" title="show all edits to this post">edited <span title="2013-03-22 12:20:10Z" class="relativetime">Mar 22 '13 at 12:20</span></a>
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        <br>
+        
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2013-02-15 07:24:16Z" class="relativetime">Feb 15 '13 at 7:24</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1012551/saqlain"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/22df608584e3ef466f34afef94f134df?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1012551/saqlain">Saqlain</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">3,601</span><span title="1 gold badge"><span class="badge1"></span><span class="badgecount">1</span></span><span title="8 silver badges"><span class="badge2"></span><span class="badgecount">8</span></span><span title="21 bronze badges"><span class="badge3"></span><span class="badgecount">21</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-14889969" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-21133170" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">6</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">You don&#39;t show the timings of the &quot;random&quot; TF pattern.</span>
+                &ndash;&nbsp;
+                    <a href="/users/845092/mooing-duck"
+                       title="25885 reputation"
+                       class="comment-user">Mooing Duck</a>
+                <span class="comment-date" dir="ltr"><span title="2013-02-23 02:31:21Z" class="relativetime-clean">Feb 23 '13 at 2:31</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-14889969" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="16184827"></a>
+<div id="answer-16184827" class="answer" data-answerid="16184827" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="16184827">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">173</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>Just read up on the thread and I feel an answer is missing. A common way to eliminate branch prediction that I've found to work particularly good in managed languages is a table lookup instead of using a branch. (although I haven't tested it in this case)</p>
+
+<p>This approach works in general if:</p>
+
+<ol>
+<li>It's a small table and is likely to be cached in the processor</li>
+<li>You are running things in a quite tight loop and/or the processor can pre-load the data</li>
+</ol>
+
+<p><strong>Background and why</strong></p>
+
+<p>Pfew, so what the hell is that supposed to mean?</p>
+
+<p>From a processor perspective, your memory is slow. To compensate for the difference in speed, they build in a couple of caches in your processor (L1/L2 cache) that compensate for that. So imagine that you're doing your nice calculations and figure out that you need a piece of memory. The processor will get his 'load' operation and loads the piece of memory into cache - and then uses the cache to do the rest of the calculations. Because memory is relatively slow, this 'load' will slow down your program. </p>
+
+<p>Like branch prediction, this was optimized in the Pentium processors: the processor predicts that it needs to load a piece of data and attempts to load that into the cache before the operation actually hits the cache. As we've already seen, branch prediction sometimes goes horribly wrong -- in the worst case scenario you need to go back and actually wait for a memory load, which will take forever (<strong>in other words: failing branch prediction is bad, a memory load after a branch prediction fail is just horrible!</strong>).</p>
+
+<p>Fortunately for us, if the memory access pattern is predictable, the processor will load it in its fast cache and all is well.</p>
+
+<p>First thing we need to know is what is <em>small</em>? While smaller is generally better, a rule of thumb is to stick to lookup tables that are &lt;=4096 bytes in size. As an upper limit: if your lookup table is larger than 64K it's probably worth reconsidering.</p>
+
+<p><strong>Constructing a table</strong></p>
+
+<p>So we've figured out that we can create a small table. Next thing to do is get a lookup function in place. Lookup functions are usually small functions that use a couple of basic integer operations (and, or, xor, shift, add, remove and perhaps a multiply). What you want is to have your input translated by the lookup function to some kind of 'unique key' in your table, which then simply gives you the answer of all the work you wanted it to do.</p>
+
+<p>In this case: >=128 means we can keep the value, &lt;128 means we get rid of it. The easiest way to do that is by using an 'AND': if we keep it, we AND it with 7FFFFFFF ; if we want to get rid of it, we AND it with 0. Notice also that 128 is a power of 2 -- so we can go ahead and make a table of 32768/128 integers and fill it with one zero and a lot of 7FFFFFFFF's.</p>
+
+<p><strong>Managed languages</strong></p>
+
+<p>You might wonder why this works well in managed languages. After all, managed languages check the boundaries of the arrays with a branch to ensure you don't mess up...</p>
+
+<p>Well, not exactly... :-)</p>
+
+<p>There has been quite some work on eliminating this branch for managed languages. For example:</p>
+
+<pre><code>for (int i=0; i&lt;array.Length; ++i)
+   // use array[i]
+</code></pre>
+
+<p>in this case it's obvious to the compiler that the boundary condition will never hit. At least the Microsoft JIT compiler (but I expect Java does similar things) will notice this and remove the check all together. WOW - that means no branch. Similarly, it will deal with other obvious cases.</p>
+
+<p>If you run into trouble with lookups on managed languages - the key is to add a <code>&amp; 0x[something]FFF</code> to your lookup function to make the boundary check predictable - and watch it going faster.</p>
+
+<p><strong>The result for this case</strong></p>
+
+<pre><code>// generate data
+int arraySize = 32768;
+int[] data = new int[arraySize];
+
+Random rnd = new Random(0);
+for (int c = 0; c &lt; arraySize; ++c)
+    data[c] = rnd.Next(256);
+
+
+// Too keep the spirit of the code in-tact I'll make a separate lookup table
+// (I assume we cannot modify 'data' or the number of loops)
+int[] lookup = new int[256];
+
+for (int c = 0; c &lt; 256; ++c)
+    lookup[c] = (c &gt;= 128) ? c : 0;
+
+// test
+DateTime startTime = System.DateTime.Now;
+long sum = 0;
+
+for (int i = 0; i &lt; 100000; ++i)
+{
+    // primary loop
+    for (int j = 0; j &lt; arraySize; ++j)
+    {
+        // here you basically want to use simple operations - so no 
+        // random branches, but things like &amp;, |, *, -, +, etc are fine.
+        sum += lookup[data[j]];
+    }
+}
+
+DateTime endTime = System.DateTime.Now;
+Console.WriteLine(endTime - startTime);
+Console.WriteLine("sum = " + sum);
+
+Console.ReadLine();
+</code></pre>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/16184827" title="short permalink to this answer" class="short-link" id="link-post-16184827">share</a><span class="lsep">|</span><a href="/posts/16184827/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/16184827/revisions" title="show all edits to this post">edited <span title="2014-03-17 10:21:12Z" class="relativetime">Mar 17 at 10:21</span></a>
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        <br>
+        
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2013-04-24 06:26:28Z" class="relativetime">Apr 24 '13 at 6:26</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1832040/stefan-de-bruijn"><div class="gravatar-wrapper-32"><img src="http://i.stack.imgur.com/s3MiH.jpg?s=32&g=1" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1832040/stefan-de-bruijn">Stefan de Bruijn</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">3,955</span><span title="1 gold badge"><span class="badge1"></span><span class="badgecount">1</span></span><span title="5 silver badges"><span class="badge2"></span><span class="badgecount">5</span></span><span title="18 bronze badges"><span class="badge3"></span><span class="badgecount">18</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-16184827" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="4" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-23161186" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">3</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">You want to bypass the branch-predictor, why? It&#39;s an optimization.</span>
+                &ndash;&nbsp;
+                    <a href="/users/706421/dustin-oprea"
+                       title="1586 reputation"
+                       class="comment-user">Dustin Oprea</a>
+                <span class="comment-date" dir="ltr"><span title="2013-04-24 17:50:33Z" class="relativetime-clean">Apr 24 '13 at 17:50</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-23168606" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">13</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Because no branch is better than a branch :-) In a lot of situations this is simply a lot faster... if you&#39;re optimizing, it&#39;s definitely worth a try. They also use it quite a bit in f.ex. <a href="http://graphics.stanford.edu/~seander/bithacks.html" rel="nofollow">graphics.stanford.edu/~seander/bithacks.html</a></span>
+                &ndash;&nbsp;
+                    <a href="/users/1832040/stefan-de-bruijn"
+                       title="3955 reputation"
+                       class="comment-user">Stefan de Bruijn</a>
+                <span class="comment-date" dir="ltr"><span title="2013-04-24 21:57:13Z" class="relativetime-clean">Apr 24 '13 at 21:57</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-30989994" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">In general lookup tables can be fast, but have you ran the tests for this particular condition? You&#39;ll still have a branch condition in your code, only now it&#39;s moved to the look up table generation part.  You still wouldn&#39;t get your perf boost</span>
+                &ndash;&nbsp;
+                    <a href="/users/21539/zain"
+                       title="3946 reputation"
+                       class="comment-user">Zain</a>
+                <span class="comment-date" dir="ltr"><span title="2013-12-19 21:45:03Z" class="relativetime-clean">Dec 19 '13 at 21:45</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-31021845" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@Zain if you really want to know... Yes: 15 seconds with the branch and 10 with my version. Regardless, it&#39;s a useful technique to know either way.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1832040/stefan-de-bruijn"
+                       title="3955 reputation"
+                       class="comment-user">Stefan de Bruijn</a>
+                <span class="comment-date" dir="ltr"><span title="2013-12-20 18:57:29Z" class="relativetime-clean">Dec 20 '13 at 18:57</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-33971695" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">1</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Why not <code>sum += lookup&#91;data&#91;j&#93;&#93;</code> where <code>lookup</code> is an array with 256 entries, the first ones being zero and the last ones being equal to the index?</span>
+                &ndash;&nbsp;
+                    <a href="/users/1403794/kris-vandermotten"
+                       title="4554 reputation"
+                       class="comment-user">Kris Vandermotten</a>
+                <span class="comment-date" dir="ltr"><span title="2014-03-12 12:17:49Z" class="relativetime-clean">Mar 12 at 12:17</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-16184827" data-rep=50 data-anon=true
+			   class="comments-link " 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>show <b>4</b> more comments</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="17782979"></a>
+<div id="answer-17782979" class="answer" data-answerid="17782979" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="17782979">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">111</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>One way to avoid branch prediction errors is to build a lookup table, and index it using the data.  Stefan de Bruijn discussed that in his answer.</p>
+
+<p>But in this case, we know values are in the range [0, 255] and we only care about values >= 128.  That means we can easily extract a single bit that will tell us whether we want a value or not: by shifting the data to the right 7 bits, we are left with a 0 bit or a 1 bit, and we only want to add the value when we have a 1 bit.  Let's call this bit the "decision bit".</p>
+
+<p>By using the 0/1 value of the decision bit as an index into an array, we can make code that will be equally fast whether the data is sorted or not sorted.  Our code will always add a value, but when the decision bit is 0, we will add the value somewhere we don't care about.  Here's the code:</p>
+
+<pre><code>// Test
+clock_t start = clock();
+long long a[] = {0, 0};
+long long sum;
+
+for (unsigned i = 0; i &lt; 100000; ++i)
+{
+    // Primary loop
+    for (unsigned c = 0; c &lt; arraySize; ++c)
+    {
+        int j = (data[c] &gt;&gt; 7);
+        a[j] += data[c];
+    }
+}
+
+double elapsedTime = static_cast&lt;double&gt;(clock() - start) / CLOCKS_PER_SEC;
+sum = a[1];
+</code></pre>
+
+<p>This code wastes half of the adds, but never has a branch prediction failure.  It's tremendously faster on random data than the version with an actual if statement.</p>
+
+<p>But in my testing, an explicit lookup table was slightly faster than this, probably because indexing into a lookup table was slightly faster than bit shifting.  This shows how my code sets up and uses the lookup table (unimaginatively called <code>lut</code> for "LookUp Table" in the code).  Here's the C++ code:</p>
+
+<pre><code>// declare and then fill in the lookup table
+int lut[256];
+for (unsigned c = 0; c &lt; 256; ++c)
+    lut[c] = (c &gt;= 128) ? c : 0;
+
+// use the lookup table after it is built
+for (unsigned i = 0; i &lt; 100000; ++i)
+{
+    // Primary loop
+    for (unsigned c = 0; c &lt; arraySize; ++c)
+    {
+        sum += lut[data[c]];
+    }
+}
+</code></pre>
+
+<p>In this case the lookup table was only 256 bytes, so it fit nicely in cache and all was fast.  This technique wouldn't work well if the data was 24-bit values and we only wanted half of them... the lookup table would be far too big to be practical.  On the other hand, we can combine the two techniques shown above: first shift the bits over, then index a lookup table.  For a 24-bit value that we only want the top half value, we could potentially shift the data right by 12 bits, and be left with a 12-bit value for a table index.  A 12-bit table index implies a table of 4096 values, which might be practical.</p>
+
+<p>EDIT: One thing I forgot to put in.</p>
+
+<p>The technique of indexing into an array, instead of using an <code>if</code> statement, can be used for deciding which pointer to use.  I saw a library that implemented binary trees, and instead of having two named pointers (<code>pLeft</code> and <code>pRight</code> or whatever) had a length-2 array of pointers, and used the "decision bit" technique to decide which one to follow.  For example, instead of:</p>
+
+<pre><code>if (x &lt; node-&gt;value)
+    node = node-&gt;pLeft;
+else
+    node = node-&gt;pRight;
+</code></pre>
+
+<p>this library would do something like:</p>
+
+<pre><code>i = (x &lt; node-&gt;value);
+node = node-&gt;link[i];
+</code></pre>
+
+<p>Here's a link to this code: <a href="http://www.eternallyconfuzzled.com/tuts/datastructures/jsw_tut_rbtree.aspx">http://www.eternallyconfuzzled.com/tuts/datastructures/jsw_tut_rbtree.aspx</a></p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/17782979" title="short permalink to this answer" class="short-link" id="link-post-17782979">share</a><span class="lsep">|</span><a href="/posts/17782979/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/17782979/revisions" title="show all edits to this post">edited <span title="2014-04-07 18:58:43Z" class="relativetime">Apr 7 at 18:58</span></a>
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        <br>
+        
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info ">
+    <div class="user-action-time">
+        answered <span title="2013-07-22 08:29:30Z" class="relativetime">Jul 22 '13 at 8:29</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/166949/steveha"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/f59da2cd4382555d85365f508abb2f3a?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/166949/steveha">steveha</a><br>
+        <span class="reputation-score" title="reputation score 24173" dir="ltr">24.2k</span><span title="5 gold badges"><span class="badge1"></span><span class="badgecount">5</span></span><span title="38 silver badges"><span class="badge2"></span><span class="badgecount">38</span></span><span title="66 bronze badges"><span class="badge3"></span><span class="badgecount">66</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-17782979" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="5" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-26185793" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Right, you can also just use the bit directly and multiply (<code>data&#91;c&#93;&gt;&gt;7</code> - which is discussed somewhere here as well); I intentionally left this solution out, but of course you are correct. Just a small note: The rule of thumb for lookup tables is that if it fits in 4KB (because of caching), it&#39;ll work - preferably make the table as small as possible. For managed languages I&#39;d push that to 64KB, for low-level languages like C++ and C, I&#39;d probably reconsider (that&#39;s just my experience). Since <code>typeof(int) = 4</code>, I&#39;d try to stick to max 10 bits.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1832040/stefan-de-bruijn"
+                       title="3955 reputation"
+                       class="comment-user">Stefan de Bruijn</a>
+                <span class="comment-date" dir="ltr"><span title="2013-07-29 12:05:24Z" class="relativetime-clean">Jul 29 '13 at 12:05</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-26206652" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">I think indexing with the 0/1 value will probably be faster than an integer multiply, but I guess if performance is really critical you should profile it.  I agree that small lookup tables are essential to avoid cache pressure, but clearly if you have a bigger cache you can get away with a bigger lookup table, so 4KB is more a rule of thumb than a hard rule.  I think you meant <code>sizeof(int) == 4</code>?  That would be true for 32-bit.  My two-year-old cell phone has a 32KB L1 cache, so even a 4K lookup table might work, especially if the lookup values were a byte instead of an int.</span>
+                &ndash;&nbsp;
+                    <a href="/users/166949/steveha"
+                       title="24173 reputation"
+                       class="comment-user">steveha</a>
+                <span class="comment-date" dir="ltr"><span title="2013-07-29 22:02:13Z" class="relativetime-clean">Jul 29 '13 at 22:02</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-26215200" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Well... I should look this up downstairs in my Intel books, but I recall that an L1 cache doesn&#39;t work like that. From what I recall, it&#39;s very, very unlikely that it&#39;ll fill completely with a consecutive block of RAM. In other words, you might have 128KB L1, but that doesn&#39;t mean it&#39;ll get filled with a single lookup table. We only know for sure that a cache line is filled (which is a few bytes) and we know your page table is optimized for 4K. Hence the 4K rule of thumb. Either way, these are just details; you&#39;re right to rely on a profiler in these cases.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1832040/stefan-de-bruijn"
+                       title="3955 reputation"
+                       class="comment-user">Stefan de Bruijn</a>
+                <span class="comment-date" dir="ltr"><span title="2013-07-30 07:00:46Z" class="relativetime-clean">Jul 30 '13 at 7:00</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-30989915" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">Umm...no, you have an if condition still hidden inside your lookup table generation code. No cookie for you</span>
+                &ndash;&nbsp;
+                    <a href="/users/21539/zain"
+                       title="3946 reputation"
+                       class="comment-user">Zain</a>
+                <span class="comment-date" dir="ltr"><span title="2013-12-19 21:41:55Z" class="relativetime-clean">Dec 19 '13 at 21:41</span></span>
+                    <span class="edited-yes" title="this comment was edited 1 time"></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-30990680" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="warm">8</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@Zain, try actually benchmarking my code and then decide whether to award me a cookie or not.  There is a world of difference between an <code>if</code> in the code to generate a short lookup table, and an <code>if</code> in the main loop processing a large data set.  If you really want, you can make a static initializer for the lookup table, but the cost of setting it up is trivial.  The loop that fills in the lookup table acts like the sorted list: the <code>if</code> always branches one way on the first half of the table, and always branches the other way on the second half, so there is only one mispredicted branch.</span>
+                &ndash;&nbsp;
+                    <a href="/users/166949/steveha"
+                       title="24173 reputation"
+                       class="comment-user">steveha</a>
+                <span class="comment-date" dir="ltr"><span title="2013-12-19 22:07:21Z" class="relativetime-clean">Dec 19 '13 at 22:07</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-17782979" data-rep=50 data-anon=true
+			   class="comments-link " 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>show <b>5</b> more comments</a>
+    </td>
+</tr>    </table>
+</div>
+
+  
+<a name="17828251"></a>
+<div id="answer-17828251" class="answer" data-answerid="17828251" >
+    <table>
+        <tr>
+            <td class="votecell">
+                
+
+<div class="vote">
+    <input type="hidden" name="_id_" value="17828251">
+    <a class="vote-up-off" title="This answer is useful">up vote</a>
+    <span class="vote-count-post ">110</span>
+    <a class="vote-down-off" title="This answer is not useful">down vote</a>
+    
+
+
+</div>
+
+            </td>
+            
+
+
+<td class="answercell">
+    <div class="post-text">
+            <p>In the sorted case, you can do better than relying on successful branch prediction or any branchless comparison trick: completely remove the branch.</p>
+
+<p>Indeed, the array is partitioned in a contiguous zone with <code>data &lt; 128</code> and another with <code>data &gt;= 128</code>. So you should find the partition point with a dichtomic search (using <code>Lg(arraySize) = 15</code> comparisons), then do a straight accumulation from that point.</p>
+
+<p>Something like (unchecked)</p>
+
+<pre><code>int i= 0, j, k= arraySize;
+while (i &lt; k)
+{
+  j= (i + k) &gt;&gt; 1;
+  if (data[j] &gt;= 128)
+    k= j;
+  else
+    i= j;
+}
+sum= 0;
+for (; i &lt; arraySize; i++)
+  sum+= data[i];
+</code></pre>
+
+<p>or, slightly more obfuscated</p>
+
+<pre><code>int i, k, j= (i + k) &gt;&gt; 1;
+for (i= 0, k= arraySize; i &lt; k; (data[j] &gt;= 128 ? k : i)= j)
+  j= (i + k) &gt;&gt; 1;
+for (sum= 0; i &lt; arraySize; i++)
+  sum+= data[i];
+</code></pre>
+
+<p>A yet faster approach, that gives an <strong>approximate</strong> solution for both sorted or unsorted is: <code>sum= 3137536;</code> (assuming a truly uniform distribution, 16384 samples with expected value 191.5) <strong>:-)</strong></p>
+
+    </div>
+    <table class="fw">
+    <tr>
+    <td class="vt">
+<div class="post-menu"><a href="/a/17828251" title="short permalink to this answer" class="short-link" id="link-post-17828251">share</a><span class="lsep">|</span><a href="/posts/17828251/edit" class="suggest-edit-post" title="">improve this answer</a></div>                    </td>
+    <td align="right" class="post-signature">
+<div class="user-info ">
+    <div class="user-action-time">
+        <a href="/posts/17828251/revisions" title="show all edits to this post">edited <span title="2014-02-20 09:40:20Z" class="relativetime">Feb 20 at 9:40</span></a>
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        <br>
+        
+    </div>
+</div>    </td>
+            
+
+
+    <td align="right" class="post-signature">   
+       
+
+    <div class="user-info user-hover">
+    <div class="user-action-time">
+        answered <span title="2013-07-24 07:57:39Z" class="relativetime">Jul 24 '13 at 7:57</span>
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1196549/yves-daoust"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/fa597bf0dc47449a25e1f7f5b57e3ef1?s=32&d=identicon&r=PG" alt=""></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1196549/yves-daoust">Yves Daoust</a><br>
+        <span class="reputation-score" title="reputation score " dir="ltr">5,552</span><span title="1 gold badge"><span class="badge1"></span><span class="badgecount">1</span></span><span title="8 silver badges"><span class="badge2"></span><span class="badgecount">8</span></span><span title="18 bronze badges"><span class="badge3"></span><span class="badgecount">18</span></span>
+    </div>
+</div>
+    </td>
+    </tr>
+    </table>
+</td>
+        </tr>
+        
+<tr>
+    <td class="votecell"></td>
+    <td>
+	    <div id="comments-17828251" class="comments " data-localized="true">
+		    <table>
+			    <tbody data-remaining-comments-count="0" 
+			           data-addlink-html="add comment" 
+			           data-addlink-disabled="true">
+
+    <tr id="comment-26040119" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">4</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy"><code>sum= 3137536</code> - clever. That&#39;s kinda obviously not the point of the question. The question is clearly about explaining surprising performance characteristics. I&#39;m inclined to say that the addition of doing <code>std::partition</code> instead of <code>std::sort</code> is valuable. Though the actual question extends to more than just the synthetic benchmark given.</span>
+                &ndash;&nbsp;
+                    <a href="/users/85371/sehe"
+                       title="120788 reputation"
+                       class="comment-user">sehe</a>
+                <span class="comment-date" dir="ltr"><span title="2013-07-24 16:31:30Z" class="relativetime-clean">Jul 24 '13 at 16:31</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-26048383" class="comment ">
+        <td>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                &nbsp;&nbsp;
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">@DeadMG: this is indeed not the standard dichotomic search for a given key, but a search for the partitioning index; it requires a single compare per iteration. But don&#39;t rely on this code, I have not checked it. If you are interested in a guaranteed correct implementation, let me know.</span>
+                &ndash;&nbsp;
+                    <a href="/users/1196549/yves-daoust"
+                       title="5552 reputation"
+                       class="comment-user">Yves Daoust</a>
+                <span class="comment-date" dir="ltr"><span title="2013-07-24 20:37:31Z" class="relativetime-clean">Jul 24 '13 at 20:37</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+    <tr id="comment-32507462" class="comment ">
+        <td class="comment-actions">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class=" comment-score">
+                                <span title="number of &#39;useful comment&#39; votes received"
+                                      class="cool">1</span>
+                        </td>
+                        <td>
+                                &nbsp;
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+        <td class="comment-text">
+            <div style="display: block;" class="comment-body">
+                <span class="comment-copy">If the list is already sorted than it should be able to be divided in to and then divided again and again until you find what you are looking for.</span>
+                &ndash;&nbsp;
+                    <a href="/users/2487995/doug-hauf"
+                       title="750 reputation"
+                       class="comment-user">Doug Hauf</a>
+                <span class="comment-date" dir="ltr"><span title="2014-02-03 13:51:08Z" class="relativetime-clean">Feb 3 at 13:51</span></span>
+                                                                            </div>
+                    </td>
+    </tr>
+			    </tbody>
+		    </table>
+	    </div>
+			<a id="comments-link-17828251" data-rep=50 data-anon=true
+			   class="comments-link disabled-link" 
+			   title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." 
+				>add comment</a>
+    </td>
+</tr>    </table>
+</div>
+				<div class="question-status">
+        <h2>                    <b>protected</b> by <a href="/users/102937/robert-harvey">Robert Harvey</a><span class="mod-flair" title="moderator">♦</span> <span title="2014-05-02 21:51:10Z" class="relativetime">May 2 at 21:51</span>
+</h2>
+        <p>
+Thank you for your interest in this question. 
+Because it has attracted low-quality answers, posting an answer now requires 10 <a href="/help/whats-reputation">reputation</a> on this site.
+<br /><br />
+Would you like to answer one of these <a href="/unanswered?fromProtectedNotice=true">unanswered questions</a> instead?
+</p>
+    </div>
+
+
+						<h2 class="bottom-notice" data-loc="1">
+Not the answer you&#39;re looking for?							Browse other questions tagged <a href="/questions/tagged/java" class="post-tag" title="show questions tagged &#39;java&#39;" rel="tag">java</a> <a href="/questions/tagged/c%2b%2b" class="post-tag" title="show questions tagged &#39;c++&#39;" rel="tag">c++</a> <a href="/questions/tagged/performance" class="post-tag" title="show questions tagged &#39;performance&#39;" rel="tag">performance</a> <a href="/questions/tagged/optimization" class="post-tag" title="show questions tagged &#39;optimization&#39;" rel="tag">optimization</a> <a href="/questions/tagged/branch-prediction" class="post-tag" title="show questions tagged &#39;branch-prediction&#39;" rel="tag">branch-prediction</a>  or <a href="/questions/ask">ask your own question</a>.						</h2>
+			</div>
+		</div>
+				<div id="sidebar" class="show-votes">
+						    <div class="module question-stats">
+			        <table id="qinfo">
+			            <tr>
+			                <td>
+			                    <p class="label-key">asked</p>
+			                </td>
+			                <td style="padding-left: 10px">
+			                    <p class="label-key" title="2012-06-27 13:51:36Z"><b>2 years ago</b></p>
+			                </td>
+			            </tr>
+			            <tr>
+			                <td>
+			                    <p class="label-key">viewed</p>
+			                </td>
+
+			                <td style="padding-left: 10px">
+			                    <p class="label-key">
+			                        <b>448516 times</b>
+			                    </p>
+			                </td>
+			            </tr>
+			                <tr>
+			                    <td>
+			                        <p class="label-key">active</p>
+			                    </td>
+			                    <td style="padding-left: 10px">
+			                        <p class="label-key"><b><a href="?lastactivity" class="lastactivity-link" title="2014-07-01 06:17:01Z">today</a></b></p>
+			                    </td>
+			                </tr>
+			        </table>
+			    </div>
+						
+			<script>
+                var ados = ados || {};ados.run = ados.run || [];
+                ados.run.push(function() { ados_add_placement(22,8277,"adzerk1704265253",17).setZone(45) ; });                    
+            </script>
+            <div class="everyonelovesstackoverflow" id="adzerk1704265253">
+            </div>  
+    <div id="hireme">
+        <script>
+window.careers_adurl="//careers.stackoverflow.com/gethired/js",window.careers_cssurl="//cdn-careers.sstatic.net/careers/gethired/sidebar.min.css?v=88f3fd5e2263",window.careers_leaderboardcssurl="{leaderboardcssurl}",window.careers_companycssurl="//cdn-careers.sstatic.net/careers/gethired/company",window.careers_adselector="div#hireme",StackExchange.ready(function(){$.ajax({url:"//cdn-careers.sstatic.net/careers/gethired/loader.min.js?v=93d05efce50b",dataType:"script",cache:!0})});        </script>
+    </div>
+			  
+    
+            <div class="module sidebar-linked">
+	<h4 id="h-linked">Linked</h4>
+	<div class="linked" data-tracker="lq=1">
+<div class="spacer">
+	<a href="/q/100003" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted extra-large">1789</div>
+	</a>
+	<a href="/questions/100003/what-is-a-metaclass-in-python" class="question-hyperlink">What is a metaclass in Python?</a>
+</div><div class="spacer">
+	<a href="/q/21947452" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted large">907</div>
+	</a>
+	<a href="/questions/21947452/why-is-printing-b-dramatically-slower-than-printing" class="question-hyperlink">Why is printing &ldquo;B&rdquo; dramatically slower than printing &ldquo;#&rdquo;?</a>
+</div><div class="spacer">
+	<a href="/q/14283270" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted large">479</div>
+	</a>
+	<a href="/questions/14283270/how-to-determine-whether-my-calculation-of-pi-is-accurate" class="question-hyperlink">How to determine whether my calculation of pi is accurate?</a>
+</div><div class="spacer">
+	<a href="/q/10859173" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted large">431</div>
+	</a>
+	<a href="/questions/10859173/how-to-disable-all-caps-menu-titles-in-visual-studio" class="question-hyperlink">How to disable all caps menu titles in Visual Studio</a>
+</div><div class="spacer">
+	<a href="/q/16699247" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted large">261</div>
+	</a>
+	<a href="/questions/16699247/what-is-cache-friendly-code" class="question-hyperlink">What is &ldquo;cache-friendly&rdquo; code?</a>
+</div><div class="spacer">
+	<a href="/q/17328641" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted large">177</div>
+	</a>
+	<a href="/questions/17328641/ternary-operator-is-twice-as-slow-as-an-if-else-block" class="question-hyperlink">Ternary operator is twice as slow as an if-else block?</a>
+</div><div class="spacer">
+	<a href="/q/14774008" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted large">121</div>
+	</a>
+	<a href="/questions/14774008/good-or-bad-practice-initializing-objects-in-getter" class="question-hyperlink">Good or bad practice? Initializing objects in getter</a>
+</div><div class="spacer">
+	<a href="/q/19470873" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted large">143</div>
+	</a>
+	<a href="/questions/19470873/why-does-gcc-generate-15-20-faster-code-if-i-optimize-for-size-instead-of-speed" class="question-hyperlink">Why does gcc generate 15-20% faster code if I optimize for SIZE instead of speed?</a>
+</div><div class="spacer">
+	<a href="/q/17896714" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted large">173</div>
+	</a>
+	<a href="/questions/17896714/why-would-introducing-useless-mov-instructions-speed-up-a-tight-loop-in-x86-64-a" class="question-hyperlink">Why would introducing useless MOV instructions speed up a tight loop in x86_64 assembly?</a>
+</div><div class="spacer">
+	<a href="/q/315306" title="Vote score (upvotes - downvotes)">
+		<div class="answer-votes answered-accepted default">39</div>
+	</a>
+	<a href="/questions/315306/is-if-expensive" class="question-hyperlink">Is &ldquo;IF&rdquo; expensive?</a>
+</div>					<div class="spacer more">
+				<a href="http://stackoverflow.com/questions/linked/11227809">see more linked questions…</a>
+			</div>
+	</div>
+</div>
+
+				<div class="module sidebar-related">
+					<h4 id="h-related">Related</h4>
+                    <div class="related js-gps-related-questions" data-tracker="rq=1">
+                        <div class="spacer">
+<a href="/q/8547778" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted extra-large">1010
+    </div>
+</a><a href="/questions/8547778/why-is-one-loop-so-much-slower-than-two-loops" class="question-hyperlink">Why is one loop so much slower than two loops?</a>
+</div>
+<div class="spacer">
+<a href="/q/12135518" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted large">724
+    </div>
+</a><a href="/questions/12135518/is-faster-than" class="question-hyperlink">Is &lt; faster than &lt;=?</a>
+</div>
+<div class="spacer">
+<a href="/q/12842717" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">2
+    </div>
+</a><a href="/questions/12842717/why-is-processing-a-sorted-array-not-faster-than-an-unsorted-array-in-python" class="question-hyperlink">Why is processing a sorted array not faster than an unsorted array in Python?</a>
+</div>
+<div class="spacer">
+<a href="/q/13136724" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes large">231
+    </div>
+</a><a href="/questions/13136724/why-is-i-faster-than-i-in-loops" class="question-hyperlink">Why is i&mdash; faster than i++ in loops?</a>
+</div>
+<div class="spacer">
+<a href="/q/13663443" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes default">3
+    </div>
+</a><a href="/questions/13663443/an-additional-conditional-statement-is-making-a-program-faster" class="question-hyperlink">An additional conditional statement is making a program faster</a>
+</div>
+<div class="spacer">
+<a href="/q/14023988" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted large">156
+    </div>
+</a><a href="/questions/14023988/why-is-processing-a-sorted-array-slower-than-an-unsorted-array" class="question-hyperlink">Why is processing a sorted array slower than an unsorted array?</a>
+</div>
+<div class="spacer">
+<a href="/q/21432400" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">11
+    </div>
+</a><a href="/questions/21432400/is-branch-prediction-not-working" class="question-hyperlink">Is branch prediction not working?</a>
+</div>
+<div class="spacer">
+<a href="/q/21598558" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted default">0
+    </div>
+</a><a href="/questions/21598558/why-volatile-is-working-faster-than-non-volatile" class="question-hyperlink">Why volatile is working faster than non-volatile?</a>
+</div>
+<div class="spacer">
+<a href="/q/21947452" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes answered-accepted large">907
+    </div>
+</a><a href="/questions/21947452/why-is-printing-b-dramatically-slower-than-printing" class="question-hyperlink">Why is printing &ldquo;B&rdquo; dramatically slower than printing &ldquo;#&rdquo;?</a>
+</div>
+<div class="spacer">
+<a href="/q/24327301" title="Vote score (upvotes - downvotes)">
+    <div class="answer-votes default">2
+    </div>
+</a><a href="/questions/24327301/branch-prediction-on-sorted-unsorted-different-sized-arrays" class="question-hyperlink">Branch prediction on sorted/unsorted different sized arrays</a>
+</div>
+
+                    </div>
+				</div>
+            
+<div id="hot-network-questions" class="module">
+    <h4>
+        <a href="//stackexchange.com/questions?tab=hot" 
+           class="js-gps-track" 
+           data-gps-track="posts_hot_network.click({ item_type:1, location:11 })">
+            Hot Network Questions
+        </a>
+    </h4>
+    <ul>
+            <li >
+                <div class="favicon favicon-mathoverflow" title="MathOverflow"></div><a href="http://mathoverflow.net/questions/173060/simplest-example-of-non-trivial-toda-bracket-in-spaces" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:504 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Simplest example of non-trivial Toda bracket in spaces
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-buddhism" title="Buddhism Stack Exchange"></div><a href="http://buddhism.stackexchange.com/questions/1777/can-personal-experience-generate-buddhistic-insight-outside-of-meditation" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:565 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Can personal experience generate buddhistic insight outside of meditation?
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-workplace" title="The Workplace Stack Exchange"></div><a href="http://workplace.stackexchange.com/questions/27996/how-do-i-ask-my-boss-for-back-pay-when-ive-been-grossly-underpaid" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:423 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How do I ask my boss for back pay when I&#39;ve been grossly underpaid?
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-craftcms" title="Craft CMS Stack Exchange"></div><a href="http://craftcms.stackexchange.com/questions/658/is-it-possible-to-correctly-output-a-table-within-a-matrix-block" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:563 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Is it possible to correctly output a Table within a Matrix block?
+                </a>
+
+            </li>
+            <li >
+                <div class="favicon favicon-money" title="Personal Finance &amp; Money Stack Exchange"></div><a href="http://money.stackexchange.com/questions/33805/am-i-using-my-credit-card-wrong" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:93 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Am I using my credit card wrong?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-gis" title="Geographic Information Systems Stack Exchange"></div><a href="http://gis.stackexchange.com/questions/103796/change-format-of-scaleline" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:79 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Change format of scaleline
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-math" title="Mathematics Stack Exchange"></div><a href="http://math.stackexchange.com/questions/853409/how-would-you-count-a-base-36-system" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:69 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How would you count a base &gt; 36 system?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-serverfault" title="Server Fault"></div><a href="http://serverfault.com/questions/609334/ssh-is-no-longer-using-ssh-config" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:2 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    ssh is no longer using ~/.ssh/config
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-rpg" title="Role-playing Games Stack Exchange"></div><a href="http://rpg.stackexchange.com/questions/41719/why-is-magic-so-hard" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:122 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why is Magic so hard?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-diy" title="Home Improvement Stack Exchange"></div><a href="http://diy.stackexchange.com/questions/44634/when-drywalling-a-room-should-i-do-the-ceiling-before-the-walls" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:73 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    When drywalling a room, should I do the ceiling before the walls?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-physics" title="Physics Stack Exchange"></div><a href="http://physics.stackexchange.com/questions/122637/why-is-the-electric-field-of-an-infinite-insulated-plane-of-charge-perpendicular" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:151 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why is the electric field of an infinite insulated plane of charge perpendicular to the plane?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-craftcms" title="Craft CMS Stack Exchange"></div><a href="http://craftcms.stackexchange.com/questions/651/overwrite-entry-title-in-template" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:563 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Overwrite entry.title in template
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-apple" title="Ask Different"></div><a href="http://apple.stackexchange.com/questions/136672/how-do-i-require-password-prompt-every-time-i-close-my-macbooks-lid" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:118 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How do I require password prompt EVERY time I close my MacBook&#39;s lid?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-philosophy" title="Philosophy Stack Exchange"></div><a href="http://philosophy.stackexchange.com/questions/14375/how-fundamental-is-logic" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:265 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How fundamental is logic?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-codegolf" title="Programming Puzzles &amp; Code Golf Stack Exchange"></div><a href="http://codegolf.stackexchange.com/questions/32782/survival-game-alienwar" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:200 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Survival Game - AlienWar
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-academia" title="Academia Stack Exchange"></div><a href="http://academia.stackexchange.com/questions/24239/is-it-appropriate-to-ask-colleagues-opinions-when-reviewing-a-paper" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:415 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Is it appropriate to ask colleagues opinions when reviewing a paper?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-electronics" title="Electrical Engineering Stack Exchange"></div><a href="http://electronics.stackexchange.com/questions/117217/why-cant-wi-fi-run-at-2-4-gbit-s" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:135 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why can&#39;t Wi-Fi run at 2.4 Gbit/s?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-gardening" title="Gardening &amp; Landscaping Stack Exchange"></div><a href="http://gardening.stackexchange.com/questions/11228/how-do-i-remove-oak-seedlings-which-sprouted-in-my-garden" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:269 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How do I remove oak seedlings which sprouted in my garden?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-math" title="Mathematics Stack Exchange"></div><a href="http://math.stackexchange.com/questions/853164/i-need-a-relation-which-is-not-reflexive-not-symmetric-and-not-transitive" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:69 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    I need a relation which is not reflexive, not symmetric, and not transitive
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-askubuntu" title="Ask Ubuntu"></div><a href="http://askubuntu.com/questions/490366/how-to-retain-installed-software-between-ubuntu-installations-tools-for-softwa" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:89 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How to retain installed software between Ubuntu installations / Tools for software inventory?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-craftcms" title="Craft CMS Stack Exchange"></div><a href="http://craftcms.stackexchange.com/questions/650/should-i-use-tags-for-cities" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:563 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Should I use tags for cities?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-hinduism" title="Hinduism Stack Exchange"></div><a href="http://hinduism.stackexchange.com/questions/647/why-is-it-best-if-we-light-ghee-lamp-in-the-house-while-praying" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:567 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why is it best if we light ghee lamp in the house while praying?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-music" title="Musical Practice &amp; Performance Stack Exchange"></div><a href="http://music.stackexchange.com/questions/20654/what-determines-how-hard-it-is-to-press-a-guitar-string" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:240 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What determines how hard it is to press a guitar string?
+                </a>
+
+            </li>
+            <li class="dno js-hidden">
+                <div class="favicon favicon-graphicdesign" title="Graphic Design Stack Exchange"></div><a href="http://graphicdesign.stackexchange.com/questions/35289/should-i-provide-a-dieline-around-a-package-design" class="js-gps-track" data-gps-track="site.switch({ item_type:11, target_site:174 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Should I provide a dieline around a package design?
+                </a>
+
+            </li>
+    </ul>
+
+        <a href="#" 
+           class="show-more js-show-more js-gps-track" 
+           data-gps-track="posts_hot_network.click({ item_type:3, location:11 })">
+            more hot questions
+        </a>
+</div>
+		</div>
+	
+<div id="feed-link">
+    <div id="feed-link-text">
+        <a href="/feeds/question/11227809" title="feed of this question and its answers">
+            <span class="feed-icon"></span>question feed
+        </a>
+    </div>
+</div>	<script>
+StackExchange.ready(function(){$.get('/posts/11227809/ivc/1393');});
+</script>
+<noscript>
+    <div><img src="/posts/11227809/ivc/1393" class="dno" alt="" width="0" height="0"></div>
+</noscript><div style="display:none" id="prettify-lang">default</div></div>
+
+
+
+        </div>
+    </div>
+    <div id="footer" class="categories">
+        <div class="footerwrap">
+            <div id="footer-menu">
+                <div class="top-footer-links">
+                        <a href="/tour">tour</a>
+                    <a href="/help">help</a>
+                        <a href="/help/badges">badges</a>
+                    <a href="http://blog.stackoverflow.com?blb=1">blog</a>
+                        <a href="http://chat.stackoverflow.com">chat</a>
+                    <a href="http://data.stackexchange.com">data</a>
+                    <a href="http://stackexchange.com/legal">legal</a>
+                    <a href="http://stackexchange.com/legal/privacy-policy">privacy policy</a>
+                    <a href="http://stackexchange.com/work-here">work here</a>
+                    <a href="http://stackexchange.com/mediakit">advertising info</a>
+
+                    <a onclick='StackExchange.switchMobile("on")'>mobile</a>
+                    <b><a href="/contact">contact us</a></b>
+                        <b><a href="http://meta.stackoverflow.com">feedback</a></b>
+                    
+                </div>
+                <div id="footer-sites">
+                    <table>
+    <tr>
+            <th colspan=3>
+                Technology
+            </th>
+            <th >
+                Life / Arts
+            </th>
+            <th >
+                Culture / Recreation
+            </th>
+            <th >
+                Science
+            </th>
+            <th >
+                Other
+            </th>
+    </tr>
+    <tr>
+            <td>
+                <ol>
+                        <li><a href="http://stackoverflow.com" title="professional and enthusiast programmers">Stack Overflow</a></li>
+                        <li><a href="http://serverfault.com" title="professional system and network administrators">Server Fault</a></li>
+                        <li><a href="http://superuser.com" title="computer enthusiasts and power users">Super User</a></li>
+                        <li><a href="http://webapps.stackexchange.com" title="power users of web applications">Web Applications</a></li>
+                        <li><a href="http://askubuntu.com" title="Ubuntu users and developers">Ask Ubuntu</a></li>
+                        <li><a href="http://webmasters.stackexchange.com" title="pro webmasters">Webmasters</a></li>
+                        <li><a href="http://gamedev.stackexchange.com" title="professional and independent game developers">Game Development</a></li>
+                        <li><a href="http://tex.stackexchange.com" title="users of TeX, LaTeX, ConTeXt, and related typesetting systems">TeX - LaTeX</a></li>
+                            </ol></td><td><ol>
+                        <li><a href="http://programmers.stackexchange.com" title="professional programmers interested in conceptual questions about software development">Programmers</a></li>
+                        <li><a href="http://unix.stackexchange.com" title="users of Linux, FreeBSD and other Un*x-like operating systems.">Unix &amp; Linux</a></li>
+                        <li><a href="http://apple.stackexchange.com" title="power users of Apple hardware and software">Ask Different (Apple)</a></li>
+                        <li><a href="http://wordpress.stackexchange.com" title="WordPress developers and administrators">WordPress Development</a></li>
+                        <li><a href="http://gis.stackexchange.com" title="cartographers, geographers and GIS professionals">Geographic Information Systems</a></li>
+                        <li><a href="http://electronics.stackexchange.com" title="electronics and electrical engineering professionals, students, and enthusiasts">Electrical Engineering</a></li>
+                        <li><a href="http://android.stackexchange.com" title="enthusiasts and power users of the Android operating system">Android Enthusiasts</a></li>
+                        <li><a href="http://security.stackexchange.com" title="Information security professionals">Information Security</a></li>
+                            </ol></td><td><ol>
+                        <li><a href="http://dba.stackexchange.com" title="database professionals who wish to improve their database skills and learn from others in the community">Database Administrators</a></li>
+                        <li><a href="http://drupal.stackexchange.com" title="Drupal developers and administrators">Drupal Answers</a></li>
+                        <li><a href="http://sharepoint.stackexchange.com" title="SharePoint enthusiasts">SharePoint</a></li>
+                        <li><a href="http://ux.stackexchange.com" title="user experience researchers and experts">User Experience</a></li>
+                        <li><a href="http://mathematica.stackexchange.com" title="users of Mathematica">Mathematica</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#technology" class="more">
+                                more (14)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://photo.stackexchange.com" title="professional, enthusiast and amateur photographers">Photography</a></li>
+                        <li><a href="http://scifi.stackexchange.com" title="science fiction and fantasy enthusiasts">Science Fiction &amp; Fantasy</a></li>
+                        <li><a href="http://graphicdesign.stackexchange.com" title="professional graphic designers and non-designers trying to do their own graphic design">Graphic Design</a></li>
+                        <li><a href="http://cooking.stackexchange.com" title="professional and amateur chefs">Seasoned Advice (cooking)</a></li>
+                        <li><a href="http://diy.stackexchange.com" title="contractors and serious DIYers">Home Improvement</a></li>
+                        <li><a href="http://money.stackexchange.com" title="people who want to be financially literate">Personal Finance &amp; Money</a></li>
+                        <li><a href="http://academia.stackexchange.com" title="academics and those enrolled in higher education">Academia</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#lifearts" class="more">
+                                more (10)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://english.stackexchange.com" title="linguists, etymologists, and serious English language enthusiasts">English Language &amp; Usage</a></li>
+                        <li><a href="http://skeptics.stackexchange.com" title="scientific skepticism">Skeptics</a></li>
+                        <li><a href="http://judaism.stackexchange.com" title="those who base their lives on Jewish law and tradition and anyone interested in learning more">Mi Yodeya (Judaism)</a></li>
+                        <li><a href="http://travel.stackexchange.com" title="road warriors and seasoned travelers">Travel</a></li>
+                        <li><a href="http://christianity.stackexchange.com" title="committed Christians, experts in Christianity and those interested in learning more">Christianity</a></li>
+                        <li><a href="http://gaming.stackexchange.com" title="passionate videogamers on all platforms">Arqade (gaming)</a></li>
+                        <li><a href="http://bicycles.stackexchange.com" title="people who build and repair bicycles, people who train cycling, or commute on bicycles">Bicycles</a></li>
+                        <li><a href="http://rpg.stackexchange.com" title="gamemasters and players of tabletop, paper-and-pencil role-playing games">Role-playing Games</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#culturerecreation" class="more">
+                                more (21)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://math.stackexchange.com" title="people studying math at any level and professionals in related fields">Mathematics</a></li>
+                        <li><a href="http://stats.stackexchange.com" title="people interested in statistics, machine learning, data analysis, data mining, and data visualization">Cross Validated (stats)</a></li>
+                        <li><a href="http://cstheory.stackexchange.com" title="theoretical computer scientists and researchers in related fields">Theoretical Computer Science</a></li>
+                        <li><a href="http://physics.stackexchange.com" title="active researchers, academics and students of physics">Physics</a></li>
+                        <li><a href="http://mathoverflow.net" title="professional mathematicians">MathOverflow</a></li>
+                    
+                        <li>
+                            <a href="http://stackexchange.com/sites#science" class="more">
+                                more (7)
+                            </a>
+                        </li>
+                </ol>
+            </td>
+            <td>
+                <ol>
+                        <li><a href="http://stackapps.com" title="apps, scripts, and development with the Stack Exchange API">Stack Apps</a></li>
+                        <li><a href="http://meta.stackexchange.com" title="meta-discussion of the Stack Exchange family of Q&amp;A websites">Meta Stack Exchange</a></li>
+                        <li><a href="http://area51.stackexchange.com" title="proposing new sites in the Stack Exchange network">Area 51</a></li>
+                        <li><a href="http://careers.stackoverflow.com">Stack Overflow Careers</a></li>
+                    
+                </ol>
+            </td>
+    </tr>
+</table>
+                </div>
+            </div>
+
+            <div id="copyright">
+                site design / logo &#169; 2014 stack exchange inc; user contributions licensed under <a href="http://creativecommons.org/licenses/by-sa/3.0/" rel="license">cc by-sa 3.0</a> 
+                with <a href="http://blog.stackoverflow.com/2009/06/attribution-required/" rel="license">attribution required</a>
+            </div>
+            <div id="svnrev">
+                rev 2014.6.30.1688
+            </div>
+            
+        </div>
+    </div>
+    <noscript>
+        <div id="noscript-warning">Stack Overflow works best with JavaScript enabled<img src="http://pixel.quantserve.com/pixel/p-c1rF4kxgLUzNc.gif" alt="" class="dno"></div>
+    </noscript>
+<script>var p = "http", d = "static"; if (document.location.protocol == "https:") { p += "s"; d = "engine"; } var z = document.createElement("script"); z.type = "text/javascript"; z.async = true; z.src = p + "://" + d + ".adzerk.net/ados.js"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(z, s);</script>
+<script>
+    var ados = ados || {};
+    ados.run = ados.run || [];
+    ados.run.push(function () { ados_setKeywords('java,c%2b%2b,performance,optimization,branch-prediction');; ados_load(); });         
+</script>
+
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () { (i[r].q = i[r].q || []).push(arguments) }, i[r].l = 1 * new Date(); a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m);
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+        ga('create', 'UA-5620270-1');        
+        
+        ga('set', 'dimension2', '|java|c++|performance|optimization|branch-prediction|');         
+        ga('send', 'pageview');
+        var _qevents = _qevents || [],
+            _comscore = _comscore || [];
+        (function () {
+            var ssl='https:'==document.location.protocol,
+                s=document.getElementsByTagName('script')[0],
+                qc=document.createElement('script');
+            qc.async=true;
+            qc.src=(ssl?'https://secure':'http://edge')+'.quantserve.com/quant.js';
+            s.parentNode.insertBefore(qc, s);
+            var sc=document.createElement('script');
+            sc.async=true;
+            sc.src=(ssl?'https://sb':'http://b') + '.scorecardresearch.com/beacon.js';
+            s.parentNode.insertBefore(sc, s);
+        })();
+        _comscore.push({ c1: "2", c2: "17440561" });
+        _qevents.push({ qacct: "p-c1rF4kxgLUzNc" });
+    </script>        
+    
+    </body>
+</html>

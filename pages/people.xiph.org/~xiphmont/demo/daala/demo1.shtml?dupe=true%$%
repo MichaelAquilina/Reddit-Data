@@ -1,0 +1,416 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <link rel="icon" href="http://www.xiph.org/images/logos/xiph.ico" type="image/x-icon"/>
+    <link rel="stylesheet" title="default demosheet" media="screen" href="demo.css" type="text/css"/>
+    <title>next generation video: Introducing Daala</title>
+  </head>
+
+  <body>
+    <div id="xiphlogo">
+      <a href="//www.xiph.org/"><img
+      src="//www.xiph.org/images/logos/fish_xiph_org.png"
+      alt="Fish Logo and Xiph.org"/></a>
+      <h1>next generation video: Introducing Daala</h1>
+      <div class="or"><a href="/~xiphmont/demo/index.html">(...up to the main demo page)</a></div>
+    </div>
+
+    <div>&nbsp;</div>
+
+    <div style="position: relative;">
+      <img src="whiteboard-smaller.jpg" style="position: absolute; z-index: 1; width: 100%; height: 100%;" />
+      <div style="position: relative;
+		  z-index: 2;
+		  padding: 4.5em 5em 5em 5em;
+		  color: #114455;">
+	
+	<div style="padding: 1em;">
+	  
+	<img src="D.png" alt="D" style="float:left; 
+					padding:0px;
+					margin:0px;
+					padding-right:.2em; 
+					height:6.75em;" />
+	<p style="clear: none;">
+	  aala is a new general-purpose video codec currently under
+	  development at Xiph.Org.  Our performance target is roughly
+	  a generation beyond current 'next-generation' codecs like
+	  VP9 and HEVC, making Daala a 
+	  <span title="no, it's not going to be named 'Deep Space VP9'">
+	    next-next-generation</span>
+	  effort.  As with other Xiph codecs, the Daala format is and
+	  will always be royalty-free with a permissive FOSS
+	  license.</p>
+	<p style="clear:none;">On May 30th 2013, our in-development
+	  Daala prototype encoded and decoded its first streams.  Two
+	  hours later, Mozilla's David "oneman" Richards streamed the
+	  first live Daala video over the Internet.  Although the
+	  project is still pre-pre-alpha, I think it's time to
+	  introduce Daala to the world.</p>
+	</div>
+      </div>
+    </div>
+    
+    <div class="caption" style="border: 0px; margin-top: 1em; padding-bottom: 0px; margin-bottom: -.5em;">
+      Update: <a href="demo2.shtml">Introducing Daala part 2</a> now posted!
+    </div>
+
+    <h2><a href="http://en.wikipedia.org/wiki/The_Mote_in_God%27s_Eye#Crazy_Eddie">Meet
+    Crazy Eddie</a></h2>
+
+    <p>The next-generation VP9 and HEVC codecs are the latest
+      incremental refinements of a basic codec design that dates back 25
+      years to h.261.  This conservative, linear development strategy
+      evolving a proven design has yielded reliable improvement with
+      relatively low risk, but the law of diminishing returns is setting
+      in. Recent performance increases are coming at exponentially
+      increasing computational cost.</p>
+
+    <p>Daala tries for a larger leap forward&mdash; by first leaping
+      sideways&mdash; to a new codec design and numerous novel coding
+      techniques. In addition to the technical freedom of starting
+      fresh, this new design consciously avoids most of the patent
+      thicket surrounding mainstream block-DCT-based codecs.  At its
+      very core, for example, Daala is based on lapped transforms, not
+      the traditional DCT.</p>
+
+    <p>...so let's start there.</p>
+
+    <h2>Strengths and Weaknesses of the DCT</h2>
+
+    <p>Modern codecs typically encode video at bitrates that work out
+      to substantially less than one bit per pixel.  They do this by
+      grouping pixels together, typically into 4x4, 8x8 or 16x16
+      blocks, then transforming the blocks with a
+      two-dimensional
+      <a href="http://en.wikipedia.org/wiki/Discrete_cosine_transform">
+	<i>Discrete Cosine Transform (DCT)</i></a>.</p>
+
+    <img class="caption" style="margin-top: 2em;" src="blocking.png">
+    <div class="caption">
+      Above: Illustration of a basic video encoder; each video frame
+      is broken into individual 8x8 pixel blocks, then each block is
+      transformed by the DCT.  More complex encoders still perform
+      these high level steps.
+    </div>
+
+    <p>The DCT converts the blocks of pixels into same-sized blocks of
+      frequency coefficients. It also compacts most of the energy from
+      the original pixels into just a few coefficients, arranged such
+      that reduced precision in the frequency domain is far less
+      noticeable than reduced precision in the spatial domain.  Thus,
+      the DCT makes it possible to encode the image in less space, as
+      the most important aspects of the image are represented in a
+      more compact form.</p>
+
+    <img class="caption" src="dct.png">
+    <div class="caption">
+      Above: Illustration of a single 8x8 block of grayscale pixels
+      transformed into an 8x8 block of frequency coefficients by the
+      DCT.  Although the DCT outputs the same number of frequency
+      coefficients as input pixels, the DCT coefficients typically
+      represent the same information in a more compact form that can
+      be stored in fewer bits.  In addition, purposely losing
+      precision in the DCT domain is much less noticable than losing
+      the same amount of information in the spatial domain.  This is
+      the primary basis of operation of most modern lossy video
+      codecs.
+    </div>
+
+    <p>An encoder then quantizes the DCT coefficients to a lower
+      precision, usually via a complex heuristic algorithm that's been
+      carefully tuned.  Let's handwave that away for now, and do the
+      simplest possible thing: quantize all the coefficients by a fixed
+      quantizer.  The decoder then uses an inverse 2D DCT to reconstruct
+      the original image block by block.</p>
+
+    <img class="caption" src="reconstruct.png">
+    <div class="caption">
+      Above: Illustration of a basic decoder reconstructing the
+      original image from blocks of quantized DCT coefficients.  Each
+      block of quantized coefficients is converted back into a block
+      of pixels by an inverse DCT.  The blocks of pixels are then
+      reassembled into a complete image.
+    </div>
+
+    <p>There's an obvious change here; we can clearly distinguish the
+      sharp boundary of each individiual block in the reconstructed
+      image.  A DCT is a circular [edit: braino there, I meant
+      symmetric not circular] transform, and so the block edges
+      introduce strong discontinuities.  When we invert the transform,
+      the spatial error introduced by quantization causes the block
+      edges to no longer 'line up'.  Average spatial error is also
+      greater at the block edges, which further exacerbates the
+      problem.</p>
+
+    <img class="caption" src="screendoor.png">
+    <div class="caption">
+      Above: Illustration of the 'screen door' effect, in which the
+      reconstructed blocks of a DCT-based codec show an obvious grid
+      of boundaries.  The effect is particularly noticeable in video,
+      where the grid stays fixed while objects in the video move.
+      Even motion-compensated codecs can display this effect when the
+      underlying blocks do not move perfectly in sync with objects in
+      the image.
+    </div>
+    
+    <p>For this reason, virtually all video codecs use
+      a <a href="http://en.wikipedia.org/wiki/Deblocking_filter"><i>deblocking
+      filter</i></a> to smooth over the edges between blocks.  This
+      filter may be a purely post-processing step, or it may exist
+      within the encoding loop in which case it's called a <i>loop
+      filter</i>.  This filter began life decades ago as something of
+      an afterthought, but it's an integral part of modern codecs
+      accounting for a significant portion of the design complexity
+      and CPU cost.</p>
+    
+    <p>A deblocking filter is at best a necessary evil. It discards
+      legitimate detail at block edges at the same time it smooths the
+      boundary discontinuities.  Further, the details the deblocking
+      filter unintentionally discards cost bits and CPU time to
+      encode.  Finally, good deblocking filters are complex and
+      heuristic, requiring detailed analysis (and in some cases,
+      additional signaling) to control conditional application.  The
+      heuristics have become quite good, but they can go wrong.</p>
+    
+    <p>A lapped transform renders this necessary evil unneccessary.
+      It has some other nice benefits as well.</p>
+    
+    <img class="caption" src="comp.png">
+    <div class="caption">
+      Above: Comparison of original image to images transformed and
+      quantized using the DCT and Daala's lapped transform.  Both
+      transforms used the same scaling and coarse flat quantizer to
+      simulate low-bitrate encoding.  The summed log-energy after
+      quantization was the same for both transforms.
+    </div>
+
+    <h2>The Lapped Transform</h2>
+    
+    <p>A lapped transform is any transform where each block overlaps
+      its neigboring blocks. Audio has used overlapping transforms
+      since approximately forever; the best known example is
+      the <a href="http://en.wikipedia.org/wiki/Modified_discrete_cosine_transform"><i>Modified
+      Discrete Cosine Transform (MDCT)</i></a> that powers MP3,
+      Vorbis, AAC, and Opus.  Many other transforms also fall under
+      the 'lapped transform' definition (and it's important to point
+      out Daala does <b>not</b> use the MDCT), so let's be more
+      specific.</p>
+    
+    <p>First, consider a deblocking filter that's <i>invertible</i>; a
+      wide variety of such filters are possible, if not widely used.
+      Next suppose that the inverse of the deblocking filter is
+      applied <i>before</i> the forward transform as a
+      pre-filter <span class="matrix">P</span>, and the deblocking
+      filter is applied after the inverse transform as a
+      post-filter. If we use the DCT as our transform as above, the
+      pre-filter + DCT is now perfectly inverted by the inverse DCT +
+      post-filter. </p>
+
+    <img class="caption" src="lapping.png">
+    <div class="caption">
+      Above: Illustration of one possible decomposition of a lapped
+      transform, consisting of the DCT with pre-filters
+      (<span class="matrix">P</span>) and post-filters
+      (<span class="matrix">P<span class="super">-1</span></span>)
+      straddling block boundaries.
+    </div>
+
+    <p>The post-filter is similar to our deblocking/smoothing filter
+      from earlier.  The prefilter is the inverse, so it's literally
+      the opposite; it purposely makes the input image very blocky by
+      reducing the circular discontinuity at the edges.  When paired
+      with the DCT, this means it compacts more energy into the DC
+      component by reducing energy leakage into higher-frequency
+      bins. </p>
+
+    <img class="caption" src="prefilter-blocky.png">
+    <div class="caption">
+      Above: We construct a lapped transform from the DCT and spatial
+      pre- and post-filtering.  The post-filter has a deblocking
+      function, merging block contents together seamlessly.  The
+      pre-filter does the opposite, giving the image an intentionally
+      blocky appearence. The blockiness is a result of reducing
+      spurious high frequency energy from the edge discontinuity,
+      flattening the apparent content of each block and increasing
+      average energy compaction.
+    </div>
+
+
+    <p>The remaining goal is to find a specific
+    <span class="matrix">P</span>
+    (and <span class="matrix">P<span class="super">-1</span></span>)
+    that, along with the DCT, forms a new lapped transform with the
+    visual, coding, and computational properties we desire.</p>
+
+    <h2>Lifting Implementation</h2>
+
+    <p>Using spatial-domain lapping and lapping transforms for images
+      and video is not a new idea, even if it's not mainstream.  Papers on
+      the subject date back to Malvar et. al. in the early 1990s, so we
+      have a decent amount of preexisting research to draw upon.<p>
+
+    <p><i>Lifting</i> filters are another idea that's not new, though
+    they are relatively recent.  Originally a product of wavelet
+    transform research, the generalized idea is powerful: A lifting
+    filter is comprised of sequence of serialized <i>lifting steps</i>
+    also simply called <i>lifts</i>.  Each step updates a single
+    variable <span class="variable">x<span class="sub">i</span></span>
+    in place from an arbitrary
+    function <span class="function">f()</span> that does not depend
+    on <span class="variable">x<span class="sub">i</span></span>. That
+    is:</p>
+
+    <div class="equation">
+      <span class="variable">x<span class="sub">i</span></span> = 
+      {1 or -1}*<span class="variable">x<span class="sub">i</span></span> + 
+      <span class="function">f(</span><span class="variable">x<span class="sub">0</span></span>,...,<span class="variable">x<span class="sub">i-1</span></span>,<span class="variable">x<span class="sub">i+1</span></span>,...,<span class="variable">x<span class="sub">n</span></span><span class="function">)</span>
+    </div>
+
+    <p>The function <span class="function">f()</span> is usually quite
+    simple, e.g. just one other value scaled. Lifting steps are often
+    arranged in <i>alternating lifts</i> where
+    value <span class="variable">x<span class="sub">a</span></span> is
+    updated from
+    value <span class="variable">x<span class="sub">b</span></span>,
+    and then
+    value <span class="variable">x<span class="sub">b</span></span> is
+    updated from
+    value <span class="variable">x<span class="sub">a</span></span>.
+    The literature often refers to the alternating lift steps as
+    'predict' (<span class="matrix">P</span>) and 'update'
+    (<span class="matrix">U</span> or <span class="matrix">Q</span>)
+    steps as a result of their origin in second-generation wavelet
+    transforms. </p>
+
+    <p>A lifting filter is always exactly reversible; the steps can
+    simply be unwound in the opposite order.</p>
+
+    <p>Daala uses pre/post lifting filters based on the filters
+      proposed by Tran, Liang, and Yu
+      in <a href="http://people.xiph.org/~tterribe/tmp/DaiTran01-%20Regularity-Constraind%20Pre-%20and%20Post-Filtering%20for%20Block%20DCT%20Based%20Systems.pdf"><u>Lapped
+      </u>Regularity-Constraind Pre- and Post-Filtering for Block DCT
+      Based Systems</a>. The prefilter <span class="matrix">P</span>
+      consists of forward and inverse lifting butterflies and
+      transform matrices <span class="matrix">U</span>
+      and <span class="matrix">V</span>.  It turns out
+      that <span class="matrix">U</span>
+      and <span class="matrix">V</span> duplicate each others' degrees
+      of freedom, so we set <span class="matrix">U</span> to the
+      identity matrix and eliminate it from the filter design.</p>
+
+    <img class="caption" src="prepost.png">
+    <div class="caption">
+      Above: This illustration shows the proposed Daala pre- and
+      post-filter structures as implemented for an 8-point lapped
+      transform.  The <span class="matrix">U</span> matrix adds no
+      additional degrees of freedom over
+      the <span class="matrix">V</span> matrix, thus we leave it out.
+    </div>
+
+    <p>Research literature suggests several possible models for
+    matrix <span class="matrix">V</span>; the 'type-III' and 'type-IV'
+    models allow easy lifting implementations that suit our desired
+    transform structure.  These simplified models allow selection and
+    optimization of the parameters via nonlinear optimization
+    techniques or even exhaustive search.</p>
+
+    <img class="caption" src="V.png">
+    <div class="caption">
+      Above: Figure from <u>Regularity-Constrained Pre- and
+      Post-Filtering for Block DCT Based Systems</u> (Tran
+      et. al. 2001) illustrating two lifting-based implementation
+      models for matrix <span class="matrix">V</span>.
+    </div>
+
+    <p>The DCT itself can also be implemented via lifting, and we've
+    implemented one with both perfect reconstruction and orthonormal
+    scaling. Placed together with the pre-filter, we can implement the
+    entire forward lapped transform as a complete lifting
+    structure.</p>
+
+    <img class="caption" src="lift.png"
+	 onmouseover="this.src='lift-mouseover.png'" 
+	 onmouseout="this.src='lift.png'"
+	 style="background-image: url('lift-mouseover.png');
+		background-repeat: no-repeat;
+		background-position: -1000px -1000px;">
+    <div class="caption">
+      Above: Daala's complete 8x16 forward lapped transform
+      implemented as a monolithic lifting filter with a
+      type-III <span class="matrix">V</span> matrix.  Mouse over the
+      diagram to see the filter's decomposition
+      into <span class="matrix">P</span>, <span class="matrix">V</span>
+      and the forward DCT.
+    </div>
+
+    <p>As any lifting filter is inherently invertible, constructing
+    the inverse transform is a purely mechanical process.  Lifting
+    also makes it trivial to implement exact reconstruction as an
+    integer transform.  Quantization error carried through the forward
+    transform is exactly reversed in lock-step fashion by the inverse
+    transform.  This can both dramatically reduce required numeric
+    resolution (Daala's filters currently use six-bit coefficients)
+    and also opens the possibility of fully lossless operation.</p>    
+
+    <h2>Coming Soon</h2>
+
+    <p><a href="demo2.shtml">In the next demo (update: now
+    ready!)</a>, I'll continue exploring some of the interesting new
+    (or at least, non-mainstream) techniques used in Daala.  There's
+    more to cover regarding implications of the lapped transform, and
+    that leads nicely into frequency-domain intra prediction.</p>
+
+    <address style="clear: both;">&mdash;Monty
+      (<a href="mailto:monty@xiph.org">monty@xiph.org)</a> June 20, 2013
+    </address>
+
+
+    <h2>Additional Resources</h2>
+    <ol>
+      <li>First and foremost: <a href="https://www.xiph.org/daala/">The Daala Project Homepage</a></li>
+      <li>Daala development code is available from our <a href="https://git.xiph.org/?p=daala.git">working repository</a>.</li>
+      <li>Dr. Timothy Terriberry (lead of the Daala Project) gave a
+      long and excellent talk introducing Daala and video coding in
+      general to Mozilla in 2012.  Slides 1 through 33 cover much of
+      the same ground as this demo with considerably more interesting
+      technical asides albeit less
+      text: <a href="http://people.xiph.org/~tterribe/pubs/lca2012/auckland/intro_to_video1.pdf">Introduction
+      to Video Coding [slide deck]</a></li>
+      <li>Current catalog of filter coefficient search progress is <a href="https://wiki.xiph.org/TDLT">at the Xiph.Org Wiki</a>.</li>
+      <li>Join our development discussion in <a href="irc://irc.freenode.net/daala">#daala at irc.freenode.net</a> (&rarr;<a href="" onclick="document.getElementById('chatbox').innerHTML='<iframe src=\'https://webchat.freenode.net/?channels=daala\' width=800 height=600/>';return false;">web interface</a>)</li>
+      <div id="chatbox" style="text-align:center;"></div>
+      <li>H.S. Malvar: <u>Extended Lapped Transforms: Properties, Applications, and Fast
+	Algorithms.</u> IEEE Transactions on Acoustics, Speech, and Signal Processing,
+	40(11):2703-2714, Nov. 1992.</li>
+      <li>T.D. Tran: <u>Lapped Transform via Time-Domain Pre- and Post-Filtering</u> IEEE
+	Transactions on Signal Processing 51(6):1557-1571, Jun. 2003.</li>
+      <li>W. Dai and T.D. Tran: <u>Regularity-Constrained Pre- and Post-Filtering for Block
+	DCT-based Systems</u> IEEE Transactions on Signal Processing 51(10):2568-2581, Oct. 2003.</li>
+      </ol>
+    <hr>
+
+
+    <div class="et">
+      <div class="etleft">
+	<div class="etcontent">
+	  <a href="http://et.redhat.com/"><img src="et.png" /></a>
+	</div>
+      </div>
+      <div class="etcenter">
+	<div class="etcontent">
+          Monty's Daala documentation work is sponsored by Red Hat Emerging Technologies.
+          <br/>(C) Copyright 2013 Red Hat Inc. and Xiph.Org
+	</div>
+      </div>
+      <div class="etright">
+	<div class="etcontent">
+	  <img src="brick-redhat-small.jpg" style="padding-top:0px;padding-bottom:0px;float:right;margin-left: 1em; margin-right:0px"/>
+	</div>
+      </div>
+    </div>
+
+  </body>
+</html>
+

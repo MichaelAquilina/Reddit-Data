@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link href='/css/jeffknupp.min.css' rel='stylesheet' type='text/css'>
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,900' rel='stylesheet' type='text/css'>
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <title>Improve Your Python: 'yield' and Generators Explained</title>
+  <meta name="author" content="Jeff Knupp">
+  <meta name="description" content=""> 
+  <link rel="icon" href="/images/favicon.png" >
+  <link rel="alternate" href="http://feeds.feedblitz.com/hackersgonnahack" title="Python Programming" type="application/atom+xml">
+
+  
+<style>
+td.linenos { background-color: #f0f0f0; padding-right: 10px; }
+span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
+table.codehilitetable .hll, .codehilite pre .hll { background-color: #ffffcc }
+table.codehilitetable, .codehilite  { background: #f8f8f8; }
+table.codehilitetable .c, .codehilite pre .c { color: #408080; font-style: italic } /* Comment */
+table.codehilitetable .err, .codehilite pre .err { border: 1px solid #FF0000 } /* Error */
+table.codehilitetable .k, .codehilite pre .k { color: #008000; font-weight: bold } /* Keyword */
+table.codehilitetable .o, .codehilite pre .o { color: #666666 } /* Operator */
+table.codehilitetable .cm, .codehilite pre .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+table.codehilitetable .cp, .codehilite pre .cp { color: #BC7A00 } /* Comment.Preproc */
+table.codehilitetable .c1, .codehilite pre .c1 { color: #408080; font-style: italic } /* Comment.Single */
+table.codehilitetable .cs, .codehilite pre .cs { color: #408080; font-style: italic } /* Comment.Special */
+table.codehilitetable .gd, .codehilite pre .gd { color: #A00000 } /* Generic.Deleted */
+table.codehilitetable .ge, .codehilite pre .ge { font-style: italic } /* Generic.Emph */
+table.codehilitetable .gr, .codehilite pre .gr { color: #FF0000 } /* Generic.Error */
+table.codehilitetable .gh, .codehilite pre .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+table.codehilitetable .gi, .codehilite pre .gi { color: #00A000 } /* Generic.Inserted */
+table.codehilitetable .go, .codehilite pre .go { color: #808080 } /* Generic.Output */
+table.codehilitetable .gp, .codehilite pre .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+table.codehilitetable .gs, .codehilite pre .gs { font-weight: bold } /* Generic.Strong */
+table.codehilitetable .gu, .codehilite pre .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+table.codehilitetable .gt, .codehilite pre .gt { color: #0040D0 } /* Generic.Traceback */
+table.codehilitetable .kc, .codehilite pre .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+table.codehilitetable .kd, .codehilite pre .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+table.codehilitetable .kn, .codehilite pre .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+table.codehilitetable .kp, .codehilite pre .kp { color: #008000 } /* Keyword.Pseudo */
+table.codehilitetable .kr, .codehilite pre .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+table.codehilitetable .kt, .codehilite pre .kt { color: #B00040 } /* Keyword.Type */
+table.codehilitetable .m, .codehilite pre .m { color: #666666 } /* Literal.Number */
+table.codehilitetable .s, .codehilite pre .s { color: #BA2121 } /* Literal.String */
+table.codehilitetable .na, .codehilite pre .na { color: #7D9029 } /* Name.Attribute */
+table.codehilitetable .nb, .codehilite pre .nb { color: #008000 } /* Name.Builtin */
+table.codehilitetable .nc, .codehilite pre .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+table.codehilitetable .no, .codehilite pre .no { color: #880000 } /* Name.Constant */
+table.codehilitetable .nd, .codehilite pre .nd { color: #AA22FF } /* Name.Decorator */
+table.codehilitetable .ni, .codehilite pre .ni { color: #999999; font-weight: bold } /* Name.Entity */
+table.codehilitetable .ne, .codehilite pre .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+table.codehilitetable .nf, .codehilite pre .nf { color: #0000FF } /* Name.Function */
+table.codehilitetable .nl, .codehilite pre .nl { color: #A0A000 } /* Name.Label */
+table.codehilitetable .nn, .codehilite pre .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+table.codehilitetable .nt, .codehilite pre .nt { color: #008000; font-weight: bold } /* Name.Tag */
+table.codehilitetable .nv, .codehilite pre .nv { color: #19177C } /* Name.Variable */
+table.codehilitetable .ow, .codehilite pre .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+table.codehilitetable .w, .codehilite pre .w { color: #bbbbbb } /* Text.Whitespace */
+table.codehilitetable .mf, .codehilite pre .mf { color: #666666 } /* Literal.Number.Float */
+table.codehilitetable .mh, .codehilite pre .mh { color: #666666 } /* Literal.Number.Hex */
+table.codehilitetable .mi, .codehilite pre .mi { color: #666666 } /* Literal.Number.Integer */
+table.codehilitetable .mo, .codehilite pre .mo { color: #666666 } /* Literal.Number.Oct */
+table.codehilitetable .sb, .codehilite pre .sb { color: #BA2121 } /* Literal.String.Backtick */
+table.codehilitetable .sc, .codehilite pre .sc { color: #BA2121 } /* Literal.String.Char */
+table.codehilitetable .sd, .codehilite pre .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+table.codehilitetable .s2, .codehilite pre .s2 { color: #BA2121 } /* Literal.String.Double */
+table.codehilitetable .se, .codehilite pre .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+table.codehilitetable .sh, .codehilite pre .sh { color: #BA2121 } /* Literal.String.Heredoc */
+table.codehilitetable .si, .codehilite pre .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+table.codehilitetable .sx, .codehilite pre .sx { color: #008000 } /* Literal.String.Other */
+table.codehilitetable .sr, .codehilite pre .sr { color: #BB6688 } /* Literal.String.Regex */
+table.codehilitetable .s1, .codehilite pre .s1 { color: #BA2121 } /* Literal.String.Single */
+table.codehilitetable .ss, .codehilite pre .ss { color: #19177C } /* Literal.String.Symbol */
+table.codehilitetable .bp, .codehilite pre .bp { color: #008000 } /* Name.Builtin.Pseudo */
+table.codehilitetable .vc, .codehilite pre .vc { color: #19177C } /* Name.Variable.Class */
+table.codehilitetable .vg, .codehilite pre .vg { color: #19177C } /* Name.Variable.Global */
+table.codehilitetable .vi, .codehilite pre .vi { color: #19177C } /* Name.Variable.Instance */
+table.codehilitetable .il, .codehilite pre .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
+  <style>
+body {
+    font-family: 'Roboto', sans-serif;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", 'Roboto', Arial, "Lucida Grande", sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+}
+.nav {
+    text-align: right;
+    padding-bottom: 20px;
+}
+
+.nav a {
+    padding-right: 2em;
+    color: black;
+    font-size: 14px;
+}
+
+.title {
+   width: 100%; 
+   text-align: center; 
+   border-bottom: 1px solid #000; 
+   line-height: 0.1em;
+   margin: 10px 0 40px; 
+} 
+
+.title span { 
+    background:#fff; 
+    padding:0 20px; 
+}
+
+/* Side notes for calling out things
+-------------------------------------------------- */
+ 
+/* Base styles (regardless of theme) */
+.bs-callout {
+  margin: 20px 0;
+  padding: 15px 30px 15px 15px;
+  border-left: 5px solid #eee;
+}
+.bs-callout h4 {
+  margin-top: 0;
+}
+.bs-callout p:last-child {
+  margin-bottom: 0;
+}
+.bs-callout code,
+.bs-callout .highlight {
+  background-color: #fff;
+}
+ 
+/* Themes for different contexts */
+.bs-callout-danger {
+  background-color: #fcf2f2;
+  border-color: #dFb5b4;
+}
+.bs-callout-warning {
+  background-color: #fefbed;
+  border-color: #f1e7bc;
+}
+.bs-callout-info {
+  background-color: #f0f7fd;
+  border-color: #d0e3f0;
+}
+.bs-callout-danger h4 {
+color: #B94A48;
+}
+
+.bs-callout-warning h4 {
+color: #C09853;
+}
+
+.bs-callout-info h4 {
+color: #3A87AD;
+}
+</style>
+
+  
+  
+  <!-- Google Analytics -->
+  <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-12615441-1', 'jeffknupp.com');
+    ga('send', 'pageview');
+  </script>
+  <!-- Google Plus Author Link -->
+  <link href="https://plus.google.com/102786441324515866525" rel="publisher" />
+
+</head>
+
+<body itemscope itemtype="http://schema.org/Blog">
+<header id="header">
+    <img src="/images/jeff.jpg" class="circular center-block">
+    <h1>Jeff Knupp</h1>
+    <h2>PYTHON PROGRAMMER</h2>
+    <nav>
+        <a href="/">BLOG</a>
+        <span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="/about-me/" itemprop="url">ABOUT</a></span>
+        <a href="/blog/archives">ARCHIVES</a>
+        <a href="/python-tutoring" title="python-tutoring">TUTORING</a>
+        <a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">BOOK</a>
+    </nav>
+</header>
+<div class="container-fluid content">
+    <h2 class="text-center"><span itemprop="name">Everything I know about Python...</span></h2>
+    <div class="col-md-8 col-md-offset-2 col-xs-12">
+        <div class="bs-callout bs-callout-danger">
+            <h4 class="text-center">Learn to Write Pythonic Code!</h4>
+            <p class="text-center"><a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">
+                Check out the book <em>Writing Idiomatic Python</em>!</a></p>
+        </div>
+        <div id="content">
+            
+<article itemscope itemtype="http://schema.org/BlogPosting">
+<header>
+    <h1 class="post-title"><a href="/blog/2013/04/07/improve-your-python-yield-and-generators-explained"><span itemprop="headline">Improve Your Python: 'yield' and Generators Explained</span></a><br/>
+</header>
+
+<div class="entry-content" itemprop="articleBody">
+    
+        <p>Prior to beginning tutoring sessions, I ask new students to fill out a brief
+self-assessment where they rate their understanding of various Python concepts. Some 
+topics ("control flow with if/else" or "defining and using functions") are 
+understood by a majority of students before ever beginning tutoring. There are a
+handful of topics, however, that almost all students report having no
+knowledge or <em>very</em> limited understanding of. Of these, "<code>generators</code> and the <code>yield</code> 
+keyword" is one of the biggest culprits. I'm guessing this is the case for <em>most</em>
+novice Python programmers.</p>
+<p>Many report having difficulty understanding <code>generators</code> and the <code>yield</code> 
+keyword even after making a concerted effort to teach themselves the topic.
+I want to change that. In this post, I'll explain <em>what</em> the <code>yield</code> 
+keyword does, <em>why</em> it's useful, and <em>how</em> to use it.</p>
+<!--more-->
+
+<p><em>Note: In recent years, generators have grown more powerful as features have been added through PEPs. In my next post, I'll explore the true power of <code>yield</code> with respect to coroutines, cooperative multitasking and asynchronous I/O (especially their use in the <a href="https://code.google.com/p/tulip/">"tulip"</a> prototype implementation GvR has been working on). Before we get there, however, we need a solid understanding of how the <code>yield</code> keyword and <code>generators</code> work.</em> </p>
+<h2>Coroutines and Subroutines</h2>
+<p>When we call a normal Python function, execution starts at function's first line
+and continues until a <code>return</code> statement, <code>exception</code>, or the end of the
+function (which is seen as an implicit <code>return None</code>) is encountered.
+Once a function returns control to its caller, that's it. Any work done by the
+function and stored in local variables is lost. A new call to the function
+creates everything from scratch.</p>
+<p>This is all very standard when discussing functions (more generally referred to as <a href="http://en.wikipedia.org/wiki/Subroutine">subroutines</a>) in
+computer programming. There are times, though, when it's beneficial to have
+the ability to create a "function" which, instead of simply returning a single
+value, is able to yield a series of values. To do so, such a function would need
+to be able to "save its work," so to speak.</p>
+<p>I said, "yield a series of values" because our hypothetical function 
+doesn't "return" in the normal sense. <code>return</code> implies that the function 
+is <em>returning control of execution</em> to the point where the function was called. 
+"Yield," however, implies that <em>the transfer of control is temporary and voluntary</em>, 
+and our function expects to regain it in the future.</p>
+<p>In Python, "functions" with these capabilities are called <code>generators</code>, and 
+they're incredibly useful. <code>generators</code> (and the <code>yield</code> statement) were initially introduced to give 
+programmers a more straightforward way to write code responsible for producing a series of
+values. Previously, creating something like a random number generator required
+a class or module that both generated values and kept track of state between calls. 
+With the introduction of <code>generators</code>, this became much simpler.</p>
+<p>To better understand the problem <code>generators</code> solve, let's take a look at an 
+example. Throughout the example, keep in mind the core problem being solved:
+<strong>generating a series of values.</strong></p>
+<p><em>Note: Outside of Python, all but the simplest <code>generators</code> would be referred to as <a href="http://en.wikipedia.org/wiki/Coroutine"><code>coroutines</code></a>. I'll use the latter term later in the post. The important thing to remember is, in Python, everything described here as a <code>coroutine</code> is still a <code>generator</code>. Python formally defines the term <code>generator</code>; <code>coroutine</code> is used in discussion but has no formal definition in the language.</em></p>
+<h3>Example: Fun With Prime Numbers</h3>
+<p>Suppose our boss asks us to write a function that takes a <code>list</code> of <code>int</code>s and 
+returns some Iterable containing the elements which are prime<sup id="fnref:prime"><a class="footnote-ref" href="#fn:prime" rel="footnote">1</a></sup> numbers.</p>
+<p><em>Remember, an <a href="http://docs.python.org/3/glossary.html#term-iterable">Iterable</a> is just an object capable of returning its members one at a time.</em></p>
+<p>"Simple," we say, and we write the following:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">get_primes</span><span class="p">(</span><span class="n">input_list</span><span class="p">):</span>
+    <span class="n">result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">element</span><span class="p">):</span>
+            <span class="n">result_list</span><span class="o">.</span><span class="n">append</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">result_list</span>
+
+<span class="c"># or better yet...</span>
+
+<span class="k">def</span> <span class="nf">get_primes</span><span class="p">(</span><span class="n">input_list</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">element</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">input_list</span> <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
+
+<span class="c"># not germane to the example, but here&#39;s a possible implementation of</span>
+<span class="c"># is_prime...</span>
+
+<span class="k">def</span> <span class="nf">is_prime</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">number</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">number</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">current</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">number</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">number</span> <span class="o">%</span> <span class="n">current</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> 
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="bp">False</span>
+</pre></div>
+
+
+<p>Either <code>get_primes</code> implementation above fulfills the requirements, so we tell our 
+boss we're done. She reports our function works and is exactly what she wanted.</p>
+<h4>Dealing With Infinite Sequences</h4>
+<p>Well, not quite <em>exactly</em>. A few days later, our boss comes back and tells 
+us she's run into a small problem: she wants to use our <code>get_primes</code> function on a
+very large list of numbers. In fact, the list is so large that merely creating 
+it would consume all of the system's memory. To work around this, she wants to be 
+able to call <code>get_primes</code> with a <code>start</code> value and get all the primes 
+larger than <code>start</code> (perhaps she's solving <a href="http://projecteuler.net/problem=10">Project Euler problem 10</a>).</p>
+<p>Once we think about this new requirement, it becomes clear that it requires 
+more than a simple change to <code>get_primes</code>. Clearly, we can't return a 
+list of all the prime numbers from <code>start</code> to infinity <em>(operating on infinite sequences, though, has a wide range of useful applications)</em>. 
+The chances of solving this problem using a normal function seem bleak.</p>
+<p>Before we give up, let's determine the core obstacle preventing us 
+from writing a function that satisfies our boss's new requirements.
+Thinking about it, we arrive at the following: <strong>functions only get 
+one chance to return results, and thus must return all results at once.</strong>
+It seems pointless to make such an obvious statement; "functions just
+work that way," we think. The real value lies in asking, "but what if they
+didn't?"</p>
+<p>Imagine what we could do if <code>get_primes</code> could simply return the <em>next</em> value
+instead of all the values at once. It wouldn't need to create
+a list at all. No list, no memory issues. Since our boss told 
+us she's just iterating over the results, she wouldn't know 
+the difference.</p>
+<p>Unfortunately, this doesn't seem possible. Even if we had a 
+magical function that allowed us to iterate from <code>n</code> to <code>infinity</code>, we'd 
+get stuck after returning the first value:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">get_primes</span><span class="p">(</span><span class="n">start</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">magical_infinite_range</span><span class="p">(</span><span class="n">start</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">element</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">element</span>
+</pre></div>
+
+
+<p>Imagine <code>get_primes</code> is called like so:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">solve_number_10</span><span class="p">():</span>
+    <span class="c"># She *is* working on Project Euler #10, I knew it!</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">for</span> <span class="n">next_prime</span> <span class="ow">in</span> <span class="n">get_primes</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">next_prime</span> <span class="o">&lt;</span> <span class="mi">2000000</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">next_prime</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">total</span><span class="p">)</span>
+            <span class="k">return</span>
+</pre></div>
+
+
+<p>Clearly, in <code>get_primes</code>, we would immediately hit the case where <code>number = 3</code> and return at line 4.
+Instead of <code>return</code>, we need a way to generate a value and, when asked for 
+the next one, pick up where we left off.</p>
+<p>Functions, though, can't do this. When they <code>return</code>, they're
+done for good. Even if we could guarantee a function would be called again, we
+have no way of saying, "OK, now, instead of starting at the first line like
+we normally do, start up where we left off at line 4." Functions have a single <code>entry
+point</code>: the first line.</p>
+<h2>Enter the Generator</h2>
+<p>This sort of problem is so common that a new construct was added to Python
+to solve it: the <code>generator</code>. A <code>generator</code> "generates" values. Creating
+<code>generators</code> was made as straightforward as possible through the concept 
+of <code>generator functions</code>, introduced simultaneously.</p>
+<p>A <code>generator function</code> is defined like a normal function, but whenever it needs to generate a
+value, it does so with the <code>yield</code> keyword rather than <code>return</code>. If the body of a <code>def</code> 
+contains <code>yield</code>, the function automatically becomes a <code>generator function</code> (even if it
+also contains a <code>return</code> statement). There's nothing else we need to do to create one. </p>
+<p><code>generator functions</code> create <code>generator iterators</code>. That's the last time 
+you'll see the term <code>generator iterator</code>, though, since they're almost
+always referred to as "<code>generators</code>". Just remember that a <code>generator</code>
+is a special type of <code>iterator</code>. To be considered an <code>iterator</code>, <code>generators</code> 
+must define a few methods, one of which is <code>__next__()</code>. 
+To get the next value from a <code>generator</code>, we use the same built-in function as
+for <code>iterators</code>: <code>next()</code>.</p>
+<p>This point bears repeating: <strong>to get the next value from a <code>generator</code>, we use the same built-in function as for <code>iterators</code>: <code>next()</code></strong>.</p>
+<p>(<code>next()</code> takes care of calling the generator's <code>__next__()</code> method). Since a
+<code>generator</code> is a type of <code>iterator</code>, it can be used in a <code>for</code> loop.</p>
+<p>So whenever <code>next()</code> is called on a <code>generator</code>, the <code>generator</code> is responsible
+for passing back a value to whomever called <code>next()</code>. It does so by calling <code>yield</code>
+along with the value to be passed back (e.g. <code>yield 7</code>). The easiest way to remember
+what <code>yield</code> does is to think of it as <code>return</code> (plus a little magic) for <code>generator functions</code>.**</p>
+<p>Again, this bears repeating: <strong><code>yield</code> is just <code>return</code> (plus a little magic) for <code>generator functions</code>.</strong></p>
+<p>Here's a simple <code>generator function</code>:</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="k">def</span> <span class="nf">simple_generator_function</span><span class="p">():</span>
+<span class="o">&gt;&gt;&gt;</span>    <span class="k">yield</span> <span class="mi">1</span>
+<span class="o">&gt;&gt;&gt;</span>    <span class="k">yield</span> <span class="mi">2</span>
+<span class="o">&gt;&gt;&gt;</span>    <span class="k">yield</span> <span class="mi">3</span>
+</pre></div>
+
+
+<p>And here are two simple ways to use it:</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">simple_generator_function</span><span class="p">():</span>
+<span class="o">&gt;&gt;&gt;</span>     <span class="k">print</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<span class="mi">1</span>
+<span class="mi">2</span>
+<span class="mi">3</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">our_generator</span> <span class="o">=</span> <span class="n">simple_generator_function</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">our_generator</span><span class="p">)</span>
+<span class="mi">1</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">our_generator</span><span class="p">)</span>
+<span class="mi">2</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">our_generator</span><span class="p">)</span>
+<span class="mi">3</span>
+</pre></div>
+
+
+<h3>Magic?</h3>
+<p>What's the magic part? Glad you asked! When a <code>generator function</code> calls <code>yield</code>, 
+the "state" of the <code>generator function</code> is frozen; the values of all variables are saved 
+and the next line of code to be executed is recorded until <code>next()</code> is called
+again. Once it is, the <code>generator function</code> simply resumes where it left off.
+If <code>next()</code> is never called again, the state recorded during the <code>yield</code> call 
+is (eventually) discarded. </p>
+<p>Let's rewrite <code>get_primes</code> as a <code>generator function</code>. Notice that we no longer need 
+the <code>magical_infinite_range</code> function. Using a simple <code>while</code> loop, we can 
+create our own infinite sequence:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">get_primes</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">number</span>
+        <span class="n">number</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+
+
+<p>If a <code>generator function</code> calls <code>return</code> or reaches the end its definition, a
+<code>StopIteration</code> exception is raised. This signals to whoever was calling <code>next()</code>
+that the <code>generator</code> is exhausted (this is normal <code>iterator</code> behavior).  It is also 
+the reason the <code>while True:</code> loop is present in <code>get_primes</code>. 
+If it weren't, the first time <code>next()</code> was called we would check 
+if the number is prime and possibly yield it. If <code>next()</code> were 
+called again, we would uselessly add <code>1</code> to <code>number</code> and hit the end of the
+<code>generator function</code> (causing <code>StopIteration</code> to be raised). Once a generator has been 
+exhausted, calling <code>next()</code> on it will result in an error, so you can only consume all 
+the values of a <code>generator</code> once. The following will not work:</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">our_generator</span> <span class="o">=</span> <span class="n">simple_generator_function</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">our_generator</span><span class="p">:</span>
+<span class="o">&gt;&gt;&gt;</span>     <span class="k">print</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="c"># our_generator has been exhausted...</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">our_generator</span><span class="p">))</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+  <span class="n">File</span> <span class="s">&quot;&lt;ipython-input-13-7e48a609051a&gt;&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">1</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+    <span class="nb">next</span><span class="p">(</span><span class="n">our_generator</span><span class="p">)</span>
+<span class="ne">StopIteration</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="c"># however, we can always create a new generator</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="c"># by calling the generator function again...</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">new_generator</span> <span class="o">=</span> <span class="n">simple_generator_function</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">new_generator</span><span class="p">))</span> <span class="c"># perfectly valid</span>
+<span class="mi">1</span>
+</pre></div>
+
+
+<p>Thus, the <code>while</code> loop is there to make sure we <em>never</em> reach the end of
+<code>get_primes</code>. It allows us to generate a value for as long as <code>next()</code> is called
+on the generator. This is a common idiom when dealing with infinite series (and
+<code>generators</code> in general).</p>
+<h3>Visualizing the flow</h3>
+<p>Let's go back to the code that was calling <code>get_primes</code>: <code>solve_number_10</code>.</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">solve_number_10</span><span class="p">():</span>
+    <span class="c"># She *is* working on Project Euler #10, I knew it!</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">for</span> <span class="n">next_prime</span> <span class="ow">in</span> <span class="n">get_primes</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">next_prime</span> <span class="o">&lt;</span> <span class="mi">2000000</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">next_prime</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">total</span><span class="p">)</span>
+            <span class="k">return</span>
+</pre></div>
+
+
+<p>It's helpful to visualize how the first few elements are created when we call
+<code>get_primes</code> in <code>solve_number_10</code>'s <code>for</code> loop. When the <code>for</code> loop requests 
+the first value from <code>get_primes</code>, we enter <code>get_primes</code> as we would in a normal 
+function. </p>
+<ol>
+<li>We enter the <code>while</code> loop on line 3</li>
+<li>The <code>if</code> condition holds (<code>3</code> is prime)</li>
+<li>We yield the value <code>3</code> and control to <code>solve_number_10</code>. </li>
+</ol>
+<p>Then, back in <code>solve_number_10</code>:</p>
+<ol>
+<li>The value <code>3</code> is passed back to the <code>for</code> loop</li>
+<li>The <code>for</code> loop assigns <code>next_prime</code> to this value</li>
+<li><code>next_prime</code> is added to <code>total</code> </li>
+<li>The <code>for</code> loop requests the next element from <code>get_primes</code></li>
+</ol>
+<p>This time, though, instead of entering <code>get_primes</code> back 
+at the top, we resume at line <code>5</code>, where we left off.</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">get_primes</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">number</span>
+        <span class="n">number</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c"># &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+</pre></div>
+
+
+<p>Most importantly, <code>number</code> <em>still has the same value it did when we called <code>yield</code></em>
+(i.e. <code>3</code>). Remember, <code>yield</code> both passes a value to whoever called <code>next()</code>,
+<em>and</em> saves the "state" of the <code>generator function</code>. Clearly, then, <code>number</code> is incremented 
+to <code>4</code>, we hit the top of the <code>while</code> loop, and keep incrementing <code>number</code> until we hit 
+the next prime number (<code>5</code>). Again we <code>yield</code> the value of <code>number</code> to the <code>for</code> loop 
+in <code>solve_number_10</code>. This cycle continues until the <code>for</code> loop stops (at the first prime 
+greater than <code>2,000,000</code>).</p>
+<h2>Moar Power</h2>
+<p>In <a href="http://www.python.org/dev/peps/pep-0342/">PEP 342</a>, support was added for passing values <em>into</em> generators. 
+<a href="http://www.python.org/dev/peps/pep-0342/">PEP 342</a> gave <code>generator</code>s the power to yield a value (as before), <em>receive</em> a
+value, or both yield a value <em>and</em> receive a (possibly different) value in a 
+single statement. </p>
+<p>To illustrate how values are sent to a <code>generator</code>, let's return to our 
+prime number example. This time, instead of simply printing 
+every prime number greater than <code>number</code>, we'll find the smallest prime 
+number greater than successive powers of a number (i.e. for 10, we want
+the smallest prime greater than 10, then 100, then 1000, etc.). 
+We start in the same way as <code>get_primes</code>:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">print_successive_primes</span><span class="p">(</span><span class="n">iterations</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="c"># like normal functions, a generator function</span>
+    <span class="c"># can be assigned to a variable</span>
+
+    <span class="n">prime_generator</span> <span class="o">=</span> <span class="n">get_primes</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+    <span class="c"># missing code...</span>
+    <span class="k">for</span> <span class="n">power</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iterations</span><span class="p">):</span>
+        <span class="c"># missing code...</span>
+
+<span class="k">def</span> <span class="nf">get_primes</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+        <span class="c"># ... what goes here?</span>
+</pre></div>
+
+
+<p>The next line of <code>get_primes</code> takes a bit of explanation. While <code>yield number</code> would yield the
+value of <code>number</code>, a statement of the form <code>other = yield foo</code> means, "yield <code>foo</code> and,
+when a value is sent to me, set <code>other</code> to that value." You can "send" values to
+a generator using the generator's <code>send</code> method.</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">get_primes</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+            <span class="n">number</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">number</span>
+        <span class="n">number</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+
+
+<p>In this way, we can set <code>number</code> to a different value each time the generator
+<code>yield</code>s. We can now fill in the missing code in <code>print_successive_primes</code>:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">print_successive_primes</span><span class="p">(</span><span class="n">iterations</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="n">prime_generator</span> <span class="o">=</span> <span class="n">get_primes</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+    <span class="n">prime_generator</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">power</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iterations</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">prime_generator</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">base</span> <span class="o">**</span> <span class="n">power</span><span class="p">))</span>
+</pre></div>
+
+
+<p>Two things to note here: First, we're printing the result of <code>generator.send</code>,
+which is possible because <code>send</code> both sends a value to the generator <em>and</em>
+returns the value yielded by the generator (mirroring how <code>yield</code> works from
+within the <code>generator function</code>). </p>
+<p>Second, notice the <code>prime_generator.send(None)</code> line. When you're using send to "start" a generator 
+(that is, execute the code from the first line of the generator function up to
+the first <code>yield</code> statement), you must send <code>None</code>. This makes sense, since by definition
+the generator hasn't gotten to the first <code>yield</code> statement yet, so if we sent a
+real value there would be nothing to "receive" it. Once the generator is started, we
+can send values as we do above.</p>
+<h2>Round-up</h2>
+<p>In the second half of this series, we'll discuss the various ways in which
+<code>generators</code> have been enhanced and the power they gained as a result. <code>yield</code> has
+become one of the most powerful keywords in Python. Now that we've built a solid
+understanding of how <code>yield</code> works, we have the knowledge necessary
+to understand some of the more "mind-bending" things that <code>yield</code> can be used for.</p>
+<p>Believe it or not, we've barely scratched the surface of the power of <code>yield</code>.
+For example, while <code>send</code> <em>does</em> work as described above, it's almost never
+used when generating simple sequences like our example. Below, I've pasted
+a small demonstration of one common way <code>send</code> <em>is</em> used. I'll not say any more
+about it as figuring out how and why it works will be a good warm-up for part
+two.</p>
+<div class="codehilite"><pre><span class="kn">import</span> <span class="nn">random</span>
+
+<span class="k">def</span> <span class="nf">get_data</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return 3 random integers between 0 and 9&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">consume</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Displays a running average across lists of integers sent to it&quot;&quot;&quot;</span>
+    <span class="n">running_sum</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">data_items_seen</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="k">yield</span>
+        <span class="n">data_items_seen</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">running_sum</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;The running average is {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">running_sum</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">data_items_seen</span><span class="p">)))</span>
+
+<span class="k">def</span> <span class="nf">produce</span><span class="p">(</span><span class="n">consumer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Produces a set of values and forwards them to the pre-defined consumer</span>
+<span class="sd">    function&quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Produced {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">consumer</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">yield</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">consumer</span> <span class="o">=</span> <span class="n">consume</span><span class="p">()</span>
+    <span class="n">consumer</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">producer</span> <span class="o">=</span> <span class="n">produce</span><span class="p">(</span><span class="n">consumer</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Producing...&#39;</span><span class="p">)</span>
+        <span class="nb">next</span><span class="p">(</span><span class="n">producer</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>Remember...</h3>
+<p>There are a few key ideas I hope you take away from this
+discussion:</p>
+<ul>
+<li><code>generators</code> are used to <em>generate</em> a series of values</li>
+<li><code>yield</code> is like the <code>return</code> of <code>generator functions</code></li>
+<li>The only other thing <code>yield</code> does is save the "state" of a <code>generator function</code></li>
+<li>A <code>generator</code> is just a special type of <code>iterator</code></li>
+<li>Like <code>iterators</code>, we can get the next value from a <code>generator</code> using <code>next()</code><ul>
+<li><code>for</code> gets values by calling <code>next()</code> implicitly</li>
+</ul>
+</li>
+</ul>
+<p>I hope this post was helpful. If you had never heard 
+of <code>generators</code>, I hope you now understand what they are,
+why they're useful, and how to use them. If you were somewhat familiar with
+<code>generators</code>, I hope any confusion is now cleared up.</p>
+<p>As always, if any section is unclear (or, more importantly, contains errors), by
+all means let me know. You can leave a comment below, email me at
+<a href="mailto:jeff@jeffknupp.com">jeff@jeffknupp.com</a>, or hit me up on Twitter
+<a href="http://www.twitter.com/jeffknupp">@jeffknupp</a>. </p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:prime">
+<p>Quick refresher: a prime number is a positive integer greater than 1
+that has no divisors other than 1 and itself. 3 is prime because there are no
+numbers that evenly divide it other than 1 and 3 itself.&#160;<a class="footnote-backref" href="#fnref:prime" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+        
+<small>Posted on <time datetime="2013-04-07 20:23:00" pubdate data-updated="true" itemprop="datePublished">Apr 07, 2013</time> by <span itemprop="author"> Jeff Knupp</span></small> </h1>
+<div class="sharing">
+    <div class="row">
+    <p class="meta" style="padding-top: 20px;">
+    <a class="basic-alignment left" href="/blog/2013/03/23/and-now-for-something-completely-different" title="Previous Post: And Now for Something Completely Different...">&laquo; And Now for Something Completely Different...</a>
+    </p>
+    
+    <div id="mc_embed_signup" class="well">
+<form action="http://jeffknupp.us6.list-manage1.com/subscribe/post?u=51d2d98cf34cbcc20db22e5fa&amp;id=f15bb537ad" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+  <h4>Like this article?</h4>
+  <p>Why not sign up for <strong>Python Tutoring</strong>? Sessions can be held
+  remotely using Google+/Skype or in-person if you're in the NYC area. <a href="mailto:jeff@jeffknupp.com">Email jeff@jeffknupp.com</a> if interested.</p>
+  <p><strong>Sign up for the free jeffknupp.com email newsletter.</strong> Sent roughly once a month, it focuses on Python programming, scalable web development, and growing your freelance consultancy. And of course, you'll never be spammed, your privacy is protected, and you can opt out at any time.</p>
+<div class="mc-field-group">
+	<label for="mce-EMAIL">Email Address</label>
+	<input type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+</div>
+	<div id="mce-responses" class="clear">
+		<div class="response" id="mce-error-response" style="display:none"></div>
+		<div class="response" id="mce-success-response" style="display:none"></div>
+	</div>	<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+</form>
+</div>
+    
+  </footer>
+</article>
+</div>
+<section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Leaderboard -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-2922325862575361"
+     data-ad-slot="6191597138"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <div id="disqus_thread"></div>
+<script type="text/javascript">
+            var disqus_shortname = 'hackersgonnahack';
+
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+ 
+  </section>
+  </div>
+    
+</div>
+</article>
+
+        </div>
+        <div id="footer" class="text-center">
+        
+            <footer role="contentinfo">
+                <p>Copyright &copy; 2014 - Jeff Knupp- <span class="credit">Powered by <a href="http://www.github.com/jeffknupp/blug">Blug</a></span> </p>
+            </footer>
+         
+    </div>
+
+<a title="Web Analytics" href="http://clicky.com/66535137"><img alt="Web Analytics" src="//static.getclicky.com/media/links/badge.gif" border="0" /></a>
+<script type="text/javascript">
+var clicky_site_ids = clicky_site_ids || [];
+clicky_site_ids.push(66535137);
+(function() {
+  var s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.async = true;
+  s.src = '//static.getclicky.com/js';
+  ( document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0] ).appendChild( s );
+})();
+</script>
+<noscript><p><img alt="Clicky" width="1" height="1" src="//in.getclicky.com/66535137ns.gif" /></p></noscript> 
+</div>
+</html>

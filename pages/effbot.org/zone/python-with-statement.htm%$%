@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml"><link rel="shortcut icon" href="/media/img/effbot.ico"><link rel="stylesheet" href="/media/css/effbot-min.css" type="text/css" media="screen"><link rel="stylesheet" href="/media/css/effbotprint-min.css" type="text/css" media="print"><title>Understanding Python's "with"&nbsp;statement</title></head><body data-page-id="225"><div id="doc2" class="yui-t2"><div id="hd"></div><div id="bd"><div id="yui-main"><div class="yui-b"><div class="content"><div class="yui-g"><h1 class="maintitle">Understanding Python's "with"&nbsp;statement</h1></div><div class="yui-ge"><div class="yui-u first"><p class="info">Fredrik Lundh | October 2006 | Originally posted to <a href="http://online.effbot.org">online.effbot.org</a></p><p>Judging from comp.lang.python and other forums, Python 2.5&#8217;s new
+<s><a href="http://effbot.org/pyref/with.htm"><b>with</b> statement</a></s> (dead link)
+seems to be a bit confusing even for experienced Python programmers.
+
+</p><p>As most other things in Python, the <b>with</b> statement is
+actually very simple, once you understand the problem it&#8217;s trying to
+solve.  Consider this piece of code:
+
+<pre class="python">
+    set things up
+    <span class="pykeyword">try</span>:
+        do something
+    <span class="pykeyword">finally</span>:
+        tear things down</pre></p><p>Here, &#8220;set things up&#8221; could be opening a file, or acquiring some
+sort of external resource, and &#8220;tear things down&#8221; would then be
+closing the file, or releasing or removing the resource.  The
+<b>try-finally</b> construct guarantees that the &#8220;tear things down&#8221; part is
+always executed, even if the code that does the work doesn&#8217;t finish.
+
+</p><p>If you do this a lot, it would be quite convenient if you could put
+the &#8220;set things up&#8221; and &#8220;tear things down&#8221; code in a library function,
+to make it easy to reuse.  You can of course do something like
+
+<pre class="python">
+    <span class="pykeyword">def</span> <span class="pyfunction">controlled_execution</span>(callback):
+        set things up
+        <span class="pykeyword">try</span>:
+            callback(thing)
+        <span class="pykeyword">finally</span>:
+            tear things down
+
+    <span class="pykeyword">def</span> <span class="pyfunction">my_function</span>(thing):
+        do something
+
+    controlled_execution(my_function)</pre></p><p>But that&#8217;s a bit verbose, especially if you need to modify local
+variables.  Another approach is to use a one-shot generator, and use
+the <b>for-in</b> statement to &#8220;wrap&#8221; the code:
+
+<pre class="python">
+    <span class="pykeyword">def</span> <span class="pyfunction">controlled_execution</span>():
+        set things up
+        <span class="pykeyword">try</span>:
+            <span class="pykeyword">yield</span> thing
+        <span class="pykeyword">finally</span>:
+            tear things down
+
+    <span class="pykeyword">for</span> thing <span class="pykeyword">in</span> controlled_execution():
+        do something <span class="pykeyword">with</span> thing</pre></p><p>But <b>yield</b> isn&#8217;t even allowed inside a <b>try-finally</b> in 2.4 and
+earlier.  And while that could be fixed (and it has been fixed in 2.5),
+it&#8217;s still a bit weird to use a loop construct when you know that you
+only want to execute something once.
+
+</p><p>So after contemplating a number of alternatives, GvR and the
+python-dev team finally came up with a generalization of the latter,
+using an object instead of a generator to control the behaviour of an
+external piece of code:
+
+<pre class="python">
+    <span class="pykeyword">class</span> <span class="pyclass">controlled_execution</span>:
+        <span class="pykeyword">def</span> <span class="pyfunction">__enter__</span>(self):
+            set things up
+            <span class="pykeyword">return</span> thing
+        <span class="pykeyword">def</span> <span class="pyfunction">__exit__</span>(self, type, value, traceback):
+            tear things down
+
+    <span class="pykeyword">with</span> controlled_execution() <span class="pykeyword">as</span> thing:
+         some code</pre></p><p>Now, when the &#8220;with&#8221; statement is executed, Python evaluates the
+expression, calls the <b>__enter__</b> method on the resulting value
+(which is called a &#8220;context guard&#8221;), and assigns whatever
+<b>__enter__</b> returns to the variable given by <b>as</b>.  Python
+will then execute the code body, and <i>no matter what happens in that
+code</i>, call the guard object&#8217;s <b>__exit__</b> method.
+
+</p><p>As an extra bonus, the <b>__exit__</b> method can look at the
+exception, if any, and suppress it or act on it as necessary.  To
+suppress the exception, just return a true value.  For example, the
+following <b>__exit__</b> method swallows any <b>TypeError</b>, but
+lets all other exceptions through:
+
+<pre class="python">
+    <span class="pykeyword">def</span> <span class="pyfunction">__exit__</span>(self, type, value, traceback):
+        <span class="pykeyword">return</span> isinstance(value, TypeError)</pre></p><p>In Python 2.5, the file object has been equipped with
+<b>__enter__</b> and <b>__exit__</b> methods; the former simply
+returns the file object itself, and the latter closes the file:
+
+<pre class="python">
+    &gt;&gt;&gt; f = open(<span class="pystring">"x.txt"</span>)
+    &gt;&gt;&gt; f
+    &lt;open file <span class="pystring">'x.txt'</span>, mode <span class="pystring">'r'</span> at 0x00AE82F0&gt;
+    &gt;&gt;&gt; f.__enter__()
+    &lt;open file <span class="pystring">'x.txt'</span>, mode <span class="pystring">'r'</span> at 0x00AE82F0&gt;
+    &gt;&gt;&gt; f.read(1)
+    <span class="pystring">'X'</span>
+    &gt;&gt;&gt; f.__exit__(None, None, None)
+    &gt;&gt;&gt; f.read(1)
+    Traceback (most recent call last):
+      File <span class="pystring">"&lt;stdin&gt;"</span>, line 1, <span class="pykeyword">in</span> &lt;module&gt;
+    ValueError: I/O operation on closed file</pre></p><p>so to open a file, process its contents, and make sure to close it,
+you can simply do:
+
+<pre class="python">
+<span class="pykeyword">with</span> open(<span class="pystring">"x.txt"</span>) <span class="pykeyword">as</span> f:
+    data = f.read()
+    do something <span class="pykeyword">with</span> data</pre></p><p>This wasn&#8217;t very difficult, was it?</p></div><div class="yui-u">&#160;</div></div><div class="yui-g"></div></div></div></div><div class="yui-b"><div id='menu'><ul><li><b><a href="/" title="Go to effbot.org.">::: effbot.org</a></b></li><li><b><a href="." title="Go to zone index page.">::: zone :::</a></b></li></ul></div></div></div><div id="ft"><p><a href="http://www.djangoproject.com/"><img src="/media/img/djangosite80x15.gif" border="0" alt="A Django site." title="A Django site." style="vertical-align: bottom;" width="80" height="15" ></a>
+rendered by a <a href="http://www.djangoproject.com/">django</a> application.  hosted by <a href="http://www.webfaction.com/shared_hosting?affiliate=slab">webfaction</a>.</p></div></div><script src="/media/js/effbot-min.js" type="text/javascript"></script></body></html>

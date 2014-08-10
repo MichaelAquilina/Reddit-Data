@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Python FAQ: Equality / fuzzy notepad</title>
+    <meta name="author" content="Eevee">
+
+    <link href="http://eev.ee/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+            title="fuzzy notepad Atom Feed" />
+
+        
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.4.33/jquery.colorbox-min.js"></script>
+<script type="text/javascript">
+    $(function() {
+        $('article').each(function(index, article) {
+            console.log(index, article);
+            $(article).find('a.photo').colorbox({
+                fixed: true,
+                maxWidth: '100%',
+                maxHeight: '100%',
+                rel: 'colorbox' + String(index + 1)
+            });
+        });
+    });
+</script>
+
+
+    <!-- http://t.co/dKP3o1e -->
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="http://eev.ee/favicon.png" rel="icon">
+    <link href="http://eev.ee/theme/css/all.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href="//fonts.googleapis.com/css?family=Lusitana:400,700|Merriweather:400,700,400italic,700italic|Source+Code+Pro:400,700|Love+Ya+Like+A+Sister&subset=latin,latin-ext"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <header role="banner">
+        <h1><a href="http://eev.ee">fuzzy notepad</a></h1>
+        <nav role="navigation"><ul class="subscription" data-subscription="rss">
+    <li><a href="http://eev.ee/feeds/atom.xml" rel="subscribe-atom">
+        <img src="/theme/images/feed-icon-14x14.png" alt="">
+            Atom</a></li>
+</ul>
+
+
+<ul class="main-navigation">
+    <li><a href="http://eev.ee/">Blog</a></li>
+    <li><a href="http://eev.ee/about/">About</a></li>
+    <li><a href="http://eev.ee/projects/">Projects</a></li>
+</ul></nav>
+    </header>
+    <div id="main">
+        <div id="content">
+    <article class="single" role="article">
+        <header>
+            <p class="meta"><time datetime="2012-03-24T23:15:00" pubdate>Sat 24 March 2012</time>
+</p>
+            <h1>
+                <a href="http://eev.ee/blog/2012/03/24/python-faq-equality/">Python FAQ: Equality</a>
+            </h1>
+        </header>
+
+        <div class="entry-content"><p>Part of my <a href="/blog/2011/07/22/python-faq/">Python <span class="caps">FAQ</span></a>.</p>
+<p><strong>What does <code>is</code> do? Should I use <code>is</code> or <code>==</code>?</strong></p>
+
+
+<p>These operators tend to confuse Python newcomers, perhaps because <code>is</code> doesn&#8217;t have a clear equivalent in very many other languages.  Some particular quirks of Python&#8217;s canon implementation make it difficult to figure out by experimentation, as&nbsp;well.</p>
+<p>The simple answer&nbsp;is:</p>
+<ul>
+<li><code>==</code> tests whether two objects have the same&nbsp;value.</li>
+<li><code>is</code> tests whether two objects are <em>the same object</em>.</li>
+</ul>
+<p>What does &#8220;the same value&#8221; mean?  It really depends on the objects&#8217; types; usually it means that both objects will respond the same way to the same operations, but ultimately the author of a class gets to&nbsp;decide.</p>
+<p>On the other hand, no matter how similar two objects may look or act, <code>is</code> can always tell them apart.  Did you call <code>SomeClass()</code> twice?  Then you have two objects, and <code>a is b</code> will be <code>False</code>.</p>
+<h2 id="overloading"><a class="toclink" href="#overloading">Overloading</a></h2>
+<p>There&#8217;s another critical, but subtle, difference: <strong><code>==</code> can be overloaded, but <code>is</code> cannot</strong>.  Both the <code>__eq__</code> and <code>__cmp__</code> special methods allow a class to decide for itself what equality&nbsp;means.</p>
+<p>Because those methods are regular Python code, they can do anything.  An object might not be equal to itself.  It might be equal to everything.  It might randomly decide whether to be equal or not.  It might return <code>True</code> for <em>both</em> <code>==</code> and <code>!=</code>.</p>
+<p>Hopefully no real code would do such things, but the point is that it <em>can</em> happen.  <code>==</code> on an arbitrary object may be unreliable; <code>is</code> never will be.  More on why you might care about this&nbsp;below.</p>
+<p>When Python sees <code>a == b</code>, it tries the&nbsp;following.</p>
+<ol>
+<li>If <code>type(b)</code> is a new-style class, <em>and</em> <code>type(b)</code> is a subclass of <code>type(a)</code>, <em>and</em> <code>type(b)</code> has overridden <code>__eq__</code>, then the result is <code>b.__eq__(a)</code>.</li>
+<li>If <code>type(a)</code> has overridden <code>__eq__</code> (that is, <code>type(a).__eq__</code> isn&#8217;t <code>object.__eq__</code>), then the result is <code>a.__eq__(b)</code>.</li>
+<li>If <code>type(b)</code> has overridden <code>__eq__</code>, then the result is <code>b.__eq__(a)</code>.</li>
+<li>If none of the above are the case, Python repeats the process looking for <code>__cmp__</code>.  If it exists, the objects are equal iff it returns&nbsp;zero.</li>
+<li>As a final fallback, Python calls <code>object.__eq__(a, b)</code>, which is <code>True</code> iff <code>a</code> and <code>b</code> are the same&nbsp;object.</li>
+</ol>
+<p>If any of the special methods return <code>NotImplemented</code>, Python acts as though the method didn&#8217;t&nbsp;exist.</p>
+<p>Note that last step carefully: if neither <code>a</code> nor <code>b</code> overloads <code>==</code>, then <code>a == b</code> is the same as <code>a is b</code>.</p>
+<h2 id="when-to-use-which"><a class="toclink" href="#when-to-use-which">When to use&nbsp;which</a></h2>
+<p>There are actually very few cases where you want to use <code>is</code>.  The most common by far is for setting default&nbsp;arguments:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">arg</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">arg</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># ...</span>
+</pre></div>
+</td></tr></table>
+
+<p>Why use <code>is</code> here?  It does read more like English, and <code>None</code> is guaranteed to be a singleton object.  A better reason is slightly more insidious: operator overloading!  If <code>arg</code> happened to overload equality, it might claim to be equal to <code>None</code>.  That would be some egregious misbehavior, sure, but no reason not to be correct when you&nbsp;can.</p>
+<p>Sometimes <code>None</code> might already have a special meaning to your function—perhaps to mean <code>null</code> in <span class="caps">JSON</span> or <span class="caps">SQL</span>.  If you wrote such a function the way I did above, nobody could pass <code>None</code> to it; it would get replaced by your default.  How can you make an argument optional if <code>None</code> is a real value?  <code>is</code> can help here,&nbsp;too.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">unspecified</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">foo2</span><span class="p">(</span><span class="n">arg</span><span class="o">=</span><span class="n">unspecified</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">arg</span> <span class="ow">is</span> <span class="n">unspecified</span><span class="p">:</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="n">make_default_object</span><span class="p">()</span>
+
+    <span class="c"># ...</span>
+</pre></div>
+</td></tr></table>
+
+<p>Here <code>unspecified</code> is just a dummy object containing no data and having no behavior.  The only useful property it has is that, if <code>arg is unspecified</code>, then you know <code>arg</code> <em>must be</em> that exact same object.  It has no meaning, so it&#8217;s a perfectly safe default; it won&#8217;t prevent the caller from passing in some particular object you wanted to use as a&nbsp;sentinel.</p>
+<p><code>==</code> would work the same way, of course, but it has the same caveat as <code>arg == None</code>: bad overloading.  Using <code>is</code> also better expresses your <code>intention</code>, which is that you want to test for this particular object and no&nbsp;other.</p>
+<p>In general, you want <code>==</code> most of the time.  <code>is</code> is only useful when you are absolutely sure you want to check that you have the same object with two different&nbsp;names.</p>
+<h2 id="is-and-builtins"><a class="toclink" href="#is-and-builtins"><code>is</code> and&nbsp;builtins</a></h2>
+<p>A common pitfall is to pull out the Python <span class="caps">REPL</span> and try something like the&nbsp;following:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="bp">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="mi">2</span> <span class="ow">is</span> <span class="mi">2</span>
+<span class="bp">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="s">&quot;x&quot;</span> <span class="o">==</span> <span class="s">&quot;x&quot;</span>
+<span class="bp">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="s">&quot;x&quot;</span> <span class="ow">is</span> <span class="s">&quot;x&quot;</span>
+<span class="bp">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">int</span><span class="p">(</span><span class="s">&quot;133&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">(</span><span class="s">&quot;133&quot;</span><span class="p">)</span>
+<span class="bp">True</span>
+</pre></div>
+</td></tr></table>
+
+<p>Hang on, what&#8217;s going on here?  Those are separate numbers and separate strings, and even separate calls to <code>int()</code>; why are they claiming to be the same&nbsp;object?</p>
+<p>There are a <em>lot</em> of strings in any given Python program containing, say, <code>__init__</code>.  (One for every constructor, in fact!)  There are also a <em>lot</em> of small numbers, like <code>0</code> and <code>-1</code>.  Strictly speaking, every time one of these appears, Python would need to create a new object, and that eats a lot of memory.  Finding a method on a class would require comparing strings byte-by-byte, and that eats a lot of&nbsp;time.</p>
+<p>So CPython (the canonical Python interpreter, written in C) has a behind-the-scenes optimization called <em>interning</em>.  Small integers and some strings are cached: the integer <code>2</code> will always refer to the same object, no matter how it comes into&nbsp;existence.</p>
+<p>Interning is <em>not</em> strictly part of the language, and other Python implementations may or may not do it.  The language allows for any immutable object to be interned, but otherwise says nothing.  For this reason, absolutely <strong>do not use <code>is</code> on the built-in immutable types.</strong>  The results are basically meaningless because of&nbsp;interning!</p>
+<p>One last wrinkle.  When CPython compiles a chunk of code (a &#8220;compilation unit&#8221;), it has to create objects to represent literals it sees.  (Literals are objects that have native Python syntax: numbers, strings, lists that use <code>[]</code>, etc.)  In the case of numbers and strings, literals with the same value become the <em>same object</em>, whether interned or&nbsp;not.</p>
+<p>With that in mind, the <span class="caps">REPL</span>&#8217;s treatment of <code>is</code> should make more&nbsp;sense:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46</pre></div></td><td class="code"><div class="highlight"><pre><span class="c"># Interned ints</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="mi">100</span> <span class="ow">is</span> <span class="mi">100</span>
+<span class="bp">True</span>
+<span class="c"># Non-interned ints, but compiled together, so still the same object</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="mi">99999</span> <span class="ow">is</span> <span class="mi">99999</span>
+<span class="bp">True</span>
+<span class="c"># Non-interned ints, compiled /separately/, so different objects</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">99999</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">99999</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="ow">is</span> <span class="n">b</span>
+<span class="bp">False</span>
+<span class="c"># Interned ints are the same object no matter where they appear</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">6</span> <span class="o">/</span> <span class="mi">2</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="ow">is</span> <span class="n">b</span>
+<span class="bp">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="ow">is</span> <span class="n">c</span>
+<span class="bp">True</span>
+<span class="c"># Floats are never interned, but these are compiled together, so are still the</span>
+<span class="c"># same object</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="mf">1.5</span> <span class="ow">is</span> <span class="mf">1.5</span>
+<span class="bp">True</span>
+<span class="c"># Strings are similar to ints</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="s">&quot;foo&quot;</span> <span class="ow">is</span> <span class="s">&quot;foo&quot;</span>
+<span class="bp">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;foo&quot;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="s">&quot;foo&quot;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="ow">is</span> <span class="n">b</span>
+<span class="bp">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="s">&quot;the rain in spain falls mainly on the plain&quot;</span> <span class="ow">is</span> <span class="s">&quot;the rain in spain falls mainly on the plain&quot;</span>
+<span class="bp">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;the rain in spain falls mainly on the plain&quot;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="s">&quot;the rain in spain falls mainly on the plain&quot;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="ow">is</span> <span class="n">b</span>
+<span class="bp">False</span>
+<span class="c"># Two different lists; they&#39;re mutable so they can&#39;t be the same object</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">[]</span> <span class="ow">is</span> <span class="p">[]</span>
+<span class="bp">False</span>
+<span class="c"># Two different dicts; same story</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">{}</span> <span class="ow">is</span> <span class="p">{}</span>
+<span class="bp">False</span>
+<span class="c"># Tuples are immutable, but their contents can be mutable, so they don&#39;t get</span>
+<span class="c"># the optimization either</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="ow">is</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="bp">False</span>
+</pre></div>
+</td></tr></table>
+
+<p>(By the way, if you really must know: CPython interns all <code>int</code>s between <code>-5</code> and <code>256</code>,&nbsp;inclusive.)</p>
+<h2 id="conclusion"><a class="toclink" href="#conclusion">Conclusion</a></h2>
+<ul>
+<li>Most of the time, you want <code>==</code>.</li>
+<li>Use <code>arg is None</code> when you have a function with an argument defaulting to <code>None</code>.  That&#8217;s okay, because there&#8217;s only one <code>None</code>.</li>
+<li>For testing whether two classes, functions, or modules are the same object, <code>is</code> is okay.  Stylistic&nbsp;choice.</li>
+<li><strong>Never</strong> use <code>is</code> with <code>str</code>, <code>int</code>, <code>float</code>, <code>complex</code>, or any other core immutable value type!  Interning makes the response&nbsp;worthless!</li>
+<li>Other valid uses of <code>is</code> are fairly rare and obscure, for example:<ul>
+<li>If I have a large tree structure and want to find the location of a subtree, <code>==</code> will recursively compare values (potentially very slow) but <code>is</code> will tell me if I&#8217;ve found the exact same&nbsp;node.</li>
+<li>A caching mechanism may want to treat all objects as distinct, without having to care about or rely on how they implement <code>==</code>.  <code>is</code> can be appropriate&nbsp;here.</li>
+<li>Demonstrating to newbies that interning exists is only possible with <code>is</code>  :)</li>
+</ul>
+</li>
+</ul>
+<p>To summarize even further: don&#8217;t use <code>is</code> unless you&#8217;re comparing with <code>None</code> or you really, really mean it.  And you&nbsp;don&#8217;t.</p>
+<h2 id="further-reading"><a class="toclink" href="#further-reading">Further&nbsp;reading</a></h2>
+<ul>
+<li>The Python Language Reference has a <a href="http://docs.python.org/reference/datamodel.html">data model section</a> which documents the possibility of caching immutable values, <a href="http://docs.python.org/reference/datamodel.html#object.__eq__">how <code>__eq__</code> works</a>, and <a href="http://docs.python.org/reference/datamodel.html#coercion-rules">how operator overloading works</a> in&nbsp;general.</li>
+<li><a href="http://docs.python.org/c-api/int.html#PyInt_FromLong">The Python C <span class="caps">API</span></a> is the only documentation of what ints are&nbsp;interned.</li>
+</ul></div>
+        <footer>
+            <ul class="meta">
+    <li class="byline author vcard">
+        Posted by <span class="fn">Eevee</span>
+        in <a class="category" href="http://eev.ee/blog/categories/python-faq/">
+            python faq</a>
+    </li>
+    <li><time datetime="2012-03-24T23:15:00" pubdate>Sat 24 March 2012</time>
+</li>
+    <li class="tags">
+        <a class="tag" href="http://eev.ee/blog/tags/python/">#python</a>
+    </li>
+</ul>
+
+            <div class="sharing">
+</div>
+
+        </footer>
+    </article>
+
+    <!-- veekun / http://eev.ee / published -->
+    <!-- veekun / http://eev.ee / published -->
+<section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>
+            <p>Apologies, but part of running a static blog is that the comments are served by Disqus's JavaScript slurry.</p>
+            <p>If it's any consolation, you're probably not missing much.  :)</p>
+        </noscript>
+    </div>
+    <script type="text/javascript">
+        var disqus_shortname = 'veekun';
+        var disqus_identifier = 'http://me.veekun.com/blog/2012/03/24/python-faq-equality/';
+        var disqus_url = 'http://eev.ee/blog/2012/03/24/python-faq-equality/';
+        var disqus_title = 'Python <span class="caps">FAQ</span>:&nbsp;Equality';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+</section>
+
+        </div>
+<aside id="sidebar">
+
+    <section>
+        <header>
+            <a href="http://eev.ee/blog/archives/">📅</a>
+            <h1>Recent Posts</h1>
+        </header>
+        <ul id="recent_posts">
+        <li class="post">
+            <a href="http://eev.ee/blog/2014/05/25/braid/">Braid</a>
+        </li>
+        <li class="post">
+            <a href="http://eev.ee/blog/2014/04/05/comment-policy/">Comment policy</a>
+        </li>
+        <li class="post">
+            <a href="http://eev.ee/blog/2014/04/05/mozilla-and-free-speech/">Mozilla and free speech</a>
+        </li>
+        <li class="post">
+            <a href="http://eev.ee/blog/2014/01/12/a-brief-overview-of-copyright/">A brief overview of copyright</a>
+        </li>
+        <li class="post">
+            <a href="http://eev.ee/blog/2014/01/12/level-27/">Level 27</a>
+        </li>
+        </ul>
+    </section>
+
+    <section>
+        <header>
+            <a href="http://eev.ee/blog/categories/">📂</a>
+            <h1>Categories</h1>
+        </header>
+        <ul id="recent_posts">
+            <li><a href="http://eev.ee/blog/categories/90-of-everything/">90% of everything</a></li>
+            <li><a href="http://eev.ee/blog/categories/essay/">essay</a></li>
+            <li><a href="http://eev.ee/blog/categories/meta/">meta</a></li>
+            <li><a href="http://eev.ee/blog/categories/people/">people</a></li>
+            <li><a href="http://eev.ee/blog/categories/personal/">personal</a></li>
+            <li><a href="http://eev.ee/blog/categories/project-euler/">project euler</a></li>
+            <li><a href="http://eev.ee/blog/categories/python-faq/">python faq</a></li>
+            <li><a href="http://eev.ee/blog/categories/quick-nerd-thing/">quick nerd thing</a></li>
+            <li><a href="http://eev.ee/blog/categories/reference/">reference</a></li>
+            <li><a href="http://eev.ee/blog/categories/rescued-from-twitter/">rescued from twitter</a></li>
+            <li><a href="http://eev.ee/blog/categories/status/">status</a></li>
+            <li><a href="http://eev.ee/blog/categories/thinking-out-loud/">thinking out loud</a></li>
+        </ul>
+    </section>
+
+    <section>
+        <header>
+            <a href="http://eev.ee/blog/tags/">🔖</a>
+            <h1>Tags</h1>
+        </header>
+        <div class="sidebar-tags">
+            <a href="http://eev.ee/blog/tags/git/">git</a>
+            <a href="http://eev.ee/blog/tags/pyramid/">pyramid</a>
+            <a href="http://eev.ee/blog/tags/creation/">creation</a>
+            <a href="http://eev.ee/blog/tags/japanese/">japanese</a>
+            <a href="http://eev.ee/blog/tags/gadgets/">gadgets</a>
+            <a href="http://eev.ee/blog/tags/culture/">culture</a>
+            <a href="http://eev.ee/blog/tags/linux/">linux</a>
+            <a href="http://eev.ee/blog/tags/perl/">perl</a>
+            <a href="http://eev.ee/blog/tags/pokemon/">pokemon</a>
+            <a href="http://eev.ee/blog/tags/web/">web</a>
+            <a href="http://eev.ee/blog/tags/law/">law</a>
+            <a href="http://eev.ee/blog/tags/humor/">humor</a>
+            <a href="http://eev.ee/blog/tags/media/">media</a>
+            <a href="http://eev.ee/blog/tags/raidne/">raidne</a>
+            <a href="http://eev.ee/blog/tags/systems/">systems</a>
+            <a href="http://eev.ee/blog/tags/interfaces/">interfaces</a>
+            <a href="http://eev.ee/blog/tags/math/">math</a>
+            <a href="http://eev.ee/blog/tags/normal/">normal</a>
+            <a href="http://eev.ee/blog/tags/python/">python</a>
+            <a href="http://eev.ee/blog/tags/gotcha/">gotcha</a>
+            <a href="http://eev.ee/blog/tags/mozilla/">mozilla</a>
+            <a href="http://eev.ee/blog/tags/infosec/">infosec</a>
+            <a href="http://eev.ee/blog/tags/puzzles/">puzzles</a>
+            <a href="http://eev.ee/blog/tags/photos/">photos</a>
+            <a href="http://eev.ee/blog/tags/follow-along/">follow along</a>
+            <a href="http://eev.ee/blog/tags/dywypi/">dywypi</a>
+            <a href="http://eev.ee/blog/tags/sanpera/">sanpera</a>
+            <a href="http://eev.ee/blog/tags/veekun/">veekun</a>
+            <a href="http://eev.ee/blog/tags/php/">php</a>
+            <a href="http://eev.ee/blog/tags/ruby/">ruby</a>
+            <a href="http://eev.ee/blog/tags/identity/">identity</a>
+            <a href="http://eev.ee/blog/tags/flora/">flora</a>
+            <a href="http://eev.ee/blog/tags/gender/">gender</a>
+            <a href="http://eev.ee/blog/tags/intellectual-property/">intellectual property</a>
+            <a href="http://eev.ee/blog/tags/stuff/">stuff</a>
+            <a href="http://eev.ee/blog/tags/tech/">tech</a>
+            <a href="http://eev.ee/blog/tags/squiggle/">squiggle</a>
+            <a href="http://eev.ee/blog/tags/rust/">rust</a>
+        </div>
+    </section>
+
+</aside>    </div>
+    <footer role="contentinfo">
+        © 2011–2014 Eevee (Alex Munroe); licensed as <a href="http://creativecommons.org/licenses/by/3.0/us/">CC-BY</a> unless otherwise specified.
+        <div class="powered-by">
+            Powered by <a href="http://docs.getpelican.com/en/3.3.0/">Pelican</a>
+        </div>
+    </footer>
+
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-25539054-1', 'eev.ee');
+        ga('send', 'pageview');
+    </script>
+</body>
+</html>

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link href='/css/jeffknupp.min.css' rel='stylesheet' type='text/css'>
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,900' rel='stylesheet' type='text/css'>
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <title>Drastically Improve Your Python: Understanding Python's Execution Model</title>
+  <meta name="author" content="Jeff Knupp">
+  <meta name="description" content=""> 
+  <link rel="icon" href="/images/favicon.png" >
+  <link rel="alternate" href="http://feeds.feedblitz.com/hackersgonnahack" title="Python Programming" type="application/atom+xml">
+
+  
+<style>
+td.linenos { background-color: #f0f0f0; padding-right: 10px; }
+span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
+table.codehilitetable .hll, .codehilite pre .hll { background-color: #ffffcc }
+table.codehilitetable, .codehilite  { background: #f8f8f8; }
+table.codehilitetable .c, .codehilite pre .c { color: #408080; font-style: italic } /* Comment */
+table.codehilitetable .err, .codehilite pre .err { border: 1px solid #FF0000 } /* Error */
+table.codehilitetable .k, .codehilite pre .k { color: #008000; font-weight: bold } /* Keyword */
+table.codehilitetable .o, .codehilite pre .o { color: #666666 } /* Operator */
+table.codehilitetable .cm, .codehilite pre .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+table.codehilitetable .cp, .codehilite pre .cp { color: #BC7A00 } /* Comment.Preproc */
+table.codehilitetable .c1, .codehilite pre .c1 { color: #408080; font-style: italic } /* Comment.Single */
+table.codehilitetable .cs, .codehilite pre .cs { color: #408080; font-style: italic } /* Comment.Special */
+table.codehilitetable .gd, .codehilite pre .gd { color: #A00000 } /* Generic.Deleted */
+table.codehilitetable .ge, .codehilite pre .ge { font-style: italic } /* Generic.Emph */
+table.codehilitetable .gr, .codehilite pre .gr { color: #FF0000 } /* Generic.Error */
+table.codehilitetable .gh, .codehilite pre .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+table.codehilitetable .gi, .codehilite pre .gi { color: #00A000 } /* Generic.Inserted */
+table.codehilitetable .go, .codehilite pre .go { color: #808080 } /* Generic.Output */
+table.codehilitetable .gp, .codehilite pre .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+table.codehilitetable .gs, .codehilite pre .gs { font-weight: bold } /* Generic.Strong */
+table.codehilitetable .gu, .codehilite pre .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+table.codehilitetable .gt, .codehilite pre .gt { color: #0040D0 } /* Generic.Traceback */
+table.codehilitetable .kc, .codehilite pre .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+table.codehilitetable .kd, .codehilite pre .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+table.codehilitetable .kn, .codehilite pre .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+table.codehilitetable .kp, .codehilite pre .kp { color: #008000 } /* Keyword.Pseudo */
+table.codehilitetable .kr, .codehilite pre .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+table.codehilitetable .kt, .codehilite pre .kt { color: #B00040 } /* Keyword.Type */
+table.codehilitetable .m, .codehilite pre .m { color: #666666 } /* Literal.Number */
+table.codehilitetable .s, .codehilite pre .s { color: #BA2121 } /* Literal.String */
+table.codehilitetable .na, .codehilite pre .na { color: #7D9029 } /* Name.Attribute */
+table.codehilitetable .nb, .codehilite pre .nb { color: #008000 } /* Name.Builtin */
+table.codehilitetable .nc, .codehilite pre .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+table.codehilitetable .no, .codehilite pre .no { color: #880000 } /* Name.Constant */
+table.codehilitetable .nd, .codehilite pre .nd { color: #AA22FF } /* Name.Decorator */
+table.codehilitetable .ni, .codehilite pre .ni { color: #999999; font-weight: bold } /* Name.Entity */
+table.codehilitetable .ne, .codehilite pre .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+table.codehilitetable .nf, .codehilite pre .nf { color: #0000FF } /* Name.Function */
+table.codehilitetable .nl, .codehilite pre .nl { color: #A0A000 } /* Name.Label */
+table.codehilitetable .nn, .codehilite pre .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+table.codehilitetable .nt, .codehilite pre .nt { color: #008000; font-weight: bold } /* Name.Tag */
+table.codehilitetable .nv, .codehilite pre .nv { color: #19177C } /* Name.Variable */
+table.codehilitetable .ow, .codehilite pre .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+table.codehilitetable .w, .codehilite pre .w { color: #bbbbbb } /* Text.Whitespace */
+table.codehilitetable .mf, .codehilite pre .mf { color: #666666 } /* Literal.Number.Float */
+table.codehilitetable .mh, .codehilite pre .mh { color: #666666 } /* Literal.Number.Hex */
+table.codehilitetable .mi, .codehilite pre .mi { color: #666666 } /* Literal.Number.Integer */
+table.codehilitetable .mo, .codehilite pre .mo { color: #666666 } /* Literal.Number.Oct */
+table.codehilitetable .sb, .codehilite pre .sb { color: #BA2121 } /* Literal.String.Backtick */
+table.codehilitetable .sc, .codehilite pre .sc { color: #BA2121 } /* Literal.String.Char */
+table.codehilitetable .sd, .codehilite pre .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+table.codehilitetable .s2, .codehilite pre .s2 { color: #BA2121 } /* Literal.String.Double */
+table.codehilitetable .se, .codehilite pre .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+table.codehilitetable .sh, .codehilite pre .sh { color: #BA2121 } /* Literal.String.Heredoc */
+table.codehilitetable .si, .codehilite pre .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+table.codehilitetable .sx, .codehilite pre .sx { color: #008000 } /* Literal.String.Other */
+table.codehilitetable .sr, .codehilite pre .sr { color: #BB6688 } /* Literal.String.Regex */
+table.codehilitetable .s1, .codehilite pre .s1 { color: #BA2121 } /* Literal.String.Single */
+table.codehilitetable .ss, .codehilite pre .ss { color: #19177C } /* Literal.String.Symbol */
+table.codehilitetable .bp, .codehilite pre .bp { color: #008000 } /* Name.Builtin.Pseudo */
+table.codehilitetable .vc, .codehilite pre .vc { color: #19177C } /* Name.Variable.Class */
+table.codehilitetable .vg, .codehilite pre .vg { color: #19177C } /* Name.Variable.Global */
+table.codehilitetable .vi, .codehilite pre .vi { color: #19177C } /* Name.Variable.Instance */
+table.codehilitetable .il, .codehilite pre .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
+  <style>
+body {
+    font-family: 'Roboto', sans-serif;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", 'Roboto', Arial, "Lucida Grande", sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+}
+.nav {
+    text-align: right;
+    padding-bottom: 20px;
+}
+
+.nav a {
+    padding-right: 2em;
+    color: black;
+    font-size: 14px;
+}
+
+.title {
+   width: 100%; 
+   text-align: center; 
+   border-bottom: 1px solid #000; 
+   line-height: 0.1em;
+   margin: 10px 0 40px; 
+} 
+
+.title span { 
+    background:#fff; 
+    padding:0 20px; 
+}
+
+/* Side notes for calling out things
+-------------------------------------------------- */
+ 
+/* Base styles (regardless of theme) */
+.bs-callout {
+  margin: 20px 0;
+  padding: 15px 30px 15px 15px;
+  border-left: 5px solid #eee;
+}
+.bs-callout h4 {
+  margin-top: 0;
+}
+.bs-callout p:last-child {
+  margin-bottom: 0;
+}
+.bs-callout code,
+.bs-callout .highlight {
+  background-color: #fff;
+}
+ 
+/* Themes for different contexts */
+.bs-callout-danger {
+  background-color: #fcf2f2;
+  border-color: #dFb5b4;
+}
+.bs-callout-warning {
+  background-color: #fefbed;
+  border-color: #f1e7bc;
+}
+.bs-callout-info {
+  background-color: #f0f7fd;
+  border-color: #d0e3f0;
+}
+.bs-callout-danger h4 {
+color: #B94A48;
+}
+
+.bs-callout-warning h4 {
+color: #C09853;
+}
+
+.bs-callout-info h4 {
+color: #3A87AD;
+}
+</style>
+
+  
+  
+  <!-- Google Analytics -->
+  <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-12615441-1', 'jeffknupp.com');
+    ga('send', 'pageview');
+  </script>
+  <!-- Google Plus Author Link -->
+  <link href="https://plus.google.com/102786441324515866525" rel="publisher" />
+
+</head>
+
+<body itemscope itemtype="http://schema.org/Blog">
+<header id="header">
+    <img src="/images/jeff.jpg" class="circular center-block">
+    <h1>Jeff Knupp</h1>
+    <h2>PYTHON PROGRAMMER</h2>
+    <nav>
+        <a href="/">BLOG</a>
+        <span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="/about-me/" itemprop="url">ABOUT</a></span>
+        <a href="/blog/archives">ARCHIVES</a>
+        <a href="/python-tutoring" title="python-tutoring">TUTORING</a>
+        <a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">BOOK</a>
+    </nav>
+</header>
+<div class="container-fluid content">
+    <h2 class="text-center"><span itemprop="name">Everything I know about Python...</span></h2>
+    <div class="col-md-8 col-md-offset-2 col-xs-12">
+        <div class="bs-callout bs-callout-danger">
+            <h4 class="text-center">Learn to Write Pythonic Code!</h4>
+            <p class="text-center"><a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">
+                Check out the book <em>Writing Idiomatic Python</em>!</a></p>
+        </div>
+        <div id="content">
+            
+<article itemscope itemtype="http://schema.org/BlogPosting">
+<header>
+    <h1 class="post-title"><a href="/blog/2013/02/14/drastically-improve-your-python-understanding-pythons-execution-model"><span itemprop="headline">Drastically Improve Your Python: Understanding Python's Execution Model</span></a><br/>
+</header>
+
+<div class="entry-content" itemprop="articleBody">
+    
+        <p>Those new to Python are often surprised by the behavior of their own code. They
+expect <em>A</em> but, seemingly for no reason, <em>B</em> happens instead.
+The root cause of many of these "surprises" is confusion about the Python
+execution model. It's the sort of thing that, if it's explained to you once, a number of
+Python concepts that seemed hazy before become crystal clear. It's also really
+difficult to just "figure out" on your own, as it requires a fundamental shift
+in thinking about core language concepts like variables, objects, and functions.</p>
+<p>In this post, I'll help you understand what's happening behind the scenes when
+you do common things like creating a variable or calling a function. As a
+result, you'll write cleaner, more comprehensible code. You'll also become a
+better (and faster) code reader. All that's necessary is to forget everything
+you know about programming...</p>
+<!--more-->
+
+<h3>"Everything is an object?"</h3>
+<p>When most people first hear that in Python, "everything is an object", it triggers 
+flashbacks to languages like Java where everything the <em>user</em> writes is encapsulated 
+in an object. Others assume this means that in the implementation of the Python 
+interpreter, everything is implemented as objects. The first interpretation is 
+wrong; the second is true but not particularly interesting (for our purposes). 
+What the phrase actually refers to is the fact that all "things", be they values, 
+classes, functions, object instances (obviously), and almost every other language 
+construct is conceptually an object. </p>
+<p>What does it mean for everything to be an object? It means all of the "things" 
+mentioned above have all the properties we usually associate with 
+objects (in the object oriented sense); types have member functions, functions 
+have attributes, modules can be passed as arguments, etc. And it has important 
+implications with regards to how assignment in Python works.</p>
+<p>A feature of the Python interpreter that often confuses beginners is what happens 
+when <code>print()</code> is called on a "variable" assigned to a user-defined object (I'll 
+explain the quotes in a second).  With built-in types, a proper value is usually 
+printed, like when calling <code>print()</code> on <code>strings</code> and <code>ints</code>. For simple, 
+user-defined classes, though, the interpreter spits out some odd looking string 
+like:</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="k">class</span> <span class="nc">Foo</span><span class="p">():</span> <span class="k">pass</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">foo</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">__main__</span><span class="o">.</span><span class="n">Foo</span> <span class="nb">object</span> <span class="n">at</span> <span class="mh">0xd3adb33f</span><span class="o">&gt;</span>
+</pre></div>
+
+
+<p><code>print()</code> is supposed to print the value of a "variable", right? So why is it 
+printing that garbage?</p>
+<p>To answer that, we need to understand what <code>foo</code> actually represents in Python. 
+Most other languages would call it a variable. Indeed, many Python articles 
+would refer to <code>foo</code> as a variable, but really only as a shorthand notation.</p>
+<p>In languages like C, <code>foo</code> represents storage for "stuff". If we wrote</p>
+<div class="codehilite"><pre><span class="kt">int</span> <span class="n">foo</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+</pre></div>
+
+
+<p>it would be correct to say that the integer variable <code>foo</code> contained the 
+value <code>42</code>. That is, <em>variables are a sort of container for values</em>.</p>
+<h3>And now for something completely different...</h3>
+<p>In Python, this isn't the case. When we say:</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">foo</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">()</span>
+</pre></div>
+
+
+<p>it would be wrong to say that <code>foo</code> "contained" a <code>Foo</code> object. 
+Rather, <code>foo</code> <em>is a <code>name</code> with a <code>binding</code> to the <code>object</code> created by</em> <code>Foo()</code>. 
+The portion of the right hand side of the equals sign creates an object. 
+Assigning <code>foo</code> to that object merely says "I want to be able to refer 
+to this object as <code>foo</code>." <strong>Instead of variables (in the classic 
+sense), Python has <code>names</code> and <code>bindings</code></strong>.</p>
+<p>So when we printed <code>foo</code> earlier, what the interpreter was showing us was the
+address in memory where the object that <code>foo</code> is bound to is stored. This isn't as 
+useless as it sounds. If you're in the interpreter and want to see if two 
+names are bound to the same object, you can do a quick-and-dirty check by 
+printing them and comparing the addresses. If they match, they're bound to the 
+same object; if not, their bound to different objects. Of course, the idiomatic 
+way to check if two names are bound to the same object is to use <code>is</code> </p>
+<p>If we continued our example and wrote</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">baz</span> <span class="o">=</span> <span class="n">foo</span>
+</pre></div>
+
+
+<p>we should read this as "Bind the name <code>baz</code> to the same object <code>foo</code> is bound 
+to (whatever that may be)." It should be clear, then why the following happens</p>
+<div class="codehilite"><pre> <span class="o">&gt;&gt;&gt;</span> <span class="n">baz</span><span class="o">.</span><span class="n">some_attribute</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+<span class="n">File</span> <span class="s">&quot;&lt;stdin&gt;&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">1</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="ne">AttributeError</span><span class="p">:</span> <span class="s">&#39;Foo&#39;</span> <span class="nb">object</span> <span class="n">has</span> <span class="n">no</span> <span class="n">attribute</span> <span class="s">&#39;some_attribute&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">foo</span><span class="o">.</span><span class="n">some_attribute</span> <span class="o">=</span> <span class="s">&#39;set from foo&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">baz</span><span class="o">.</span><span class="n">some_attribute</span>
+<span class="s">&#39;set from foo&#39;</span>
+</pre></div>
+
+
+<p>Changing the object in some way using <code>foo</code> will also be reflected in <code>baz</code>: they 
+are both bound to the same underlying object. </p>
+<h3>What's in a name...</h3>
+<p><code>names</code> in Python are not unlike names 
+in the real world. If my wife calls me "Jeff", my dad calls me "Jeffrey", and my 
+boss calls me "Idiot", it doesn't fundamentally change <em>me</em>. If my boss decides 
+to call me "Captain Programming," great, but it still hasn't changed anything 
+about me. It does mean, however, that if my wife kills "Jeff" (and who could 
+blame her), "Captain Programming" is also dead. Likewise, in Python binding a 
+name to an object doesn't change it. Changing some property of the object, 
+however, will be reflected in all other names bound to that object.</p>
+<h3>Everything really <em>is</em> an object. I swear.</h3>
+<p>Here, a questions arises: How do we know that the thing on the right hand side of 
+the equals sign will always be an object we can bind a name to? What about</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">foo</span> <span class="o">=</span> <span class="mi">10</span>
+</pre></div>
+
+
+<p>or</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">foo</span> <span class="o">=</span> <span class="s">&quot;Hello World!&quot;</span>
+</pre></div>
+
+
+<p>Now is when "everything is an object" pays off. Anything you can (legally) place 
+on the right hand side of the equals sign is (or creates) an object in Python. 
+Both <code>10</code> and <code>Hello World</code> are objects. Don't believe me? Check for yourself</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">foo</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">foo</span><span class="o">.</span><span class="n">__add__</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">method</span><span class="o">-</span><span class="n">wrapper</span> <span class="s">&#39;__add__&#39;</span> <span class="n">of</span> <span class="nb">int</span> <span class="nb">object</span> <span class="n">at</span> <span class="mh">0x8502c0</span><span class="o">&gt;</span>
+</pre></div>
+
+
+<p>If <code>10</code> was actually just the number '10', it probably wouldn't have
+an <code>__add__</code> attribute (or any attributes at all).</p>
+<p>In fact, we can see all the attributes <code>10</code> has using the <code>dir()</code> function:</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="nb">dir</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="p">[</span><span class="s">&#39;__abs__&#39;</span><span class="p">,</span> <span class="s">&#39;__add__&#39;</span><span class="p">,</span> <span class="s">&#39;__and__&#39;</span><span class="p">,</span> <span class="s">&#39;__class__&#39;</span><span class="p">,</span> <span class="s">&#39;__cmp__&#39;</span><span class="p">,</span> <span class="s">&#39;__coerce__&#39;</span><span class="p">,</span> <span class="s">&#39;__delattr__&#39;</span><span class="p">,</span> 
+<span class="s">&#39;__div__&#39;</span><span class="p">,</span> <span class="s">&#39;__divmod__&#39;</span><span class="p">,</span> <span class="s">&#39;__doc__&#39;</span><span class="p">,</span> <span class="s">&#39;__float__&#39;</span><span class="p">,</span> <span class="s">&#39;__floordiv__&#39;</span><span class="p">,</span> <span class="s">&#39;__format__&#39;</span><span class="p">,</span> 
+<span class="s">&#39;__getattribute__&#39;</span><span class="p">,</span> <span class="s">&#39;__getnewargs__&#39;</span><span class="p">,</span> <span class="s">&#39;__hash__&#39;</span><span class="p">,</span> <span class="s">&#39;__hex__&#39;</span><span class="p">,</span> <span class="s">&#39;__index__&#39;</span><span class="p">,</span> 
+<span class="s">&#39;__init__&#39;</span><span class="p">,</span> <span class="s">&#39;__int__&#39;</span><span class="p">,</span> <span class="s">&#39;__invert__&#39;</span><span class="p">,</span> <span class="s">&#39;__long__&#39;</span><span class="p">,</span> <span class="s">&#39;__lshift__&#39;</span><span class="p">,</span> <span class="s">&#39;__mod__&#39;</span><span class="p">,</span> 
+<span class="s">&#39;__mul__&#39;</span><span class="p">,</span> <span class="s">&#39;__neg__&#39;</span><span class="p">,</span> <span class="s">&#39;__new__&#39;</span><span class="p">,</span> <span class="s">&#39;__nonzero__&#39;</span><span class="p">,</span> <span class="s">&#39;__oct__&#39;</span><span class="p">,</span> <span class="s">&#39;__or__&#39;</span><span class="p">,</span> 
+<span class="s">&#39;__pos__&#39;</span><span class="p">,</span> <span class="s">&#39;__pow__&#39;</span><span class="p">,</span> <span class="s">&#39;__radd__&#39;</span><span class="p">,</span> <span class="s">&#39;__rand__&#39;</span><span class="p">,</span> <span class="s">&#39;__rdiv__&#39;</span><span class="p">,</span> <span class="s">&#39;__rdivmod__&#39;</span><span class="p">,</span> 
+<span class="s">&#39;__reduce__&#39;</span><span class="p">,</span> <span class="s">&#39;__reduce_ex__&#39;</span><span class="p">,</span> <span class="s">&#39;__repr__&#39;</span><span class="p">,</span> <span class="s">&#39;__rfloordiv__&#39;</span><span class="p">,</span> <span class="s">&#39;__rlshift__&#39;</span><span class="p">,</span> 
+<span class="s">&#39;__rmod__&#39;</span><span class="p">,</span> <span class="s">&#39;__rmul__&#39;</span><span class="p">,</span> <span class="s">&#39;__ror__&#39;</span><span class="p">,</span> <span class="s">&#39;__rpow__&#39;</span><span class="p">,</span> <span class="s">&#39;__rrshift__&#39;</span><span class="p">,</span> <span class="s">&#39;__rshift__&#39;</span><span class="p">,</span> 
+<span class="s">&#39;__rsub__&#39;</span><span class="p">,</span> <span class="s">&#39;__rtruediv__&#39;</span><span class="p">,</span> <span class="s">&#39;__rxor__&#39;</span><span class="p">,</span> <span class="s">&#39;__setattr__&#39;</span><span class="p">,</span> <span class="s">&#39;__sizeof__&#39;</span><span class="p">,</span> <span class="s">&#39;__str__&#39;</span><span class="p">,</span> 
+<span class="s">&#39;__sub__&#39;</span><span class="p">,</span> <span class="s">&#39;__subclasshook__&#39;</span><span class="p">,</span> <span class="s">&#39;__truediv__&#39;</span><span class="p">,</span> <span class="s">&#39;__trunc__&#39;</span><span class="p">,</span> <span class="s">&#39;__xor__&#39;</span><span class="p">,</span> 
+<span class="s">&#39;bit_length&#39;</span><span class="p">,</span> <span class="s">&#39;conjugate&#39;</span><span class="p">,</span> <span class="s">&#39;denominator&#39;</span><span class="p">,</span> <span class="s">&#39;imag&#39;</span><span class="p">,</span> <span class="s">&#39;numerator&#39;</span><span class="p">,</span> <span class="s">&#39;real&#39;</span><span class="p">]</span>
+</pre></div>
+
+
+<p>With all those attributes and member functions, I think it's safe to say <code>10</code> is
+an object.</p>
+<p>Since everything in Python is essentially names bound to objects, we can do
+silly (but interesting) stuff like this:</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">datetime</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">imp</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+<span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2013</span><span class="p">,</span> <span class="mo">02</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mo">02</span><span class="p">,</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">59</span><span class="p">,</span> <span class="mi">608842</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">class</span> <span class="nc">PartyTime</span><span class="p">():</span>        
+<span class="o">...</span>     <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="o">...</span>         <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">datetime</span><span class="p">)</span>
+<span class="o">...</span>         <span class="n">value</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+<span class="o">...</span>         <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="o">=</span> <span class="bp">self</span>
+<span class="o">...</span>         <span class="k">return</span> <span class="n">value</span>
+<span class="o">...</span>     
+<span class="o">...</span>     <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="o">...</span>         <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&#39;now&#39;</span><span class="p">:</span>
+<span class="o">...</span>             <span class="k">return</span> <span class="k">lambda</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s">&#39;Party Time!&#39;</span><span class="p">)</span>
+<span class="o">...</span>         <span class="k">else</span><span class="p">:</span>
+<span class="o">...</span>             <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">datetime</span><span class="p">)</span>
+<span class="o">...</span>             <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<span class="o">...</span>             <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="o">=</span> <span class="bp">self</span>
+<span class="o">...</span>             <span class="k">return</span> <span class="n">value</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="o">=</span> <span class="n">PartyTime</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> 
+<span class="n">Party</span> <span class="n">Time</span><span class="err">!</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">today</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2013</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">14</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">today</span><span class="p">)</span>
+<span class="mi">2013</span><span class="o">-</span><span class="mo">02</span><span class="o">-</span><span class="mi">14</span> <span class="mo">00</span><span class="p">:</span><span class="mo">00</span><span class="p">:</span><span class="mo">00</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">today</span><span class="o">.</span><span class="n">timestamp</span><span class="p">())</span>
+<span class="mf">1360818000.0</span>
+</pre></div>
+
+
+<p><code>datetime.datetime</code> is just a name (that happens to be bound to an object 
+representing the <code>datetime</code> class). We can rebind it to whatever we please. In
+the example above, we bind the <code>datetime</code> attribute of the <code>datetime</code> module to
+our new class, <code>PartyTime</code>. Any call to the <code>datetime.datetime</code> constructor
+returns a valid <code>datetime</code> object. In fact, the class is indistinguishable from
+the real <code>datetime.datetime</code> class. Except, that is, for the fact that if you call
+<code>datetime.datetime.now()</code> it always prints out 'Party Time!'.</p>
+<p>Obviously this is a silly example, but hopefully it gives you some insight into
+what is possible when you fully understand and make use of Python's execution model. 
+At this point, though, we've only changed bindings associated with a name. What about
+changing the object itself?</p>
+<h3>Two types of objects</h3>
+<p>It turns out Python has two flavors of objects: <code>mutable</code> and <code>immutable</code>.
+The value of mutable objects can be changed after they are created. The value of
+immutable objects cannot be. A <code>list</code> is a mutable object. You can create a list,
+append some values, and the list is updated in place. A <code>string</code> is immutable.
+Once you create a string, you can't change its value. </p>
+<p>I know what you're thinking: "Of course you can change the value of a string, I
+do it all the time in my code!" When you "change" a string, you're actually
+rebinding it to a newly created string object. The original object remains
+unchanged, even though its possible that nothing refers to it anymore.</p>
+<p>See for yourself:</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&#39;foo&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span>
+<span class="s">&#39;foo&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="n">a</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">+=</span> <span class="s">&#39;bar&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span>
+<span class="s">&#39;foobar&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span>
+<span class="s">&#39;foo&#39;</span>
+</pre></div>
+
+
+<p>Even though we're using <code>+=</code> and it <em>seems</em> that we're modifying the string, we
+really just get a new one containing the result of the change. This is why you 
+may hear people say, "string concatenation is slow.". It's because 
+concatenating strings must allocate memory for a new string and copy the 
+contents, while appending to a list (in most cases) requires no allocation. 
+Immutable objects are fundamentally expensive to "change", because doing so 
+involves creating a copy. Changing mutable objects is cheap.</p>
+<h3>Immutable object weirdness</h3>
+<p>When I said the value of immutable objects can't change after they're created, it
+wasn't the whole truth. A number of containers in Python, such as <code>tuple</code>, are 
+immutable.  The value of a <code>tuple</code> can't be changed after it is created. But 
+the "value" of a tuple is conceptually just a sequence of names with
+unchangeable bindings to objects. The key thing to note is that 
+the <em>bindings</em> are unchangeable, not the objects they are bound to.</p>
+<p>This means the following is perfectly legal:</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="k">class</span> <span class="nc">Foo</span><span class="p">():</span>
+<span class="o">...</span>     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="o">...</span>             <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="o">...</span>     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="o">...</span>             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="o">...</span>     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="o">...</span>             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="o">...</span> 
+<span class="o">&gt;&gt;&gt;</span> <span class="n">f</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="mi">0</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">foo_tuple</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">foo_tuple</span><span class="p">)</span>
+<span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">foo_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+<span class="n">File</span> <span class="s">&quot;&lt;stdin&gt;&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">1</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="ne">TypeError</span><span class="p">:</span> <span class="s">&#39;tuple&#39;</span> <span class="nb">object</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">support</span> <span class="n">item</span> <span class="n">assignment</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">f</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">999</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="mi">999</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">foo_tuple</span><span class="p">)</span>
+<span class="p">(</span><span class="mi">999</span><span class="p">,</span> <span class="mi">999</span><span class="p">)</span>
+</pre></div>
+
+
+<p>When we try to change an element of the tuple directly, we get a <code>TypeError</code>
+telling us that (once created), <code>tuples</code> can't be assigned to. But changing the
+underlying object has the effect of "changing" the value of the <code>tuple</code>.
+This is a subtle point, but nonetheless important: the "value" of an immutable
+object <em>can't</em> change, but it's constituent objects <em>can</em>. </p>
+<h3>Function calls</h3>
+<p>If variables are just <code>names</code> bound to objects, what happens when we pass them
+as arguments to a function? The truth is, we aren't really passing all that much.
+Take a look at this code:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">add_to_tree</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">value_string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given a string of characters `value_string`, create or update a</span>
+<span class="sd">    series of dictionaries where the value at each level is a dictionary of</span>
+<span class="sd">    the characters that have been seen following the current character.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">    &gt;&gt;&gt; my_string = &#39;abc&#39;</span>
+<span class="sd">    &gt;&gt;&gt; tree = {}</span>
+<span class="sd">    &gt;&gt;&gt; add_to_tree(tree, my_string)</span>
+<span class="sd">    &gt;&gt;&gt; print(tree[&#39;a&#39;][&#39;b&#39;])</span>
+<span class="sd">    {&#39;c&#39;: {}}</span>
+<span class="sd">    &gt;&gt;&gt; add_to_tree(tree, &#39;abd&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; print(tree[&#39;a&#39;][&#39;b&#39;])</span>
+<span class="sd">    {&#39;c&#39;: {}, &#39;d&#39;: {}} </span>
+<span class="sd">    &gt;&gt;&gt; print(tree[&#39;a&#39;][&#39;d&#39;])</span>
+<span class="sd">    KeyError &#39;d&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">character</span> <span class="ow">in</span> <span class="n">value_string</span><span class="p">:</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">character</span><span class="p">,</span> <span class="p">{})</span>
+</pre></div>
+
+
+<p>We're essentially creating an auto-vivifying dictionary that operates like a
+trie. Notice that we change the <code>root</code> parameter in the <code>for</code> loop. And yet
+after the function call completes, <code>tree</code> is still the same dictionary with some
+updates. It is <em>not</em> the last value of <code>root</code> in the function call. So in one
+sense <code>tree</code> is being updated; in another sense it's not.</p>
+<p>To make sense of this, consider what the <code>root</code> parameter actually is: a <em>new</em> 
+binding to the object refereed to by the name passed in as the <code>root</code> 
+parameter. In the case of our example, <code>root</code> is a name initially bound to the 
+same object as <code>tree</code>. It is <em>not</em> <code>tree</code> itself, which explains why changing 
+<code>root</code> to a new dictionary in the function leaves <code>tree</code> unchanged. As you'll 
+recall, assigning <code>root</code> to <code>root.setdefault(character, {})</code> merely rebinds 
+<code>root</code> to the object created by the <code>root.setdefault(character, {})</code> statement.</p>
+<p>Here's another, more straightforward, example:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">list_changer</span><span class="p">(</span><span class="n">input_list</span><span class="p">):</span>
+    <span class="n">input_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+    <span class="n">input_list</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">input_list</span><span class="p">)</span>
+    <span class="n">input_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">input_list</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">test_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">list_changer</span><span class="p">(</span><span class="n">test_list</span><span class="p">)</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="n">test_list</span>
+<span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+</pre></div>
+
+
+<p>Our first statement <em>does</em> change the value of the underlying list (as we can
+see in the last line printed). However, once we rebind the name <code>input_list</code> by
+saying <code>input_list = range(1, 10)</code>, <strong>we're now referring to a completely
+different object</strong>. We basically said "bind the name <code>input_list</code> to this new list." 
+After that line, we have no way of referring to the original <code>input_list</code> parameter 
+again. </p>
+<p>By now, you should have a clear understanding of how binding a name works.
+There's just one more item to take care of.</p>
+<h3>Blocks and Scope</h3>
+<p>The concepts of <code>names</code>, <code>bindings</code>, and <code>objects</code> should be quite familiar at
+this point. What we haven't covered, though, is how the interpreter "finds" a
+name. To see what I mean, consider the following:</p>
+<div class="codehilite"><pre><span class="n">GLOBAL_CONSTANT</span> <span class="o">=</span> <span class="mi">42</span>
+
+<span class="k">def</span> <span class="nf">print_some_weird_calculation</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="n">number_of_digits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">print_formatted_calculation</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;{value} * {constant} = {result}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+            <span class="n">constant</span><span class="o">=</span><span class="n">GLOBAL_CONSTANT</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">result</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;{}   {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&#39;^&#39;</span> <span class="o">*</span> <span class="n">number_of_digits</span><span class="p">,</span> <span class="s">&#39;++&#39;</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">Key: ^ points to your number, + points to constant&#39;</span><span class="p">)</span>
+
+    <span class="n">print_formatted_calculation</span><span class="p">(</span><span class="n">value</span> <span class="o">*</span> <span class="n">GLOBAL_CONSTANT</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">print_some_weird_calculation</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="mi">123</span> <span class="o">*</span> <span class="mi">42</span> <span class="o">=</span> <span class="mi">5166</span>
+<span class="o">^^^</span>   <span class="o">++</span>
+
+<span class="n">Key</span><span class="p">:</span> <span class="o">^</span> <span class="n">points</span> <span class="n">to</span> <span class="n">your</span> <span class="n">number</span><span class="p">,</span> <span class="o">+</span> <span class="n">points</span> <span class="n">to</span> <span class="n">constant</span>
+</pre></div>
+
+
+<p>This is a contrived example, but a couple of things should jump out at you.
+First, how does the <code>print_formatted_calculation</code> function have access to
+<code>value</code> and <code>number_of_digits</code> even though they were never passed as arguments?
+Second, how do both functions seem to have access to <code>GLOBAL_CONSTANT</code>?</p>
+<p>The answer is all about <code>scope</code>. In Python, when a name is bound to an object,
+that name is only usable within the name's <code>scope</code>. The <code>scope</code> of a name is
+determined by the <code>block</code> in which it was created. A <code>block</code> is just a "block"
+of Python code that is executed as a single unit. The three most common types of
+blocks are modules, class definitions, and the bodies of functions. So the
+<code>scope</code> of a name is the innermost <code>block</code> in which it's defined.</p>
+<p>Let's now return to the original question: how does the interpreter "find" 
+what a name is bound to (or if it's even a valid name at all)? It begins 
+by checking the <code>scope</code> of the innermost <code>block</code>. Then it checks the
+<code>scope</code> that contained the innermost <code>block</code>, then the <code>scope</code> that contained
+that, and so on. </p>
+<p>In the <code>print_formatted_calculation</code> function, we reference <code>value</code>. This is
+resolved by first checking the <code>scope</code> of the innermost <code>block</code>, which in this
+case is the body of the function itself. When it doesn't find <code>value</code> defined
+there, it checks the <code>scope</code> that <code>print_formatted_calculation</code> was defined in.
+In our case, that's the body of the <code>print_some_weird_calculation</code> function.
+Here it does find the name <code>value</code>, and so it uses that binding and stops
+looking. The same is true for <code>GLOBAL_CONSTANT</code>, it just needs to look an extra
+level higher: the module (or script) level. Anything defined at this level is
+considered a <code>global</code> name. These are accessible from anywhere.</p>
+<p>A few quick things to note. A name's <code>scope</code> extends to any blocks contained 
+in the block where the name was defined, <em>unless the name is rebound in one of
+those blocks</em>. If <code>print_formatted_calculation</code> had the line <code>value = 3</code>, then
+the <code>scope</code> of the name <code>value</code> in <code>print_some_weird_calculation</code> would only be
+the body of that function. It's <code>scope</code> would not include
+<code>print_formatted_calculation</code>, since that <code>block</code> rebound the name.</p>
+<h3>Use this power wisely...</h3>
+<p>There are two keywords that can be used to tell the interpreter to
+<strong>reuse a preexisting binding</strong>. Every other time we bind a name, it binds that name
+to a new object, <em>but only in the current scope</em>. In the example above, if
+we rebound <code>value</code> in <code>print_formatted_calculation</code>, it would have no affect on
+the <code>value</code> in <code>print_some_weird_calculation</code>, which is
+<code>print_formatted_calculation</code>'s  enclosing scope. With the
+following two keywords, we can actually affect the bindings outside our local
+scope.</p>
+<p><code>global my_variable</code> tells the interpreter to use the binding of the 
+name <code>my_variable</code> in the top-most (or "global" scope).
+Putting <code>global my_variable</code> in a code block 
+is a way of saying, "copy the binding of this global variable, or if you don't
+find it, create the name <code>my_variable</code> in the global scope." Similarly, 
+the <code>nonlocal my_variable</code> statement instructs the interpreter to use the binding 
+of the name <code>my_variable</code> defined in the nearest <em>enclosing</em> scope. This is a way 
+to rebind a name not defined in either the local or global scope. Without <code>nonlocal</code>, we would 
+only be able to alter bindings in the local scope or the global scope.
+Unlike <code>global my_variable</code> however, if we use <code>nonlocal my_variable</code> then
+<code>my_variable</code> must already exist; it won't be created if it's not found.</p>
+<p>To see this in action, let's write a quick example:</p>
+<div class="codehilite"><pre><span class="n">GLOBAL_CONSTANT</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="k">print</span><span class="p">(</span><span class="n">GLOBAL_CONSTANT</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">outer_scope_function</span><span class="p">():</span>
+    <span class="n">some_value</span> <span class="o">=</span> <span class="nb">hex</span><span class="p">(</span><span class="mh">0x0</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">some_value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">inner_scope_function</span><span class="p">():</span>
+        <span class="n">nonlocal</span> <span class="n">some_value</span>
+        <span class="n">some_value</span> <span class="o">=</span> <span class="nb">hex</span><span class="p">(</span><span class="mh">0xDEADBEEF</span><span class="p">)</span>
+
+    <span class="n">inner_scope_function</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">some_value</span><span class="p">)</span>
+    <span class="k">global</span> <span class="n">GLOBAL_CONSTANT</span>
+    <span class="n">GLOBAL_CONSTANT</span> <span class="o">=</span> <span class="mi">31337</span>
+
+<span class="n">outer_scope_function</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">GLOBAL_CONSTANT</span><span class="p">)</span>
+
+<span class="c"># Output: </span>
+<span class="c"># 42</span>
+<span class="c"># 0x0</span>
+<span class="c"># 0xdeadbeef</span>
+<span class="c"># 31337</span>
+</pre></div>
+
+
+<p>By making use of <code>global</code> and <code>nonlocal</code>, we're able to use and change the existing
+binding of a name rather than merely assigning the name a new binding and
+losing the old one.</p>
+<h3>Summary</h3>
+<p>If you've made it to the end of this post, congratulations! Hopefully Python's
+execution model is much more clear. In a (much shorter) follow-up post, I'll
+show some examples of how we can make use of the fact that everything is an
+object in interesting ways. Until next time...</p>
+<p><em>If you found this post useful, check out <a href="http://www.jeffknupp.com/writing-idiomatic-python-ebook/">Writing Idiomatic Python</a>. It's filled with common Python idioms and code samples showing the right and wrong way to use them.</em></p>
+        
+<small>Posted on <time datetime="2013-02-14 00:48:00" pubdate data-updated="true" itemprop="datePublished">Feb 14, 2013</time> by <span itemprop="author"> Jeff Knupp</span></small> </h1>
+<div class="sharing">
+    <div class="row">
+    <p class="meta" style="padding-top: 20px;">
+    <a class="basic-alignment left" href="/blog/2013/02/06/write-cleaner-python-use-exceptions" title="Previous Post: Write Cleaner Python: Use Exceptions">&laquo; Write Cleaner Python: Use Exceptions</a>
+    </p>
+    
+    <div id="mc_embed_signup" class="well">
+<form action="http://jeffknupp.us6.list-manage1.com/subscribe/post?u=51d2d98cf34cbcc20db22e5fa&amp;id=f15bb537ad" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+  <h4>Like this article?</h4>
+  <p>Why not sign up for <strong>Python Tutoring</strong>? Sessions can be held
+  remotely using Google+/Skype or in-person if you're in the NYC area. <a href="mailto:jeff@jeffknupp.com">Email jeff@jeffknupp.com</a> if interested.</p>
+  <p><strong>Sign up for the free jeffknupp.com email newsletter.</strong> Sent roughly once a month, it focuses on Python programming, scalable web development, and growing your freelance consultancy. And of course, you'll never be spammed, your privacy is protected, and you can opt out at any time.</p>
+<div class="mc-field-group">
+	<label for="mce-EMAIL">Email Address</label>
+	<input type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+</div>
+	<div id="mce-responses" class="clear">
+		<div class="response" id="mce-error-response" style="display:none"></div>
+		<div class="response" id="mce-success-response" style="display:none"></div>
+	</div>	<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+</form>
+</div>
+    
+  </footer>
+</article>
+</div>
+<section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Leaderboard -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-2922325862575361"
+     data-ad-slot="6191597138"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <div id="disqus_thread"></div>
+<script type="text/javascript">
+            var disqus_shortname = 'hackersgonnahack';
+
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+ 
+  </section>
+  </div>
+    
+</div>
+</article>
+
+        </div>
+        <div id="footer" class="text-center">
+        
+            <footer role="contentinfo">
+                <p>Copyright &copy; 2014 - Jeff Knupp- <span class="credit">Powered by <a href="http://www.github.com/jeffknupp/blug">Blug</a></span> </p>
+            </footer>
+         
+    </div>
+
+<a title="Web Analytics" href="http://clicky.com/66535137"><img alt="Web Analytics" src="//static.getclicky.com/media/links/badge.gif" border="0" /></a>
+<script type="text/javascript">
+var clicky_site_ids = clicky_site_ids || [];
+clicky_site_ids.push(66535137);
+(function() {
+  var s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.async = true;
+  s.src = '//static.getclicky.com/js';
+  ( document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0] ).appendChild( s );
+})();
+</script>
+<noscript><p><img alt="Clicky" width="1" height="1" src="//in.getclicky.com/66535137ns.gif" /></p></noscript> 
+</div>
+</html>

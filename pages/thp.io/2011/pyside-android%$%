@@ -1,0 +1,187 @@
+<html>
+    <head>
+        <title>PySide for Android (thp.io)</title>
+        <style type="text/css">
+            body {
+                font-family: sans-serif;
+                color: #333;
+            }
+
+            a {
+                color: #84A619;
+            }
+
+            div.important {
+                border: 3px green solid;
+                background-color: lightgreen;
+                margin: 10px;
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <h2><img src="pyside-android.png" style="vertical-align: middle; padding-right: 10px; float: right;" alt=""/>
+            PySide for Android</h2>
+        <div class="important">
+        <strong>Update 2013:</strong>
+        MartinK has improved upon this approach and released new instructions
+        and new downloads for running PySide applications in Android, including
+        Qt Components. Give it at try:
+        <a href="http://modrana.org/trac/wiki/PySideForAndroid">MartinK's PySide for Android Page</a>
+        </div>
+        <p>
+        If you want to write GUI applications for Android using Python,
+        you did not really have many options, apart from generating and
+        displaying HTML with SL4A. Until now. Combining the power of
+        three projects, PySide for Android lets you write Qt or QML UIs
+        for Android - all in pure Python. The projects on which PySide for
+        Android builds upon are:
+        </p>
+        <ul>
+            <li><a href="http://code.google.com/p/python-for-android/">Python for Android (Py4A)</a></li>
+            <li><a href="http://sourceforge.net/p/necessitas/home/">Qt for Android (Necessitas)</a></li>
+            <li><a href="http://pyside.org/">Python bindings for Qt (PySide)</a></li>
+        </ul>
+
+        <p style="text-align: center;">
+            <img src="pyside-android-gpodder.png" alt="gPodder in Android Emulator" title=""/>
+        </p>
+
+        <h3>Building</h3>
+        <p>TODO</p>
+        <h3>Prerequisites</h3>
+        <ul>
+            <li>Py4A source: http://code.google.com/p/python-for-android/wiki/BuildingPython</li>
+            <li>PySide buildscripts: https://github.com/PySide/BuildScripts</li>
+            <li>Android NDK r5c: http://developer.android.com/sdk/ndk/index.html</li>
+            <li>Android SDK: http://developer.android.com/sdk/index.html</li>
+            <li>Necessitas SDK: https://sourceforge.net/p/necessitas/home/necessitas/</li>
+            <li>A compiler, CMake, libxml2, libxslt, etc.. (all PySide build dependencies)</li>
+        </ul>
+        <h4>Python for Android</h4>
+        <p>Mostly following the instructions of the Py4A project.</p>
+        <h4>PySide for the Desktop</h4>
+        <p>We need the Desktop build to run the API Extractor, Generatorrunner and Shiboken.</p>
+        <h4>PySide for Android</h4>
+        <p>We need this to build the bindings, libpyside and libshiboken natively for Android.</p>
+        <h4>PySideLauncher (C++ project)</h4>
+        <p>This is the C++ launcher that will include libpyside, libshiboken, libpython and will
+        set everything up and finally load the main.py from the SD card (or any other script).</p>
+
+        <h3>Fixing up library dependencies</h3>
+        <p>
+        libpyside and the PySide binding modules have a shared library dependency on libshiboken.
+        However, the dependency is not on the <code>.so</code> library itself, so the linker does
+        not find it. To fix this, we have to patch the name of the libshiboken dependency in
+        libpyside and also in all binding modules.
+        </p>
+
+        <h3>Getting updated/compatible Qt libs</h3>
+        <p>
+        Our PySide build is not compatible with the Qt libraries downloaded by Ministro, so we
+        have to take the Qt libraries from the Necessitas SDK, strip them (otherwise they are
+        huge and will not fit into your device's memory) and copy them over the files downloaded
+        by Ministro. At least the Qt libraries and the Android platform plugin need to be replaced.
+        </p>
+
+        <h3>Building PySideLauncher with the Python and PySide libraries</h3>
+        <p>
+        I haven't been able to force the Necessitas Qt Creator to include extra shared libraries
+        in the APK, so we'll have to "inject" these libraries manually into the Android project
+        and then rebuild the Android project using <code>ant</code> on the command line (if we
+        try to do it using Qt Creator, it will overwrite the libs.xml and remove the libraries).
+        </P>
+        <p>
+        After building PySideLauncher this way, we have an APK that includes libpython, libshiboken
+        and libpyside - ready for deployment (the Python libraries, Qt libraries and PySide binding
+        modules are installed directly to the system, and are not shipped with the APK).
+        </p>
+
+        <h3>Deploying to the emulator/device</h3>
+        <ul>
+            <li>Python + PySide libraries to <code>/data/python/</code></li>
+            <li>Stripped Necessitas libs from the SDK to the Ministro download directory</li>
+            <li>Installing PySideLauncher on the device</li>
+            <li><em>Update:</em> You might have to install Ministro-2.0.apk instead of the default Ministro to pull in the required libraries (thanks to John Wood for pointing this out)</li>
+            <li>Creating a <code>main.py</code> file on the SD card</li>
+        </ul>
+
+        <p>
+        <strong>Important:</strong> If you are using PySideLauncher to launch
+        your application, you must have a main.py file on your SD card, because
+        that is what PySideLauncher opens. If you don't have a main.py file on
+        your SD card (or your main.py fails for some reason), PySideLauncher
+        will not show anything. In that case, please try the example main.py
+        to check if you have everything installed correctly, and if this works,
+        then try modifying the main.py file and/or load your code there. The
+        way the example main.py is structured is so that any errors that you
+        get are written to the SD card, which helps in debugging (right now,
+        errors are not logged in logcat).
+        </p>
+
+        <h3>Deploying to a rooted Nexus S (2012-02-10)</h3>
+        <pre>
+host$ adb shell
+$ su
+# mkdir /data/python
+^D^D
+host$ adb push bin /data/python/bin
+host$ adb push lib /data/python/lib
+host$ adb shell
+$ su
+# chmod 755 /data/python/bin/python
+# LD_LIBRARY_PATH=/data/python/lib/ data/python/bin/python
+Python 2.6.2 (r262:71600, Jul  4 2011, 13:24:39)
+[GCC 4.4.3] on linux-armv7l
+Type "help", "copyright", "credits" or "license" for more information.
+&gt;&gt;&gt;
+^D^D^D
+host$ adb push main.py /sdcard/main.py
+host$ adb install PySideLauncher-debug.apk
+<em>(... click the PySide icon and install Ministro from Market ...)
+(... make sure Ministro downloads the Qt libraries ...)
+(... click the PySide icon again and it should display "Hello from PySide Cool!" ...)</em>
+</pre>
+
+<p>
+It turns out that as of 2012-02-10 (and probably a bit earlier too) you don't
+need to extract the PySide-compatible Qt libraries from the SDK - the Ministro
+libraries are now up to date and can be used with the PySide modules :)
+</p>
+
+        <h3>Downloads</h3>
+        <p>
+        If you do not want to build everything yourself, here are prebuilt binaries for you to
+        get started:
+        </p>
+        <ul>
+            <li><a href="http://sourceforge.net/projects/pyside-android/files/data_python.tgz/download">Python + PySide libraries</a> (extract to /data/python/)</li>
+            <li><a href="http://sourceforge.net/projects/pyside-android/files/data_data_eu.licentia.necessitas.ministro_files_qt.tgz/download">PySide-compatible Qt libraries from the SDK</a> (extract to /data/data/eu.licentia.necessitas.ministro/files/qt/)</li>
+            <li><a href="http://sourceforge.net/projects/pyside-android/files/PySideLauncher-debug.apk/download">PySideLauncher APK</a> (install using normal installation methods)</li>
+            <li><a href="sources/main.py">main.py</a> (example script, copy to /sdcard/)</li>
+        </ul>
+        <p>
+        Here are some files required to build everything from source (make sure to
+        fix the paths in the file to point to the correct location):
+        </p>
+        <ul>
+            <li><a href="sources/libs.xml">libs.xml</a> (for PySideLauncher, copy to android/res/values/libs.xml)</li>
+            <li><a href="sources/android.toolchain">android.toolchain</a> (for building PySide)</li>
+            <li><a href="sources/BuildScripts_android.patch">BuildScripts patch</a> (for building PySide)</li>
+            <li><a href="sources/pyside_android.patch">PySide patch</a> (for building PySide)</li>
+            <li><a href="sources/typesystem_gui_android.xml">typesystem_gui_android.xml</a> (for building PySide, copy to PySide/QtGui/)</li>
+            <li><a href="sources/shiboken_android.patch">Shiboken patch</a> (for building PySide)</li>
+            <li><a href="https://github.com/thp/pyside-launcher-android">Source for PySideLauncher</a> (on Github)</li>
+            <li><a href="sources/patch.py">patch.py</a> (Patch script for fixing PySide libraries' dependencies)</li>
+            <li><a href="sources/pull.sh">pull.sh</a> (Script to obtain Qt libraries from Necessitas SDK)</li>
+        </ul>
+        <hr>
+        <address>
+            2011-07-07 Thomas Perl |
+            <a href="/about">contact information</a> |
+            <a href="/2011/">up-dir</a> |
+            <a href="/">thp.io</a>
+        </address>
+    </body>
+</html>
+

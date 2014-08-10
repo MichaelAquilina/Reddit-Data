@@ -1,0 +1,589 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	
+		<link rel='alternate' type='application/rss+xml' title='Unknown/Other Function Bug #54547 - RDF' href='rss/bug.php?id=54547' />
+		<link rel='alternate' type='application/rss+xml' title='Unknown/Other Function Bug #54547 - RSS 2.0' href='rss/bug.php?id=54547&format=rss2' />
+		<base href="https://bugs.php.net/" />
+	<title>PHP :: Bug #54547 :: wrong equality of string numbers</title>
+	<link rel="shortcut icon" href="https://bugs.php.net/images/favicon.ico" />
+	<link rel="stylesheet" href="https://bugs.php.net/css/style.css" />
+</head>
+
+<body>
+
+<table id="top" class="head" cellspacing="0" cellpadding="0">
+	<tr>
+		<td class="head-logo">
+			<a href="/"><img src="images/logo.gif" alt="Bugs" vspace="2" hspace="2" /></a>
+		</td>
+
+		<td class="head-menu">
+			<a href="http://www.php.net/">php.net</a>&nbsp;|&nbsp;
+			<a href="http://www.php.net/support.php">support</a>&nbsp;|&nbsp;
+			<a href="http://www.php.net/docs.php">documentation</a>&nbsp;|&nbsp;
+			<a href="report.php">report a bug</a>&nbsp;|&nbsp;
+			<a href="search.php">advanced search</a>&nbsp;|&nbsp;
+			<a href="search-howto.php">search howto</a>&nbsp;|&nbsp;
+			<a href="stats.php">statistics</a>&nbsp;|&nbsp;
+			<a href="random">random bug</a>&nbsp;|&nbsp;
+			<a href="login.php">login</a>
+		</td>
+	</tr>
+
+	<tr>
+		<td class="head-search" colspan="2">
+			<form method="get" action="search.php">
+				<p class="head-search">
+					<input type="hidden" name="cmd" value="display" />
+					<small>go to bug id or search bugs for</small>
+					<input class="small" type="text" name="search_for" value="" size="30" />
+					<input type="image" src="images/small_submit_white.gif" alt="search" style="vertical-align: middle;" />
+				</p>
+			</form>
+		</td>
+	</tr>
+</table>
+
+<table class="middle" cellspacing="0" cellpadding="0">
+	<tr>
+		<td class="content">
+<div id="bugheader">
+	<table id="details">
+		<tr id="title">
+			<th class="details" id="number"><a href="bug.php?id=54547">Bug</a>&nbsp;#54547</th>
+			<td id="summary" colspan="5">wrong equality of string numbers</td>
+		</tr>
+		<tr id="submission">
+			<th class="details">Submitted:</th>
+			<td style="white-space: nowrap;">2011-04-16 20:07 UTC</td>
+			<th class="details">Modified:</th>
+			<td style="white-space: nowrap;">2012-05-13 21:51 UTC</td>
+			<td rowspan="6">
+
+				<table id="votes">
+					<tr><th class="details">Votes:</th><td>95</td></tr>
+					<tr><th class="details">Avg. Score:</th><td>3.9 &plusmn; 1.5</td></tr>
+					<tr><th class="details">Reproduced:</th><td>50 of 67 (74.6%)</td></tr>
+					<tr><th class="details">Same Version:</th><td>38 (76.0%)</td></tr>
+					<tr><th class="details">Same OS:</th><td>35 (70.0%)</td></tr>
+				</table>
+
+			</td>
+		</tr>
+
+		<tr id="submitter">
+			<th class="details">From:</th>
+			<td>peter &#x64;&#111;&#x74; ritt &#x61;&#116; gmx &#x64;&#111;&#x74; net</td>
+			<th class="details">Assigned:</th>
+			<td><a href="search.php?cmd=display&amp;assign=dmitry">dmitry</a></td>
+		</tr>
+
+		<tr id="categorization">
+			<th class="details">Status:</th>
+			<td>Closed</td>
+			<th class="details">Package:</th>
+			<td><a href="search.php?cmd=display&amp;package_name[]=Unknown%2FOther+Function">Unknown/Other Function</a></td>
+		</tr>
+
+		<tr id="situation">
+			<th class="details">PHP Version:</th>
+			<td>5.3.6</td>
+			<th class="details">OS:</th>
+			<td>linux</td>
+		</tr>
+		
+		<tr id="private">
+			<th class="details">Private report:</th>
+			<td>No</td>
+			<th class="details">CVE-ID:</th>
+			<td></td>
+		</tr>
+	</table>
+</div>
+
+<div class="controls">
+<span id='control_0' class='control active'>View</span>
+<span id='control_3' class='control'><a href='bug.php?id=54547&amp;edit=3'>Add Comment</a></span>
+<span id='control_1' class='control'><a href='bug.php?id=54547&amp;edit=1'>Developer</a></span>
+<span id='control_2' class='control'><a href='bug.php?id=54547&amp;edit=2'>Edit</a></span>
+</div>
+<div class="clear"></div>
+
+
+
+<div class='comment type_comment' ><a name="1302984463">&nbsp;</a><strong>[2011-04-16 20:07 UTC] peter &#x64;&#111;&#x74; ritt &#x61;&#116; gmx &#x64;&#111;&#x74; net</strong>
+<pre class='note'>Description:
+------------
+comparison of strings using == shows wrong results when both strings are numbers (digits) around PHP_MAX_INT;
+the same comparison using === works correctly;
+tested on 64 bit systems only, affects also PHP 5.3.5
+
+Test script:
+---------------
+$a = '9223372036854775807';
+$b = '9223372036854775808';
+if ($a == $b) {
+    echo &quot;$a == $b\n&quot;;
+}
+else {
+    echo &quot;$a != $b\n&quot;;
+}
+// displays 9223372036854775807 == 9223372036854775808
+
+
+Expected result:
+----------------
+should display
+9223372036854775807 != 9223372036854775808
+
+Actual result:
+--------------
+displays
+9223372036854775807 == 9223372036854775808
+
+</pre>
+</div><h2>Patches</h2>
+<a href="patch-display.php?bug_id=54547&amp;patch=bug54547-2.diff&amp;revision=latest" >bug54547-2.diff</a>
+(last revision 2011-04-17 03:44 UTC) by cataphract@php.net)
+<br /><a href="patch-display.php?bug_id=54547&amp;patch=bug54547.diff&amp;revision=latest"  style="background-color: yellow; text-decoration: line-through;" >bug54547.diff</a>
+(last revision 2011-04-16 23:59 UTC) by cataphract@php.net)
+<br /><p><a href='patch-add.php?bug_id=54547'>Add a Patch</a></p><h2>Pull Requests</h2>
+<p><a href='gh-pull-add.php?bug_id=54547'>Add a Pull Request</a></p><h2 style="border-bottom:2px solid #666;margin-bottom:0;padding:5px 0;">History</h2><div id='comment_filter' class='controls comments'><span id='type_all' class='control active' onclick='do_comment(this);'>All</span><span id='type_comment' class='control ' onclick='do_comment(this);'>Comments</span><span id='type_log' class='control ' onclick='do_comment(this);'>Changes</span><span id='type_svn' class='control ' onclick='do_comment(this);'>Git/SVN commits</span><span id='type_related' class='control ' onclick='do_comment(this);'>Related reports</span>			</div>
+			<div id='comments_view' style='clear:both;'>
+<div class='comment type_log' ><a name="1303005532">&nbsp;</a><strong>[2011-04-17 01:58 UTC] <a href="//people.php.net/user.php?username=cataphract">cataphract@php.net</a></strong>
+<div class='log_note'><div class="changeset">
+<span class="removed">-Status: Open</span>
+<span class="added">+Status: Verified</span>
+</div></div></div><div class='comment type_patch' ><a name="1303005599">&nbsp;</a><strong>[2011-04-17 01:59 UTC] <a href="//people.php.net/user.php?username=cataphract">cataphract@php.net</a></strong>
+<pre class='note'>The following patch has been added/updated:
+
+Patch Name: bug54547.diff
+Revision:   1302998399
+URL:        <a href="http://bugs.php.net/patch-display.php?bug=54547&amp;patch=bug54547.diff&amp;revision=1302998399" rel="nofollow">http://bugs.php.net/patch-display.php?bug=54547&amp;patch=bug54547.diff&amp;revision=1302998399</a>
+</pre>
+</div><div class='comment type_log' ><a name="1303005815">&nbsp;</a><strong>[2011-04-17 02:03 UTC] <a href="//people.php.net/user.php?username=cataphract">cataphract@php.net</a></strong>
+<div class='log_note'><div class="changeset">
+<span class="removed">-Assigned To:</span>
+<span class="added">+Assigned To: dmitry</span>
+</div></div></div><div class='comment type_patch' ><a name="1303019043">&nbsp;</a><strong>[2011-04-17 05:44 UTC] <a href="//people.php.net/user.php?username=cataphract">cataphract@php.net</a></strong>
+<pre class='note'>The following patch has been added/updated:
+
+Patch Name: bug54547-2.diff
+Revision:   1303011843
+URL:        <a href="http://bugs.php.net/patch-display.php?bug=54547&amp;patch=bug54547-2.diff&amp;revision=1303011843" rel="nofollow">http://bugs.php.net/patch-display.php?bug=54547&amp;patch=bug54547-2.diff&amp;revision=1303011843</a>
+</pre>
+</div><div class='comment type_comment' ><a name="1303095854">&nbsp;</a><strong>[2011-04-18 03:04 UTC] <a href="//people.php.net/user.php?username=cataphract">cataphract@php.net</a></strong>
+<pre class='note'>Maybe this should be Won't Fix to keep it consistent with 9223372036854775807 == 9223372036854775808 (with number literals).
+</pre>
+</div><div class='comment type_comment' ><a name="1334130441">&nbsp;</a><strong>[2012-04-11 07:47 UTC] foobla &#x61;&#116; spambog &#x64;&#111;&#x74; com</strong>
+<pre class='note'>I don't think it's about PHP_MAX_INT, rather about the maximum precision of a double/float. &quot;==&quot; converts both strings to numbers (after spending CPU cycles to detect whether they look like numbers), as described in <a href="http://www.phpsadness.com/sad/47" rel="nofollow">http://www.phpsadness.com/sad/47</a>
+
+once converted, the floats seem to actually *be* equal, even with &quot;===&quot;:
+
+php -r '
+$a = (double)&quot;9223372036854775807&quot;;
+$b = (double)&quot;9223372036854775808&quot;;
+var_dump($a, $b, $a == $b, $a === $b);
+'
+float(9.2233720368548E+18)
+float(9.2233720368548E+18)
+bool(true)
+bool(true)
+</pre>
+</div><div class='comment type_comment' ><a name="1334133879">&nbsp;</a><strong>[2012-04-11 08:44 UTC] net &#x61;&#116; janoszen &#x64;&#111;&#x74; hu</strong>
+<pre class='note'>Same problem:
+
+php &gt; var_dump('0xff' == '255');
+bool(true)
+</pre>
+</div><div class='comment type_comment' ><a name="1334141146">&nbsp;</a><strong>[2012-04-11 10:45 UTC] <a href="//people.php.net/user.php?username=hholzgra">hholzgra@php.net</a></strong>
+<pre class='note'>If we indeed want to change the behavior here (and i'm yet undecided to whether i'd want to do this or not, although slightly biased towards a 'yes):
+
+wouldn't it be easier (although probably slightly less effective performance wise) to do a string comparison first if both arguments are strings, and only fall back to numeric auto casts if the string comparison fails?
+
+If the strings really contain different numeric literals i'd expect a string comparison to fail quickly as there can only be so much digits (ok, in theory you could have up to 300+ digits, but not all of them significant).
+
+This would take care of all possible edge cases (assuming that there may be others that we aren't aware of yet, even though i can't think of any right now) and not just the overflow case at hand, and the required engine changes would probably be a single chunk only, so having better patch locality ...
+
+Or are there other places where we'd need an extended is_numeric_string check with overflow control, too?
+</pre>
+</div><div class='comment type_comment' ><a name="1334141526">&nbsp;</a><strong>[2012-04-11 10:52 UTC] <a href="//people.php.net/user.php?username=hholzgra">hholzgra@php.net</a></strong>
+<pre class='note'>On &quot;0xFF&quot; == 255:
+
+since when do we actually consider hex in strings as numeric?
+And is this actually documented?
+
+The 
+The &quot;String conversion to numbers&quot; section in the manual says:
+
+&quot;Valid numeric data is an optional sign, followed by one or more digits (optionally containing a decimal point), followed by an optional exponent. The exponent is an 'e' or 'E' followed by one or more digits.&quot;
+
+( 
+<a href="http://www.php.net/manual/en/language.types.string.php#language.types.string.conversion" rel="nofollow">http://www.php.net/manual/en/language.types.string.php#language.types.string.conversion</a>
+ )
+
+By that description 0xsomething would *not* be considered
+as numeric in a string context ...
+</pre>
+</div><div class='comment type_comment' ><a name="1334149934">&nbsp;</a><strong>[2012-04-11 13:12 UTC] nik &#x61;&#116; naturalnet &#x64;&#111;&#x74; de</strong>
+<pre class='note'>*Why* the heck is that implicit cast even done?
+
+Are PHP developers really _that_ absent-minded that they cannot write actual number literals when they want them (i.e. leave out the '')?
+
+I expect any programming language to use the data types I give it, not something it likes more!
+</pre>
+</div><div class='comment type_comment' ><a name="1334151406">&nbsp;</a><strong>[2012-04-11 13:36 UTC] <a href="//people.php.net/user.php?username=pajoye">pajoye@php.net</a></strong>
+<pre class='note'>@nik at naturalnet dot de
+
+Please stay polite with other developers.
+
+Please keep in mind that PHP is loosely typed, this is a root principle of PHP.
+</pre>
+</div><div class='comment type_comment' ><a name="1334209373">&nbsp;</a><strong>[2012-04-12 05:42 UTC] a &#x61;&#116; hotmail &#x64;&#111;&#x74; com</strong>
+<pre class='note'>@pajoye@php.net
+
+How about *you* staying polite with your users by actually fixing your bugs? Can you imagine how much time is wasted worldwide as a consequence of your shortsighted &quot;design&quot; decisions?
+</pre>
+</div><div class='comment type_comment' ><a name="1334212770">&nbsp;</a><strong>[2012-04-12 06:39 UTC] <a href="//people.php.net/user.php?username=pajoye">pajoye@php.net</a></strong>
+<pre class='note'>@a at hotmail dot com
+
+This is not a support channel, if you need further support for the base ideas 
+about the loosely type nature of PHP, please ask them on one the numerous 
+channels.
+</pre>
+</div><div class='comment type_comment' ><a name="1334212770">&nbsp;</a><strong>[2012-04-12 06:39 UTC] <a href="//people.php.net/user.php?username=pajoye">pajoye@php.net</a></strong>
+<pre class='note'>@a at hotmail dot com
+
+This is not a support channel, if you need further support for the base ideas 
+about the loosely type nature of PHP, please ask them on one the numerous 
+channels.
+</pre>
+</div><div class='comment type_comment' ><a name="1334212771">&nbsp;</a><strong>[2012-04-12 06:39 UTC] <a href="//people.php.net/user.php?username=pajoye">pajoye@php.net</a></strong>
+<pre class='note'>@a at hotmail dot com
+
+This is not a support channel, if you need further support for the base ideas 
+about the loosely type nature of PHP, please ask them on one the numerous 
+channels.
+</pre>
+</div><div class='comment type_comment' ><a name="1334237502">&nbsp;</a><strong>[2012-04-12 13:31 UTC] Jeff &#x61;&#116; bobmail &#x64;&#111;&#x74; info</strong>
+<pre class='note'>I'm confused as to why there is even a conversation around &quot;should we fix this&quot;.
+
+The data objects are strings. Sure, PHP is &quot;loosely typed&quot; but shouldn't it do the comparison you tell it to do first before attempting anything else?
+
+I agree with the previous suggestion: make it a real string comparison and drop the type casting.
+</pre>
+</div><div class='comment type_comment' ><a name="1334238682">&nbsp;</a><strong>[2012-04-12 13:51 UTC] jabakobob &#x61;&#116; gmail &#x64;&#111;&#x74; com</strong>
+<pre class='note'>The conversion to a number is necessary because programmers don't differentiate 
+between strings and numbers in PHP. Consider the following code:
+
+if ($_GET[&quot;a&quot;] == $_GET[&quot;b&quot;]) echo &quot;a is same as b!&quot;;
+
+The result will be the same if the query string is ?a=1&amp;b=1 or ?a=1&amp;b=1.0 or ?
+a=01&amp;b=1 because PHP is loosely typed.
+
+Internally $_GET[&quot;a&quot;] and $_GET[&quot;b&quot;] are both strings, but we can't do a string 
+comparison. If you want a string comparison, use strcmp.
+</pre>
+</div><div class='comment type_comment' ><a name="1334239133">&nbsp;</a><strong>[2012-04-12 13:58 UTC] <a href="//people.php.net/user.php?username=pajoye">pajoye@php.net</a></strong>
+<pre class='note'>@Jeff at bobmail dot info
+
+that's what === is for (real comparisons without casting).
+</pre>
+</div><div class='comment type_comment' ><a name="1334239172">&nbsp;</a><strong>[2012-04-12 13:59 UTC] <a href="//people.php.net/user.php?username=nikic">nikic@php.net</a></strong>
+<pre class='note'>@Jeff: You have to understand in PHP 1, 1.0 and &quot;1.0&quot; all are equivalent (in most situations). That's by design.
+
+E.g. GET and POST variables are always strings, even if you put numbers into them (as per the HTTP standard). PHP obviously wants those GET/POST variables to still be useable just like they were numbers, that's why &quot;1&quot; and 1 can be used interchangeably throughout PHP.
+
+In that context - in my eyes - this comparison also makes sense. Consider a very similar comparison:
+
+    var_dump('0.1' == '0.10000000');
+
+What would you expect to be the output - if you remember that in PHP numeric strings and actual numbers are interchangeable? Clearly it has to behave exactly as if you had written:
+
+    var_dump(0.1 == 0.10000000); // =&gt; bool(true)
+
+In most cases this type of comparison is what you want and it usually works exactly as expected.
+
+What you see here in this issue is one of the edge cases (how often do you use large numbers in PHP?) where it does not work well.
+
+I hope you understand that it is not viable to remove a handy feature from PHP, just because it fails under certain edge case conditions.
+
+If you want to use a strict string comparison, just use ===.
+</pre>
+</div><div class='comment type_comment' ><a name="1334239322">&nbsp;</a><strong>[2012-04-12 14:02 UTC] Jeff &#x61;&#116; bobmail &#x64;&#111;&#x74; info</strong>
+<pre class='note'>That didn't address my comment. Why wouldn't the internal implementation check to see if the strings are the same? When doing a comparison and the internal data type is a string, wouldn't that be faster and most correct?
+
+In all honesty I would prefer PHP's &quot;loosely typed&quot; system mimic JavaScript's in that any type can be put anywhere but the object still keeps its type information for situations just like this.
+</pre>
+</div><div class='comment type_comment' ><a name="1334240252">&nbsp;</a><strong>[2012-04-12 14:17 UTC] <a href="//people.php.net/user.php?username=nikic">nikic@php.net</a></strong>
+<pre class='note'>@Jeff Please see jabakobob's comment why doing just a string comparison can be counterproductive. Remember: PHP is mainly used around the HTTP protocol (where everything is a string) and MySQL (where also everything is returned as a string). So in PHP you will often deal with numbers in strings, thus they should be handled as such.
+</pre>
+</div><div class='comment type_comment' ><a name="1334244045">&nbsp;</a><strong>[2012-04-12 15:20 UTC] <a href="//people.php.net/user.php?username=jpauli">jpauli@php.net</a></strong>
+<pre class='note'>I'd like to add that strcmp() and familly are functions designed to compare 
+strings, as they are in C ; except that in PHP they are binary compatible, like 
+PHP strings are
+</pre>
+</div><div class='comment type_comment' ><a name="1334246126">&nbsp;</a><strong>[2012-04-12 15:55 UTC] yless42 &#x61;&#116; hotmail &#x64;&#111;&#x74; com</strong>
+<pre class='note'>Wouldn't it make the most sense to compare the strings as string (and thus pass in the original case), then fall back on other comparison methods when they don't match?  I admit I don't have test cases but it seems that this would be backwards compatible in most cases (as you will eventually compare numerically) and fix the given issue.
+
+Unless there are cases which rely on the two same strings failing to compare as equal.
+</pre>
+</div><div class='comment type_comment' ><a name="1334246643">&nbsp;</a><strong>[2012-04-12 16:04 UTC] jacob &#x61;&#116; fakku &#x64;&#111;&#x74; net</strong>
+<pre class='note'>I'm just gonna paste in that PHP Sadness article to show why this is such a big 
+issue.
+
+According to php language.operators.comparison, the type-coercing comparison 
+operators will coerce both operands to floats if they both look like numbers, 
+even if they are both already strings:
+
+If you compare a number with a string or the comparison involves numerical 
+strings, then each string is converted to a number and the comparison performed 
+numerically.
+This can become especially important in situations where the developer chooses 
+to use == to compare two values which will always be strings. For example, 
+consider a simple password checker:
+
+if (md5($password) == $hash) {
+  print &quot;Allowed!\n&quot;;
+}
+
+Assume that the $hash is loaded from a known safe string value from a database 
+and contains a real MD5 hash. Now, suppose the $password is &quot;ximaz&quot;, which has 
+an all-numeric hex-encoded MD5 hash of &quot;61529519452809720693702583126814&quot;. When 
+PHP does the comparison, it will print &quot;Allowed!&quot; for any password which matches 
+even the first half of the hash:
+
+$ php -r 'var_dump(&quot;61529519452809720693702583126814&quot; == 
+&quot;61529519452809720000000000000000&quot;);'
+bool(true)
+
+The solution, of course, is &quot;never use type-coercing comparison operators&quot; - but 
+this remains an easily-overlooked bug factory for beginning and even 
+intermediate developers. Some languages solve this situation by having two 
+separate sets of comparison operators for numeric or string comparisons so that 
+the developer can be explicit in their intent without needing to manually cast 
+their arguments.
+</pre>
+</div><div class='comment type_comment' ><a name="1334249634">&nbsp;</a><strong>[2012-04-12 16:53 UTC] <a href="//people.php.net/user.php?username=rasmus">rasmus@php.net</a></strong>
+<pre class='note'>@jacob PHP has two sets of comparison operators as well. == and ===
+They aren't numeric and string, they are loose and strict. In the majority of 
+cases when dealing with HTTP requests and database results, which is what PHP 
+deals with most, the loose comparison makes life easiest on the developer.
+
+In your case when comparison huge numeric strings that won't fit in any numeric 
+type, a strict comparison is needed:
+
+$ php -r 'var_dump(&quot;61529519452809720693702583126814&quot; === 
+&quot;61529519452809720000000000000000&quot;);'
+bool(false)
+
+(and hopefully you aren't actually using md5 for password hashing)
+</pre>
+</div><div class='comment type_comment' ><a name="1334250212">&nbsp;</a><strong>[2012-04-12 17:03 UTC] jacob &#x61;&#116; fakku &#x64;&#111;&#x74; net</strong>
+<pre class='note'>@rasmus
+
+I just wanted to point out the issue mentioned in that article and how I felt it 
+applied to this situation.
+
+At least to me, it seems to me that it's a big deal when '9223372036854775807' == 
+'9223372036854775808' returns true, even if it's an edge case. But you're right 
+about just using ===, which I will do if I ever run into this situation. After 
+doing a bit more research I can understand why it is the way it is and I was 
+probably too hasty to jump into this thread.
+</pre>
+</div><div class='comment type_comment' ><a name="1334250581">&nbsp;</a><strong>[2012-04-12 17:09 UTC] riel &#x61;&#116; surriel &#x64;&#111;&#x74; com</strong>
+<pre class='note'>Conversion of numeric-looking strings to numbers does not have to be a problem, as long as the code in the back end uses arbitrary-precision math. This is slower than comparing a type that fits in a CPU register, but once you have already spent the time to do an automatic type conversion, that really does not matter.
+
+When it comes to an operator like ==, every digit matters. Having == return false when two items are different violates the principle of least surprise.
+</pre>
+</div><div class='comment type_comment' ><a name="1334262777">&nbsp;</a><strong>[2012-04-12 20:32 UTC] b &#x61;&#116; hotmail &#x64;&#111;&#x74; vom</strong>
+<pre class='note'>I would like to point out Perl is a weakly typed language, just like PHP, and has 
+no issue with these cases. It's pretty weak from the developers to hide behind 
+the &quot;But PHP is weakly typed!&quot; argument.
+</pre>
+</div><div class='comment type_comment' ><a name="1334263128">&nbsp;</a><strong>[2012-04-12 20:38 UTC] elementation &#x61;&#116; gmail &#x64;&#111;&#x74; com</strong>
+<pre class='note'>It's absolutely unreal that this is even a discussion. PHP, the world doesn't 
+take you seriously and with bugs like this you provide further fodder.
+
+Principle of Least Surprise — this should be a string comparison.
+</pre>
+</div><div class='comment type_comment' ><a name="1334264526">&nbsp;</a><strong>[2012-04-12 21:02 UTC] c &#x61;&#116; hotmail &#x64;&#111;&#x74; com</strong>
+<pre class='note'>&quot;In the majority of cases when dealing with HTTP requests and database results, which is what PHP deals with most, the loose comparison makes life easiest on the developer.&quot;
+
+By 'the developer' I assume you mean people who can't type (string) or (int) ? No other language has this issue because they aren't designed around programmers who do not really understand how to program. Please make the developer's life easier by making comparisons make sense.
+</pre>
+</div><div class='comment type_comment' ><a name="1334265820">&nbsp;</a><strong>[2012-04-12 21:23 UTC] vinny_182 &#x61;&#116; hotmail &#x64;&#111;&#x74; com</strong>
+<pre class='note'>Equality is equality and neither string or numeric representations of the value 
+are equal. The bug IMO is in the conversion from string to float, the conversion 
+has failed but a valid value is still returned. That's just plain wrong. If you 
+wrote unit tests for string to float conversions and this was the input you would 
+expect it to return a null value or throw an exception.
+</pre>
+</div><div class='comment type_comment' ><a name="1334268876">&nbsp;</a><strong>[2012-04-12 22:14 UTC] chx1975 &#x61;&#116; gmail &#x64;&#111;&#x74; com</strong>
+<pre class='note'>Now, while I can understand why PHP chooses &quot;1&quot; == 1 (HTML, sure) I am not too 
+sure how is that relevant when both sides are strings?? I am not quite sure why 
+the strings &quot;1&quot; and &quot;1.0&quot; would need to be ==. Just because &quot;1&quot; == 1 and &quot;1.0&quot; == 
+1 does not mean &quot;1&quot; == &quot;1.0&quot;. It's not transitive! Compare FALSE == 0; 0 == 'x'; 
+'x' == TRUE -- if it would be transitive then FALSE == TRUE, surely you don't 
+want that.
+</pre>
+</div><div class='comment type_comment' ><a name="1334270728">&nbsp;</a><strong>[2012-04-12 22:45 UTC] erowid &#x61;&#116; inbox &#x64;&#111;&#x74; lv</strong>
+<pre class='note'>I want to marry it, lather this thread up, and have my way with it. I want to have little threads everywhere that are as funny as this xD
+</pre>
+</div><div class='comment type_comment' ><a name="1334279444">&nbsp;</a><strong>[2012-04-13 01:10 UTC] the &#x64;&#111;&#x74; matt &#x64;&#111;&#x74; kantor &#x61;&#116; gmail &#x64;&#111;&#x74; com</strong>
+<pre class='note'>@hholzgra:  Your only-coerce-on-failure proposal would not solve this issue.
+
+Assuming that by &quot;fail&quot; you mean &quot;the comparison evaluates to false&quot;, the strings would end up being coerced anyway (since they are indeed different), 
+they'd become identical floats, and things would be the same as they are now.
+
+If I misunderstood what you meant by &quot;fail&quot;, then we'd lose &quot;1&quot; == &quot;1.0&quot;, which I don't think is something that can (or should) happen.
+</pre>
+</div><div class='comment type_comment' ><a name="1334286837">&nbsp;</a><strong>[2012-04-13 03:13 UTC] four &#x64;&#111;&#x74; zero &#x64;&#111;&#x74; one &#x64;&#111;&#x74; unauthorized &#x61;&#116; gmail &#x64;&#111;&#x74; com</strong>
+<pre class='note'>This behavior is documented here:
+<a href="http://php.net/manual/en/language.operators.comparison.php" rel="nofollow">http://php.net/manual/en/language.operators.comparison.php</a>
+&quot;If you compare a number with a string or the comparison involves numerical strings, then each string is converted to a number and the comparison performed numerically. These rules also apply to the switch statement. The type conversion does not take place when the comparison is === or !== as this involves comparing the type as well as the value. &quot;
+
+Shouldn't this feature of converting numerical strings to numbers during loose comparison operations between two strings be dropped?  If a developer wanted to compare values given during POST or GET processing AS numbers, they should cast the inputs to (int) or (float) first.  There really should be a fundamental shift away from catering to developer laziness, and force developers to pay more attention to variable and input handling on their own.
+</pre>
+</div><div class='comment type_comment' ><a name="1334300880">&nbsp;</a><strong>[2012-04-13 07:08 UTC] <a href="//people.php.net/user.php?username=pajoye">pajoye@php.net</a></strong>
+<pre class='note'>ok, enough arguing. There is no bug here.
+</pre>
+</div><div class='comment type_log' ><a name="1334300880">&nbsp;</a><strong>[2012-04-13 07:08 UTC] <a href="//people.php.net/user.php?username=pajoye">pajoye@php.net</a></strong>
+<div class='log_note'><div class="changeset">
+<span class="removed">-Status: Verified</span>
+<span class="added">+Status: Not a bug</span>
+</div></div></div><div class='comment type_comment' ><a name="1334312152">&nbsp;</a><strong>[2012-04-13 10:15 UTC] <a href="//people.php.net/user.php?username=yohgaki">yohgaki@php.net</a></strong>
+<pre class='note'>Just a comment for users who would like to use large numbers.
+
+There are bcmath and gmp modules for large number arithmetic.
+</pre>
+</div><div class='comment type_comment' ><a name="1334314404">&nbsp;</a><strong>[2012-04-13 10:53 UTC] <a href="//people.php.net/user.php?username=sesser">sesser@php.net</a></strong>
+<pre class='note'>This behaviour is for sure a bug. The == vs. === argument does not apply here.
+
+PHP should not perform the type conversion for the comparison if the result of the 
+type conversion does not fit into the actual type converted to.
+</pre>
+</div><div class='comment type_comment' ><a name="1334316630">&nbsp;</a><strong>[2012-04-13 11:30 UTC] the &#x64;&#111;&#x74; assimilator &#x61;&#116; gmail &#x64;&#111;&#x74; com</strong>
+<pre class='note'>This isn't just a bug, it's a summary of PHP as a language: broken by design.
+</pre>
+</div><div class='comment type_comment' ><a name="1334316892">&nbsp;</a><strong>[2012-04-13 11:34 UTC] <a href="//people.php.net/user.php?username=aharvey">aharvey@php.net</a></strong>
+<pre class='note'>Enough.
+
+Gustavo has written a patch, the technical merits of which can be discussed 
+somewhere with less noise. Additionally, it would be nice if the anti-PHP 
+circlejerk took place somewhere other than PHP's bug tracker. Hacker News seems 
+to enjoy it.
+
+Closing the bug to public comments. Feel free to e-mail me about how I hate 
+freedom, if it makes you feel better.
+</pre>
+</div><div class='comment type_log' ><a name="1334316892">&nbsp;</a><strong>[2012-04-13 11:34 UTC] <a href="//people.php.net/user.php?username=aharvey">aharvey@php.net</a></strong>
+<div class='log_note'><div class="changeset">
+<span class="removed">-Block user comment: No</span>
+<span class="added">+Block user comment: Yes</span>
+</div></div></div><div class='comment type_comment' ><a name="1334737392">&nbsp;</a><strong>[2012-04-18 08:23 UTC] <a href="//people.php.net/user.php?username=hholzgra">hholzgra@php.net</a></strong>
+<pre class='note'>the dot matt dot kantor at gmail dot com: i stand corrected indeed
+</pre>
+</div><div class='comment type_svn' ><a name="1336945723">&nbsp;</a><strong>[2012-05-13 21:48 UTC] <a href="//people.php.net/user.php?username=stas">stas@php.net</a></strong>
+<pre class='note'>Automatic comment on behalf of stas
+Revision: <a href="http://git.php.net/?p=php-src.git;a=commit;h=9344bf193c6e35c8706923953f3e63bb01cc05ed" rel="nofollow">http://git.php.net/?p=php-src.git;a=commit;h=9344bf193c6e35c8706923953f3e63bb01cc05ed</a>
+Log: fix <a href='bug.php?id=54547'>bug #54547</a>
+</pre>
+</div><div class='comment type_comment' ><a name="1336945899">&nbsp;</a><strong>[2012-05-13 21:51 UTC] <a href="//people.php.net/user.php?username=stas">stas@php.net</a></strong>
+<pre class='note'>I've added Gustavo's patch to 5.4.
+</pre>
+</div><div class='comment type_log' ><a name="1336945899">&nbsp;</a><strong>[2012-05-13 21:51 UTC] <a href="//people.php.net/user.php?username=stas">stas@php.net</a></strong>
+<div class='log_note'><div class="changeset">
+<span class="removed">-Status: Not a bug</span>
+<span class="added">+Status: Closed</span>
+</div></div></div><div class='comment type_svn' ><a name="1337018629">&nbsp;</a><strong>[2012-05-14 18:03 UTC] <a href="//people.php.net/user.php?username=stas">stas@php.net</a></strong>
+<pre class='note'>Automatic comment on behalf of stas
+Revision: <a href="http://git.php.net/?p=php-src.git;a=commit;h=47db8a9aa19f6e17a1018becf9978315c79a1cb0" rel="nofollow">http://git.php.net/?p=php-src.git;a=commit;h=47db8a9aa19f6e17a1018becf9978315c79a1cb0</a>
+Log: fix <a href='bug.php?id=54547'>bug #54547</a>
+</pre>
+</div><div class='comment type_svn' ><a name="1337067939">&nbsp;</a><strong>[2012-05-15 07:45 UTC] <a href="//people.php.net/user.php?username=mike">mike@php.net</a></strong>
+<pre class='note'>Automatic comment on behalf of stas
+Revision: <a href="http://git.php.net/?p=php-src.git;a=commit;h=9344bf193c6e35c8706923953f3e63bb01cc05ed" rel="nofollow">http://git.php.net/?p=php-src.git;a=commit;h=9344bf193c6e35c8706923953f3e63bb01cc05ed</a>
+Log: fix <a href='bug.php?id=54547'>bug #54547</a>
+</pre>
+</div><div class='comment type_comment' ><a name="1337521295">&nbsp;</a><strong>[2012-05-20 13:41 UTC] kazuo &#x61;&#116; o-ishi &#x64;&#111;&#x74; jp</strong>
+<pre class='note'>This change has a compatibility problem.
+
+After this change,
+
+ &quot;01234&quot; == &quot;1234&quot;
+    =&gt; TRUE (OK)
+
+but 
+
+ &quot;09223372036854775808&quot; == &quot;9223372036854775808&quot;
+    =&gt; FALSE
+
+I think this behavior is not reasonable.
+</pre>
+</div><div class='comment type_comment' ><a name="1338373941">&nbsp;</a><strong>[2012-05-30 10:32 UTC] kazuo &#x61;&#116; o-ishi &#x64;&#111;&#x74; jp</strong>
+<pre class='note'>Related issue: #62097
+<a href="https://bugs.php.net/bug.php?id=62097" rel="nofollow">https://bugs.php.net/bug.php?id=62097</a>
+</pre>
+</div><div class='comment type_svn' ><a name="1343172964">&nbsp;</a><strong>[2012-07-24 23:36 UTC] <a href="//people.php.net/user.php?username=rasmus">rasmus@php.net</a></strong>
+<pre class='note'>Automatic comment on behalf of stas
+Revision: <a href="http://git.php.net/?p=php-src.git;a=commit;h=47db8a9aa19f6e17a1018becf9978315c79a1cb0" rel="nofollow">http://git.php.net/?p=php-src.git;a=commit;h=47db8a9aa19f6e17a1018becf9978315c79a1cb0</a>
+Log: fix <a href='bug.php?id=54547'>bug #54547</a>
+</pre>
+</div><div class='comment type_svn' ><a name="1384680760">&nbsp;</a><strong>[2013-11-17 09:32 UTC] <a href="//people.php.net/user.php?username=laruence">laruence@php.net</a></strong>
+<pre class='note'>Automatic comment on behalf of stas
+Revision: <a href="http://git.php.net/?p=php-src.git;a=commit;h=47db8a9aa19f6e17a1018becf9978315c79a1cb0" rel="nofollow">http://git.php.net/?p=php-src.git;a=commit;h=47db8a9aa19f6e17a1018becf9978315c79a1cb0</a>
+Log: fix <a href='bug.php?id=54547'>bug #54547</a>
+</pre>
+</div></div>
+		</td>
+	</tr>
+</table>
+
+<script type='text/javascript' src='js/util.js'></script>
+<script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js'></script>
+<script type="text/javascript" src="js/jquery.cookie.js"></script>
+<script type="text/javascript">
+function do_comment(nd)
+{
+	$('#comment_filter > .control.active').removeClass("active");
+	$(nd).addClass("active");
+	
+	$.cookie('history_tab', nd.id, { expires: 365 });
+	
+	if (nd.id == 'type_all') { 
+		$('#comments_view > .comment:hidden').show('slow');
+	} else {
+		$('#comments_view > .comment').each(function(i) {
+			if ($(this).hasClass(nd.id)) {
+				$(this).show('slow');
+			} else {
+				$(this).hide('slow');
+			}
+		});
+	}
+	return false;
+}
+</script>
+<table class="foot" cellspacing="0" cellpadding="0">
+	<tr>
+		<td class="foot-bar" colspan="2">&nbsp;</td>
+	</tr>
+
+	<tr>
+		<td class="foot-copy">
+			<small>
+				<a href="http://www.php.net/"><img src="images/logo-small.gif" align="left" valign="middle" hspace="3" alt="PHP" /></a>
+				<a href="http://www.php.net/copyright.php">Copyright &copy; 2001-2014 The PHP Group</a><br />
+				All rights reserved.
+			</small>
+		</td>
+		<td class="foot-source">
+			<small>Last updated: Tue Jul 01 20:01:41 2014 UTC</small>
+		</td>
+	</tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!doctype html>
+<html>
+<head>
+
+  <!--
+
+  Feross Aboukhadijeh
+  http://feross.org
+
+  Far better is it to dare mighty things, to win glorious triumphs,
+  even though checkered by failure... than to rank with those poor spirits
+  who neither enjoy nor suffer much, because they live in a gray twilight
+  that knows not victory nor defeat.
+                                                  — Theodore Roosevelt
+
+  -->
+  
+  <title>Introducing the HTML5 Hard Disk Filler&trade; API &raquo; Feross.org</title>
+  <meta property="og:title" content="Introducing the HTML5 Hard Disk Filler&trade; API &raquo; Feross.org" />
+
+  <meta name="description" content="Use HTML5 localStorage to completely fill up Chrome, Safari, and IE users hard disks. Trololo...">
+  <meta property="og:description" content="Use HTML5 localStorage to completely fill up Chrome, Safari, and IE users hard disks. Trololo..." />
+
+  <meta property="og:type" content="article" />
+  <meta property="article:tag" content="web dev" /><meta property="article:tag" content="my code" /><meta property="article:tag" content="security" />
+  <meta property="og:image" content="http://feross.org/images/F.png" />
+
+  <meta property="article:author" content="http://feross.org/about/" />
+  <meta property="fb:admins" content="1347524341" />
+  <meta property="fb:app_id" content="515587071790188" />
+  <link rel="author" href="https://plus.google.com/108080265905114949970" />
+
+  
+  <link rel="canonical" href="http://feross.org/fill-disk/" />
+  <meta property="og:url" content="http://feross.org/fill-disk/" />
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="alternate" type="application/atom+xml" title="Feross.org" href="http://feross.org/atom.xml" />
+
+  <link rel="stylesheet" href="/css/main.css" />
+
+  <script type="text/javascript" src="//use.typekit.net/lvb8hht.js"></script>
+  <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+</head>
+<body class="post">
+  <div id="container">
+
+    <header id="header">
+      <h1><a href="/">Feross</a></h1>
+    </header>
+
+    <section class="content clearfix">
+      <div class="postHeader">
+
+  <h1>
+    <a href="/fill-disk/">Introducing the HTML5 Hard Disk Filler&trade; API</a>
+  </h1>
+
+  <div class="byline">
+    <span>By <a href="/about/" title="Feross Aboukhadijeh">Feross Aboukhadijeh</a></span>
+    <time datetime="2013-02-27">February 27, 2013</time>
+    <span class="views" data-slug="/fill-disk"></span>
+    Tagged with
+    <ul class="tags">
+      
+      <li><a href="/tag/web-dev/">web dev</a></li>
+      
+      <li><a href="/tag/my-code/">my code</a></li>
+      
+      <li><a href="/tag/security/">security</a></li>
+      
+    </ul>
+  </div>
+
+  <!-- Carbon Ads -->
+<div id="carbonads-container"><div class="carbonad"><div id="azcarbon"></div><script type="text/javascript">var z = document.createElement("script"); z.type = "text/javascript"; z.async = true; z.src = "http://engine.carbonads.com/z/19591/azcarbon_2_1_0_VERT"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(z, s);</script></div></div>
+
+</div>
+
+<article>
+
+  <p>Creating stuff is hard. Breaking stuff is easy. Thus, I take frequent breaks from creating stuff in order to break stuff.</p>
+
+<p><strong>Behold my latest hackery: <a href="http://www.filldisk.com">FillDisk.com</a>.</strong> <em>Fill up your hard disk with just a single click!</em></p>
+
+<h2>How to troll using HTML5 <code>localStorage</code></h2>
+
+<p>The HTML5 <a href="http://www.w3.org/TR/webstorage/">Web Storage standard</a> was developed to allow sites to store larger amounts of data (like 5-10 MB) than was previously allowed by cookies (like 4KB). <code>localStorage</code> is awesome because it&rsquo;s supported in all modern browsers (Chrome, Firefox 3.5+, Safari 4+, IE 8+, etc.).</p>
+
+<p>The standard anticipated that sites might abuse this feature and advised that browsers limit the total amount of storage space that each origin could use. Quoting from <a href="http://www.w3.org/TR/webstorage/">the spec</a>:</p>
+
+<blockquote><p>User agents should limit the total amount of space allowed for storage areas.</p></blockquote>
+
+<p>The <a href="http://en.wikipedia.org/wiki/Web_storage#Storage_size">current limits</a> are:</p>
+
+<ul>
+<li>2.5 MB per origin in Google Chrome</li>
+<li>5 MB per origin in Mozilla Firefox and Opera</li>
+<li>10 MB per origin in Internet Explorer</li>
+</ul>
+
+
+<p>However, what if we get clever and make lots of subdomains like <code>1.filldisk.com</code>, <code>2.filldisk.com</code>, <code>3.filldisk.com</code>, and so on? Should each subdomain get 5MB of space? <strong>The standard says no.</strong> Quoting the spec, again:</p>
+
+<blockquote><p>User agents should guard against sites storing data under the origins other affiliated sites, e.g. storing up to the limit in a1.example.com, a2.example.com, a3.example.com, etc, circumventing the main example.com storage limit.</p>
+
+<p>A mostly arbitrary limit of five megabytes per origin is recommended.</p></blockquote>
+
+<p>However, <strong>Chrome, Safari, and IE currently do not implement any such &ldquo;affiliated site&rdquo; storage limit</strong>. Thus, cleverly coded websites, like FillDisk.com, have effectively unlimited storage space on visitor&rsquo;s computers.</p>
+
+<h2>Proof-of-concept demo</h2>
+
+<p>Of course, I had to make a nifty demo to show how this works. See <a href="http://www.filldisk.com">FillDisk.com</a> as a proof-of-concept. You can get the <a href="https://github.com/feross/filldisk.js">source code</a> on GitHub.</p>
+
+<iframe width="640" height="360" src="http://www.youtube.com/embed/XkScSMIr_00" frameborder="0" allowfullscreen></iframe>
+
+
+<h3>Features:</h3>
+
+<ul>
+<li>Fills up the user&rsquo;s hard disk on Chrome, Safari (iOS and desktop), and IE.</li>
+<li>Fills up <strong>1 GB every 16 seconds</strong> on my Macbook Pro Retina (with solid state drive)</li>
+<li>Tested with Chrome 25, Safari 6, IE 10.</li>
+<li>For 32-bit browsers, like Chrome, <strong>the entire browser may crash</strong> before the disk is filled.</li>
+<li>Does not work on Firefox, since Firefox&rsquo;s implementation of localStorage is smarter.</li>
+<li>Includes a button to reclaim your disk space ;)</li>
+</ul>
+
+
+<h2>Let&rsquo;s fix this</h2>
+
+<p>Here are the bug reports I filed with Google, Apple, Microsoft, and Opera:</p>
+
+<ul>
+<li><a href="https://code.google.com/p/chromium/issues/detail?id=178980">Chromium bug report</a></li>
+<li><a href="http://openradar.appspot.com/radar?id=2792401">Apple bug report</a> (on an unoffical site, since Apple doesn&rsquo;t acknowledge their bugs publicly. So lame.)</li>
+<li><s>How do I file a bug on IE? Their <a href="http://connect.microsoft.com/IE">bug report</a> page is broken.</s> <a href="https://connect.microsoft.com/IE/feedback/details/780246/localstorage-stores-unlimited-amount-of-data-with-unlimited-subdomains-against-spec">Microsoft bug report</a> (requires login)</li>
+<li>Opera bug report (bug ID: DSK-383073, it&rsquo;s private) &ndash; fills to 75MB in my testing, which isn&rsquo;t so bad.</li>
+</ul>
+
+
+<p>You can help get this issue get fixed quickly (on Chrome at least) by visiting the bug report pages and chiming in (starring) so that Google prioritizes this issue.</p>
+
+<h2>Update (Mar 13, 2013)</h2>
+
+<p><strong>In the news:</strong></p>
+
+<ul>
+<li><p><a href="http://arstechnica.com/security/2013/02/exploit-lets-websites-bombard-visitors-pcs-with-gigabytes-of-data/">Ars Technica</a> says this &ldquo;could become a new form of Rick Roll&rdquo;. Let&rsquo;s hope not. :)</p></li>
+<li><p><a href="http://www.theverge.com/2013/3/1/4042728/html5-browser-exploit-could-let-pranksters-fill-up-your-hard-drive">The Verge</a></p></li>
+<li><p><a href="http://www.bbc.co.uk/news/technology-21628622">BBC.co.uk</a></p></li>
+</ul>
+
+
+<p><strong>Answers to some common questions I&rsquo;ve been getting:</strong></p>
+
+<ul>
+<li><p>How did you find this HTML5 weakness?</p>
+
+<p>To be clear, this is not an issue with HTML5, so calling it an &ldquo;HTML5 weakness&rdquo; is not accurate. It&rsquo;s a bug in the way that most browsers (Chrome, Internet Explorer, and Safari) have implemented the HTML5 Web Storage standard. It&rsquo;s the fault of the browsers, not the HTML5 spec.</p>
+
+<p>I usually don&rsquo;t spend my time actively looking for security bugs – I just frequently run into them while programming. In the case of the localStorage bug, I found it while working on a project that utilizes localStorage. I was curious if there was some way to store more than 2.5-10 MB using the API, and using multiple site &ldquo;origins&rdquo; by creating tons of subdomains was the first thing that came to mind.</p></li>
+<li><p>You mention Firefox uses localStorage and that it&rsquo;s better but is there a reason for this?</p>
+
+<p>Firefox simply places a 10 MB cap on the amount of space that any domain can store using localStorage. So, origins like 1.filldisk.com and 2.filldisk.com, etc. must all share 10MB of space. Making new subdomains doesn&rsquo;t give you more space.</p></li>
+<li><p>Have you had any followup since leaving the bug reports for Google, Opera, Apple and Microsoft?</p>
+
+<p>903 people starred the Chromium bug report I created, making it the 9th most starred bug in all of Chromium. The Chrome devs have responded and are working on a fix, though it&rsquo;s unclear when it will be ready. Apple has not responded, because, well, they&rsquo;re Apple. Microsoft has responded that they &ldquo;will be investigating this issue further&rdquo;.</p>
+
+<p>So, it seems that the issue will be fixed at some point, though it doesn&rsquo;t appear to be a top priority for browser vendors at the moment.</p></li>
+</ul>
+
+
+
+  <p>(If you liked this, you might like <a href="/freedom-of-speech-on-the-internet/">Freedom of Speech on the Internet</a>.)</p>
+
+</article>
+
+<section class="meta">
+  <h3>
+    Discussion, links, and tweets
+    <a class="rss" href="http://feross.org/atom.xml" title="Subscribe to the Feross.org Feed">
+      <img src="/images/rss.png" alt="RSS Feed Icon" />
+    </a>
+  </h3>
+
+  <section class="copy">
+    <form action="http://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open('http://feedburner.google.com/fb/a/mailverify?uri=feross', 'popupwindow', 'scrollbars=yes,width=550,height=520');return true">
+      <p>
+
+        <a href="https://twitter.com/feross" class="avatar">
+          <img src="/images/F.png" height="50" width="50" alt="Feross Aboukhadijeh" />
+        </a>
+        Hey, thanks for reading! I'm <a href="/about/">Feross Aboukhadijeh</a>, a programmer, designer, teacher, and mad scientist. I am currently building <a href="http://webtorrent.io">WebTorrent</a>, a streaming BitTorrent client for the browser, powered by WebRTC. In my free time, I work on <a href="http://www.apstudynotes.org/" title="AP Notes">StudyNotes</a>, a website to help students study better and <a href="http://www.apstudynotes.org/essays/" title="College Essays">get into college</a>.
+      </p>
+
+      <p>You can discuss, upvote, or poke fun at this post over at <a href="http://news.ycombinator.com/item?id=5297229">Hacker News</a>.</p>
+      <p>
+        If you enjoyed this article, you should <a href="https://twitter.com/feross">follow me on Twitter</a> or sign up to get an email whenever I write something new:
+
+        <input type="email" name="email" placeholder="email@email.com"/>
+        <input type="hidden" value="feross" name="uri"/>
+        <input type="hidden" name="loc" value="en_US"/>
+        <input type="submit" value="Subscribe" />
+      </p>
+    </form>
+
+    <p>
+      Share this article with your friends:
+    </p>
+
+    <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://feross.org/fill-disk/" data-text="Introducing the HTML5 Hard Disk Filler&amp;trade; API" data-via="feross" data-size="large" data-related="feross">Tweet</a>
+
+    <div class="fb-like" data-href="http://feross.org/fill-disk/" data-send="false" data-width="320" data-show-faces="true"></div>
+
+  </section>
+
+
+  
+    <a class="prev" href="/japan/" title="Previous Post: Travels in Japan">Travels in Japan</a>
+  
+  
+
+
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      var disqus_shortname = 'feross-org';
+      var disqus_developer = (window.location.hostname == 'localhost') ? 1 : 0;
+      var disqus_url = 'http://feross.org/fill-disk/';
+
+      (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+    </section>
+
+    
+
+  </div>
+
+  <script src="/js/libraries.js"></script>
+  <script src="/js/script.js"></script>
+
+  
+
+  
+
+  
+
+    <!-- Facebook -->
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=223190377735910";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+
+    <!-- Twitter -->
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+  
+
+  <!-- Google Analytics -->
+  <script>
+    var _gaq=[['_setAccount','UA-3898076-5'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+  </script>
+
+  <!-- StatCounter -->
+  <script type="text/javascript">
+      var sc_project=4429957;
+      var sc_invisible=1;
+      var sc_security="eb342ceb";
+  </script>
+  <script src="//www.statcounter.com/counter/counter.js"></script><noscript><div class="statcounter"><img class="statcounter" src="http://c.statcounter.com/4429957/0/eb342ceb/1/" alt="statcounter"></div></noscript>
+
+</body>
+</html>

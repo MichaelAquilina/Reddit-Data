@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html itemscope="itemscope" itemtype="http://schema.org/Article" lang="en-US" prefix="og: http://ogp.me/ns#">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<title>Detecting duplicate images using Python - The Iconfinder Blog</title>
+<link rel="profile" href="http://gmpg.org/xfn/11"/>
+<link rel="pingback" href="http://blog.iconfinder.com/xmlrpc.php"/>
+<link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700' rel='stylesheet' type='text/css'>
+<!--[if lt IE 9]>
+	<script src="http://blog.iconfinder.com/wp-content/themes/independent-publisher-master/js/html5.js" type="text/javascript"></script>
+	<![endif]-->
+<!-- This site is optimized with the Yoast WordPress SEO plugin v1.5.2.2 - http://yoast.com/wordpress/seo/ -->
+<link rel="canonical" href="http://blog.iconfinder.com/detecting-duplicate-images-using-python/"/>
+<link rel="author" href="https://plus.google.com/111646642705702159738"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:type" content="article"/>
+<meta property="og:title" content="Detecting duplicate images using Python - The Iconfinder Blog"/>
+<meta property="og:description" content="With thousands of icons being uploaded to Iconfinder.com every month, the risk of pirated content also increases. To keep out the swindlers we have been working on a new clever image duplication technique. One of the features that came out of our little hackaton and will be rolling out in the next couple of weeks &hellip;"/>
+<meta property="og:url" content="http://blog.iconfinder.com/detecting-duplicate-images-using-python/"/>
+<meta property="og:site_name" content="The Iconfinder Blog"/>
+<meta property="article:section" content="Development"/>
+<meta property="article:published_time" content="2014-04-02T13:37:25+00:00"/>
+<meta property="article:modified_time" content="2014-04-03T21:49:46+00:00"/>
+<meta property="og:updated_time" content="2014-04-03T21:49:46+00:00"/>
+<meta property="og:image" content="http://blog.iconfinder.com/wp-content/uploads/2014/04/dub-detect2x.png"/>
+<meta property="og:image" content="http://blog.iconfinder.com/wp-content/uploads/2014/04/cat_grumpy_orig.png"/>
+<meta property="og:image" content="http://blog.iconfinder.com/wp-content/uploads/2014/04/cat_grumpy_modif.png"/>
+<meta property="og:image" content="http://blog.iconfinder.com/wp-content/uploads/2014/04/test_image-300x300.jpg"/>
+<meta property="og:image" content="http://blog.iconfinder.com/wp-content/uploads/2014/04/cat_grumpy_orig_step_1.png"/>
+<meta property="og:image" content="http://blog.iconfinder.com/wp-content/uploads/2014/04/cat_grumpy_modif_step_1.png"/>
+<meta property="og:image" content="http://blog.iconfinder.com/wp-content/uploads/2014/04/cat_grumpy_orig_step_2.png"/>
+<meta property="og:image" content="http://blog.iconfinder.com/wp-content/uploads/2014/04/cat_grumpy_modif_step_2.png"/>
+<!-- / Yoast WordPress SEO plugin. -->
+<link rel="alternate" type="application/rss+xml" title="The Iconfinder Blog &raquo; Feed" href="http://blog.iconfinder.com/feed/"/>
+<link rel="alternate" type="application/rss+xml" title="The Iconfinder Blog &raquo; Comments Feed" href="http://blog.iconfinder.com/comments/feed/"/>
+<link rel="alternate" type="application/rss+xml" title="The Iconfinder Blog &raquo; Detecting duplicate images using Python Comments Feed" href="http://blog.iconfinder.com/detecting-duplicate-images-using-python/feed/"/>
+<link rel='stylesheet' id='crayon-css' href='/wp-content/plugins/crayon-syntax-highlighter/css/min/crayon.min.css,qver=2.4.1.pagespeed.ce.wWjGtux-a9.css' type='text/css' media='all'/>
+<link rel='stylesheet' id='crayon-theme-arduino-ide-copy-css' href='/wp-content/uploads/crayon-syntax-highlighter/themes/arduino-ide-copy/arduino-ide-copy.css,qver=2.4.1.pagespeed.ce.lZ0ejcuOqz.css' type='text/css' media='all'/>
+<style>@font-face {
+    font-family: 'ConsolasRegular';
+    src: url('http://blog.iconfinder.com/wp-content/plugins/crayon-syntax-highlighter/fonts/consolas/consolas-webfont.eot');
+    src: url('http://blog.iconfinder.com/wp-content/plugins/crayon-syntax-highlighter/fonts/consolas/consolas-webfont.eot?#iefix') format('embedded-opentype'),
+         url('http://blog.iconfinder.com/wp-content/plugins/crayon-syntax-highlighter/fonts/consolas/consolas-webfont.woff') format('woff'),
+         url('http://blog.iconfinder.com/wp-content/plugins/crayon-syntax-highlighter/fonts/consolas/consolas-webfont.ttf') format('truetype'),
+         url('http://blog.iconfinder.com/wp-content/plugins/crayon-syntax-highlighter/fonts/consolas/consolas-webfont.svg#ConsolasRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.crayon-font-consolas * {
+    font-family: Consolas, 'ConsolasRegular', 'Courier New', monospace !important;
+}</style>
+<link rel='stylesheet' id='genericons-css' href='/wp-content/themes/independent-publisher-master/fonts/genericons/genericons.css,qver=3.0.3.pagespeed.ce.G5PvskPd_b.css' type='text/css' media='all'/>
+<style>/* JetPack Sharing Buttons; improves styling with this theme */
+div.sharedaddy div.sd-block {
+	padding-top: 40px !important;
+}
+
+div.sharedaddy h3, #content div.sharedaddy h3, #main div.sharedaddy h3, #primary div.sharedaddy h3 {
+	font-family: Georgia, "Times New Roman", Times, serif !important;
+	font-family: -webkit-body !important;
+	font-weight: normal !important;
+	font-size: 16px !important;
+	margin-top: 0 !important;
+}
+
+div.sharedaddy div.sd-block {
+	border-top: none !important;
+}
+
+.single .entry-meta,
+.page .entry-meta {
+	margin-top: 0;
+}</style>
+<link rel='stylesheet' id='independent-publisher-style-css' href='/wp-content/themes/independent-publisher-master/style.css,qver=3.9.pagespeed.ce.5DEtcb2I-P.css' type='text/css' media='all'/>
+<script type='text/javascript' src='/wp-includes/js/jquery/jquery.js,qver=1.11.0.pagespeed.ce.n3i8SsDaGE.js'></script>
+<script type='text/javascript' src='/wp-includes/js/jquery/jquery-migrate.min.js,qver=1.2.1.pagespeed.ce.USuHGigw5E.js'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var CrayonSyntaxSettings = {"version":"2.4.1","is_admin":"0","ajaxurl":"http:\/\/blog.iconfinder.com\/wp-admin\/admin-ajax.php","prefix":"crayon-","setting":"crayon-setting","selected":"crayon-setting-selected","changed":"crayon-setting-changed","special":"crayon-setting-special","orig_value":"data-orig-value","debug":""};
+var CrayonSyntaxStrings = {"copy":"Press %s to Copy, %s to Paste","minimize":"Click To Expand Code"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='/wp-content/plugins/crayon-syntax-highlighter/js/min/crayon.min.js,qver=2.4.1.pagespeed.ce.1q0ZrsKt6V.js'></script>
+<script type='text/javascript'>/*
+ * jQuery for Comment Form Enhancements
+ * */
+
+jQuery(document).ready(function () {
+
+	var identifier = window.location.hash;
+
+	if (identifier === "#respond") {
+		jQuery('#respond').show();
+		jQuery('#share-comment-button').hide();
+		jQuery('#share-comment-button-bottom').show();
+		jQuery('.comment-form-reply-title').hide();
+	} else {
+		jQuery('#respond').hide();
+		jQuery('#share-comment-button').show();
+		jQuery('#share-comment-button-bottom').show();
+	}
+
+	/* Share Comment Button (Top) */
+
+	jQuery('.comment-button').live('click', function (event) {
+		jQuery('#cancel-comment-reply-link').click();
+		jQuery('#commentform-top').append(jQuery('#respond'));
+		jQuery('#respond').show();
+		jQuery('#share-comment-button').toggle('hide');
+		jQuery('#share-comment-button-bottom').show();
+		jQuery('.comment-form-reply-title').hide();
+		jQuery('#main-reply-title').show();
+		jQuery('#comment').focus();
+	});
+
+	/* Share Comment Button (Bottom)*/
+
+	jQuery('#share-comment-button-bottom').live('click', function (event) {
+		jQuery('#cancel-comment-reply-link').click();
+		jQuery('#commentform-bottom').append(jQuery('#respond'));
+		jQuery('#share-comment-button-bottom').toggle('hide');
+		jQuery('#respond').show();
+		jQuery('#share-comment-button').show();
+		jQuery('.comment-form-reply-title').hide();
+		jQuery('#main-reply-title').show();
+		jQuery('#comment').focus();
+	});
+
+	jQuery('.comment-reply-link').live('click', function (event) {
+		jQuery('#respond').show();
+		jQuery('#share-comment-button').show();
+		jQuery('#share-comment-button-bottom').show();
+		jQuery('.comment-form-reply-title').show();
+		jQuery('#main-reply-title').hide();
+		jQuery('#comment').focus();
+	});
+
+	jQuery('#cancel-comment-reply-link').live('click', function (event) {
+		jQuery('#respond').hide();
+		jQuery('#share-comment-button').show();
+	});
+
+});
+</script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://blog.iconfinder.com/xmlrpc.php?rsd"/>
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://blog.iconfinder.com/wp-includes/wlwmanifest.xml"/>
+<meta name="generator" content="WordPress 3.9"/>
+<link rel='shortlink' href='http://blog.iconfinder.com/?p=4462'/>
+<style type="text/css"></style>
+<!--WordPress Theme Customizer CSS-->
+<style type="text/css">
+
+			/* Background Color */
+
+			
+			/* Text Color */
+
+			body,input,select,textarea { color:#000000; }
+			.format-aside .entry-content a, .format-aside .entry-content a:hover, .format-aside .entry-content a:visited, .format-aside .entry-content a:active, .format-aside .entry-content a:focus { color:#000000; }
+			.format-quote .entry-content a, .format-quote .entry-content a:hover, .format-quote .entry-content a:visited, .format-quote .entry-content a:active, .format-quote .entry-content a:focus { color:#000000; }
+			.post-excerpts .format-standard .entry-content a, .post-excerpts .format-standard .entry-content a:focus, .post-excerpts .format-standard .entry-content a:hover, .post-excerpts .format-standard .entry-content a:active, .post-excerpts .format-standard .entry-content a:visited { color:#000000; }
+			.post-excerpts .format-chat .entry-content a, .post-excerpts .format-chat .entry-content a:focus, .post-excerpts .format-chat .entry-content a:hover, .post-excerpts .format-chat .entry-content a:active, .post-excerpts .format-chat .entry-content a:visited { color:#000000; }
+
+			/* Link Color */
+
+			a, a:visited, a:hover, a:focus, a:active { color:#57ad68; }
+			.enhanced-excerpts .enhanced-excerpt-read-more a, .enhanced-excerpts .enhanced-excerpt-read-more a:hover { color:#57ad68; }
+			.post-excerpts .sticky.format-standard .entry-content a, .post-excerpts .sticky.format-standard .entry-content a:focus, .post-excerpts .sticky.format-standard .entry-content a:hover, .post-excerpts .sticky.format-standard .entry-content a:active, .post-excerpts .sticky.format-standard .entry-content a:visited { color:#57ad68; }
+			.post-excerpts .format-standard.show-full-content-first-post .entry-content a { color:#57ad68; }
+			.post-excerpts .format-standard .entry-content a.moretag { color:#57ad68; }
+			.post-excerpts .format-standard .entry-content a.more-link { color:#57ad68; }
+			.read-more a, .read-more a:hover { color:#57ad68; }
+			.entry-title a:hover { color:#57ad68; }
+			.entry-meta a:hover { color:#57ad68; }
+			.site-footer a:hover { color:#57ad68; }
+			blockquote { border-color:#57ad68; }
+
+			button, html input[type="button"], input[type="reset"], input[type="submit"], button:hover, html input[type="button"]:hover, input[type="reset"]:hover, input[type="submit"]:hover { background:#57ad68; /* Old browsers */ }
+			button, html input[type="button"], input[type="reset"], input[type="submit"], button:hover, html input[type="button"]:hover, input[type="reset"]:hover, input[type="submit"]:hover { background: -moz-linear-gradient(top, #57ad68 60%, #57ad68 100%); /* FF3.6+ */ }
+			button, html input[type="button"], input[type="reset"], input[type="submit"], button:hover, html input[type="button"]:hover, input[type="reset"]:hover, input[type="submit"]:hover { background: -webkit-gradient(linear, left top, left bottom, color-stop(60%, #57ad68), color-stop(100%, #57ad68)); /* Chrome,Safari4+ */ }
+			button, html input[type="button"], input[type="reset"], input[type="submit"], button:hover, html input[type="button"]:hover, input[type="reset"]:hover, input[type="submit"]:hover { background: -webkit-linear-gradient(top, #57ad68 60%, #57ad68 100%); /* Chrome10+,Safari5.1+ */ }
+			button, html input[type="button"], input[type="reset"], input[type="submit"], button:hover, html input[type="button"]:hover, input[type="reset"]:hover, input[type="submit"]:hover { background: -o-linear-gradient(top, #57ad68 60%, #57ad68 100%); /* Opera 11.10+ */ }
+			button, html input[type="button"], input[type="reset"], input[type="submit"], button:hover, html input[type="button"]:hover, input[type="reset"]:hover, input[type="submit"]:hover { background: -ms-linear-gradient(top, #57ad68 60%, #57ad68 100%); /* IE10+ */ }
+			button, html input[type="button"], input[type="reset"], input[type="submit"], button:hover, html input[type="button"]:hover, input[type="reset"]:hover, input[type="submit"]:hover { background: linear-gradient(top, #57ad68 60%, #57ad68 100%); /* W3C */ }
+
+			/* Header Text Color */
+
+			.site-published { color:#333332; }
+			.site-title a { color:#333332; }
+			h1,h2,h3,h4,h5,h6 { color:#333332; }
+			.entry-title a { color:#333332; }
+			.author .archive-title a { color:#333332; }
+			.author .archive-title a { color:#333332; }
+
+			/* Primary Meta Text Color */
+
+			.site-description { color:#929292; }
+			.site-published-date a, .site-published-date a:hover, .site-published-date a:visited, .site-published-date a:focus, .site-published-date a:active { color:#929292; }
+			.pinglist-title,.taglist-title,.pinglist li::after { color:#929292; }
+
+			/* Secondary Meta Text Color */
+
+			.comment-form-author label, .comment-form-email label, .comment-form-url label, .comment-form-comment label, .comment-form-subscriptions label, .comment-form-reply-title { color:#b3b3b1; }
+			.entry-title-meta, .entry-title-meta a, .entry-title-meta a:hover, .entry-title-meta a:visited, .entry-title-meta a:focus, .entry-title-meta a:active { color:#b3b3b1; }
+			.entry-meta, .entry-meta a, .entry-meta a:hover { color:#b3b3b1; }
+			.format-aside .entry-format, .format-quote .entry-format, .format-chat .entry-format, .format-status .entry-format, .format-image .entry-format, .format-link .entry-format, .format-gallery .entry-forma { color:#b3b3b1; }
+			.gallery-caption { color:#b3b3b1; }
+			.comment-meta, .comment-meta a { color:#b3b3b1; }
+			.widget_rss .rss-date, .widget_rss li > cite, .widget_twitter .timesince { color:#b3b3b1; }
+			.site-footer { color:#b3b3b1; }
+			.comment-content.unapproved { color:#b3b3b1; }
+
+		</style>
+<!--/WordPress Theme Customizer CSS-->
+<!-- Vipers Video Quicktags v6.4.5 | http://www.viper007bond.com/wordpress-plugins/vipers-video-quicktags/ -->
+<style type="text/css">
+.vvqbox { display: block; max-width: 100%; visibility: visible !important; margin: 10px auto; } .vvqbox img { max-width: 100%; height: 100%; } .vvqbox object { max-width: 100%; } 
+</style>
+<script type="text/javascript">
+// <![CDATA[
+	var vvqflashvars = {};
+	var vvqparams = { wmode: "opaque", allowfullscreen: "true", allowscriptaccess: "always" };
+	var vvqattributes = {};
+	var vvqexpressinstall = "http://blog.iconfinder.com/wp-content/plugins/vipers-video-quicktags/resources/expressinstall.swf";
+// ]]>
+</script>
+</head>
+<body class="single single-post postid-4462 single-format-standard full-width-featured-image" itemscope="itemscope" itemtype="http://schema.org/WebPage">
+<div style="position: absolute; top: 20px; left: 20px; height: 64px; width: 64px; -moz-border-radius: 32px; -webkit-border-radius: 32px; -khtml-border-radius: 32px; border-radius: 32px;">
+<a href="/"><img style="-moz-border-radius: 32px; -webkit-border-radius: 32px; -khtml-border-radius: 32px; border-radius: 32px;" height="64" width="64" src="/wp-content/uploads/2014/03/1394141400_eye_black_circle1.png.pagespeed.ce.ly0J4jWC8V.png"/></a>
+</div>
+<div style="height: 400px; overflow: hidden; background-image: url('http://blog.iconfinder.com/wp-content/uploads/2014/04/dub-detect2x.png'); background-position: center center; background-size: cover;"></div>
+<div id="page" class="hfeed site">
+<header id="masthead" class="site-header" role="banner" itemscope itemtype="http://schema.org/WPHeader">
+<a class="site-logo" href="/">
+<img alt='' src='http://1.gravatar.com/avatar/f55ba792df25ff5acb747b4b30e55ead?s=100&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D100&amp;r=G' class='avatar avatar-100 photo' height='100' width='100'/>	</a>
+<h1 class="site-title"><span class="byline"><span class="author vcard"><a class="url fn n" href="/" title="View all posts by Silviu Tantos" rel="author">Silviu Tantos</a></span></span></h1>
+<h2 class="site-description">Back-end developer at Iconfinder.com</h2>
+<div class="site-published-separator"></div>
+<h2 class="site-published">Published</h2>
+<h2 class="site-published-date"><a href="/detecting-duplicate-images-using-python/" title="Detecting duplicate images using Python" rel="bookmark"><time class="entry-date" datetime="2014-04-02T13:37:25+00:00" pubdate>April 2, 2014</time></a></h2>
+</header>
+<!-- #masthead .site-header -->
+<div id="main" class="site-main">
+<div id="primary" class="content-area">
+<div id="content" class="site-content" role="main">
+<article id="post-4462" class="post-4462 post type-post status-publish format-standard has-post-thumbnail hentry category-development" itemscope="itemscope" itemtype="http://schema.org/BlogPosting" itemprop="blogPost">
+<header class="entry-header">
+<h2 class="entry-title-meta">
+<span class="entry-title-meta-author">
+<span class="byline"><span class="author vcard"><a class="url fn n" href="/" title="View all posts by Silviu Tantos" rel="author">Silviu Tantos</a></span></span></span>
+in <a href="/category/development/" title="View all posts in Development">Development</a> <span class="entry-title-meta-post-date">
+<span class="sep"> | </span>
+<a href="/detecting-duplicate-images-using-python/" title="Detecting duplicate images using Python" rel="bookmark"><time class="entry-date" datetime="2014-04-02T13:37:25+00:00" pubdate>April 2, 2014</time></a> </span>
+</h2>
+<h1 class="entry-title" itemprop="name">Detecting duplicate images using Python</h1>
+</header>
+<!-- .entry-header -->
+<div class="entry-content" itemprop="mainContentOfPage">
+<h2>With thousands of icons being uploaded to <a href="https://www.iconfinder.com">Iconfinder.com</a> every month, the risk of pirated content also increases. To keep out the swindlers we have been working on a new clever image duplication technique.</h2>
+<p><span id="more-4462"></span></p>
+<p>One of the features that came out of our <a href="/iconfinder-hackathon-day-1/">little hackaton</a> and will be rolling out in the next couple of weeks is the ability to detect duplicate icons upon submission. So, for example if a user downloads an existing icon and tries to re-upload it in order to sell it and make a profit (yes, we had some of those cases) we will be able to detect it as a duplicate of an already existing icon and mark the account as fraudulent.</p>
+<p>A frequently used solution to identify if a given file already exists in a large collection of files is to calculate a hash for each individual file in the dataset, store the hashes in a database and then when we want to locate a particular file calculate the hash for that file and look up to see if it&#8217;s hash value exists in the database.</p>
+<h2>Picking a hashing algorithm</h2>
+<p>A commonly used type of hash algorithms for this are the cryptographic hashing algorithms. Implementations of the most common used ones like MD5, SHA-1, SHA-256 are available in the standard library of almost any programming language and they are really easy to use and work really well for the most simple use cases.</p>
+<p>For instance, in Python you would simply import the <tt class="docutils literal">hashlib</tt> module and call a function to generate the hash value for a particular string or file.</p><!-- Crayon Syntax Highlighter v2.4.1 -->
+<div id="crayon-53b15b15ac8b6600213906" class="crayon-syntax crayon-theme-arduino-ide-copy crayon-font-consolas crayon-os-pc print-yes" data-settings=" minimize scroll-mouseover" style=" margin-top: 36px; margin-bottom: 36px; float: none; clear: both; font-size: 14px !important; line-height: 24px !important;">
+<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><span class="crayon-title"></span>
+<div class="crayon-tools" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Python</span></div></div>
+<div class="crayon-info" style="min-height: 19.6px !important; line-height: 19.6px !important;"></div>
+<div class="crayon-plain-wrap"><textarea wrap="off" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 14px !important; line-height: 24px !important;">
+    &gt;&gt;&gt; import hashlib
+
+    # Calculating the hash value of a string.
+    &gt;&gt;&gt; hashlib.md5('The quick brown fox jumps over the lazy dog').hexdigest()
+    '9e107d9d372bb6826bd81d3542a419d6'
+
+    # Loading an image file into memory and calculating it's hash value.
+    &gt;&gt;&gt; image_file = open('data/cat_grumpy_orig.png').read()
+    &gt;&gt;&gt; hashlib.md5(image_file).hexdigest()
+    '3e1f6e9f2689d59b9ed28bcdab73455f'</textarea></div>
+<div class="crayon-main" style="">
+<table class="crayon-table">
+<tr class="crayon-row">
+<td class="crayon-nums " data-settings="hide">
+<div class="crayon-nums-content" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-num" data-line="crayon-53b15b15ac8b6600213906-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8b6600213906-2">2</div><div class="crayon-num" data-line="crayon-53b15b15ac8b6600213906-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8b6600213906-4">4</div><div class="crayon-num" data-line="crayon-53b15b15ac8b6600213906-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8b6600213906-6">6</div><div class="crayon-num" data-line="crayon-53b15b15ac8b6600213906-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8b6600213906-8">8</div><div class="crayon-num" data-line="crayon-53b15b15ac8b6600213906-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8b6600213906-10">10</div></div>
+</td>
+<td class="crayon-code"><div class="crayon-pre" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-line" id="crayon-53b15b15ac8b6600213906-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-r">import</span><span class="crayon-h"> </span><span class="crayon-k ">hashlib</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8b6600213906-2">&nbsp;</div><div class="crayon-line" id="crayon-53b15b15ac8b6600213906-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c"># Calculating the hash value of a string.</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8b6600213906-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-k ">hashlib</span><span class="crayon-sy">.</span><span class="crayon-k ">md5</span><span class="crayon-sy">(</span><span class="crayon-s">'The quick brown fox jumps over the lazy dog'</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">hexdigest</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac8b6600213906-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-s">'9e107d9d372bb6826bd81d3542a419d6'</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8b6600213906-6">&nbsp;</div><div class="crayon-line" id="crayon-53b15b15ac8b6600213906-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c"># Loading an image file into memory and calculating it's hash value.</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8b6600213906-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-v">image_file</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-k ">open</span><span class="crayon-sy">(</span><span class="crayon-s">'data/cat_grumpy_orig.png'</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">read</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac8b6600213906-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-k ">hashlib</span><span class="crayon-sy">.</span><span class="crayon-k ">md5</span><span class="crayon-sy">(</span><span class="crayon-i">image_file</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">hexdigest</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8b6600213906-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-s">'3e1f6e9f2689d59b9ed28bcdab73455f'</span></div></div></td>
+</tr>
+</table>
+</div>
+</div>
+<!-- [Format Time: 0.0049 seconds] -->
+<p>This would work fine and dandy if we were sure the files uploaded aren&#8217;t tampered with but due to the nature of how cryptographic hashing algorithms work even the slightest change to the input will result in an <a href="http://en.wikipedia.org/wiki/Avalanche_effect">avalanche effect</a> so the generated hash of the new file will be totally different from the one of the original file.</p>
+<p>Let&#8217;s take an example where we add a period at the end of the sentence.</p><!-- Crayon Syntax Highlighter v2.4.1 -->
+<div id="crayon-53b15b15ac8c9370377574" class="crayon-syntax crayon-theme-arduino-ide-copy crayon-font-consolas crayon-os-pc print-yes" data-settings=" minimize scroll-mouseover" style=" margin-top: 36px; margin-bottom: 36px; float: none; clear: both; font-size: 14px !important; line-height: 24px !important;">
+<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><span class="crayon-title"></span>
+<div class="crayon-tools" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Python</span></div></div>
+<div class="crayon-info" style="min-height: 19.6px !important; line-height: 19.6px !important;"></div>
+<div class="crayon-plain-wrap"><textarea wrap="off" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 14px !important; line-height: 24px !important;">
+    # Original text.
+    &gt;&gt;&gt; hashlib.md5('The quick brown fox jumps over the lazy dog').hexdigest()
+    '9e107d9d372bb6826bd81d3542a419d6'
+
+    # Slight modification of the text.
+    &gt;&gt;&gt; hashlib.md5('The quick brown fox jumps over the lazy dog.').hexdigest()
+    'e4d909c290d0fb1ca068ffaddf22cbd0'</textarea></div>
+<div class="crayon-main" style="">
+<table class="crayon-table">
+<tr class="crayon-row">
+<td class="crayon-nums " data-settings="hide">
+<div class="crayon-nums-content" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-num" data-line="crayon-53b15b15ac8c9370377574-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8c9370377574-2">2</div><div class="crayon-num" data-line="crayon-53b15b15ac8c9370377574-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8c9370377574-4">4</div><div class="crayon-num" data-line="crayon-53b15b15ac8c9370377574-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8c9370377574-6">6</div><div class="crayon-num" data-line="crayon-53b15b15ac8c9370377574-7">7</div></div>
+</td>
+<td class="crayon-code"><div class="crayon-pre" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-line" id="crayon-53b15b15ac8c9370377574-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c"># Original text.</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8c9370377574-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-k ">hashlib</span><span class="crayon-sy">.</span><span class="crayon-k ">md5</span><span class="crayon-sy">(</span><span class="crayon-s">'The quick brown fox jumps over the lazy dog'</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">hexdigest</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac8c9370377574-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-s">'9e107d9d372bb6826bd81d3542a419d6'</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8c9370377574-4">&nbsp;</div><div class="crayon-line" id="crayon-53b15b15ac8c9370377574-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c"># Slight modification of the text.</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8c9370377574-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-k ">hashlib</span><span class="crayon-sy">.</span><span class="crayon-k ">md5</span><span class="crayon-sy">(</span><span class="crayon-s">'The quick brown fox jumps over the lazy dog.'</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">hexdigest</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac8c9370377574-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-s">'e4d909c290d0fb1ca068ffaddf22cbd0'</span></div></div></td>
+</tr>
+</table>
+</div>
+</div>
+<!-- [Format Time: 0.0027 seconds] -->
+<p>As you can see in the example above, the values <tt class="docutils literal">9e107d9d372bb6826bd81d3542a419d6</tt> and <tt class="docutils literal">e4d909c290d0fb1ca068ffaddf22cbd0</tt> are almost completely different (except for few characters).</p>
+<p>In the case of images if the background color is changed, the image is cropped or rotated or if just one pixel is modified out of the original image, we won&#8217;t be able to match the hash of the image to an already existing one. This is not really practical since we want to detect similar images, even if they have been modified a little.</p>
+<p>For example when we modify the color of the nose on the cat the computed hash value will be mostly different.</p>
+<div id="attachment_4515" style="width: 266px" class="wp-caption alignleft"><a href="/wp-content/uploads/2014/04/cat_grumpy_orig.png"><img class="size-full wp-image-4515" alt="Original image" src="/wp-content/uploads/2014/04/cat_grumpy_orig.png.pagespeed.ce.DKikVpT0GC.png" width="256" height="256"/></a><p class="wp-caption-text">Original image</p></div>
+<p><div id="attachment_4512" style="width: 266px" class="wp-caption alignleft"><a href="/wp-content/uploads/2014/04/cat_grumpy_modif.png"><img class="size-full wp-image-4512" alt="Modified image" src="/wp-content/uploads/2014/04/cat_grumpy_modif.png.pagespeed.ce.Ql__tmYIOK.png" width="256" height="256"/></a><p class="wp-caption-text">Modified image</p></div><br/>
+<!-- Crayon Syntax Highlighter v2.4.1 -->
+<div id="crayon-53b15b15ac8d5802290123" class="crayon-syntax crayon-theme-arduino-ide-copy crayon-font-consolas crayon-os-pc print-yes" data-settings=" minimize scroll-mouseover" style=" margin-top: 36px; margin-bottom: 36px; float: none; clear: both; font-size: 14px !important; line-height: 24px !important;">
+<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><span class="crayon-title"></span>
+<div class="crayon-tools" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Python</span></div></div>
+<div class="crayon-info" style="min-height: 19.6px !important; line-height: 19.6px !important;"></div>
+<div class="crayon-plain-wrap"><textarea wrap="off" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 14px !important; line-height: 24px !important;">
+    # Load the original image into memory and calculate it's hash value.
+    &gt;&gt;&gt; image_file = open('data/cat_grumpy_orig.png').read()
+    &gt;&gt;&gt; hashlib.md5(image_file).hexdigest()
+    '3e1f6e9f2689d59b9ed28bcdab73455f'
+
+    # Load the modified image into memory and calculate it's hash value.
+    &gt;&gt;&gt; image_file_modified = open('data/cat_grumpy_modif.png').read()
+    &gt;&gt;&gt; hashlib.md5(image_file_modified).hexdigest()
+    '12d1b9409c3e8e0361c24beaee9c0ab1'</textarea></div>
+<div class="crayon-main" style="">
+<table class="crayon-table">
+<tr class="crayon-row">
+<td class="crayon-nums " data-settings="hide">
+<div class="crayon-nums-content" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-num" data-line="crayon-53b15b15ac8d5802290123-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8d5802290123-2">2</div><div class="crayon-num" data-line="crayon-53b15b15ac8d5802290123-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8d5802290123-4">4</div><div class="crayon-num" data-line="crayon-53b15b15ac8d5802290123-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8d5802290123-6">6</div><div class="crayon-num" data-line="crayon-53b15b15ac8d5802290123-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8d5802290123-8">8</div><div class="crayon-num" data-line="crayon-53b15b15ac8d5802290123-9">9</div></div>
+</td>
+<td class="crayon-code"><div class="crayon-pre" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-line" id="crayon-53b15b15ac8d5802290123-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c"># Load the original image into memory and calculate it's hash value.</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8d5802290123-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-v">image_file</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-k ">open</span><span class="crayon-sy">(</span><span class="crayon-s">'data/cat_grumpy_orig.png'</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">read</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac8d5802290123-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-k ">hashlib</span><span class="crayon-sy">.</span><span class="crayon-k ">md5</span><span class="crayon-sy">(</span><span class="crayon-i">image_file</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">hexdigest</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8d5802290123-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-s">'3e1f6e9f2689d59b9ed28bcdab73455f'</span></div><div class="crayon-line" id="crayon-53b15b15ac8d5802290123-5">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8d5802290123-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c"># Load the modified image into memory and calculate it's hash value.</span></div><div class="crayon-line" id="crayon-53b15b15ac8d5802290123-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-v">image_file_modified</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-k ">open</span><span class="crayon-sy">(</span><span class="crayon-s">'data/cat_grumpy_modif.png'</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">read</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8d5802290123-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-k ">hashlib</span><span class="crayon-sy">.</span><span class="crayon-k ">md5</span><span class="crayon-sy">(</span><span class="crayon-i">image_file_modified</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">hexdigest</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac8d5802290123-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-s">'12d1b9409c3e8e0361c24beaee9c0ab1'</span></div></div></td>
+</tr>
+</table>
+</div>
+</div>
+<!-- [Format Time: 0.0050 seconds] -->
+<br/>
+What we needed for our use case is a <em>perceptual</em> hashing algorithm. A perceptual hashing algorithm that takes a fingerprint of a multimedia file by deriving it from various features from its content so it can take into account transformations on a given input and yet be flexible enough to distinguish between dissimilar files.</p>
+<p>There are a number of perceptual hashing algorithms but the one that I&#8217;m gonna present is the <a href="http://www.hackerfactor.com/blog/index.php?/archives/529-Kind-of-Like-That.html">dHash</a> (difference hashing) algorithm which computes the difference in brightness between adjacent pixels, identifying the relative gradient direction.</p>
+<h2>dHash</h2>
+<p>Before we dive into the algorithm, let&#8217;s start with some basics. A color image is comprised out of red, green and blue (RGB) pixels and we can think of it as a list of sets of red, green and blue values. For example, let&#8217;s take an image, load it using Python&#8217;s imaging library (<a href="http://www.pythonware.com/products/pil/">PIL</a>) and print the pixel values.</p>
+<p><div id="attachment_4518" style="width: 310px" class="wp-caption aligncenter"><a href="/wp-content/uploads/2014/04/test_image.jpg"><img class="size-medium wp-image-4518" alt="Test image" src="/wp-content/uploads/2014/04/test_image-300x300.jpg.pagespeed.ce.JxHQjSEXKB.jpg" width="300" height="300"/></a><p class="wp-caption-text">Test image</p></div><br/>
+<!-- Crayon Syntax Highlighter v2.4.1 -->
+<div id="crayon-53b15b15ac8e0169628053" class="crayon-syntax crayon-theme-arduino-ide-copy crayon-font-consolas crayon-os-pc print-yes" data-settings=" minimize scroll-mouseover" style=" margin-top: 36px; margin-bottom: 36px; float: none; clear: both; font-size: 14px !important; line-height: 24px !important;">
+<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><span class="crayon-title"></span>
+<div class="crayon-tools" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Python</span></div></div>
+<div class="crayon-info" style="min-height: 19.6px !important; line-height: 19.6px !important;"></div>
+<div class="crayon-plain-wrap"><textarea wrap="off" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 14px !important; line-height: 24px !important;">
+    &gt;&gt;&gt; from PIL import Image
+    &gt;&gt;&gt; test_image  = Image.open('data/test_image.jpg')
+
+    # The image is an RGB image with a size of 8x8 pixels.
+    &gt;&gt;&gt; print 'Image Mode: %s' % test_image.mode
+    Image Mode: RGB
+    &gt;&gt;&gt; print 'Width: %s px, Height: %s px' % (test_image.size[0], test_image.size[1])
+    Width: 4 px, Height: 4 px
+
+    # Get the pixel values from the image and print them into rows based on
+    # the image's width.
+    &gt;&gt;&gt; width, height = test_image.size
+    &gt;&gt;&gt; pixels = list(test_image.getdata())
+    &gt;&gt;&gt; for col in xrange(width):
+    ...   print pixels[col:col+width]
+    ...
+    [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 255)]
+    [(0, 0, 0), (212, 45, 45), (51, 92, 154), (130, 183, 47)]
+    [(206, 210, 198), (131, 78, 8), (131, 156, 180), (117, 155, 201)]
+    [(104, 133, 170), (215, 130, 20), (153, 155, 155), (104, 142, 191)]</textarea></div>
+<div class="crayon-main" style="">
+<table class="crayon-table">
+<tr class="crayon-row">
+<td class="crayon-nums " data-settings="hide">
+<div class="crayon-nums-content" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-num" data-line="crayon-53b15b15ac8e0169628053-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8e0169628053-2">2</div><div class="crayon-num" data-line="crayon-53b15b15ac8e0169628053-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8e0169628053-4">4</div><div class="crayon-num" data-line="crayon-53b15b15ac8e0169628053-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8e0169628053-6">6</div><div class="crayon-num" data-line="crayon-53b15b15ac8e0169628053-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8e0169628053-8">8</div><div class="crayon-num" data-line="crayon-53b15b15ac8e0169628053-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8e0169628053-10">10</div><div class="crayon-num" data-line="crayon-53b15b15ac8e0169628053-11">11</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8e0169628053-12">12</div><div class="crayon-num" data-line="crayon-53b15b15ac8e0169628053-13">13</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8e0169628053-14">14</div><div class="crayon-num" data-line="crayon-53b15b15ac8e0169628053-15">15</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8e0169628053-16">16</div><div class="crayon-num" data-line="crayon-53b15b15ac8e0169628053-17">17</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8e0169628053-18">18</div><div class="crayon-num" data-line="crayon-53b15b15ac8e0169628053-19">19</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8e0169628053-20">20</div></div>
+</td>
+<td class="crayon-code"><div class="crayon-pre" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-line" id="crayon-53b15b15ac8e0169628053-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-st">from</span><span class="crayon-h"> </span><span class="crayon-e">PIL </span><span class="crayon-r">import</span><span class="crayon-h"> </span><span class="crayon-i">Image</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8e0169628053-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-v">test_image</span><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">Image</span><span class="crayon-sy">.</span><span class="crayon-k ">open</span><span class="crayon-sy">(</span><span class="crayon-s">'data/test_image.jpg'</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac8e0169628053-3">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8e0169628053-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c"># The image is an RGB image with a size of 8x8 pixels.</span></div><div class="crayon-line" id="crayon-53b15b15ac8e0169628053-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-k ">print</span><span class="crayon-h"> </span><span class="crayon-s">'Image Mode: %s'</span><span class="crayon-h"> </span><span class="crayon-o">%</span><span class="crayon-h"> </span><span class="crayon-v">test_image</span><span class="crayon-sy">.</span><span class="crayon-e">mode</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8e0169628053-6"><span class="crayon-e">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">Image </span><span class="crayon-i">Mode</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-i">RGB</span></div><div class="crayon-line" id="crayon-53b15b15ac8e0169628053-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-k ">print</span><span class="crayon-h"> </span><span class="crayon-s">'Width: %s px, Height: %s px'</span><span class="crayon-h"> </span><span class="crayon-o">%</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-v">test_image</span><span class="crayon-sy">.</span><span class="crayon-v">size</span><span class="crayon-sy">[</span><span class="crayon-cn">0</span><span class="crayon-sy">]</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">test_image</span><span class="crayon-sy">.</span><span class="crayon-v">size</span><span class="crayon-sy">[</span><span class="crayon-cn">1</span><span class="crayon-sy">]</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8e0169628053-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-i">Width</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-cn">4</span><span class="crayon-h"> </span><span class="crayon-i">px</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-i">Height</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-cn">4</span><span class="crayon-h"> </span><span class="crayon-i">px</span></div><div class="crayon-line" id="crayon-53b15b15ac8e0169628053-9">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8e0169628053-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c"># Get the pixel values from the image and print them into rows based on</span></div><div class="crayon-line" id="crayon-53b15b15ac8e0169628053-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c"># the image's width.</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8e0169628053-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-i">width</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">height</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">test_image</span><span class="crayon-sy">.</span><span class="crayon-i">size</span></div><div class="crayon-line" id="crayon-53b15b15ac8e0169628053-13"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-v">pixels</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-k ">list</span><span class="crayon-sy">(</span><span class="crayon-v">test_image</span><span class="crayon-sy">.</span><span class="crayon-e">getdata</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8e0169628053-14"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-st">for</span><span class="crayon-h"> </span><span class="crayon-e">col </span><span class="crayon-st">in</span><span class="crayon-h"> </span><span class="crayon-k ">xrange</span><span class="crayon-sy">(</span><span class="crayon-i">width</span><span class="crayon-sy">)</span><span class="crayon-o">:</span></div><div class="crayon-line" id="crayon-53b15b15ac8e0169628053-15"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-h">&nbsp;&nbsp; </span><span class="crayon-k ">print</span><span class="crayon-h"> </span><span class="crayon-v">pixels</span><span class="crayon-sy">[</span><span class="crayon-i">col</span><span class="crayon-o">:</span><span class="crayon-i">col</span><span class="crayon-o">+</span><span class="crayon-i">width</span><span class="crayon-sy">]</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8e0169628053-16"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span></div><div class="crayon-line" id="crayon-53b15b15ac8e0169628053-17"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-sy">(</span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">0</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">0</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-cn">0</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">0</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-cn">0</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">0</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">)</span><span class="crayon-sy">]</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8e0169628053-18"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-sy">(</span><span class="crayon-cn">0</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">0</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">0</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-cn">212</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">45</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">45</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-cn">51</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">92</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">154</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-cn">130</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">183</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">47</span><span class="crayon-sy">)</span><span class="crayon-sy">]</span></div><div class="crayon-line" id="crayon-53b15b15ac8e0169628053-19"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-sy">(</span><span class="crayon-cn">206</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">210</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">198</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-cn">131</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">78</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">8</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-cn">131</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">156</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">180</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-cn">117</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">155</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">201</span><span class="crayon-sy">)</span><span class="crayon-sy">]</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8e0169628053-20"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-sy">(</span><span class="crayon-cn">104</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">133</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">170</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-cn">215</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">130</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">20</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-cn">153</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">155</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">155</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-cn">104</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">142</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">191</span><span class="crayon-sy">)</span><span class="crayon-sy">]</span></div></div></td>
+</tr>
+</table>
+</div>
+</div>
+<!-- [Format Time: 0.0223 seconds] -->
+<br/>
+The first three pixels have an intensity value of 255 for red, green and blue respectively and 0 for other values, white has all three values at their maximum intensity (255) and black has all three values at their lowest intensity (0). The rest of the color pixels are a combination of red, green and blue at different intensities.</p>
+<p>Now let&#8217;s get back on track, the dHash algorithm has four steps, I&#8217;m gonna go through each one and illustrate it&#8217;s effects on the original and modified image.</p>
+<h3>1. Grayscale the image.</h3>
+<p>By grayscaling the image we reduce each pixel value to a luminous intensity value. For example, a white pixel (255, 255, 255) will be reduced to an intensity value of 255 and a black pixel (0, 0, 0) will be reduced to an intensity value of 0.</p>
+<div id="attachment_4516" style="width: 266px" class="wp-caption alignleft"><a href="/wp-content/uploads/2014/04/cat_grumpy_orig_step_1.png"><img class="size-full wp-image-4516" alt="Original image (after step 1)" src="/wp-content/uploads/2014/04/cat_grumpy_orig_step_1.png.pagespeed.ce.dpnTokpaoA.png" width="256" height="256"/></a><p class="wp-caption-text">Original image (after step 1)</p></div>
+<div id="attachment_4513" style="width: 266px" class="wp-caption alignleft"><a href="/wp-content/uploads/2014/04/cat_grumpy_modif_step_1.png"><img class="size-full wp-image-4513" alt="Modified image (after step 1)" src="/wp-content/uploads/2014/04/cat_grumpy_modif_step_1.png.pagespeed.ce.EG7HjzMSQE.png" width="256" height="256"/></a><p class="wp-caption-text">Modified image (after step 1)</p></div>
+<h3>2. Shrink the image to a common size.</h3>
+<p>By shrinking the image to a common base size, for example 9&#215;8 pixels, where the width is 1px larger than the height (you&#8217;ll understand why the odd size in step 3). This way we remove all the high frequencies and details of the image and we are left with a sample size of 72 intensity values. This also means that resizing or stretching an image won&#8217;t affect it&#8217;s hash value, all images are normalized to a common size.</p>
+<div id="attachment_4517" style="width: 190px" class="wp-caption alignleft"><a href="/wp-content/uploads/2014/04/cat_grumpy_orig_step_2.png"><img class="size-full wp-image-4517" alt="Original image (after step 2)" src="/wp-content/uploads/2014/04/cat_grumpy_orig_step_2.png.pagespeed.ce.vGzzQd-mk9.png" width="180" height="160"/></a><p class="wp-caption-text">Original image (after step 2)</p></div>
+<div id="attachment_4514" style="width: 190px" class="wp-caption alignleft"><a href="/wp-content/uploads/2014/04/cat_grumpy_modif_step_2.png"><img class="size-full wp-image-4514" alt="Modified image (after step 2)" src="/wp-content/uploads/2014/04/cat_grumpy_modif_step_2.png.pagespeed.ce.g76QzyGiSC.png" width="180" height="160"/></a><p class="wp-caption-text">Modified image (after step 2)</p></div>
+<h3>3. Compare adjacent pixels.</h3>
+<p>After the previous two steps we are left with a list containing intensity values, we then compare each intensity value to it&#8217;s adjacent value for each row resulting in an array of binary values.</p><!-- Crayon Syntax Highlighter v2.4.1 -->
+<div id="crayon-53b15b15ac8f0447015683" class="crayon-syntax crayon-theme-arduino-ide-copy crayon-font-consolas crayon-os-pc print-yes" data-settings=" minimize scroll-mouseover" style=" margin-top: 36px; margin-bottom: 36px; float: none; clear: both; font-size: 14px !important; line-height: 24px !important;">
+<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><span class="crayon-title"></span>
+<div class="crayon-tools" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Python</span></div></div>
+<div class="crayon-info" style="min-height: 19.6px !important; line-height: 19.6px !important;"></div>
+<div class="crayon-plain-wrap"><textarea wrap="off" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 14px !important; line-height: 24px !important;">
+    &gt;&gt;&gt; from PIL import Image
+    &gt;&gt;&gt; img = Image.open('data/cat_grumpy_orig_after_step_2.png')
+    &gt;&gt;&gt; width, height = img.size
+    &gt;&gt;&gt; pixels = list(img.getdata())
+    &gt;&gt;&gt; for col in xrange(width):
+    ...   print pixels[col:col+width]
+    ...
+    [254, 254, 255, 253, 248, 254, 255, 254, 255]
+    [254, 255, 253, 248, 254, 255, 254, 255, 255]
+    [253, 248, 254, 255, 254, 255, 255, 255, 222]
+    [248, 254, 255, 254, 255, 255, 255, 222, 184]
+    [254, 255, 254, 255, 255, 255, 222, 184, 177]
+    [255, 254, 255, 255, 255, 222, 184, 177, 184]
+    [254, 255, 255, 255, 222, 184, 177, 184, 225]
+    [255, 255, 255, 222, 184, 177, 184, 225, 255]</textarea></div>
+<div class="crayon-main" style="">
+<table class="crayon-table">
+<tr class="crayon-row">
+<td class="crayon-nums " data-settings="hide">
+<div class="crayon-nums-content" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-num" data-line="crayon-53b15b15ac8f0447015683-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8f0447015683-2">2</div><div class="crayon-num" data-line="crayon-53b15b15ac8f0447015683-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8f0447015683-4">4</div><div class="crayon-num" data-line="crayon-53b15b15ac8f0447015683-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8f0447015683-6">6</div><div class="crayon-num" data-line="crayon-53b15b15ac8f0447015683-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8f0447015683-8">8</div><div class="crayon-num" data-line="crayon-53b15b15ac8f0447015683-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8f0447015683-10">10</div><div class="crayon-num" data-line="crayon-53b15b15ac8f0447015683-11">11</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8f0447015683-12">12</div><div class="crayon-num" data-line="crayon-53b15b15ac8f0447015683-13">13</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8f0447015683-14">14</div><div class="crayon-num" data-line="crayon-53b15b15ac8f0447015683-15">15</div></div>
+</td>
+<td class="crayon-code"><div class="crayon-pre" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-line" id="crayon-53b15b15ac8f0447015683-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-st">from</span><span class="crayon-h"> </span><span class="crayon-e">PIL </span><span class="crayon-r">import</span><span class="crayon-h"> </span><span class="crayon-i">Image</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8f0447015683-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-v">img</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">Image</span><span class="crayon-sy">.</span><span class="crayon-k ">open</span><span class="crayon-sy">(</span><span class="crayon-s">'data/cat_grumpy_orig_after_step_2.png'</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac8f0447015683-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-i">width</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">height</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">img</span><span class="crayon-sy">.</span><span class="crayon-i">size</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8f0447015683-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-v">pixels</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-k ">list</span><span class="crayon-sy">(</span><span class="crayon-v">img</span><span class="crayon-sy">.</span><span class="crayon-e">getdata</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac8f0447015683-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-st">for</span><span class="crayon-h"> </span><span class="crayon-e">col </span><span class="crayon-st">in</span><span class="crayon-h"> </span><span class="crayon-k ">xrange</span><span class="crayon-sy">(</span><span class="crayon-i">width</span><span class="crayon-sy">)</span><span class="crayon-o">:</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8f0447015683-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-h">&nbsp;&nbsp; </span><span class="crayon-k ">print</span><span class="crayon-h"> </span><span class="crayon-v">pixels</span><span class="crayon-sy">[</span><span class="crayon-i">col</span><span class="crayon-o">:</span><span class="crayon-i">col</span><span class="crayon-o">+</span><span class="crayon-i">width</span><span class="crayon-sy">]</span></div><div class="crayon-line" id="crayon-53b15b15ac8f0447015683-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8f0447015683-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">253</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">248</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">]</span></div><div class="crayon-line" id="crayon-53b15b15ac8f0447015683-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">253</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">248</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">]</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8f0447015683-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-cn">253</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">248</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">222</span><span class="crayon-sy">]</span></div><div class="crayon-line" id="crayon-53b15b15ac8f0447015683-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-cn">248</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">222</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">184</span><span class="crayon-sy">]</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8f0447015683-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">222</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">184</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">177</span><span class="crayon-sy">]</span></div><div class="crayon-line" id="crayon-53b15b15ac8f0447015683-13"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">222</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">184</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">177</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">184</span><span class="crayon-sy">]</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8f0447015683-14"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-cn">254</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">222</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">184</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">177</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">184</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">225</span><span class="crayon-sy">]</span></div><div class="crayon-line" id="crayon-53b15b15ac8f0447015683-15"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">222</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">184</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">177</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">184</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">225</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-cn">255</span><span class="crayon-sy">]</span></div></div></td>
+</tr>
+</table>
+</div>
+</div>
+<!-- [Format Time: 0.0216 seconds] -->
+<p>The first value (254) will be compared to the second value (254), the second value to the third and so on, giving us 8 boolean values per row.</p><!-- Crayon Syntax Highlighter v2.4.1 -->
+<div id="crayon-53b15b15ac8fc101137092" class="crayon-syntax crayon-theme-arduino-ide-copy crayon-font-consolas crayon-os-pc print-yes" data-settings=" minimize scroll-mouseover" style=" margin-top: 36px; margin-bottom: 36px; float: none; clear: both; font-size: 14px !important; line-height: 24px !important;">
+<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><span class="crayon-title"></span>
+<div class="crayon-tools" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Python</span></div></div>
+<div class="crayon-info" style="min-height: 19.6px !important; line-height: 19.6px !important;"></div>
+<div class="crayon-plain-wrap"><textarea wrap="off" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 14px !important; line-height: 24px !important;">
+    &gt;&gt;&gt; difference = []
+    &gt;&gt;&gt; for row in xrange(height):
+    ...   for col in xrange(width):
+    ...     if col != width:
+    ...       difference.append(pixels[col+row] &gt; pixels[(col+row)+1])
+    ...
+    &gt;&gt;&gt; for col in xrange(width-1):
+    ...   print difference[col:col+(width-1)]
+    ...
+    [False, False, True, True, False, False, True, False]
+    [False, True, True, False, False, True, False, False]
+    [True, True, False, False, True, False, False, False]
+    [True, False, False, True, False, False, False, True]
+    [False, False, True, False, False, False, True, True]
+    [False, True, False, False, False, True, True, False]
+    [True, False, False, False, True, True, False, False]
+    [False, False, False, True, True, False, False, True]</textarea></div>
+<div class="crayon-main" style="">
+<table class="crayon-table">
+<tr class="crayon-row">
+<td class="crayon-nums " data-settings="hide">
+<div class="crayon-nums-content" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-num" data-line="crayon-53b15b15ac8fc101137092-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8fc101137092-2">2</div><div class="crayon-num" data-line="crayon-53b15b15ac8fc101137092-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8fc101137092-4">4</div><div class="crayon-num" data-line="crayon-53b15b15ac8fc101137092-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8fc101137092-6">6</div><div class="crayon-num" data-line="crayon-53b15b15ac8fc101137092-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8fc101137092-8">8</div><div class="crayon-num" data-line="crayon-53b15b15ac8fc101137092-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8fc101137092-10">10</div><div class="crayon-num" data-line="crayon-53b15b15ac8fc101137092-11">11</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8fc101137092-12">12</div><div class="crayon-num" data-line="crayon-53b15b15ac8fc101137092-13">13</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8fc101137092-14">14</div><div class="crayon-num" data-line="crayon-53b15b15ac8fc101137092-15">15</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac8fc101137092-16">16</div><div class="crayon-num" data-line="crayon-53b15b15ac8fc101137092-17">17</div></div>
+</td>
+<td class="crayon-code"><div class="crayon-pre" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-line" id="crayon-53b15b15ac8fc101137092-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-v">difference</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-sy">[</span><span class="crayon-sy">]</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8fc101137092-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-st">for</span><span class="crayon-h"> </span><span class="crayon-e">row </span><span class="crayon-st">in</span><span class="crayon-h"> </span><span class="crayon-k ">xrange</span><span class="crayon-sy">(</span><span class="crayon-i">height</span><span class="crayon-sy">)</span><span class="crayon-o">:</span></div><div class="crayon-line" id="crayon-53b15b15ac8fc101137092-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-h">&nbsp;&nbsp; </span><span class="crayon-st">for</span><span class="crayon-h"> </span><span class="crayon-e">col </span><span class="crayon-st">in</span><span class="crayon-h"> </span><span class="crayon-k ">xrange</span><span class="crayon-sy">(</span><span class="crayon-i">width</span><span class="crayon-sy">)</span><span class="crayon-o">:</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8fc101137092-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-st">if</span><span class="crayon-h"> </span><span class="crayon-i">col</span><span class="crayon-h"> </span><span class="crayon-o">!=</span><span class="crayon-h"> </span><span class="crayon-i">width</span><span class="crayon-o">:</span></div><div class="crayon-line" id="crayon-53b15b15ac8fc101137092-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span class="crayon-v">difference</span><span class="crayon-sy">.</span><span class="crayon-e">append</span><span class="crayon-sy">(</span><span class="crayon-v">pixels</span><span class="crayon-sy">[</span><span class="crayon-i">col</span><span class="crayon-o">+</span><span class="crayon-i">row</span><span class="crayon-sy">]</span><span class="crayon-h"> </span><span class="crayon-o">&gt;</span><span class="crayon-h"> </span><span class="crayon-v">pixels</span><span class="crayon-sy">[</span><span class="crayon-sy">(</span><span class="crayon-i">col</span><span class="crayon-o">+</span><span class="crayon-i">row</span><span class="crayon-sy">)</span><span class="crayon-o">+</span><span class="crayon-cn">1</span><span class="crayon-sy">]</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8fc101137092-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span></div><div class="crayon-line" id="crayon-53b15b15ac8fc101137092-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-st">for</span><span class="crayon-h"> </span><span class="crayon-e">col </span><span class="crayon-st">in</span><span class="crayon-h"> </span><span class="crayon-k ">xrange</span><span class="crayon-sy">(</span><span class="crayon-i">width</span><span class="crayon-o">-</span><span class="crayon-cn">1</span><span class="crayon-sy">)</span><span class="crayon-o">:</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8fc101137092-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-h">&nbsp;&nbsp; </span><span class="crayon-k ">print</span><span class="crayon-h"> </span><span class="crayon-v">difference</span><span class="crayon-sy">[</span><span class="crayon-i">col</span><span class="crayon-o">:</span><span class="crayon-i">col</span><span class="crayon-o">+</span><span class="crayon-sy">(</span><span class="crayon-i">width</span><span class="crayon-o">-</span><span class="crayon-cn">1</span><span class="crayon-sy">)</span><span class="crayon-sy">]</span></div><div class="crayon-line" id="crayon-53b15b15ac8fc101137092-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8fc101137092-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">]</span></div><div class="crayon-line" id="crayon-53b15b15ac8fc101137092-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">]</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8fc101137092-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">]</span></div><div class="crayon-line" id="crayon-53b15b15ac8fc101137092-13"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">]</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8fc101137092-14"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">]</span></div><div class="crayon-line" id="crayon-53b15b15ac8fc101137092-15"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">]</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac8fc101137092-16"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">]</span></div><div class="crayon-line" id="crayon-53b15b15ac8fc101137092-17"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">[</span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">False</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-t">True</span><span class="crayon-sy">]</span></div></div></td>
+</tr>
+</table>
+</div>
+</div>
+<!-- [Format Time: 0.0224 seconds] -->
+<p></p>
+<h3>4. Convert the difference into bits.</h3>
+<p>To make the hash easy to store and use, we convert it into a hexadecimal string. A True value will have a binary value of 1 and a False value will have one of 0.</p>
+<h2>Python implementation</h2>
+<p>A full implementation of the algorithm in Python:</p><!-- Crayon Syntax Highlighter v2.4.1 -->
+<div id="crayon-53b15b15ac907693732714" class="crayon-syntax crayon-theme-arduino-ide-copy crayon-font-consolas crayon-os-pc print-yes" data-settings=" minimize scroll-mouseover" style=" margin-top: 36px; margin-bottom: 36px; float: none; clear: both; font-size: 14px !important; line-height: 24px !important;">
+<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><span class="crayon-title"></span>
+<div class="crayon-tools" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Python</span></div></div>
+<div class="crayon-info" style="min-height: 19.6px !important; line-height: 19.6px !important;"></div>
+<div class="crayon-plain-wrap"><textarea wrap="off" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 14px !important; line-height: 24px !important;">
+    def dhash(image, hash_size = 8):
+        # Grayscale and shrink the image in one step.
+        image = image.convert('L').resize(
+            (hash_size + 1, hash_size),
+            Image.ANTIALIAS,
+        )
+
+        pixels = list(image.getdata())
+
+        # Compare adjacent pixels.
+        difference = []
+        for row in xrange(hash_size):
+            for col in xrange(hash_size):
+                pixel_left = image.getpixel((col, row))
+                pixel_right = image.getpixel((col + 1, row))
+                difference.append(pixel_left &gt; pixel_right)
+
+        # Convert the binary array to a hexadecimal string.
+        decimal_value = 0
+        hex_string = []
+        for index, value in enumerate(difference):
+            if value:
+                decimal_value += 2**(index % 8)
+            if (index % 8) == 7:
+                hex_string.append(hex(decimal_value)[2:].rjust(2, '0'))
+                decimal_value = 0
+
+        return ''.join(hex_string)</textarea></div>
+<div class="crayon-main" style="">
+<table class="crayon-table">
+<tr class="crayon-row">
+<td class="crayon-nums " data-settings="hide">
+<div class="crayon-nums-content" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-2">2</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-4">4</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-6">6</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-8">8</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-10">10</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-11">11</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-12">12</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-13">13</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-14">14</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-15">15</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-16">16</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-17">17</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-18">18</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-19">19</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-20">20</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-21">21</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-22">22</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-23">23</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-24">24</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-25">25</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-26">26</div><div class="crayon-num" data-line="crayon-53b15b15ac907693732714-27">27</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac907693732714-28">28</div></div>
+</td>
+<td class="crayon-code"><div class="crayon-pre" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-line" id="crayon-53b15b15ac907693732714-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-r">def</span><span class="crayon-h"> </span><span class="crayon-e">dhash</span><span class="crayon-sy">(</span><span class="crayon-i">image</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">hash_size</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-cn">8</span><span class="crayon-sy">)</span><span class="crayon-o">:</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c"># Grayscale and shrink the image in one step.</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">image</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">image</span><span class="crayon-sy">.</span><span class="crayon-e">convert</span><span class="crayon-sy">(</span><span class="crayon-s">'L'</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">resize</span><span class="crayon-sy">(</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">(</span><span class="crayon-i">hash_size</span><span class="crayon-h"> </span><span class="crayon-o">+</span><span class="crayon-h"> </span><span class="crayon-cn">1</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-i">hash_size</span><span class="crayon-sy">)</span><span class="crayon-sy">,</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">Image</span><span class="crayon-sy">.</span><span class="crayon-i">ANTIALIAS</span><span class="crayon-sy">,</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-7">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">pixels</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-k ">list</span><span class="crayon-sy">(</span><span class="crayon-v">image</span><span class="crayon-sy">.</span><span class="crayon-e">getdata</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-9">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c"># Compare adjacent pixels.</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">difference</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-sy">[</span><span class="crayon-sy">]</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">for</span><span class="crayon-h"> </span><span class="crayon-e">row </span><span class="crayon-st">in</span><span class="crayon-h"> </span><span class="crayon-k ">xrange</span><span class="crayon-sy">(</span><span class="crayon-i">hash_size</span><span class="crayon-sy">)</span><span class="crayon-o">:</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-13"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">for</span><span class="crayon-h"> </span><span class="crayon-e">col </span><span class="crayon-st">in</span><span class="crayon-h"> </span><span class="crayon-k ">xrange</span><span class="crayon-sy">(</span><span class="crayon-i">hash_size</span><span class="crayon-sy">)</span><span class="crayon-o">:</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-14"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">pixel_left</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">image</span><span class="crayon-sy">.</span><span class="crayon-e">getpixel</span><span class="crayon-sy">(</span><span class="crayon-sy">(</span><span class="crayon-i">col</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-i">row</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-15"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">pixel_right</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">image</span><span class="crayon-sy">.</span><span class="crayon-e">getpixel</span><span class="crayon-sy">(</span><span class="crayon-sy">(</span><span class="crayon-i">col</span><span class="crayon-h"> </span><span class="crayon-o">+</span><span class="crayon-h"> </span><span class="crayon-cn">1</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-i">row</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-16"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">difference</span><span class="crayon-sy">.</span><span class="crayon-e">append</span><span class="crayon-sy">(</span><span class="crayon-i">pixel_left</span><span class="crayon-h"> </span><span class="crayon-o">&gt;</span><span class="crayon-h"> </span><span class="crayon-i">pixel_right</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-17">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-18"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c"># Convert the binary array to a hexadecimal string.</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-19"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">decimal_value</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-cn">0</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-20"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">hex_string</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-sy">[</span><span class="crayon-sy">]</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-21"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">for</span><span class="crayon-h"> </span><span class="crayon-i">index</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-e">value </span><span class="crayon-st">in</span><span class="crayon-h"> </span><span class="crayon-k ">enumerate</span><span class="crayon-sy">(</span><span class="crayon-i">difference</span><span class="crayon-sy">)</span><span class="crayon-o">:</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-22"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">if</span><span class="crayon-h"> </span><span class="crayon-i">value</span><span class="crayon-o">:</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-23"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-i">decimal_value</span><span class="crayon-h"> </span><span class="crayon-o">+</span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-cn">2</span><span class="crayon-o">*</span><span class="crayon-o">*</span><span class="crayon-sy">(</span><span class="crayon-i">index</span><span class="crayon-h"> </span><span class="crayon-o">%</span><span class="crayon-h"> </span><span class="crayon-cn">8</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-24"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">if</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-i">index</span><span class="crayon-h"> </span><span class="crayon-o">%</span><span class="crayon-h"> </span><span class="crayon-cn">8</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-o">==</span><span class="crayon-h"> </span><span class="crayon-cn">7</span><span class="crayon-o">:</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-25"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">hex_string</span><span class="crayon-sy">.</span><span class="crayon-e">append</span><span class="crayon-sy">(</span><span class="crayon-k ">hex</span><span class="crayon-sy">(</span><span class="crayon-i">decimal_value</span><span class="crayon-sy">)</span><span class="crayon-sy">[</span><span class="crayon-cn">2</span><span class="crayon-o">:</span><span class="crayon-sy">]</span><span class="crayon-sy">.</span><span class="crayon-e">rjust</span><span class="crayon-sy">(</span><span class="crayon-cn">2</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-s">'0'</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-26"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">decimal_value</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-cn">0</span></div><div class="crayon-line" id="crayon-53b15b15ac907693732714-27">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac907693732714-28"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">return</span><span class="crayon-h"> </span><span class="crayon-s">''</span><span class="crayon-sy">.</span><span class="crayon-e">join</span><span class="crayon-sy">(</span><span class="crayon-i">hex_string</span><span class="crayon-sy">)</span></div></div></td>
+</tr>
+</table>
+</div>
+</div>
+<!-- [Format Time: 0.0159 seconds] -->
+<p></p>
+<h2>Comparing hashes</h2>
+<p>In the most simple case where the images differ only slightly the hashes most likely will be the same so we can directly compare them.</p><!-- Crayon Syntax Highlighter v2.4.1 -->
+<div id="crayon-53b15b15ac912878461556" class="crayon-syntax crayon-theme-arduino-ide-copy crayon-font-consolas crayon-os-pc print-yes" data-settings=" minimize scroll-mouseover" style=" margin-top: 36px; margin-bottom: 36px; float: none; clear: both; font-size: 14px !important; line-height: 24px !important;">
+<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><span class="crayon-title"></span>
+<div class="crayon-tools" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Python</span></div></div>
+<div class="crayon-info" style="min-height: 19.6px !important; line-height: 19.6px !important;"></div>
+<div class="crayon-plain-wrap"><textarea wrap="off" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 14px !important; line-height: 24px !important;">
+    &gt;&gt;&gt; from PIL import Image
+    &gt;&gt;&gt; from utility import dhash, hamming_distance
+    &gt;&gt;&gt; orig = Image.open('data/cat_grumpy_orig.png')
+    &gt;&gt;&gt; modif = Image.open('data/cat_grumpy_modif.png')
+    &gt;&gt;&gt; dhash(orig)
+    '4c8e3366c275650f'
+    &gt;&gt;&gt; dhash(modif)
+    '4c8e3366c275650f'
+    &gt;&gt;&gt; dhash(orig) == dhash(modif)
+    True</textarea></div>
+<div class="crayon-main" style="">
+<table class="crayon-table">
+<tr class="crayon-row">
+<td class="crayon-nums " data-settings="hide">
+<div class="crayon-nums-content" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-num" data-line="crayon-53b15b15ac912878461556-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac912878461556-2">2</div><div class="crayon-num" data-line="crayon-53b15b15ac912878461556-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac912878461556-4">4</div><div class="crayon-num" data-line="crayon-53b15b15ac912878461556-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac912878461556-6">6</div><div class="crayon-num" data-line="crayon-53b15b15ac912878461556-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac912878461556-8">8</div><div class="crayon-num" data-line="crayon-53b15b15ac912878461556-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac912878461556-10">10</div></div>
+</td>
+<td class="crayon-code"><div class="crayon-pre" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-line" id="crayon-53b15b15ac912878461556-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-st">from</span><span class="crayon-h"> </span><span class="crayon-e">PIL </span><span class="crayon-r">import</span><span class="crayon-h"> </span><span class="crayon-i">Image</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac912878461556-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-st">from</span><span class="crayon-h"> </span><span class="crayon-e">utility </span><span class="crayon-r">import</span><span class="crayon-h"> </span><span class="crayon-i">dhash</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-i">hamming_distance</span></div><div class="crayon-line" id="crayon-53b15b15ac912878461556-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-v">orig</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">Image</span><span class="crayon-sy">.</span><span class="crayon-k ">open</span><span class="crayon-sy">(</span><span class="crayon-s">'data/cat_grumpy_orig.png'</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac912878461556-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-v">modif</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">Image</span><span class="crayon-sy">.</span><span class="crayon-k ">open</span><span class="crayon-sy">(</span><span class="crayon-s">'data/cat_grumpy_modif.png'</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-53b15b15ac912878461556-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-e">dhash</span><span class="crayon-sy">(</span><span class="crayon-i">orig</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac912878461556-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-s">'4c8e3366c275650f'</span></div><div class="crayon-line" id="crayon-53b15b15ac912878461556-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-e">dhash</span><span class="crayon-sy">(</span><span class="crayon-i">modif</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac912878461556-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-s">'4c8e3366c275650f'</span></div><div class="crayon-line" id="crayon-53b15b15ac912878461556-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">&gt;&gt;&gt;</span><span class="crayon-h"> </span><span class="crayon-e">dhash</span><span class="crayon-sy">(</span><span class="crayon-i">orig</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-o">==</span><span class="crayon-h"> </span><span class="crayon-e">dhash</span><span class="crayon-sy">(</span><span class="crayon-i">modif</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac912878461556-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-t">True</span></div></div></td>
+</tr>
+</table>
+</div>
+</div>
+<!-- [Format Time: 0.0068 seconds] -->
+<p>If we kept an SQL database with our hashes and we wanted to see if the &#8217;4c8e3366c275650f&#8217; hash existed in our database we could simply do something like this:</p><!-- Crayon Syntax Highlighter v2.4.1 -->
+<div id="crayon-53b15b15ac91b138737602" class="crayon-syntax crayon-theme-arduino-ide-copy crayon-font-consolas crayon-os-pc print-yes" data-settings=" minimize scroll-mouseover" style=" margin-top: 36px; margin-bottom: 36px; float: none; clear: both; font-size: 14px !important; line-height: 24px !important;">
+<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><span class="crayon-title"></span>
+<div class="crayon-tools" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">MySQL</span></div></div>
+<div class="crayon-info" style="min-height: 19.6px !important; line-height: 19.6px !important;"></div>
+<div class="crayon-plain-wrap"><textarea wrap="off" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 14px !important; line-height: 24px !important;">
+    SELECT pk, hash, file_path FROM image_hashes
+        WHERE hash = '4c8e3366c275650f';</textarea></div>
+<div class="crayon-main" style="">
+<table class="crayon-table">
+<tr class="crayon-row">
+<td class="crayon-nums " data-settings="hide">
+<div class="crayon-nums-content" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-num" data-line="crayon-53b15b15ac91b138737602-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac91b138737602-2">2</div></div>
+</td>
+<td class="crayon-code"><div class="crayon-pre" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-line" id="crayon-53b15b15ac91b138737602-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">SELECT</span><span class="crayon-h"> </span>pk,<span class="crayon-h"> </span><span class="crayon-st">hash</span>,<span class="crayon-h"> </span>file_path<span class="crayon-h"> </span><span class="crayon-st">FROM</span><span class="crayon-h"> </span>image_hashes</div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac91b138737602-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">WHERE</span><span class="crayon-h"> </span><span class="crayon-st">hash</span><span class="crayon-h"> </span>=<span class="crayon-h"> </span><span class="crayon-s">'4c8e3366c275650f'</span>;</div></div></td>
+</tr>
+</table>
+</div>
+</div>
+<!-- [Format Time: 0.0037 seconds] -->
+<p>Now, in the case that the images differ a bit more and the hashes are not exactly the same we need to compare them by calculating the minimum number of substitutions required to change one string into the other, this is called a hamming distance.</p>
+<p>On <a href="http://en.wikipedia.org/wiki/Hamming_distance">the Wikipedia page</a> there is some sample Python code that computes the hamming distance between two string but we can calculate the hamming distance and query based on it directly in MySQL:</p><!-- Crayon Syntax Highlighter v2.4.1 -->
+<div id="crayon-53b15b15ac925500773228" class="crayon-syntax crayon-theme-arduino-ide-copy crayon-font-consolas crayon-os-pc print-yes" data-settings=" minimize scroll-mouseover" style=" margin-top: 36px; margin-bottom: 36px; float: none; clear: both; font-size: 14px !important; line-height: 24px !important;">
+<div class="crayon-toolbar" data-settings=" mouseover overlay hide delay" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><span class="crayon-title"></span>
+<div class="crayon-tools" style="font-size: 14px !important;height: 21px !important; line-height: 21px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">MySQL</span></div></div>
+<div class="crayon-info" style="min-height: 19.6px !important; line-height: 19.6px !important;"></div>
+<div class="crayon-plain-wrap"><textarea wrap="off" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 14px !important; line-height: 24px !important;">
+    SELECT pk, hash, BIT_COUNT(
+        CONV(hash, 16, 10) ^ CONV('4c8e3366c275650f', 16, 10)
+    ) as hamming_distance
+        FROM image_hashes
+        HAVING hamming_distance &lt; 4
+        ORDER BY hamming_distance ASC;</textarea></div>
+<div class="crayon-main" style="">
+<table class="crayon-table">
+<tr class="crayon-row">
+<td class="crayon-nums " data-settings="hide">
+<div class="crayon-nums-content" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-num" data-line="crayon-53b15b15ac925500773228-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac925500773228-2">2</div><div class="crayon-num" data-line="crayon-53b15b15ac925500773228-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac925500773228-4">4</div><div class="crayon-num" data-line="crayon-53b15b15ac925500773228-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-53b15b15ac925500773228-6">6</div></div>
+</td>
+<td class="crayon-code"><div class="crayon-pre" style="font-size: 14px !important; line-height: 24px !important;"><div class="crayon-line" id="crayon-53b15b15ac925500773228-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">SELECT</span><span class="crayon-h"> </span>pk,<span class="crayon-h"> </span><span class="crayon-st">hash</span>,<span class="crayon-h"> </span><span class="crayon-e ">BIT_COUNT</span>(</div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac925500773228-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e ">CONV</span>(<span class="crayon-st">hash</span>,<span class="crayon-h"> </span>16,<span class="crayon-h"> </span>10)<span class="crayon-h"> </span>^<span class="crayon-h"> </span><span class="crayon-e ">CONV</span>(<span class="crayon-s">'4c8e3366c275650f'</span>,<span class="crayon-h"> </span>16,<span class="crayon-h"> </span>10)</div><div class="crayon-line" id="crayon-53b15b15ac925500773228-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span>)<span class="crayon-h"> </span><span class="crayon-st">as</span><span class="crayon-h"> </span>hamming_distance</div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac925500773228-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">FROM</span><span class="crayon-h"> </span>image_hashes</div><div class="crayon-line" id="crayon-53b15b15ac925500773228-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">HAVING</span><span class="crayon-h"> </span>hamming_distance<span class="crayon-h"> </span><span class="crayon-h">&lt;</span><span class="crayon-h"> </span>4</div><div class="crayon-line crayon-striped-line" id="crayon-53b15b15ac925500773228-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">ORDER BY</span><span class="crayon-h"> </span>hamming_distance<span class="crayon-h"> </span><span class="crayon-st">ASC</span>;</div></div></td>
+</tr>
+</table>
+</div>
+</div>
+<!-- [Format Time: 0.0054 seconds] -->
+<p>It will do a binary XOR of the two values, the first one from the database and the second one the one that we query, and count the bits that are different amongst the two values. Because BIT_COUNT works only on integers and we stored the hash as a hex string (base 16) we have to convert it to a decimal value (base 10), the same goes for the value that we want to query by.</p>
+<h2>Ending words</h2>
+<p>Even though I&#8217;ve presented the algorithm using Python snippets the algorithm is pretty general and can be implemented in any other programming language.</p>
+<p>As I said in the introduction, we will be using the algorithm in the future on <a href="http://www.iconfinder.com">Iconfinder</a> to warn us if a submitted icon already exists in our collection but it can also have other practical uses. For example, because images with similar features have the hamming distance of their hashes close, it can also be used as a basic recommendation system where the recommended images are within a certain hashing distance of the current image.</p>
+</div>
+<!-- .entry-content -->
+<div class="post-author-bottom">
+<div class="post-author-card">
+<a class="site-logo" href="/">
+<img alt='' src='http://1.gravatar.com/avatar/f55ba792df25ff5acb747b4b30e55ead?s=100&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D100&amp;r=G' class='avatar avatar-100 photo' height='100' width='100'/>	</a>
+<div class="post-author-info">
+<h1 class="site-title">
+<span class="byline"><span class="author vcard"><a class="url fn n" href="/" title="View all posts by Silviu Tantos" rel="author">Silviu Tantos</a></span></span>	</h1>
+<h2 class="site-description">Back-end developer at Iconfinder.com</h2>
+</div>
+<div class="post-published-date">
+<h2 class="site-published">Published</h2>
+<h2 class="site-published-date"><a href="/detecting-duplicate-images-using-python/" title="Detecting duplicate images using Python" rel="bookmark"><time class="entry-date" datetime="2014-04-02T13:37:25+00:00" pubdate>April 2, 2014</time></a></h2>
+</div>
+</div>
+</div>
+<!-- .post-author-bottom -->
+<footer>
+<div id="comment-share-buttons">
+<button class="comment-button"><i class="share-comment-icon"></i>Write a Comment</button>
+<button onclick="javascript: window.location = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURI(document.URL);" style="background: none; background-color: #3B5998; backgrond-image: none;"><i class="share-facebook-icon"></i>Share on Facebook</button>
+<button onclick="javascript: window.location = 'https://www.twitter.com/intent/tweet?url=' + encodeURI(document.URL) + '&amp;text=' + escape('Detecting duplicate images using Python');" style="background: none; background-color: #4099FF; backgrond-image: none;"><i class="share-twitter-icon"></i>Share on Twitter</button>
+</div>
+</footer>
+<!-- .entry-meta -->
+</article><!-- #post-4462 -->
+<div id="commentform-top"></div> <!-- do not remove; used by jQuery to move the comment reply form here -->
+<div id="respond" class="comment-respond">
+<h3 id="reply-title" class="comment-reply-title"> <small><a rel="nofollow" id="cancel-comment-reply-link" href="#respond" style="display:none;">Cancel Reply</a></small></h3>
+<form action="http://blog.iconfinder.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+<div id="main-reply-title"><h3>Write a Comment</h3></div><div class="comment-form-reply-title"><p>Comment</p></div><p class="comment-form-comment" id="comment-form-field"><textarea id="comment" name="comment" cols="60" rows="6" aria-required="true"></textarea></p>	<p class="comment-form-author"><label for="author">Name</label><input id="author" name="author" type="text" value="" aria-required='true'/></p>
+<p class="comment-form-email"><label for="email">Email</label><input id="email" name="email" type="text" value="" aria-required='true'/></p>
+<p class="comment-form-url"><label for="url">Website</label><input id="url" name="url" type="text" value=""/></p>
+<p class="form-submit">
+<input name="submit" type="submit" id="submit" value="Submit Comment"/>
+<input type='hidden' name='comment_post_ID' value='4462' id='comment_post_ID'/>
+<input type='hidden' name='comment_parent' id='comment_parent' value='0'/>
+</p>
+<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="1e67c975f7"/></p><p style="display:none;"><input type="text" name="nxts" value="1404132118"/><input type="text" name="nxts_signed" value="27ef944e8b245160b1a9587e8710ea83cb09237d"/><input type="text" name="97b7c33ddef7" value=""/><input type="text" name="3749713b3f404da119391e0d809" value="d48643ee3631544f54ae0df502ced457"/></p>	</form>
+</div><!-- #respond -->
+<div id="comments" class="comments-area">
+<h2 class="comments-title">
+<i class="comments-title-icon"></i>
+31 Comments	</h2>
+<ol class="commentlist">
+<li class="comment even thread-even depth-1" id="li-comment-45473">
+<article id="comment-45473" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/7f1a07e1a86933e88491d34f4afdc96b?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn">Gaspar Laprida</cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45473">
+<time pubdate datetime="2014-04-02T15:50:39+00:00">
+April 2, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Awesome!</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45473#respond' onclick='return addComment.moveForm("comment-45473", "45473", "respond", "4462")'>Reply to Gaspar</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-45496">
+<article id="comment-45496" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/9d55b716ad53ca9967afbbccf2828e9e?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://yoan.dosimple.ch/' rel='external nofollow' class='url'>greut</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45496">
+<time pubdate datetime="2014-04-03T10:39:43+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Skyblog, a blog platform, has been using their libpuzzle tool: <a href="http://www.pureftpd.org/project/libpuzzle" rel="nofollow">http://www.pureftpd.org/project/libpuzzle</a></p>
+<p>It&#8217;s based on the following article: An image signature for any kind of image by H. Chi Wong, Marshall Bern and David Goldberg from Xerox Research</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45496#respond' onclick='return addComment.moveForm("comment-45496", "45496", "respond", "4462")'>Reply to greut</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+<ul class="children">
+<li class="comment byuser comment-author-razius bypostauthor even depth-2" id="li-comment-45498">
+<article id="comment-45498" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/f55ba792df25ff5acb747b4b30e55ead?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://razius.com' rel='external nofollow' class='url'>Silviu Tantos</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45498">
+<time pubdate datetime="2014-04-03T11:17:48+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>From what I see the algorithm should cope better with image cropping than the algorithm presented here (dhash).</p>
+<p>I&#8217;m gonna dive into the paper and check it out, thank you.</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45498#respond' onclick='return addComment.moveForm("comment-45498", "45498", "respond", "4462")'>Reply to Silviu</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-even depth-1" id="li-comment-45497">
+<article id="comment-45497" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://0.gravatar.com/avatar/4995550f605b91f040929c8312fe9b2b?s=48&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn">Ricardo Ferreira</cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45497">
+<time pubdate datetime="2014-04-03T10:56:44+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>So why not use a context triggered piecewise hash?</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45497#respond' onclick='return addComment.moveForm("comment-45497", "45497", "respond", "4462")'>Reply to Ricardo</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+<ul class="children">
+<li class="comment byuser comment-author-razius bypostauthor even depth-2" id="li-comment-45503">
+<article id="comment-45503" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/f55ba792df25ff5acb747b4b30e55ead?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://razius.com' rel='external nofollow' class='url'>Silviu Tantos</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45503">
+<time pubdate datetime="2014-04-03T12:02:17+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Mainly performance issues, CTPH is a rolling hash algorithm so you end up processing the image byte per byte. This has the advantage of and having less false positives and a better match for near similar images but it&#8217;s main trade-off is speed.</p>
+<p>We are also trying to move towards feature extraction and the dhash algorithm is a bit more useful and interesting to experiment with.</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45503#respond' onclick='return addComment.moveForm("comment-45503", "45503", "respond", "4462")'>Reply to Silviu</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-45504">
+<article id="comment-45504" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/f66e9e6906adb49533ac8529f9e00441?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn">Martin Faartoft</cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45504">
+<time pubdate datetime="2014-04-03T12:35:15+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Have you considered using a Bloom filter for fast lookups?<br/>
+<a href="http://www.eecs.harvard.edu/~michaelm/postscripts/alenex2006.pdf" rel="nofollow">http://www.eecs.harvard.edu/~michaelm/postscripts/alenex2006.pdf</a> (Kirsch and Mitzenmacher: Distance-Sensitive Bloom Filters) solves pretty much this exact problem, and are quite effective for a small number of bit-wise differences.</p>
+<p>I am working on some python code for this, as part of a research project. Feel free to contact me, if you want a copy.</p>
+<p>/Martin Faartoft</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45504#respond' onclick='return addComment.moveForm("comment-45504", "45504", "respond", "4462")'>Reply to Martin</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="li-comment-45507">
+<article id="comment-45507" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://0.gravatar.com/avatar/0f374c865ccd58bdc9a3a8639d790bb8?s=48&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn">Kalpesh Singh</cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45507">
+<time pubdate datetime="2014-04-03T14:12:39+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Hi Silviu,</p>
+<p>The quite same thing I am using in my final year engineering project. It is named as Content Based Image Retrieval.</p>
+<p>On the basis of color it will pick images from database.</p>
+<p>Happy that IconFinder is improving day by day&#8230;</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45507#respond' onclick='return addComment.moveForm("comment-45507", "45507", "respond", "4462")'>Reply to Kalpesh</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-45511">
+<article id="comment-45511" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/b6b3c3d23f4181308418df6c9586acba?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://icepick.info/' rel='external nofollow' class='url'>Myers Carpenter</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45511">
+<time pubdate datetime="2014-04-03T14:59:04+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Have you looked at pHash [http://www.phash.org/] ?</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45511#respond' onclick='return addComment.moveForm("comment-45511", "45511", "respond", "4462")'>Reply to Myers</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="li-comment-45514">
+<article id="comment-45514" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/9a4ad38058cf191cec5d537e73f81cb7?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://www.kirkbackus.com' rel='external nofollow' class='url'>Kirk Backus</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45514">
+<time pubdate datetime="2014-04-03T15:18:56+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Could you elaborate how you went about gray scaling your image? It appears you used a luminance preserving method.</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45514#respond' onclick='return addComment.moveForm("comment-45514", "45514", "respond", "4462")'>Reply to Kirk</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+<ul class="children">
+<li class="comment byuser comment-author-razius bypostauthor odd alt depth-2" id="li-comment-45529">
+<article id="comment-45529" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/f55ba792df25ff5acb747b4b30e55ead?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://razius.com' rel='external nofollow' class='url'>Silviu Tantos</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45529">
+<time pubdate datetime="2014-04-03T19:52:34+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>I&#8217;m using the default PIL implementation, you can read a bit more about it here: <a href="http://pillow.readthedocs.org/en/latest/reference/Image.html#PIL.Image.Image.convert" rel="nofollow">http://pillow.readthedocs.org/en/latest/reference/Image.html#PIL.Image.Image.convert</a></p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45529#respond' onclick='return addComment.moveForm("comment-45529", "45529", "respond", "4462")'>Reply to Silviu</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+<li class="comment even thread-odd thread-alt depth-1" id="li-comment-45515">
+<article id="comment-45515" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://0.gravatar.com/avatar/659f4553167f49b7513c3e6f0e21922e?s=48&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn">Edward Stembler</cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45515">
+<time pubdate datetime="2014-04-03T15:25:08+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Interesting article.</p>
+<p>Last week I watched a video from John Resig, &#8220;Analyzing Japanese Art with Node.js and Computer Vision&#8221; <a href="http://www.livestream.com/etsycodeascraft/video?clipId=pla_ce6831a0-e856-467b-a705-62d039d7069b" rel="nofollow">http://www.livestream.com/etsycodeascraft/video?clipId=pla_ce6831a0-e856-467b-a705-62d039d7069b</a>, in which he described using TinEye&#8217;s MatchEngine <a href="http://services.tineye.com/MatchEngine" rel="nofollow">http://services.tineye.com/MatchEngine</a> for image comparison. May be something worth checking into&#8230;</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45515#respond' onclick='return addComment.moveForm("comment-45515", "45515", "respond", "4462")'>Reply to Edward</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-even depth-1" id="li-comment-45518">
+<article id="comment-45518" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/db8f630fd2c0a4a524eb4d50ab5f32e5?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://chuntaolu.com' rel='external nofollow' class='url'>Lu</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45518">
+<time pubdate datetime="2014-04-03T16:56:50+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Awesome post. </p>
+<p>I noticed that following code will not print the pixels row by row<br/>
+<code></code><code><br/>
+for col in xrange(width):<br/>
+print pixels[col:col+width]<br/>
+</code><code></code><br/>
+Maybe you mean something like this:<br/>
+<code></code><code><br/>
+for row in xrange(height):<br/>
+col = row * width<br/>
+print pixels[col: col+width]<br/>
+</code><code></code></p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45518#respond' onclick='return addComment.moveForm("comment-45518", "45518", "respond", "4462")'>Reply to Lu</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+<li class="comment even thread-odd thread-alt depth-1" id="li-comment-45519">
+<article id="comment-45519" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://0.gravatar.com/avatar/6e80bb9117fb9cd28a2c829fae823589?s=48&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn">Derek</cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45519">
+<time pubdate datetime="2014-04-03T17:17:21+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>As you can see in the example above, the values 9e107d9d372bb6826bd81d3542a419d6 and e4d909c290d0fb1ca068ffaddf22cbd0 are completely different.</p>
+<p>Actually, there are two characters in the same location which share the same value, so they aren&#8217;t &#8220;completely different&#8221; just mostly.</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45519#respond' onclick='return addComment.moveForm("comment-45519", "45519", "respond", "4462")'>Reply to Derek</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+<ul class="children">
+<li class="comment byuser comment-author-admin odd alt depth-2" id="li-comment-45527">
+<article id="comment-45527" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/bfbec27c6b4e0eef51db7a909024ea28?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://www.iconfinder.com' rel='external nofollow' class='url'>Martin LeBlanc</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45527">
+<time pubdate datetime="2014-04-03T19:33:01+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>That&#8217;s true. We have changed the wording.</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45527#respond' onclick='return addComment.moveForm("comment-45527", "45527", "respond", "4462")'>Reply to Martin</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="li-comment-45520">
+<article id="comment-45520" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://0.gravatar.com/avatar/6170000a01c67c6ba1e2d4bd87701bae?s=48&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://aclark.net' rel='external nofollow' class='url'>Alex Clark</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45520">
+<time pubdate datetime="2014-04-03T17:17:47+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>You might consider using and supporting Pillow instead of PIL (<a href="https://github.com/python-imaging/Pillow" rel="nofollow">https://github.com/python-imaging/Pillow</a>)</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45520#respond' onclick='return addComment.moveForm("comment-45520", "45520", "respond", "4462")'>Reply to Alex</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+<ul class="children">
+<li class="comment byuser comment-author-razius bypostauthor odd alt depth-2" id="li-comment-45534">
+<article id="comment-45534" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/f55ba792df25ff5acb747b4b30e55ead?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://razius.com' rel='external nofollow' class='url'>Silviu Tantos</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45534">
+<time pubdate datetime="2014-04-03T22:15:08+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>We are actually using Pillow, I&#8217;ll update the wording to reflect that. Thank you for pointing that out.</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45534#respond' onclick='return addComment.moveForm("comment-45534", "45534", "respond", "4462")'>Reply to Silviu</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+<li class="comment even thread-odd thread-alt depth-1" id="li-comment-45523">
+<article id="comment-45523" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/7663307e9df5252f7088a03a135ee531?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://ronbarak.hubpages.com/' rel='external nofollow' class='url'>Ron Barak</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45523">
+<time pubdate datetime="2014-04-03T18:24:30+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Erratum: So, for example if a user ↝ for example ↜ downloads</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45523#respond' onclick='return addComment.moveForm("comment-45523", "45523", "respond", "4462")'>Reply to Ron</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-even depth-1" id="li-comment-45524">
+<article id="comment-45524" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/7663307e9df5252f7088a03a135ee531?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://ronbarak.hubpages.com/' rel='external nofollow' class='url'>Ron Barak</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45524">
+<time pubdate datetime="2014-04-03T18:30:55+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Erratum (missing word?): computes the difference in brightness between adjacent, ↚</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45524#respond' onclick='return addComment.moveForm("comment-45524", "45524", "respond", "4462")'>Reply to Ron</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+<li class="comment even thread-odd thread-alt depth-1" id="li-comment-45525">
+<article id="comment-45525" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/7663307e9df5252f7088a03a135ee531?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://ronbarak.hubpages.com/' rel='external nofollow' class='url'>Ron Barak</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45525">
+<time pubdate datetime="2014-04-03T18:32:07+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Erratum: ↝An↜ color image is comprised</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45525#respond' onclick='return addComment.moveForm("comment-45525", "45525", "respond", "4462")'>Reply to Ron</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-even depth-1" id="li-comment-45526">
+<article id="comment-45526" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/7663307e9df5252f7088a03a135ee531?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://ronbarak.hubpages.com/' rel='external nofollow' class='url'>Ron Barak</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45526">
+<time pubdate datetime="2014-04-03T18:44:05+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Errata:<br/>
+as ↝an↜ list of sets<br/>
+illustrate ↝it’s↜ effects<br/>
+value to ↝an↜ luminous intensity<br/>
+left with ↝an↜ list containing<br/>
+and can ↝↜ implemented in<br/>
+we will be ↝using↜ using the algorithm<br/>
+if ↝an↜ submitted icon</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45526#respond' onclick='return addComment.moveForm("comment-45526", "45526", "respond", "4462")'>Reply to Ron</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+<ul class="children">
+<li class="comment byuser comment-author-razius bypostauthor even depth-2" id="li-comment-45532">
+<article id="comment-45532" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/f55ba792df25ff5acb747b4b30e55ead?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://razius.com' rel='external nofollow' class='url'>Silviu Tantos</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45532">
+<time pubdate datetime="2014-04-03T21:46:12+00:00">
+April 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Thank you very much for your corrections, I&#8217;ve updated the blog post.</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45532#respond' onclick='return addComment.moveForm("comment-45532", "45532", "respond", "4462")'>Reply to Silviu</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-45542">
+<article id="comment-45542" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://0.gravatar.com/avatar/a36afadc530a6936e9e336a729f7ecf3?s=48&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://www.enchantedage.com' rel='external nofollow' class='url'>Jon W</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45542">
+<time pubdate datetime="2014-04-04T00:25:44+00:00">
+April 4, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>To find all duplicates, you&#8217;ll need to compare O(N^2) hash pairs, though. Your SQL query is a full table scan.<br/>
+I like the focus on protecting the originality of submissions, though; good job!</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45542#respond' onclick='return addComment.moveForm("comment-45542", "45542", "respond", "4462")'>Reply to Jon</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="li-comment-45555">
+<article id="comment-45555" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/d10ccf9bbb050f30eceb5f81f1a4d467?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn">Alvaro</cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45555">
+<time pubdate datetime="2014-04-04T05:30:51+00:00">
+April 4, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>I will just mirror the image and then your algorithm would not work</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45555#respond' onclick='return addComment.moveForm("comment-45555", "45555", "respond", "4462")'>Reply to Alvaro</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-45588">
+<article id="comment-45588" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://0.gravatar.com/avatar/a6c7ee2d7d36ca95e7b4b126ecc9351d?s=48&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn">james</cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45588">
+<time pubdate datetime="2014-04-05T04:45:14+00:00">
+April 5, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>How can i sort image based on the similarities ? is it possible ?</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45588#respond' onclick='return addComment.moveForm("comment-45588", "45588", "respond", "4462")'>Reply to james</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+<ul class="children">
+<li class="comment byuser comment-author-admin even depth-2" id="li-comment-45653">
+<article id="comment-45653" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/bfbec27c6b4e0eef51db7a909024ea28?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://www.iconfinder.com' rel='external nofollow' class='url'>Martin LeBlanc</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45653">
+<time pubdate datetime="2014-04-06T18:35:19+00:00">
+April 6, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>If you want to sort them you&#8217;ll have to calculate the difference between two hash values. E.g. the value 110100101 and 110100111 are only different by one character. If you calculate that difference with e.g. <a href="http://en.wikipedia.org/wiki/Levenshtein_distance" rel="nofollow">http://en.wikipedia.org/wiki/Levenshtein_distance</a> , you&#8217;ll have a value that you can sort by.</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45653#respond' onclick='return addComment.moveForm("comment-45653", "45653", "respond", "4462")'>Reply to Martin</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-even depth-1" id="li-comment-45682">
+<article id="comment-45682" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://0.gravatar.com/avatar/2cc7f26e687571995648846e400a1d9c?s=48&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn">Stefan Buehlmann</cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45682">
+<time pubdate datetime="2014-04-07T10:25:11+00:00">
+April 7, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>What is the license of your code?</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45682#respond' onclick='return addComment.moveForm("comment-45682", "45682", "respond", "4462")'>Reply to Stefan</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+<ul class="children">
+<li class="comment byuser comment-author-admin even depth-2" id="li-comment-45721">
+<article id="comment-45721" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/bfbec27c6b4e0eef51db7a909024ea28?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://www.iconfinder.com' rel='external nofollow' class='url'>Martin LeBlanc</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-45721">
+<time pubdate datetime="2014-04-08T07:58:56+00:00">
+April 8, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>You are free to use what you find in this blog post.</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=45721#respond' onclick='return addComment.moveForm("comment-45721", "45721", "respond", "4462")'>Reply to Martin</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+<ul class="children">
+<li class="comment odd alt depth-3" id="li-comment-47626">
+<article id="comment-47626" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/367d73e9dc5a19c565ade2a46901625c?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn">Hans Rødtang</cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-47626">
+<time pubdate datetime="2014-06-03T18:59:33+00:00">
+June 3, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Can I upload some code I wrote in Go based on this code to GitHub under a open source license (MIT/BSD/zlib)?</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=47626#respond' onclick='return addComment.moveForm("comment-47626", "47626", "respond", "4462")'>Reply to Hans</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+<ul class="children">
+<li class="comment byuser comment-author-admin even depth-4" id="li-comment-47649">
+<article id="comment-47649" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/bfbec27c6b4e0eef51db7a909024ea28?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://www.iconfinder.com' rel='external nofollow' class='url'>Martin LeBlanc</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-47649">
+<time pubdate datetime="2014-06-05T14:28:00+00:00">
+June 5, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Yes, please do! MIT or Apache license: <a href="http://www.apache.org/licenses/LICENSE-2.0.html" rel="nofollow">http://www.apache.org/licenses/LICENSE-2.0.html</a></p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=47649#respond' onclick='return addComment.moveForm("comment-47649", "47649", "respond", "4462")'>Reply to Martin</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-46997">
+<article id="comment-46997" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://0.gravatar.com/avatar/a949af3a41fd6f97e5baed8f49f30f15?s=48&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn">vevan</cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-46997">
+<time pubdate datetime="2014-05-06T05:10:45+00:00">
+May 6, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>how about theses pics?<br/>
+<a href="http://i62.tinypic.com/rm0k02.png" rel="nofollow">http://i62.tinypic.com/rm0k02.png</a><br/>
+<a href="http://i62.tinypic.com/17u238.png" rel="nofollow">http://i62.tinypic.com/17u238.png</a><br/>
+<a href="http://i62.tinypic.com/2zxtc9z.png" rel="nofollow">http://i62.tinypic.com/2zxtc9z.png</a><br/>
+<a href="http://i58.tinypic.com/oj0ygk.jpg" rel="nofollow">http://i58.tinypic.com/oj0ygk.jpg</a></p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=46997#respond' onclick='return addComment.moveForm("comment-46997", "46997", "respond", "4462")'>Reply to vevan</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+<li class="comment even thread-even depth-1" id="li-comment-48029">
+<article id="comment-48029" class="comment">
+<footer>
+<div class="comment-author vcard">
+<img alt='' src='http://1.gravatar.com/avatar/7595323a572a213bde3f6e68fbe3564d?s=48&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D48&amp;r=G' class='avatar avatar-48 photo' height='48' width='48'/>	<cite class="fn"><a href='http://twitter.com/seshnsesh' rel='external nofollow' class='url'>seshachalam</a></cite>	</div>
+<!-- .comment-author .vcard -->
+<div class="comment-meta commentmetadata">
+<a href="#comment-48029">
+<time pubdate datetime="2014-06-20T05:30:20+00:00">
+June 20, 2014	</time>
+</a>
+</div>
+<!-- .comment-meta .commentmetadata -->
+</footer>
+<div class="comment-content "><p>Hi,</p>
+<p>I tried to write this algorithm in php and the result is <a href="https://github.com/mseshachalam/TheSameCat" rel="nofollow">https://github.com/mseshachalam/TheSameCat</a> but i am stuck at step 4. Convert the difference into bits. Any help would be appreciated. </p>
+<p>Stay awesome</p>
+</div>
+<div class="reply">
+<a class='comment-reply-link' href='?replytocom=48029#respond' onclick='return addComment.moveForm("comment-48029", "48029", "respond", "4462")'>Reply to seshachalam</a>	</div>
+<!-- .reply -->
+</article><!-- #comment-## -->
+</li><!-- #comment-## -->
+</ol><!-- .commentlist -->
+<div id="share-comment-button-bottom">
+<button><i class="share-comment-icon"></i>Write a Comment	</button>
+</div>
+<div id="commentform-bottom"></div> <!-- do not remove; used by jQuery to move the comment reply form here -->
+</div><!-- #comments .comments-area -->
+</div>
+<!-- #content .site-content -->
+</div><!-- #primary .content-area -->
+<div id="secondary" class="widget-area" role="complementary">
+<aside id="categories-2" class="widget widget_categories"><h1 class="widget-title">Categories</h1>	<ul>
+<li class="cat-item cat-item-8"><a href="/category/company-news/" title="View all posts filed under Company news">Company news</a>
+<ul class='children'>
+<li class="cat-item cat-item-119"><a href="/category/company-news/new-features/" title="View all posts filed under New features">New features</a>
+</li>
+</ul>
+</li>
+<li class="cat-item cat-item-4"><a href="/category/competitions/" title="View all posts filed under Competitions">Competitions</a>
+</li>
+<li class="cat-item cat-item-6"><a href="/category/development/" title="View all posts filed under Development">Development</a>
+</li>
+<li class="cat-item cat-item-9"><a href="/category/icon-design/" title="View all posts filed under Icon design">Icon design</a>
+<ul class='children'>
+<li class="cat-item cat-item-159"><a href="/category/icon-design/designer-spotlight/" title="View all posts filed under Designer spotlight">Designer spotlight</a>
+</li>
+<li class="cat-item cat-item-11"><a href="/category/icon-design/freebie/" title="View all posts filed under Freebie">Freebie</a>
+</li>
+<li class="cat-item cat-item-22"><a href="/category/icon-design/icons-of-the-week/" title="View all posts filed under Icons of the week">Icons of the week</a>
+</li>
+<li class="cat-item cat-item-5"><a href="/category/icon-design/interviews/" title="View all posts filed under Interviews">Interviews</a>
+</li>
+<li class="cat-item cat-item-158"><a href="/category/icon-design/new_on_iconfinder/" title="View all posts filed under New on Iconfinder">New on Iconfinder</a>
+</li>
+<li class="cat-item cat-item-10"><a href="/category/icon-design/tutorials/" title="View all posts filed under Tutorials">Tutorials</a>
+</li>
+</ul>
+</li>
+</ul>
+</aside>	</div><!-- #secondary .widget-area -->
+</div><!-- #main .site-main -->
+<footer id="colophon" class="site-footer" itemscope="itemscope" itemtype="http://schema.org/WPFooter" role="contentinfo">
+<div class="site-info">
+<div style="font-size: 18px; font-weight: bold; color: #333;">Looking for icons? Try our <a href="https://www.iconfinder.com" style="font-size: 18px; font-weight: bold;">icon search engine</a>.</div> </div>
+<!-- .site-info -->
+</footer><!-- #colophon .site-footer -->
+</div><!-- #page .hfeed .site -->
+<script type='text/javascript'>var addComment={moveForm:function(a,b,c,d){var e,f=this,g=f.I(a),h=f.I(c),i=f.I("cancel-comment-reply-link"),j=f.I("comment_parent"),k=f.I("comment_post_ID");if(g&&h&&i&&j){f.respondId=c,d=d||!1,f.I("wp-temp-form-div")||(e=document.createElement("div"),e.id="wp-temp-form-div",e.style.display="none",h.parentNode.insertBefore(e,h)),g.parentNode.insertBefore(h,g.nextSibling),k&&d&&(k.value=d),j.value=b,i.style.display="",i.onclick=function(){var a=addComment,b=a.I("wp-temp-form-div"),c=a.I(a.respondId);if(b&&c)return a.I("comment_parent").value="0",b.parentNode.insertBefore(c,b),b.parentNode.removeChild(b),this.style.display="none",this.onclick=null,!1};try{f.I("comment").focus()}catch(l){}return!1}},I:function(a){return document.getElementById(a)}};</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-634584-10', 'iconfinder.com');
+  ga('send', 'pageview');
+</script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <title>Image Background Removal | Technology on Heels with Lyst Engineering</title>
+
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="alternate" type="application/rss+xml" title="Technology on Heels with Lyst Engineering" href="http://developers.lyst.com/feed.xml">
+        <link rel="stylesheet" href="/static/css/main.css">
+
+    </head>
+    <body>
+
+        <div id="header">
+            <div class="centered">
+                <a id="logo" href="/">
+                    <img src="/static/images/logo@2x.png" height="15" width="54">
+                </a>
+
+                <div id="title">
+                    Engineering Blog
+                </div>
+            </div>
+        </div>
+
+        <div id="main-wrapper" class="centered">
+
+            <ul id="sidebar">
+                <li><a class="menu-link" href="/">Posts</a></li>
+                <li><a class="menu-link" href="http://twitter.com/MakingLyst">Twitter</a></li>
+                <li><a class="menu-link" href="http://github.com/ssaw">Github</a></li>
+                <li><a class="menu-link" href="http://www.lyst.com/careers/">Jobs</a></li>
+                <li><a class="menu-link" href="http://developers.lyst.com/feed.xml">RSS</a></li>
+            </ul>
+
+            <div id="content">
+                <article class="post">
+
+    
+
+	<div class="post-content">
+        <h1 pubdate datetime="page.date">Image Background Removal</h1>
+        
+            <div class="post-author">
+                by
+                
+                    <a href="https://twitter.com/carlc75">Carl Ellis</a>
+                
+
+                on Thu, 13 Feb 2014
+
+            </div>
+        
+
+		<p>At <a href="http://www.lyst.com">Lyst</a> we process a lot of products from a lot of retailers.
+However, the product information we get from retailers isn&#39;t the same across the industry as:</p>
+
+<ul>
+<li>Retailers may categorise products differently to competitors,</li>
+<li>Retailers may not provide every bit of information that we need,</li>
+<li>Retailers may have large catalogues and use vague auto-generated descriptions.</li>
+</ul>
+
+<p>Due to this, we have to ensure that each product has all the information that we require (such as category, colour, etc.) and that the information is consistent across the site.
+For example, what Asos may consider a shoulder bag, Gucci may consider a handbag.</p>
+
+<p>While we have a team of moderators which fill in the missing information, they obviously cannot handle our full incoming item traffic (750 items/s).
+To address this problem, we use automatic product classifiers to fill in as much information as possible.
+These are a combination of chained support vector machines and stochastic gradient descent based classifiers.
+These can currently classify 60% of our products 99% of the time (<a href="http://www.youtube.com/v/IKiSPUc2Jck&amp;start=56&amp;end=90&amp;version=3"><em>the sex panther method</em></a>).
+Items which we are not confident enough to classify are passed to our human moderators.</p>
+
+<p>As part of our classification ecosystem, we have a number of classifiers which run on images.
+For example, a classifier which determine the main colour[s] of an image.
+However, this is not as simple as it seems, as most product photos on Lyst have a background of some type.
+These backgrounds can be simple colours,  gradients, or complex backdrops (i.e. a beach, street, etc.).
+In order to correctly infer properties about an image of a product, the background must be removed.</p>
+
+<p><img src="http://developers.lyst.com/images/background-removal/example_images.jpeg" alt="Example Products">
+<em>1. Some example product images</em></p>
+
+<h2 id="toc_0">Solutions</h2>
+
+<p>In order to approach this problem, we want to look at methods which are fast and generalisable.
+Thus, we want to use image manipulation methods rather than complex image recognition techniques.
+To begin with, we first considered methods which would work with the simplest of product images.
+These had simple backgrounds and the product was normally positioned centrally, such as the following image.</p>
+
+<p><img src="http://developers.lyst.com/images/background-removal/simple.jpeg" alt="Simple Image">
+<em>2. Product with simple background</em></p>
+
+<p>One of the first background removal solutions we looked into was <a href="http://homepages.inf.ed.ac.uk/rbf/HIPR2/threshld.htm">global adaptive thresholding</a>.
+This tries to find a colour value which was between the background colour and the foreground.
+Any pixel that was within this threshold was used to create an alpha mask.
+This worked well with images such as that above.</p>
+
+<p><img src="http://developers.lyst.com/images/background-removal/global_threshold_example.jpeg" alt="Global Threshold">
+<em>3. Global Thresholdholding applied to a simple background</em></p>
+
+<p>However, this method was bad for images with gradients or complex backgrounds.
+It also didn&#39;t really like products which were lightly coloured!</p>
+
+<p><img src="http://developers.lyst.com/images/background-removal/gat_examples.jpeg" alt="GAT Examples">
+<em>4. Global Thresholdholding applied to a more complex backgrounds</em></p>
+
+<p>In order to fix these issues, we needed to find a solution which would essentially determine where the product was.
+Now, as we only wanted to use image manipulation methods, we would have to rely on some fairly safe assumptions:</p>
+
+<ul>
+<li>The product will be in the image</li>
+<li>The product will be prominent in the image</li>
+</ul>
+
+<p>As our images are all sourced from retailer sites, these assumptions are fairly safe.</p>
+
+<p>In terms of pixels, this means that the transition from background to product will be harsh.
+There will be <strong>edges</strong> which will be detectable.
+Several methods for performing edge detection exist, but we use the graphicsmagick edge() function (which is a <a href="http://en.wikipedia.org/wiki/Sobel_operator">Sobel Filter</a> <a href="http://sourceforge.net/p/graphicsmagick/code/ci/default/tree/magick/effect.c#l1858">(graphicsmagick source)</a>) as we use pg-magick for most of our image processing.
+Another method we looked at was using <a href="http://homepages.inf.ed.ac.uk/rbf/HIPR2/adpthrsh.htm">local adaptive thresholding</a> which worked just as well as the Sobel filter but seemed to add larger borders to the transparency masks, which we wanted to minimise.</p>
+
+<p>In the end, our work flow was fairly succinct and visually looked like:</p>
+
+<p><img src="http://developers.lyst.com/images/background-removal/process.png" alt="Process">
+<em>5. Background removal process</em></p>
+
+<p>Code snippet:</p>
+
+<div class="highlight"><pre><code class="python"><span class="kn">import</span> <span class="nn">pgmagick</span> <span class="kn">as</span> <span class="nn">pg</span>
+
+
+<span class="k">def</span> <span class="nf">trans_mask_sobel</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Generate a transparency mask for a given image &quot;&quot;&quot;</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+    <span class="c"># Find object</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">negate</span><span class="p">()</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">edge</span><span class="p">()</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">blur</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">threshold</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">adaptiveThreshold</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="c"># Fill background</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">fillColor</span><span class="p">(</span><span class="s">&#39;magenta&#39;</span><span class="p">)</span>
+    <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span> <span class="n">image</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">floodFillColor</span><span class="p">(</span><span class="s">&#39;0x0&#39;</span><span class="p">,</span> <span class="s">&#39;magenta&#39;</span><span class="p">)</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">floodFillColor</span><span class="p">(</span><span class="s">&#39;0x0+</span><span class="si">%s</span><span class="s">+0&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">w</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="s">&#39;magenta&#39;</span><span class="p">)</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">floodFillColor</span><span class="p">(</span><span class="s">&#39;0x0+0+</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">h</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="s">&#39;magenta&#39;</span><span class="p">)</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">floodFillColor</span><span class="p">(</span><span class="s">&#39;0x0+</span><span class="si">%s</span><span class="s">+</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">w</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">h</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="s">&#39;magenta&#39;</span><span class="p">)</span>
+
+    <span class="n">image</span><span class="o">.</span><span class="n">transparent</span><span class="p">(</span><span class="s">&#39;magenta&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image</span>
+
+<span class="k">def</span> <span class="nf">alpha_composite</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Composite two images together by overriding one opacity channel &quot;&quot;&quot;</span>
+
+    <span class="n">compos</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="n">compos</span><span class="o">.</span><span class="n">composite</span><span class="p">(</span>
+        <span class="n">image</span><span class="p">,</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
+        <span class="n">pg</span><span class="o">.</span><span class="n">CompositeOperator</span><span class="o">.</span><span class="n">CopyOpacityCompositeOp</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">compos</span>
+
+<span class="k">def</span> <span class="nf">remove_background</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Remove the background of the image in &#39;filename&#39; &quot;&quot;&quot;</span>
+
+    <span class="n">img</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">transmask</span> <span class="o">=</span> <span class="n">trans_mask_sobel</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">alphacomposite</span><span class="p">(</span><span class="n">transmask</span><span class="p">,</span> <span class="n">img</span><span class="p">)</span>
+    <span class="n">img</span><span class="o">.</span><span class="n">trim</span><span class="p">()</span>
+    <span class="n">img</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;out.png&#39;</span><span class="p">)</span>
+</code></pre></div>
+
+<p>When running the above code on the failures above, we get some pretty decent (but not perfect) results:</p>
+
+<p><img src="http://developers.lyst.com/images/background-removal/process_examples.jpeg" alt="Process Examples">
+<em>6. Background removal process on the complex backgrounds</em></p>
+
+<h2 id="toc_1">Conclusions</h2>
+
+<p>While this technique isn&#39;t yet good enough for front end images, it is a useful tool for pre-processing images that are being classified for colour.
+It can normally handle images with simple or graduated backgrounds.
+However, in the cases where it has not fully removed the background it normally has moved more background than product and can still be useful for colour classification.</p>
+
+<h2 id="toc_2">More Examples</h2>
+
+<p><img src="http://developers.lyst.com/images/background-removal/other_examples.jpeg" alt="Other Examples">
+<em>7. Background removal process on other images</em></p>
+
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            var disqus_shortname = 'lystengineering';
+
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+	</div>
+
+</article>
+
+            </div>
+
+        </div>
+
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-5946484-16', 'lyst.com');
+            ga('send', 'pageview');
+
+        </script>
+
+        <script>
+            (function(){
+
+                if (document.querySelectorAll){
+                    var links = document.querySelectorAll('.menu-link');
+
+                    for (var i = 0; i < links.length; i++) {
+                        if (links[i].href === window.location.href){
+                            links[i].className = links[i].className + ' active';
+                        }
+                    }
+                }
+
+            }());
+        </script>
+
+    </body>
+</html>

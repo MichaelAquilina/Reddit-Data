@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" dir="ltr" lang="en-US">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" dir="ltr" lang="en-US">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" dir="ltr" lang="en-US">
+<![endif]-->
+<!--[if !(IE 6) | !(IE 7) | !(IE 8)  ]><!-->
+<html dir="ltr" lang="en-US">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>principles of high performance programs | libtorrent blog</title>
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="http://blog.libtorrent.org/wp-content/themes/twentyeleven/style.css" />
+<link rel="pingback" href="http://blog.libtorrent.org/xmlrpc.php" />
+<!--[if lt IE 9]>
+<script src="http://blog.libtorrent.org/wp-content/themes/twentyeleven/js/html5.js" type="text/javascript"></script>
+<![endif]-->
+<link rel="alternate" type="application/rss+xml" title="libtorrent blog &raquo; Feed" href="http://blog.libtorrent.org/feed/" />
+<link rel="alternate" type="application/rss+xml" title="libtorrent blog &raquo; Comments Feed" href="http://blog.libtorrent.org/comments/feed/" />
+				
+	<script type="text/javascript">//<![CDATA[
+	// Google Analytics for WordPress by Yoast v4.2.2 | http://yoast.com/wordpress/google-analytics/
+	var _gaq = _gaq || [];
+	_gaq.push(['_setAccount','UA-1599045-1']);
+	_gaq.push(['_trackPageview'],['_trackPageLoadTime']);
+	(function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	})();
+	//]]></script>
+<link rel="alternate" type="application/rss+xml" title="libtorrent blog &raquo; principles of high performance programs Comments Feed" href="http://blog.libtorrent.org/2012/12/principles-of-high-performance-programs/feed/" />
+<script type='text/javascript' src='http://blog.libtorrent.org/wp-includes/js/comment-reply.js?ver=3.4.2'></script>
+<script type='text/javascript' src='http://blog.libtorrent.org/wp-includes/js/jquery/jquery.js?ver=1.7.2'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://blog.libtorrent.org/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://blog.libtorrent.org/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='asynchronous disk I/O' href='http://blog.libtorrent.org/2012/10/asynchronous-disk-io/' />
+<link rel='next' title='DHT security' href='http://blog.libtorrent.org/2012/12/dht-security/' />
+<meta name="generator" content="WordPress 3.4.2" />
+<link rel='canonical' href='http://blog.libtorrent.org/2012/12/principles-of-high-performance-programs/' />
+<link rel='shortlink' href='http://blog.libtorrent.org/?p=128' />
+<link rel="payment" type="text/html" title="Flattr this!" href="https://flattr.com/submit/auto?user_id=hydri&amp;popout=1&amp;url=http%3A%2F%2Fblog.libtorrent.org%2F2012%2F12%2Fprinciples-of-high-performance-programs%2F&amp;language=en_GB&amp;category=text&amp;title=principles+of+high+performance+programs&amp;description=bittorrent+development+from+the+trenches&amp;tags=performance%2Cblog" />
+</head>
+
+<body class="single single-post postid-128 single-format-standard single-author singular two-column right-sidebar">
+<div id="page" class="hfeed">
+	<header id="branding" role="banner">
+			<hgroup>
+				<h1 id="site-title"><span><a href="http://blog.libtorrent.org/" title="libtorrent blog" rel="home">libtorrent blog</a></span></h1>
+				<h2 id="site-description">bittorrent development from the trenches</h2>
+			</hgroup>
+
+			
+								<form method="get" id="searchform" action="http://blog.libtorrent.org/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access" role="navigation">
+				<h3 class="assistive-text">Main menu</h3>
+								<div class="skip-link"><a class="assistive-text" href="#content" title="Skip to primary content">Skip to primary content</a></div>
+				<div class="skip-link"><a class="assistive-text" href="#secondary" title="Skip to secondary content">Skip to secondary content</a></div>
+								<div class="menu"><ul><li ><a href="http://blog.libtorrent.org/" title="Home">Home</a></li></ul></div>
+			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+<!-- Excerpts generated using Auto Excerpt plugin, http://mr.hokya.com/auto-excerpt/ -->
+
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="http://blog.libtorrent.org/2012/10/asynchronous-disk-io/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="http://blog.libtorrent.org/2012/12/dht-security/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-128" class="post-128 post type-post status-publish format-standard hentry category-algorithms tag-performance">
+	<header class="entry-header">
+		<h1 class="entry-title">principles of high performance programs</h1>
+
+				<div class="entry-meta">
+			<span class="sep">Posted on </span><a href="http://blog.libtorrent.org/2012/12/principles-of-high-performance-programs/" title="01:31" rel="bookmark"><time class="entry-date" datetime="2012-12-10T01:31:22+00:00" pubdate>December 10, 2012</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="http://blog.libtorrent.org/author/arvid/" title="View all posts by arvid" rel="author">arvid</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p class="wp-flattr-button"><a href="http://blog.libtorrent.org/?flattrss_redirect&amp;id=128&amp;md5=c7236f026a9cb947f8bfc2941986cda5" title="Flattr" target="_blank"><img src="http://blog.libtorrent.org/wp-content/plugins/flattr/img/flattr-badge-large.png" alt="flattr this!"/></a></p><p>This article is an attempt to sum up a small number of generic rules that appear to be useful rules of thumb when creating high performing programs. It is structured by first establishing some fundamental causes of performance hits followed by their extensions.</p>
+<h1>memory latency</h1>
+<p>A significant source of performance degradation on modern computers is the latency of SDRAM. While the CPU is waiting for a read from memory to come back, it is typically idling (this is mitigated by hyper-threading, to allow switching to another hardware thread, that may have work to do that doesn&#8217;t have an immediate dependency on RAM).</p>
+<p>The main optimization to hide the latency of RAM, is layers of cache on top of it. Most modern CPUs have megabytes of cache.</p>
+<h1>context switching</h1>
+<p>Whenever the CPU switches context, the memory it will access is most likely unrelated to the memory the previous context was accessing. This often results in significant eviction of the previous cache, and requires the switched-to context to load much of its data from RAM, which is slow.</p>
+<p>A context switch doesn&#8217;t necessarily need to be two threads sharing a single core. Making a system call, which is run in kernel mode, also switches context. One of the most important factors in the cost of system calls (these days, with SYSENTER), is the eviction of your cache by the kernel while executing the system call. There is an interesting paper on this, exploring the option of making system calls asynchronous, and deferred, to avoid having to switch context for every call [1].</p>
+<h1>batching work</h1>
+<p>In order to avoid the cost of context switches, it makes sense to try to invoke them as rarely as possible. You may not have much control over operating systems&#8217; system calls. There are a few cases where system calls have variants meant to reduce the number of calls you need to make, like writev() and readv() (or even better, pwritev() and preadv()). By passing in a vector of buffers, you don&#8217;t need to make one system call per buffer. By also passing in the read or write offset, you save one call to lseek() (as well as being thread safe).</p>
+<p>However, you do have a lot of control over how your program is organized. Specifically how your threads communicate and how they behave. By batching work done by your threads you will get more work done per context switch, and you will improve performance.</p>
+<p>Keep in mind the discreet nature of computers. You will wake up some times, there are only weak guarantees of when, and you have a chance to do some work. Do not rely on or expect to be able to wake up on a schedule, at least not with very high accuracy.</p>
+<h1>magic numbers</h1>
+<p>When batching work, it may be tempting to invent magic numbers. Things like: &#8220;when 100 jobs are accrued, wake-up and perform them, then go back to sleep&#8221;. Or perhaps: &#8220;wake up once every 100 ms and perform all jobs that have accrued during that time&#8221;.</p>
+<p>A general rule of thumb is that magic numbers will not scale. They will either be a poor fit for slow throughput environments (e.g. waking up every 100 ms may be way too often and would waste CPU) or a poor fit for high throughput environments (it takes 1 ms to accrue 100 jobs, and waking up every millisecond is too often).</p>
+<p>A typical manifestation of this problem is buffers with fixed sizes.</p>
+<p>The latter is probably the most likely to be a problem. Computers are likely to become faster (at least more parallel) and throughput is likely to increase. Formulating your program so that it has to be configured for a certain era of computers or environment will require you to spend more time tweaking it.</p>
+<h1>adapt to the natural granularity of the computer</h1>
+<p>The <em>granularity</em> of the computer is the default time slice size in the operating system&#8217;s scheduler. Ideally, a CPU would not context switch any more frequently than this (with the exception of context running out of work of course). This can typically not be achieved, when system calls are synchronous and considered context switches, but it is worth keeping in mind for the context switches one does have control over.</p>
+<p>Every time a thread wakes up, the program has incurred a certain cost of context switching to it. To minimize this cost, it needs to be amortized over as much work as possible. Here&#8217;s rule of thumb 1:</p>
+<blockquote><p>Always complete all work queued up for a thread before going back to sleep.</p></blockquote>
+<p>This rule is commonly applied in networking applications when a socket becomes readable. When a typical network application is notified of a socket becoming readable, the socket is repeatedly read until returning EWOULDBLOCK (i.e. the socket receive buffer is drained).</p>
+<p>Not draining the readable socket would cause the thread to go back to sleep, just to immediately be woken up again, because one of its sockets is readable.</p>
+<p>A basic property of a program whose batch size adapts to the load is that your work/thread-wakeup ratio will <em>increase</em> as your load increases. This will cause your wakeup cost to be amortized over more productive work, and increase your throughput.</p>
+<h1>job queues</h1>
+<p>A common pattern for allowing a program to take advantage of multiple CPU cores is to have threads or thread pools which can have work items queued up on them. The threading primitives used for job queues are typically condition variables or semaphores. Both of these primitives need to go all the way down to the kernel to wake up the thread waiting for jobs. Waking up, or signaling a thread to wake up, is not free. It should not be done more than necessary. There are at least two reasonable ways to limit the amount of redundant signaling between a producer and consumer thread. Which leads us to  rule of thumb 2:</p>
+<blockquote><p>When awake, have your thread complete all its work before committing the work that it produced.</p></blockquote>
+<p>&#8220;Committing work&#8221; here refers to to diving down into the kernel to wake up the worker thread to perform queued work. Another way to phrase this is to commit the work produced by handling messages when the message queue is empty.</p>
+<p>Many high-level event frameworks don&#8217;t expose the message queue at such a low level. There&#8217;s no hook to trivially trigger a commit each time the queue drained. This is true for boost.asio for instance. A way to implement a commit-when-drained handler on top of such message queue is to simply post a message to the queue whenever a new job is queued up (that will need committing later), unless such message is already in-flight. This calls your handler at least once per going through the whole message queue. The number of messages in the message queue will scale with load, and increase your batch sizes (and performance) organically.</p>
+<p>Here&#8217;s a brief example of this concept:</p>
+<pre>void peer_connection::on_read(error_code const&amp; ec
+   , size_t bytes_transferred)
+{
+   // run logic to drain data from socket, handle messages and
+   // queue up disk jobs triggered by them
+   m_session.defer_commit();
+}
+
+void session::defer_commit()
+{
+   if (m_pending_commit) return;
+   m_io_service.post(bind(&amp;session::on_commit_jobs, this));
+   m_pending_commit = true;
+}
+
+void session::on_commit_jobs()
+{
+   assert(m_pending_commit);
+   m_pending_commit = false;
+   // wake up disk thread to handle the jobs queued up on it
+   m_disk_thread_pool.wake_up();
+}</pre>
+<p>Another way to achieve adaptive batching in job queues is to only signal the thread to wake up when the number of jobs in the queue goes from 0 to &gt; 0. As long as the number of jobs in the queue stays above 0, the worker thread(s) won&#8217;t go to sleep voluntarily (just by the scheduler granularity). This may achieve lower latencies for jobs, but may also scale the batch size less.</p>
+<div id="attachment_141" class="wp-caption alignnone" style="width: 720px"><a href="http://blog.libtorrent.org/wp-content/uploads/2012/12/batching_diskjobs.png" ><img class="size-full wp-image-141" title="batching disk jobs" src="http://blog.libtorrent.org/wp-content/uploads/2012/12/batching_diskjobs.png" alt="" width="710" height="258" /></a><p class="wp-caption-text">There is a cost associated with signaling a thread. The red portions of the threads represent that cost. Batching jobs and signaling fewer times, is more efficient.</p></div>
+<h1>Example: writing to sockets in libtorrent</h1>
+<p>libtorrent uses boost.asio as its event dispatch library. It has a straight forward message queue which ties callbacks to any event the application is subscribed to. In a bittorrent client, incoming messages on one peer connection may induce outgoing messages on other peers&#8217; connections. For example, when receiving the last bit of a piece message form a peer, we may end up completing it and we should send HAVE messages to all peers, indicating that we now have this piece. Perhaps more importantly, multiple disk read job may compete and queue up 16 kiB of data on the send buffer each.</p>
+<p>As established earlier, it is desirable to write these messages to sockets in as few system calls as possible. To achieve this, libtorrent <em>corks</em> all peers by default. Whenever a message is handled that puts data on a peer connection, it is not written to the socket right away. Instead, the connection is added to an uncork-set of peer connections. In the same way the on_commit_jobs() is called in the code snippet above, libtorrent uncorks all peers once the message queue is drained.</p>
+<p>This has the benefit of potentially merging writes to sockets, and using fewer system calls to write. As the uncorking is done via a message posted to the queue, the cork batch size will grow organically with the load, and batch up more at higher loads.</p>
+<h1>Example: socket receive buffers</h1>
+<p>When reading from sockets, the batching problem also manifests itself. How does one determine how large ones receive buffers should be? If they&#8217;re too big, you&#8217;re wasting memory and may not run well in a low bandwidth low memory environment. If the buffers are too small, you may need to wake up too often to drain them, wasting context switches in high bandwidth environments.</p>
+<p>There are primarily two approaches to reading data from sockets (or files). The posix way is to be notified when a socket is readable, then repeatedly call read() on it until it is drained. To avoid repeated system calls, one can call ioctl() FIONREAD to first find out how many bytes are available and set ones buffer size optimally. This approach makes it easy to find the optimal buffer size, and not wake up any more often than necessary.</p>
+<p>The second approach (win32) is to allocate a buffer up front and pass that into the asynchronous read call. This has the obvious advantage of not having to copy the data from the kernel buffer, but receive directly into the user supplied buffer. Other benefits include having a more predictable memory usage, where the application has some control over the growth of buffer sizes.</p>
+<p>The problem of setting fixed buffer sizes is that it implicitly says: &#8220;this program will never receive more than <em>n</em> bytes while this thread is asleep&#8221;. Setting <em>n</em> to a reasonable number is impossible, it will either be too big or too small, depending on the environment. The first approach has the benefit of letting the operating system grow the buffer size as needed when the time between wake-up or download rate increases. The problem with the first approach is the need for copying the data.</p>
+<p>Rule of thumb 3:</p>
+<blockquote><p>Allocate memory buffers up front to avoid extra copying and maintain predictable memory usage.</p></blockquote>
+<p>How can we take advantage of the zero-copy API but still organically adapt our buffer size to the throughput of the machine and network?</p>
+<p><span style="color: #000000;">Start by allocating a reasonably large buffer, receive asynchronously into it. If the number of bytes you receive fills the buffer entirely, you can assume you would perform better by increasing the buffer size. Conversely, if the number of bytes is significantly less than the buffer size, you may want to make it smaller, to save RAM. In order to make the buffer size converge in reasonable time, the adjustments should be multiplicative.</span></p>
+<h1>Example: communicating with disk thread in libtorrent</h1>
+<p>Another example of how to apply the rule of organically adapt the job batch size to the load is the disk cache in libtorrent. Peers that want to read from the disk need to allocate disk buffers (out of the disk cache) that are then submitted in disk read jobs to the disk thread pool. When peers are receiving payload that is destined for the disk, they also first allocate a disk buffer to receive the data into. Once a buffer is full, it is submitted as disk write job to the disk thread pool.</p>
+<p>When the disk cache runs out of free buffers, peers may have to wait for buffers to be flushed to disk and made available before they can continue receiving more data from their sockets. These peers will be put in a queue and woken up at some later point when there are buffers available. The problem here is, how does one determine when to wake up these peers? There needs to be some low watermark, when the cache use drops below this line, we can wake up the peers and have them allocate their buffers and keep going.</p>
+<p>Rule of thumb 4:</p>
+<blockquote><p>When determining your batch size, think about what a natural division is without using magic numbers. It often involves the number of jobs (or bytes) one accrues during the time it takes for your thread to wake up after having been signaled, or during one scheduler time slice.</p></blockquote>
+<p>In the case of the low watermark for a disk cache, one obvious property one would want is to not wake up a peer, for it to just find itself unable to allocate another buffer, because they have all been allocated again. The low watermark should be at least as low as (max_size &#8211; num_waiters) buffers. i.e. no peer should be woken up until there&#8217;s at least one free block each. Setting the low watermark any lower runs the risk of unnecessarily delay peers from making progress. The number of waiters will depend on the load, and effectively adjust the low watermark accordingly.</p>
+<p><a href="http://blog.libtorrent.org/wp-content/uploads/2012/12/disk_cache.png" ><img class="alignnone size-full wp-image-143" title="disk_cache" src="http://blog.libtorrent.org/wp-content/uploads/2012/12/disk_cache.png" alt="" width="335" height="354" /></a></p>
+<h1>operating system APIs</h1>
+<p>If these rules of thumb were to be taken into account when designing an API for an operating system, you could end up with significantly higher performing programs.</p>
+<p>This section highlights a few sub optimal interfaces to today&#8217;s operating systems.</p>
+<p>Reading from and writing to UDP sockets is done one packet at a time. the vector read and write calls will coalesce the buffers into a single packet. When implementing a transport protocol on top of UDP, say uTP, one may have hundreds of packets prepared to be sent at a time, but still will need to call the send() function once per packet. The same thing goes for reading packets off of a UDP socket. There is no system call that returns all packets available on the socket. This is suboptimal and causes many unnecessary context switches.</p>
+<p>Also, the posix networking API does not support the application allocating buffers up-front, and have the network card receive bytes directly into them. Windows&#8217; API supports this, and can (at least in theory, if the driver supports it) avoid copying data from the kernel buffer into the user buffer. With an API that supports passing in pre-allocated buffers, it would be nice to have better support for communicating with the user level what a reasonable buffer size would be.</p>
+<p>Many of the problems with requiring multiple system calls would be solved, however, if all system calls were asynchronous. In order to optimally take advantage of asynchronous system calls, message queue would probably have to be a central concept, with deep kernel support. This is not unlike epoll, kqueue, I/O completion ports, and solaris ports.</p>
+<p>Imagine a world where all system calls are asynchronous, all events and system calls return values are posted onto a message queue and you could drain the message queue with a single interaction with the kernel.</p>
+<h1>Summary</h1>
+<p>The ideas presented in this article can be summarized as:</p>
+<ul>
+<li>The principle of organically adapt your job-batching sizes to the granularity of the scheduler and the time it takes for your thread to wake up.</li>
+<li>A mechanism to adapt receive buffer sizes for sockets, while at the same time avoiding to copy memory out of the kernel.</li>
+<li>Suggestions on how an operating system (and any API) can be shaped to better scale its performance</li>
+<li>Only signal a worker thread to wake up when the number of jobs on its queue go from 0 to &gt; 0. Any other signal is redundant and a waste of time.</li>
+<li>Cork sockets in order to merge as many writes as possible</li>
+<li>A pattern to support committing-work-when-queue-is-drained to a high-level message queue</li>
+</ul>
+<p>&nbsp;</p>
+<p>[1] https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Soares.pdf</p>
+<p>&nbsp;</p>
+			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="http://blog.libtorrent.org/category/algorithms/" title="View all posts in algorithms" rel="category tag">algorithms</a> and tagged <a href="http://blog.libtorrent.org/tag/performance/" rel="tag">performance</a> by <a href="http://blog.libtorrent.org/author/arvid/">arvid</a>. Bookmark the <a href="http://blog.libtorrent.org/2012/12/principles-of-high-performance-programs/" title="Permalink to principles of high performance programs" rel="bookmark">permalink</a>.		
+			</footer><!-- .entry-meta -->
+</article><!-- #post-128 -->
+
+						<div id="comments">
+	
+	
+	
+									<div id="respond">
+				<h3 id="reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2012/12/principles-of-high-performance-programs/#respond" style="display:none;">Cancel reply</a></small></h3>
+									<p class="must-log-in">You must be <a href="http://blog.libtorrent.org/wp-login.php?redirect_to=http%3A%2F%2Fblog.libtorrent.org%2F2012%2F12%2Fprinciples-of-high-performance-programs%2F">logged in</a> to post a comment.</p>												</div><!-- #respond -->
+			<script type="text/javascript">
+    jQuery(document).ready(function() {
+        jQuery('#commentform').submit(function() {
+            _gaq.push(
+                ['_setAccount','UA-1599045-1'],
+                ['_trackEvent','comment']
+            );
+        });
+    });    
+</script>
+			
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon" role="contentinfo">
+
+			
+
+			<div id="site-generator">
+								<a href="http://wordpress.org/" title="Semantic Personal Publishing Platform" rel="generator">Proudly powered by WordPress</a>
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!-- AdSense Manager v4.0.2 (0.308 seconds.) -->
+</body>
+</html>

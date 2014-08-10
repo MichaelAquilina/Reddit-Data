@@ -1,0 +1,918 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <link rel="shortcut icon" href="/static/favicon.ico"/>
+
+    <title>
+    What Does A Dynamic Programming Table For An Hmm Look Like?
+</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+    
+    
+
+        
+        <link rel="stylesheet" href="/static/CACHE/css/9ddfff193f12.css" type="text/css" />
+
+        <script type="text/javascript" src="/static/CACHE/js/acea93bb4f1b.js"></script>
+
+    
+
+    
+        
+    
+
+    <script type="application/javascript">
+        
+            USER_ID = null;
+        
+        TITLE_SEARCH_URL = "/local/search/title/"
+        POST_DISPLAY_URL = "/p/"
+    </script>
+</head>
+<body>
+
+<div class="container" id="content">
+
+    
+    
+    
+
+
+<div class="row visible-lg visible-md">
+    <div class="col-md-12 text-center" id="topnav">
+            
+                <div class="col-md-1 ">
+                    <a href="/t/Latest/">Latest <sup><b></b></sup></a>
+                </div>
+            
+                <div class="col-md-1 ">
+                    <a href="/t/Open/">Open <sup><b></b></sup></a>
+                </div>
+            
+                <div class="col-md-1 ">
+                    <a href="/t/RNA-Seq/">RNA-Seq <sup><b></b></sup></a>
+                </div>
+            
+                <div class="col-md-1 ">
+                    <a href="/t/ChIP-Seq/">ChIP-Seq <sup><b></b></sup></a>
+                </div>
+            
+                <div class="col-md-1 ">
+                    <a href="/t/SNP/">SNP <sup><b></b></sup></a>
+                </div>
+            
+                <div class="col-md-1 ">
+                    <a href="/t/Assembly/">Assembly <sup><b></b></sup></a>
+                </div>
+            
+                <div class="col-md-1 ">
+                    <a href="/t/Tutorials/">Tutorials <sup><b></b></sup></a>
+                </div>
+            
+                <div class="col-md-1 ">
+                    <a href="/t/Tools/">Tools <sup><b></b></sup></a>
+                </div>
+            
+                <div class="col-md-1 ">
+                    <a href="/t/Jobs/">Jobs <sup><b></b></sup></a>
+                </div>
+            
+                <div class="col-md-1 ">
+                    <a href="/t/Forum/">Forum <sup><b></b></sup></a>
+                </div>
+            
+            <div class="col-md-1 "><a href="/planet/">Planet <sup><b></b></sup></a></div>
+            <div class="col-md-1 "><a href="/t/">All &raquo;</a></div>
+        </ul>
+    </div>
+</div>
+
+<div class="row visible-sm visible-xs">
+
+    <div class="col-xs-4">
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                 View Posts 
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                
+                    <li>
+                        <a href="/t/Latest">Latest</a>
+                    </li>
+                
+                    <li>
+                        <a href="/t/Open">Open</a>
+                    </li>
+                
+                    <li>
+                        <a href="/t/RNA-Seq">RNA-Seq</a>
+                    </li>
+                
+                    <li>
+                        <a href="/t/ChIP-Seq">ChIP-Seq</a>
+                    </li>
+                
+                    <li>
+                        <a href="/t/SNP">SNP</a>
+                    </li>
+                
+                    <li>
+                        <a href="/t/Assembly">Assembly</a>
+                    </li>
+                
+                    <li>
+                        <a href="/t/Tutorials">Tutorials</a>
+                    </li>
+                
+                    <li>
+                        <a href="/t/Tools">Tools</a>
+                    </li>
+                
+                    <li>
+                        <a href="/t/Jobs">Jobs</a>
+                    </li>
+                
+                    <li>
+                        <a href="/t/Forum">Forum</a>
+                    </li>
+                
+                <li><a href="/planet/">Planet</a></li>
+                <li><a href="/t/">All &raquo;</a></li>
+            </ul>
+        </div>
+    </div>
+
+        <div class="col-xs-4 text-center" style="margin-bottom:5px">
+        <a role="button" class="btn btn-primary" href="/">
+            <i class="fa fa-star fa-1x"></i> Home </a>
+        </a>
+
+    </div>
+
+    <div class="col-xs-4 ">
+        <div class="btn-group pull-right">
+
+            
+                <div>
+                    <a class="btn btn-primary active" role="button" href="/site/login/">
+                        <i class="fa fa-user fa-1x"></i> Log In
+                    </a>
+                </div>
+            
+        </div>
+    </div>
+</div>
+
+
+<div class="row visible-lg visible-md">
+
+    <div class="col-md-12" id="navbar">
+
+        <div class="col-lg-3 visible-lg" id="logo">
+            <a href="/"><img src="/static/biostar2.logo.png"></a>
+        </div>
+
+        <div class="col-md-3 visible-md text-center">
+            <a href="/">
+                <a href="/"><img style="width:200px; height: auto;" src="/static/biostar2.logo.png"></a>
+            </a>
+        </div>
+
+        
+
+            <div class="col-md-9 top text-center">
+                 Welcome to Biostar!
+                <span class="pull-right">
+                    <a href="/info/about/">about</a> &bull; <a href="/info/faq/">faq</a>
+                    &bull; <a href="/info/rss/">rss <i class="fa fa-rss"></i></a>
+                </span>
+            </div>
+
+            <div class="col-md-2 col-md-offset-10 mid ">
+                <a href="/user/list/">
+                    <div><i class="fa fa-globe"></i>
+                    </div>
+                    <div>Community</div>
+                </a>
+            </div>
+
+            <div class="col-md-2 mid ">
+                <b><a href="/site/login/">
+                    <div><i class="fa fa-user fa-1x"></i></div>
+                    <div>User Login</div>
+                </a></b>
+            </div>
+
+            <div class="col-md-2 mid newpost">
+                <a href="/p/new/post/" class="navitem ">
+                    <div><i class="fa fa-plus-circle fa-1x"></i></div>
+                    <div>New Post</div>
+                </a>
+            </div>
+
+        
+    </div>
+</div>
+
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    <div class="row" itemscope itemtype="http://schema.org/QAPage">
+
+        <div class="col-xs-12 col-md-9">
+
+            <div id="post-details" >
+                
+                <span itemscope itemtype="http://schema.org/Question">
+                    
+
+<div class="post-body Open clearfix">
+
+    
+        <div class="title" >Question: <span itemprop="name">What Does A Dynamic Programming Table For An Hmm Look Like?</span></div>
+    
+
+
+    <div class="post vote-box visible-lg visible-md" data-post_id="93737">
+
+        <div class="vote mark off tip" data-toggle="tooltip" data-placement="top"
+             data-type="vote" title="Upvote!">
+            <i class="fa fa-thumbs-o-up fa-2x"></i></div>
+
+        <div class="count" itemprop="voteCount">0</div>
+
+        <div class="vote mark off tip" data-toggle="tooltip" data-placement="top"
+             data-type="bookmark" title="Bookmark!">
+            <i class="fa fa-book fa-2x"></i>
+        </div>
+
+        
+    </div>
+
+    <div>
+
+        <a name="93737"></a>
+        
+        <div class="content" >
+
+            
+
+
+
+
+<div class="col-xs-3 col-md-2 box pull-right text-center visible-lg visible-md">
+        <div><a href="/u/7489/"><img src="https://secure.gravatar.com/avatar/b5c57de656c70431bc0a4f6e1fdf254c?s=82&d=identicon" alt="gravatar for corn8bit"/></a></div>
+        <div class="ago">4 months ago by</div>
+        <div class="uname">
+
+
+<a href="/u/7489/">corn8bit</a> &bull; <b>130</b></div>
+        <div class="loc"></div>
+</div>
+
+<div class="box text-center visible-sm visible-xs">
+    <div class="uname">
+
+
+<a href="/u/7489/">corn8bit</a> &bull; <b>130</b> wrote:</div>
+</div>
+
+            <span itemprop="text"><p>I've been learning about how HMMs (<a rel="nofollow" href="http://en.wikipedia.org/wiki/Hidden_Markov_model">hidden markov models</a>) are used for finding sequencing errors, and to discover the hidden data we use a <a rel="nofollow" href="http://stackoverflow.com/questions/1065433/what-is-dynamic-programming">dynamic programming</a> table, which when used together is <a rel="nofollow" href="http://en.wikipedia.org/wiki/Viterbi_algorithm">this</a> algorithm. </p>
+
+<p>I'm having a really hard time figuring how how the dynamic programming works for this though. Could someone give an explanation that uses simple English (relatively) to describe the table?</p>
+
+<p>Or less vaguely: <strong>How can dynamic programming solve an HMM</strong>?</p>
+</span>
+
+
+            <div class="clearfix">
+                
+                    <div class="tags clearfix" style="margin-bottom:0.5em;">
+                        
+                            <a class="tag" href="/t/statistics/">statistics</a>
+                        
+                    </div>
+                
+
+                
+                
+
+<div class="post-action">
+
+    <span class="label label-default add-comment" data-value="93737" id="C93737">ADD COMMENT</span>
+
+    &bull; <a href="/p/93737/">link</a>
+    
+
+    
+        
+        &bull;
+
+        <div class="btn-group">
+            <button type="button" class="btn btn-default btn-xs dropdown-toggle" id="F93737" data-toggle="dropdown">
+                
+                    Not following
+                
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropup" role="menu">
+
+                <li><a href="/local/sub/93737/local/">Follow via messages</a></li>
+                <li><a href="/local/sub/93737/email/">Follow via email</a></li>
+                <li><a href="/local/sub/93737/nofollow/">Do not follow</a></li>
+            </ul>
+        </div>
+    
+
+    <span class="userlink muted">
+            
+            modified 4 months ago
+            
+            &bull;
+        
+        written <span itemprop="dateCreated" content="2014-02-21T15:58:01.981661-06:00">
+        4 months ago</span> by 
+
+
+<a href="/u/7489/">corn8bit</a> &bull; <b>130</b>
+    </span>
+</div>
+
+
+            </div>
+
+            
+            <div class="comment" itemprop="comment">
+                <div class="indent">
+
+<a name="94346"></a>
+<div class="entry Open  clearfix">
+
+    <div class="comment vote-box" data-post_id="94346">
+        <div class="vote mark off " data-type="vote" title="Upvote!">
+            <i class="fa fa-thumbs-o-up fa-1x"></i></div>
+        <div class="count"></div>
+    </div>
+
+   <p>youtube might be the way to go: <a rel="nofollow" href="https://www.youtube.com/results?search_query=hidden+markov+viterbi">https://www.youtube.com/results?search_query=hidden+markov+viterbi</a></p>
+
+
+    
+    
+
+<div class="post-action">
+
+    <span class="label label-default add-comment" data-value="94346" id="C94346">ADD REPLY</span>
+
+    &bull; <a href="/p/93737/#94346">link</a>
+    
+
+    
+
+    <span class="userlink muted">
+            
+        written <span itemprop="dateCreated" content="2014-03-01T04:24:59.379800-06:00">
+        4 months ago</span> by 
+
+
+<a href="/u/4700/">a.zielezinski</a> &bull; <b>3.0k</b>
+    </span>
+</div>
+
+
+</div>
+</div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+                </span>
+
+
+                
+                
+                    <span itemscope itemtype="http://schema.org/Answer">
+                        
+
+<div class="post-body Open clearfix">
+
+    
+
+
+    <div class="post vote-box visible-lg visible-md" data-post_id="94313">
+
+        <div class="vote mark off tip" data-toggle="tooltip" data-placement="top"
+             data-type="vote" title="Upvote!">
+            <i class="fa fa-thumbs-o-up fa-2x"></i></div>
+
+        <div class="count" itemprop="voteCount">1</div>
+
+        <div class="vote mark off tip" data-toggle="tooltip" data-placement="top"
+             data-type="bookmark" title="Bookmark!">
+            <i class="fa fa-book fa-2x"></i>
+        </div>
+
+        
+    </div>
+
+    <div>
+
+        <a name="94313"></a>
+        
+        <div class="content" >
+
+            
+
+
+
+
+<div class="col-xs-3 col-md-2 box pull-right text-center visible-lg visible-md">
+        <div><a href="/u/7489/"><img src="https://secure.gravatar.com/avatar/b5c57de656c70431bc0a4f6e1fdf254c?s=82&d=identicon" alt="gravatar for corn8bit"/></a></div>
+        <div class="ago">4 months ago by</div>
+        <div class="uname">
+
+
+<a href="/u/7489/">corn8bit</a> &bull; <b>130</b></div>
+        <div class="loc"></div>
+</div>
+
+<div class="box text-center visible-sm visible-xs">
+    <div class="uname">
+
+
+<a href="/u/7489/">corn8bit</a> &bull; <b>130</b> wrote:</div>
+</div>
+
+            <span itemprop="text"><p>The dynamic programming table only has 2 rows. I finally figured out what it looked like thanks to this fantastic example on wikipedia <a rel="nofollow" href="http://en.wikipedia.org/wiki/Viterbi_algorithm#Example">here</a> (don't read the code). The gif towards the end is a perfect depiction of the table. </p>
+
+<p>The way it looks is actually very simple and can be summed up at this: For each state (such as ill or healthy in the linked example) you only care about which previous state is the most probable. If you're picking a state that isn't the same as your current state then you have to multiply it by the odds of changing state. </p>
+
+<p>For a quick example imaging you know all the probabilities for how feeling "dizzy, cold, and good" all map to "healthy or sick". Then a patient comes in one day as good, and the next as dizzy. The table would first look at the first day and fill in the probability for both the "healthy" row, and the "sick" row. The healthy row would have a much higher probability. Then the table would go to the next day and fill in each row. </p>
+
+<p>For the healthy row the table would say to itself "hm, on the previous day healthy was much more likely than sick, and if I pick sick I have to further reduce the odds by multiplying by the the odds of transitioning, so I'll pick healthy". And for the sick row it would say "well, the odds of healthy yesterday outweigh the odds of sick, even after I multiply it by the transitioning odds, so I'll pick that.". </p>
+
+<p>And That's all there is to it! Here's what that would look like in table form: </p>
+
+<p>Healthy row: [day1: high chance of healthy because patient felt good], [day2: patient felt dizzy, low chance of healthy. Previous day was probably healthy, and no transition was made]</p>
+
+<p>Sick row: [day1: low chance of sick, because patient felt good], [day2: high chance of sick, previous day was probably healthy, even though we have to factor in odds of transitioning]</p>
+
+<p>And so the most probable case is healthy day1, sick day2.</p>
+</span>
+
+
+            <div class="clearfix">
+                
+
+                
+                
+
+<div class="post-action">
+
+    <span class="label label-default add-comment" data-value="94313" id="C94313">ADD COMMENT</span>
+
+    &bull; <a href="/p/93737/#94313">link</a>
+    
+
+    
+
+    <span class="userlink muted">
+            
+            modified 4 months ago
+            
+            &bull;
+        
+        written <span itemprop="dateCreated" content="2014-02-28T12:36:46.277516-06:00">
+        4 months ago</span> by 
+
+
+<a href="/u/7489/">corn8bit</a> &bull; <b>130</b>
+    </span>
+</div>
+
+
+            </div>
+
+            
+            <div class="comment" itemprop="comment">
+                
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+                    </span>
+                
+                    <span itemscope itemtype="http://schema.org/Answer">
+                        
+
+<div class="post-body Open clearfix">
+
+    
+
+
+    <div class="post vote-box visible-lg visible-md" data-post_id="93750">
+
+        <div class="vote mark off tip" data-toggle="tooltip" data-placement="top"
+             data-type="vote" title="Upvote!">
+            <i class="fa fa-thumbs-o-up fa-2x"></i></div>
+
+        <div class="count" itemprop="voteCount">0</div>
+
+        <div class="vote mark off tip" data-toggle="tooltip" data-placement="top"
+             data-type="bookmark" title="Bookmark!">
+            <i class="fa fa-book fa-2x"></i>
+        </div>
+
+        
+    </div>
+
+    <div>
+
+        <a name="93750"></a>
+        
+        <div class="content" >
+
+            
+
+
+
+
+<div class="col-xs-3 col-md-2 box pull-right text-center visible-lg visible-md">
+        <div><a href="/u/1214/"><img src="https://secure.gravatar.com/avatar/8febb5ea096d44b9c5ff13b7d5b15f31?s=82&d=identicon" alt="gravatar for Woa"/></a></div>
+        <div class="ago">4 months ago by</div>
+        <div class="uname">
+
+
+<a href="/u/1214/">Woa</a> &bull; <b>2.2k</b></div>
+        <div class="loc">United States</div>
+</div>
+
+<div class="box text-center visible-sm visible-xs">
+    <div class="uname">
+
+
+<a href="/u/1214/">Woa</a> &bull; <b>2.2k</b> wrote:</div>
+</div>
+
+            <span itemprop="text"><p>In HMM the dynamic programming is used to find out an optimum path out of many other combinatorial paths possible comprised of 'state' paths.
+You can see the Durbin &amp; Eddy's book (and its solution manual <a rel="nofollow" href="http://www.amazon.com/Problems-Solutions-Biological-Sequence-Analysis/dp/0521612306/">http://www.amazon.com/Problems-Solutions-Biological-Sequence-Analysis/dp/0521612306/</a>) for many worked out problems.
+Particularly see the Viterbi   algorithm</p>
+</span>
+
+
+            <div class="clearfix">
+                
+
+                
+                
+
+<div class="post-action">
+
+    <span class="label label-default add-comment" data-value="93750" id="C93750">ADD COMMENT</span>
+
+    &bull; <a href="/p/93737/#93750">link</a>
+    
+
+    
+
+    <span class="userlink muted">
+            
+            modified 4 months ago
+            
+            &bull;
+        
+        written <span itemprop="dateCreated" content="2014-02-21T23:27:47.257990-06:00">
+        4 months ago</span> by 
+
+
+<a href="/u/1214/">Woa</a> &bull; <b>2.2k</b>
+    </span>
+</div>
+
+
+            </div>
+
+            
+            <div class="comment" itemprop="comment">
+                
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+                    </span>
+                
+
+                
+                <span id="csrf_token"><input type='hidden' name='csrfmiddlewaretoken' value='KfwcqoEyWurXkeScTc4DsThtjwYmA5Ws' /></span>
+
+                
+                <div>
+
+                    
+
+                    
+                    
+                        <div class="alert alert-info">
+                            Please <a href="/site/login/">log in</a> to add an answer.
+                        </div>
+                    
+
+                    
+                    
+
+                    
+                    
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-md-3 sidebar">
+            
+                <h4>Similar posts &bull; <a href="/local/search/page/">Search &raquo;</a></h4>
+                
+
+                <ul class="more-like-this">
+                    
+                        
+                            
+                                <li>
+                                    <a href="/p/6118/">Hmmbuild: How To Choose The Best Alignment For Hmm Model </a>
+
+                                    <div class="peek">Hi,
+
+I wonder whether it&#39;s better to remove weakly aligned parts of proteins from MSA or keep the...</div>
+                                </li>
+                            
+                        
+                    
+                        
+                            
+                                <li>
+                                    <a href="/p/12609/">Hidden Markov Models In Genomic Analysis </a>
+
+                                    <div class="peek">Hi All, 
+I would like to use Hidden Markov Models to investigate some genomic properties (DNA bre...</div>
+                                </li>
+                            
+                        
+                    
+                        
+                            
+                                <li>
+                                    <a href="/p/1168/">Iterated Double Dynamic Programming Using Java. (Help Needed Urgently!) </a>
+
+                                    <div class="peek">I have a project on Double Dynamic Programming. I am suppose to use Superposition and Dynamic Pro...</div>
+                                </li>
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                                <li>
+                                    <a href="/p/104478/">perl script:Needleman/Wunsch dynamic programming </a>
+
+                                    <div class="peek">Dear all,
+
+I read a reference, in which the authors used a perl script for Needleman-Wunsch dynam...</div>
+                                </li>
+                            
+                        
+                    
+                        
+                            
+                                <li>
+                                    <a href="/p/17908/">Why Is &quot;Dynamic Programming&quot; Called Dynamic? </a>
+
+                                    <div class="peek">I see the term dynamic programming pop up in sequence-related algorithms, but I am unclear as to ...</div>
+                                </li>
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                                <li>
+                                    <a href="/p/3094/">Oligo Design From Ests </a>
+
+                                    <div class="peek">When designing oligos for a microarray from ESTs, it seems to be crucial to choose the correct di...</div>
+                                </li>
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                                <li>
+                                    <a href="/p/73016/">Drawing Rna Secondary Structure According To Nussinov&#39;S Dynamic Programming </a>
+
+                                    <div class="peek">Hi everybody.
+
+I need to draw an example of RNA secondary structure calculated using Nussinov&#39;s d...</div>
+                                </li>
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                                <li>
+                                    <a href="/p/11566/">Running High-Throughput Searches Using Wise2 Software </a>
+
+                                    <div class="peek">Hi all,
+
+I want to search an entire genome using a protein profile HMM as query.
+I understand tha...</div>
+                                </li>
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                        
+                            
+                        
+                    
+                </ul>
+            
+        </div>
+    </div>
+    
+
+
+
+    
+    
+        <div class="row">
+            <div class="col-sm-12 col-md-12">
+                <hr>
+            </div>
+        </div>
+
+        <div class="row toc">
+
+            <div class="col-xs-3 col-xs-offset-1 col-md-2 col-md-offset-3">
+                <div class="title">Content</div>
+                <ul class="flat">
+                    <li><a href="/local/search/page/">Search</a></li>
+                    <li><a href="/user/list/">Users</a></li>
+                    <li><a href="/t/">Tags</a></li>
+                    <li><a href="/b/list/">Badges</a></li>
+                </ul>
+            </div>
+
+            <div class="col-xs-3 col-md-2">
+                <div class="title">Help</div>
+                <ul class="flat">
+                    <li><a href="/info/about/">About</a></li>
+                    <li><a href="/info/faq/">FAQ</a></li>
+                </ul>
+            </div>
+
+            <div class="col-xs-3 col-md-2 ">
+                <div class="title">Access</div>
+                <ul class="flat">
+                    <li><a href="/info/rss/">RSS</a></li>
+                    <li>Stats</li>
+                    <li>API</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <hr>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 text-center">
+                Use of this site constitutes acceptance of our <a href="/info/policy/">User
+                Agreement
+                and Privacy
+                Policy</a>.
+            </div>
+            <div class="col-md-12 text-center">
+                Powered by <a href="https://github.com/ialbert/biostar-central">Biostar</a>
+                version 2.1.0
+            </div>
+        </div>
+    
+
+    
+    <div id="traffic">Traffic: 582 users visited in the last hour</div>
+
+</div>
+
+
+
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-101522-12']);
+        _gaq.push(['_setDomainName', 'biostars.org']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+
+    </script>
+
+</body>
+</html>

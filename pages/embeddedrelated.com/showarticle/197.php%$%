@@ -1,0 +1,895 @@
+
+
+
+
+
+
+
+					 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>		  
+<link rel="canonical" href="http://www.embeddedrelated.com/showarticle/197.php"/>
+  <link rel="shortcut icon" href="http://www.embeddedrelated.com/new/favicon.ico" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Adventures in Signal Processing with Python (MATLAB? We donât need no stinkin' MATLAB!)</title>
+  <!--<link href="/new/style.css" rel="stylesheet" type="text/css" />-->
+<link href="http://www.embeddedrelated.com/new/css/style_v8.css" rel="stylesheet" type="text/css" /> 
+<script type="text/javascript" src="http://www.embeddedrelated.com/new/highslide/highslide/highslide-full.js"></script>
+<script type="text/javascript" src="http://www.embeddedrelated.com/new/highslide/highslide/highslide.config.js" charset="utf-8"></script>
+<link rel="stylesheet" type="text/css" href="http://www.embeddedrelated.com/new/highslide/highslide/highslide.css" />
+<!--[if lt IE 7]>
+<link rel="stylesheet" type="text/css" href="http://www.embeddedrelated.com/new/highslide/highslide/highslide-ie6.css" />
+<![endif]-->  
+  <meta name="description" content="Embedded Systems Blog: Adventures in Signal Processing with Python (MATLAB? We donât need no stinkin' MATLAB!)" />
+  <meta name="keywords" content="Embedded, Embedded Systems, Blogs, Adventures in Signal Processing with Python (MATLAB? We donât need no stinkin' MATLAB!)" />
+
+<script src="http://cdn.embeddedrelated.com/js/ratingscript.js" type="text/javascript"></script>
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript">google.load("prototype", "1.6.1.0");</script><script type="text/javascript">	 
+function submitRating(evt)
+{
+    var tmp = Event.element(evt).getAttribute('id').substr(5);
+    var widgetId = tmp.substr(0, tmp.indexOf('_'));
+    var starNbr = tmp.substr(tmp.indexOf('_')+1);	
+	/*var myAjax = new Ajax.Updater('response'+'_'+widgetId, '/new/php/submitRating.php', {
+      method: 'get',
+      parameters: {itemrated: widgetId, Rating: starNbr, section: "blogs"}});	*/
+
+	var myAjax = new Ajax.Request('/new/php/submitRating.php', {
+		method:'get',
+		parameters: {itemrated: widgetId, Rating: starNbr, section: "blogs"},
+		onSuccess: function(transport){
+		  var response = transport.responseText;
+		  $('response_'+widgetId).innerHTML = response;
+		  newrating = response.substr((response.indexOf(':')+1), ((response.indexOf('|')) - (response.indexOf(':')+1)));	 
+		  update_stars(widgetId,newrating);
+		}
+	});
+
+   /* new Ajax.Request('/new/php/submitRating.php', {
+      method: 'get',
+      parameters: {itemrated: widgetId, Rating: starNbr, section: "blogs"},
+      onSuccess: function(transport) {
+          alert(transport.responseText);
+      }
+    });*/
+}
+
+function prototypeInit()
+{
+    init_rating();
+    $$('.rating').each(function(n){
+                        n.immediateDescendants().each(function(c){
+                            Event.observe(c, 'click', submitRating);
+                        });
+                    });
+}
+
+Event.observe(window, 'load', prototypeInit);
+</script>
+
+
+
+		<script language="JavaScript" type="text/JavaScript">
+		document.write('<iframe src="/new/loghits_blogs.php?section=blogs&id=359&ip=31.220.200.20" style="visibility:hidden" width="1" height="1" frameborder="0"></iframe>');
+	</script>  									  
+
+<script type="text/javascript" src="http://www.embeddedrelated.com/new/syntaxhighlighter/scripts/shCore.js"></script>
+	<script type="text/javascript" src="http://www.embeddedrelated.com/new/syntaxhighlighter/scripts/shBrushPython.js"></script>
+	<script type="text/javascript" src="http://www.embeddedrelated.com/new/syntaxhighlighter/scripts/shBrushCpp.js"></script>	
+	<script type="text/javascript" src="http://www.embeddedrelated.com/new/syntaxhighlighter/scripts/shBrushVhdl.js"></script>	
+	<script type="text/javascript" src="http://www.embeddedrelated.com/new/syntaxhighlighter/scripts/shBrushMatlabSimple.js"></script>			
+	<script type="text/javascript" src="http://www.embeddedrelated.com/new/syntaxhighlighter/scripts/shBrushPlain.js"></script>				
+	<script type="text/javascript" src="http://www.embeddedrelated.com/new/syntaxhighlighter/scripts/shBrushAda.js"></script>					
+	<link type="text/css" rel="stylesheet" href="http://www.embeddedrelated.com/new/syntaxhighlighter/styles/shCoreDefault.css"/>
+	<script type="text/javascript">SyntaxHighlighter.all();</script><script type="text/javascript"
+  src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+  <script type="text/javascript">
+		var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-1774944-2']);
+      _gaq.push(['_trackPageview']);
+    
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+		</script>													 
+  
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>	  
+<script type="text/javascript" src="http://www.embeddedrelated.com/new/Commax/assets/js/commax_engine.js"></script>	
+<link rel="stylesheet" type="text/css" href="http://www.embeddedrelated.com/new/Commax/assets/css/skin1.css" />    
+  
+</head> 
+
+<body>
+
+<div id="wrapper" style="width:1120px;">
+  <div id="header">
+    	<span id="logo"><a href="http://www.embeddedrelated.com"><img src="http://cdn.embeddedrelated.com/images/logo.jpg" alt="EmbeddedRelated.com Logo" /></a></span>
+        <fieldset id="search">
+        <form action="http://www.embeddedrelated.com/search.php" method="post">	 
+        	<input name="searchfor" type="text" value="Search Keywords" class="textfield2" onclick="this.value=''"/>
+            <input type="image" src="http://cdn.embeddedrelated.com/images/go.gif" />
+        </form>
+        </fieldset>
+  </div>
+
+		<div id="menu">
+			<ul>
+<li><a href="http://www.embeddedrelated.com" title="Embedded Systems Blogs">Home</a></li>
+<li class="active"><a href="http://www.embeddedrelated.com/blogs.php" title="Embedded Systems Blogs">Blogs!</a></li>
+<li><a href="http://www.embeddedrelated.com/openmic.php" title="EmbeddedRelated.com Open Mic">Open Mic</a></li>
+			<li><a href="http://www.embeddedrelated.com/groups.php" title="Embedded Systems Forums">Forums</a></li>
+	<li><a href="http://www.embeddedrelated.com/blogs-1/mp/all/Tutorials.php" title="Embedded Systems tutorials">Tutorials</a></li>
+<li><a href="http://www.embeddedrelated.com/code.php" title="Embedded Systems Code Snippets">Code</a></li>
+	<li><a href="http://www.embeddedrelated.com/documents.php" title="Embedded Systems articles, theses, dissertations, etc.">Papers</a></li>
+	<li><a href="http://www.embeddedrelated.com/books.php" title="Embedded Systems Books">Books</a></li>
+<li><a href="http://www.embeddedrelated.com/resources.php" title="Embedded Systems Links">Links</a></li>
+			</ul>		</div>
+
+
+	
+    <div id="side">
+
+    	<h2>Sign in</h2>						   		
+		<form name="login" class="pure-form" action="" method="post">
+	    <fieldset>
+	        <input type="text" name="usernameposted" placeholder="Username" class="pure-input-login" maxlength="40" style="float: none;">
+	        <input type="password" name="passwordposted"  class="pure-input-login" placeholder="Password" style="float: none;">
+	        <button type="submit" class="pure-button pure-button-green notice" style="float: none;">Sign in</button>			
+		<span><a href="/register.php" rel="nofollow">Not a member?</a> | <a href="/new/forgot.php" rel="nofollow">Forgot your Password?</a></span>
+	    </fieldset>
+
+		</form>
+
+    	<h2>Search blogs</h2>						   		
+		<form name="search" class="pure-form" action="/blogs.php" method="post">
+	    <fieldset>
+	        <input type="text" name="searchfor" placeholder="" class="pure-input-search" maxlength="80" style="float: none;">
+	        <button type="submit" class="pure-button pure-button-green notice" style="float: none;">Search</button>
+			<span><a href="/searchtips.html" rel="nofollow">Search tips</a></span>
+	    </fieldset>
+		</form>
+<h2>Free PDF Downloads<img src="/new/images/pdfIcon_small.png" border="0" width="25" height="25" alt="" style="vertical-align: middle;  padding-left: 10px;"/></h2><div style="background:#c2cad3; padding:10px; margin-bottom:10px; font-size: 14px;"><p><a href="http://www.embeddedrelated.com/showabstract/196.php"><img src="/new/images/pdfIcon_small.png" border="0" width="50" height="50" alt="" style="vertical-align: middle; padding-right: 10px;"/></a> <a href="http://www.embeddedrelated.com/showabstract/196.php">Advanced Linux Programming</a></p><div style="clear:both"></div><div style="padding-bottom: 5px; border-bottom: 1px solid #946e5b"></div><div style="padding-bottom: 8px;"></div><p><a href="http://www.embeddedrelated.com/showabstract/190.php"><img src="/new/images/pdfIcon_small.png" border="0" width="50" height="50" alt="" style="vertical-align: middle; float: left; padding-right: 10px;"/></a> <a href="http://www.embeddedrelated.com/showabstract/190.php">What Every Programmer Should Know About Memory</a>
+</p><div style="clear:both"></div><div style="padding-bottom: 5px; border-bottom: 1px solid #946e5b"></div><div style="padding-bottom: 8px;"></div><p><a href="http://www.embeddedrelated.com/showabstract/178.php"><img src="/new/images/pdfIcon_small.png" border="0" width="50" height="50" alt="" style="vertical-align: middle; padding-right: 10px;"/></a> <a href="http://www.embeddedrelated.com/showabstract/178.php">Introduction to Embedded Systems</a>
+</p><div style="clear:both"></div><div style="padding-bottom: 5px; border-bottom: 1px solid #946e5b"></div><div style="padding-bottom: 8px;"></div><p><a href="http://www.embeddedrelated.com/showabstract/180.php"><img src="/new/images/pdfIcon_small.png" border="0" width="50" height="50" alt="" style="vertical-align: middle; padding-right: 10px;"/></a> <a href="http://www.embeddedrelated.com/showabstract/180.php">C++ Tutorial</a>
+</p><div style="clear:both"></div><div style="padding-bottom: 5px; border-bottom: 1px solid #946e5b"></div><div style="padding-bottom: 8px;"></div><p><a href="http://www.embeddedrelated.com/showabstract/177.php"><img src="/new/images/pdfIcon_small.png" border="0" width="50" height="50" alt="" style="vertical-align: middle; float: left; padding-right: 10px;"/></a> <a href="http://www.embeddedrelated.com/showabstract/177.php">Embedded Systems - Theory and Design Methodology</a>
+</p><div style="clear:both"></div><div style="padding-bottom: 5px; border-bottom: 1px solid #946e5b"></div><div style="padding-bottom: 8px;"></div><p><a href="http://www.embeddedrelated.com/showabstract/208.php"><img src="/new/images/pdfIcon_small.png" border="0" width="50" height="50" alt="" style="vertical-align: middle; float: left; padding-right: 10px;"/></a> <a href="http://www.embeddedrelated.com/showabstract/208.php">Microcontroller Programming and Interfacing</a>
+</p><div style="clear:both"></div><div style="padding-bottom: 5px; border-bottom: 1px solid #946e5b"></div><div style="padding-bottom: 8px;"></div><p><a href="http://www.embeddedrelated.com/showabstract/207.php"><img src="/new/images/pdfIcon_small.png" border="0" width="50" height="50" alt="" style="vertical-align: middle; padding-right: 10px;"/></a> <a href="http://www.embeddedrelated.com/showabstract/207.php">Introduction to Microcontrollers</a>
+</p><div style="clear:both"></div><br /><a href="/documents.php">More Free PDF Downloads</a><div style="clear:both"></div></div><h2>Recent Blogs on EmbeddedRelated</h2><div style="background:#c2cad3; padding:10px; margin-bottom:10px; font-size: 14px;"><p><div style="float:left;  margin: 5px;"><img src="/new/images/bloggers/88624.jpg" alt="" width="59" height="54" align="left" style="" class="image" /></div><a href="/showarticle/609.php">10 Items of Test Equipment You Should Know</a><BR /><strong>posted by</strong> <a href="/blogs-1/nf/Jason_Sachs.php" style="color:#FC6F00; text-decoration:none;">Jason Sachs</a></p><br /><div style="clear:both"></div><div style="clear:both"></div><div style="padding-bottom: 5px; border-bottom: 1px solid #946e5b"></div><div style="padding-bottom: 8px;"></div><p><div style="float:left;  margin: 5px;"><img src="/new/images/bloggers/81770.jpg" alt="" width="59" height="54" align="left" style="" class="image" /></div><a href="/showarticle/605.php">A wireless door monitor based on the BANO framework</a><BR /><strong>posted by</strong> <a href="/blogs-1/nf/Fabien_Le_Mentec.php" style="color:#FC6F00; text-decoration:none;">Fabien Le Mentec</a></p><br /><div style="clear:both"></div><div style="clear:both"></div><div style="padding-bottom: 5px; border-bottom: 1px solid #946e5b"></div><div style="padding-bottom: 8px;"></div><p><div style="float:left;  margin: 5px;"><img src="/new/images/bloggers/14446.jpg" alt="" width="59" height="54" align="left" style="" class="image" /></div><a href="/showarticle/604/specifying-the-maximum-amplifier-noise-when-driving-an-adc">Specifying the Maximum Amplifier Noise When Driving an ADC</a><BR /><strong>posted by</strong> <a href="/blogs-1/nf/Rick_Lyons.php" style="color:#FC6F00; text-decoration:none;">Rick Lyons</a></p><br /><div style="clear:both"></div><div style="clear:both"></div><div style="padding-bottom: 5px; border-bottom: 1px solid #946e5b"></div><div style="padding-bottom: 8px;"></div><p><div style="float:left;  margin: 5px;"><img src="/new/images/defaultavatar.jpg" alt="" width="59" height="54" align="left" style="" class="image" /></div><a href="/showarticle/600.php">How to make a heap profiler</a><BR /><strong>posted by</strong> <a href="/blogs-1/nf/Yossi_Kreinin.php" style="color:#FC6F00; text-decoration:none;">Yossi Kreinin</a></p><br /><div style="clear:both"></div><div style="clear:both"></div><div style="padding-bottom: 5px; border-bottom: 1px solid #946e5b"></div><div style="padding-bottom: 8px;"></div><p><div style="float:left;  margin: 5px;"><img src="/new/images/bloggers/98718.jpg" alt="" width="59" height="54" align="left" style="" class="image" /></div><a href="/showarticle/591.php">Vintage robotics!</a><BR /><strong>posted by</strong> <a href="/blogs-1/nf/Lonnie_Honeycutt.php" style="color:#FC6F00; text-decoration:none;">Lonnie Honeycutt</a></p><br /><div style="clear:both"></div><div style="clear:both"></div><div style="padding-bottom: 5px; border-bottom: 1px solid #946e5b"></div><div style="padding-bottom: 8px;"></div><p><div style="float:left;  margin: 5px;"><img src="/new/images/bloggers/98338.jpg" alt="" width="59" height="54" align="left" style="" class="image" /></div><a href="/showarticle/585.php">Ada 2012 Comes to ARM Cortex M3/M4</a><BR /><strong>posted by</strong> <a href="/blogs-1/nf/Michael_Silva.php" style="color:#FC6F00; text-decoration:none;">Michael Silva</a></p><br /><div style="clear:both"></div>
+   </div><h2>Introduction to Microcontrollers</h2><div style="background:#c2cad3; padding:10px; margin-bottom:10px; font-size: 14px;"><p><b>1 - </b><a href="/showarticle/453.php">Beginnings</a></p><p><b>2 - </b><a href="/showarticle/456.php">Further Beginnings</a></p><p><b>3 - </b><a href="/showarticle/460.php">Hello World</a></p><p><b>4 - </b><a href="/showarticle/462.php">More On GPIO</a></p><p><b>5 - </b><a href="/showarticle/469.php">Interrupts</a></p><p><b>6 - </b><a href="/showarticle/472.php">More On Interrupts</a></p><p><b>7 - </b><a href="/showarticle/478.php">Timers</a></p><p><b>8 - </b><a href="/showarticle/490.php">Adding Some Real-World Hardware</a></p><p><b>9 - </b><a href="/showarticle/485.php">More Timers and Displays</a></p><p><b>10 - </b><a href="/showarticle/505.php">Buttons and Bouncing</a></p><p><b>11 - </b><a href="/showarticle/519.php">Button Matrix & Auto Repeating</a></p><p><b>12 - </b><a href="/showarticle/528.php">Driving WS2812 RGB LEDs</a></p>
+	   </div>	
+<h2>See Also</h2><div style="background:#c2cad3; padding-top:5px; height:67px; margin-bottom:10px;"><div style="text-align: center"><a href="http://www.Electronics-Related.com" title="Electronics on Electronics-Related.com"><img src="http://www.embeddedrelated.com/new/images/electronics_small_logo.jpg" border="0" alt="Electronics"></a><a href="http://www.dsprelated.com" title="DSP on DSPRelated.com"><img src="http://www.embeddedrelated.com/new/images/dsp_small_logo.jpg" border="0" alt="DSP" /></a><a href="http://www.fpgarelated.com" title="FPGA on FPGARelated.com"><img src="http://www.embeddedrelated.com/new/images/fpga_small_logo.jpg" border="0" alt="FPGA" /></a></div></div><div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=351401231604682";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script><h2>Find us on Facebook</h2><div class="fb-like-box" data-href="https://www.facebook.com/embeddedrelated" data-width="336" data-height="190" data-colorscheme="light" data-show-faces="true" data-header="false" data-stream="false" data-show-border="true" style="background-color: #FFFFFF;"></div><br /><br /><a class="twitter-timeline" data-chrome="nofooter" href="https://twitter.com/EmbeddedRelated" data-widget-id="421644633525874689" data-screen-name="EmbeddedRelated">Tweets by @EmbeddedRelated</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script><br /><br />	  
+  </div>
+   <div id="container" style="width:730px;">	
+		<div class="title">
+			<h1><a href="/blogs.php">Embedded Systems Blogs</a> > <a href="/blogs-1/nf/Jason_Sachs.php">Jason Sachs</a> > Adventures in Signal Processing with Python (MATLAB? We donât need no stinkin' MATLAB!)</h1>
+		</div>	
+		    <div  style="height:280px;" class="box left"><SCRIPT language='JavaScript1.1' SRC="http://ad.doubleclick.net/adj/N5744.160338.8235592114521/B7096369;sz=336x280;pc=[TPAS_ID];ord=1404132103?">
+</SCRIPT>
+<NOSCRIPT>
+<A HREF="http://ad.doubleclick.net/jump/N5744.160338.8235592114521/B7096369;sz=336x280;pc=[TPAS_ID];ord=1404132103?">
+<IMG SRC="http://ad.doubleclick.net/ad/N5744.160338.8235592114521/B7096369;sz=336x280;pc=[TPAS_ID];ord=1404132103?" BORDER=0 WIDTH=336 HEIGHT=280 ALT="Advertisement"></A>
+</NOSCRIPT>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			</div>
+		    <div style="height:280px;" class="box right"><div style="clear:both"></div>
+				<div id="blogUser">
+					<div style="float:left; width:70px; margin-top:5px;"><img src="/new/images/bloggers/88624.jpg" alt="" width="59" height="54" align="left" style="" class="image" /></div>
+					<!--<div style="float:left; width:250px;">-->
+						<strong><a href="/contact.php?bloggerid=88624" rel="nofollow"><span class="orange">Jason Sachs</span> (contact)</a></strong><br />
+						Jason has 17 years of experience in signal conditioning (both analog + digital) in motion control + medical applications. He likes making things spin. <br />
+					<!--</div>-->
+				</div>      <p><strong>Would you like to be notified by email when Jason Sachs publishes a new blog?</strong></p>
+		  <p><span class="formsubscribe"><form action="" method="post"><input type="text" name="youremail" size="20" maxlength="100" value="Your Email Here" onclick="this.value=''"/>&#160;&#160;<input name="submit" type="SUBMIT" class="button" value="Subscribe"><input type="hidden" name="bloggerid" value="88624" /></form></span><br /><a href="https://twitter.com/EmbeddedRelated" class="twitter-follow-button" data-show-count="false" data-size="large">Follow @EmbeddedRelated</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script><br /><br /><!-- AddThis Button BEGIN -->
+<div class="addthis_toolbox addthis_default_style addthis_32x32_style">
+<a class="addthis_button_facebook"></a>
+<a class="addthis_button_twitter"></a>
+<a class="addthis_button_reddit"></a>
+<a class="addthis_button_google_plusone_share"></a>
+<a class="addthis_button_linkedin"></a>
+</div>
+<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=xa-51c1be5c0d3cd31b"></script>
+<!-- AddThis Button END --><br /><b>Pageviews</b>: 6251			
+		    </div><div style="clear:both"></div>
+			<div id="blog03"><!-- google_ad_section_start -->
+			 	<h1>Adventures in Signal Processing with Python (MATLAB? We donât need no stinkin' MATLAB!)</h1>
+				<span class="postedby">Posted by <a href="/blogs-1/nf/Jason_Sachs.php" class="name">Jason Sachs</a> on Jun 23 2013 under <a href="/blogs-1/nf/all/Tools.php" class="name">Tools</a>&#160;|&#160;<a href="/blogs-1/nf/all/Signal_Processing.php" class="name">Signal Processing</a>&#160;</span>&#160;&#160;
+				<br /><br />
+			   	<p>OK, now back to some down-to-earth topics after <a href="../showarticle/132.php">that last philosophical diversion</a>. This post will be a short tour of PyLab, and a springboard for a number of other topics &mdash; including that long-awaited sequel to <a href="../showarticle/158.php">encoder speed estimation</a>.</p>
+<p>At work, we use MATLAB as data analysis and visualization software. But my group only has it available on a shared laptop. And I got tired of having to share. :&ndash;) So I started looking at alternatives.</p>
+<p>Scilab, Octave, Sage&hellip; all were kind of flaky, and didn&rsquo;t seem to have the features and richness I wanted. Then I found out about <a href="http://wiki.scipy.org/PyLab">PyLab</a>.</p>
+<p>PyLab is a Python environment for scientific computation that includes the following packages:</p>
+<ul>
+<li><a href="http://matplotlib.org/">matplotlib</a> for graphing and data visualization</li>
+<li><a href="http://www.numpy.org/">numpy</a> for fundamental numerical analysis (vectors, matrices, and scientific functions that operate on them)</li>
+<li><a href="http://www.scipy.org/">scipy</a> for scientific and engineering applications.</li>
+</ul>
+<p>Hold on a minute &mdash; this is an embedded systems blog, right?! Python won&rsquo;t run on a resource-limited embedded system, and in fact Python is one of my three criteria&hellip;.</p>
+<p>Signs You Aren&rsquo;t Working on a Resource-Limited Embedded System:</p>
+<ol>
+<li>You have an operating system with a command shell.</li>
+<li>You can run Python.</li>
+<li>There&rsquo;s a compiler that runs on your system, so you don&rsquo;t need a cross-compiler.</li>
+</ol>
+<p>So if you&rsquo;re using Python, you&rsquo;re not really doing embedded system development. But that&rsquo;s okay. Because you need to expand your horizons. Don&rsquo;t be a one-trick pony and get stuck in C and assembly development for your favorite processor of choice!</p>
+<p>Anyway, there&rsquo;s lots of times when I have to stop programming and try out the theory of some idea I have. And lately PyLab has been a huge help.</p>
+<p>Here are some examples of what it can do. But first, a caveat:</p>
+<h3>We <em>do</em> need stinkin' MATLAB?!</h3>
+<p>I need to be clear that this post is aimed at engineers (particularly embedded systems developers) who have signal processing, data analysis, and visualization work to do as a secondary part of their job.</p>
+<p>For those of you who are doing full-time, hardcore signal processing or control systems design, MATLAB is probably the right tool for the job. If your company can afford to pay you for 40 hours a week, they can probably afford MATLAB as well.</p>
+<p>If the cost wasn&rsquo;t an issue, I&rsquo;d love to use MATLAB, and I&rsquo;d get all the toolboxes I could.</p>
+<p>I am also not going to present in-depth discussion of signal processing or control systems algorithms (z-transforms, FFTs, root-locus plots, Nichols charts, etc.). And I&rsquo;m not going to tell you step-by-step instructions for using Python and PyLab. This is merely a tour of PyLab to pique your interest.</p>
+<h2>Example applications</h2>
+<p>Suppose you need to understand ripple current in an H-bridge with an inductive load, under edge-aligned and center-aligned pulse-width modulation.</p>
+<p>Here&rsquo;s some plots of ripple current, along with a short Python script that I used to produce them:</p>
+<p><strong>Edge-aligned PWM:</strong> <img src="http://farm4.staticflickr.com/3725/9102883362_7874b1ba6d_o.png" alt="image" /></p>
+<p><strong>Center-aligned PWM:</strong> <img src="http://farm8.staticflickr.com/7401/9102883514_d9cc404843_o.png" alt="image" /></p>
+<pre><code>import matplotlib.pyplot as plt
+import numpy
+import scipy.integrate
+
+t = numpy.arange(0,4,0.001)
+
+# duty cycle on phase A and B
+Da = 0.70
+Db = 0.40
+
+def extendrange(ra,rb):
+  if ra is None:
+    return rb
+  elif rb is None:
+    return ra
+  else:
+    return (min(ra[0],rb[0]),max(ra[1],rb[1]))
+
+def createLimits(margin, *args):
+    r = None
+    for x in args:
+        r = extendrange(r, (numpy.min(x),numpy.max(x)))
+    rmargin = (r[1]-r[0])*margin/2.0
+    return (r[0]-rmargin,r[1]+rmargin)
+
+def showripple(centeralign=False):
+    # voltage waveforms on phases A and B
+
+    if centeralign:
+      sawtooth = abs(2*(t % 1) - 1)
+      Va = sawtooth &lt; Da
+      Vb = sawtooth &lt; Db
+    else:
+      ramp = t % 1
+      Va = ramp &lt; Da
+      Vb = ramp &lt; Db
+
+    Vab = Va - Vb
+
+    def ripple(x,t):
+      T = t[-1]-t[0]
+      meanval = numpy.mean(x)
+      # cumtrapz produces a vector of length N-1
+      # so we need to add one element back in
+      return numpy.append([0],scipy.integrate.cumtrapz(x - meanval,t))
+
+    Iab = ripple(Vab, t)
+
+    # plot results
+    margin = 0.1
+    fig = plt.figure(figsize=(8, 6), dpi=80)
+    ax = fig.add_subplot(3,1,1)
+    y = [Va*0.8, Vb*0.8+1]
+    ax.plot(t,y[0],t,y[1])
+    ax.set_yticks([0.4,1.4])
+    ax.set_yticklabels(['A','B'])
+    ax.set_ylim(createLimits(margin,y[0],y[1]))
+    ax.set_ylabel('Phase duty cycles')
+
+    ax = fig.add_subplot(3,1,2)
+    ax.plot(t,Vab)
+    ax.set_ylim(createLimits(margin,Vab))
+    ax.set_ylabel('Load voltage')
+
+    ax = fig.add_subplot(3,1,3)
+    ax.plot(t,Iab)
+    ax.set_ylim(createLimits(margin,Iab))
+    ax.set_ylabel('Ripple current')
+    savefile = 'pwm-%s-1.png' % ('center' if centeralign else 'edge')
+    fig.savefig(savefile, dpi=fig.dpi)
+
+showripple(centeralign=False)
+showripple(centeralign=True)
+plt.show()
+</code></pre>
+<p>Or comparing two 2-stage RC filters, one with identical RCs and one with impedances on the 2nd stage increased by 10 to reduce loading (note: schematic below not from Python but drawn manually in <a href="http://www.circuitlab.com">CircuitLab</a>):</p>
+<p><img src="http://farm8.staticflickr.com/7428/9101318339_1b47f97928_o.png" alt="image" /></p>
+<p><img src="http://farm6.staticflickr.com/5453/9101035741_240429bfd0_o.png" alt="image" /></p>
+<p>Again, here&rsquo;s the short source code:</p>
+<pre><code>import matplotlib.pyplot as plt
+import numpy
+import itertools
+
+# array version of the zip() function
+def azip(*args):
+  iters = [iter(arg) for arg in args]
+  for i in itertools.count():
+    yield tuple([it.next() for it in iters])      
+
+# special case for 2 args
+def azip2(a1,a2):
+  it1 = iter(a1)
+  it2 = iter(a2)
+  for i in itertools.count():
+    yield (it1.next(), it2.next())      
+
+def rcfilt(t,Vin,R,C):
+  N = len(C)
+  Vc = [0]*N
+  tprev = None
+  for (tj,Vj) in azip2(t,Vin):
+    if tprev is not None:
+      I = [(Vj-Vc[0])/R[0]] + [(Vc[k-1]-Vc[k])/R[k] for k in range(1,N)] + [0]
+      dt = tj - tprev
+      for k in range(N):
+        Vc[k] += (I[k]-I[k+1])/C[k]*dt
+    tprev = tj
+    yield numpy.array(Vc)
+
+
+# 0-100 microseconds
+t = numpy.arange(0,100,0.1)*1e-6
+tus = t*1e6
+Vin = (tus &gt;= 10) * 1.0
+
+# R1 = 1kohm,  C1 = 10nF
+# R2 = 10kohm, C2 = 1nF
+R = [1000, 10000]
+C = [10e-9, 1e-9]
+Vc_a = numpy.array(list(rcfilt(t,Vin,R,C)))
+
+R = [1000, 1000]
+C = [10e-9, 10e-9]
+Vc_b = numpy.array(list(rcfilt(t,Vin,R,C)))
+
+fig = plt.figure(figsize=[8,6], dpi=80)
+ylabels = ['Vc_a', 'Vc_b']
+for (k,Vc) in enumerate([Vc_a,Vc_b]):
+    ax = fig.add_subplot(3,1,k+1)
+    ax.plot(tus,Vin,tus,Vc)
+    ax.legend(['Vin','Vc1','Vc2'])
+    ax.set_ylabel(ylabels[k])
+    ax.grid('on')
+
+ax = fig.add_subplot(3,1,3)
+ax.plot(tus,Vc_a[:,-1],tus,Vc_b[:,-1])
+ax.legend(['Vc2_a','Vc2_b'])
+ax.set_ylabel('Vc2')
+ax.grid('on')
+
+fig.suptitle('2-pole RC filters: Vc_a = 1K,10nF,10K,1nF; Vc_b = 1K,10nF,1K,10nF')
+fig.savefig('rcfilt1.png',dpi=fig.dpi)
+plt.show()  
+</code></pre>
+<p>Or using the <a href="http://sympy.org/en/index.html">sympy</a> symbolic algebra package for Python to compute the mean squared value of a piecewise linear segment:</p>
+<pre><code>from sympy import *
+x0,x1,y0,y1,m,h = symbols('x0 x1 y0 y1 m h')
+simplify(integrate((m*(x-x0)+y0)**2,(x,x0,x0+h)).subs(m,(y1-y0)/h))
+</code></pre>
+<p>You can even try this yourself on the <a href="http://live.sympy.org/">SymPy Live server</a>:</p>
+<p><img src="http://farm8.staticflickr.com/7386/9103509986_9b24e91f9b_o.png" alt="image" /></p>
+<h2>Installation</h2>
+<p>The core Python installation is pretty easy; OSX users have Python installed right out of the box, but no matter what your OS, there are <a href="http://python.org/download/">precompiled binaries on python.org</a>. Things get a little trickier if you want to install the scipy/numpy/matplotlib libraries without relying on having the right compiler environment installed.</p>
+<p>There are some good solutions <a href="http://scipy.org/install.html">listed on the scipy.org website</a>; I thought I&rsquo;d share my own experiences as well. I don&rsquo;t have experience using Linux so check the scipy.org page.</p>
+<h3>Windows</h3>
+<p>There are three free prepackaged versions of PyLab that I&rsquo;ve used:</p>
+<ul>
+<li><a href="https://www.enthought.com/store/">Enthought Canopy</a></li>
+<li><a href="http://portablepython.com/">PortablePython</a></li>
+<li><a href="https://code.google.com/p/pythonxy/">PythonXY</a></li>
+</ul>
+<p>PortablePython had the most reliable install/runtime. PythonXY has the largest feature set (and the largest install size). Enthought Canopy is nice; Enthought offers a free version to try it out, and if you want more libraries included you can purchase a non-free version &mdash; their earlier distribution, EPD, was a little easier to run from the command-line and I&rsquo;m not sure how to do it reliably yet with Enthought Canopy.</p>
+<p>There&rsquo;s also <a href="https://store.continuum.io/cshop/anaconda/">Anaconda</a>, which I&rsquo;ve just started using on Mac OSX, but haven&rsquo;t tried on Windows yet.</p>
+<h3>Mac OSX</h3>
+<p>I&rsquo;m running Snow Leopard (OSX 10.6) on my Mac at home. I haven&rsquo;t found a great solution for PyLab yet but am working on it.</p>
+<p>The easiest free install for PyLab appears to be <a href="https://store.continuum.io/cshop/anaconda/">Anaconda.</a> from Continuum Analytics. The install was easy, and it just works&hellip; except I got some warnings about memory allocation when I ran the scripts I wrote for this post (the scripts did work properly, though), and when I went to run my regular Python installation, my matplotlib install was screwed up. Grrr. Hopefully these kinks will get straightened out; Anaconda looks very promising.</p>
+<p>The usual free-software process on Macs uses package managers like fink or MacPorts; the MacPorts process (<code>sudo port install blahblahblah&hellip;</code> from a command terminal) is kind of brittle, and if you have something wrong with your setup, the whole process comes to a halt, with a cryptic message.</p>
+<p>Enthought Canopy has OSX and Linux versions out there as well, but I haven&rsquo;t tried it yet.</p>
+<p>It&rsquo;s also possible to use precompiled binaries out there for the various packages. Although Python comes pre-installed on the Mac, make sure your version of Python is compatible with the libraries you install. I&rsquo;d recommend installing an up-to-date version of Python as well. At a minimum, here&rsquo;s what you need:</p>
+<ul>
+<li><a href="http://www.python.org/getit/">Python</a></li>
+<li><a href="http://matplotlib.org/downloads.html">matplotlib</a></li>
+<li><a href="http://sourceforge.net/projects/scipy/files/">scipy</a></li>
+<li><a href="http://sourceforge.net/projects/numpy/files/">numpy</a></li>
+</ul>
+<h2>MATLAB vs. Python</h2>
+<h3>Reasons to use MATLAB</h3>
+<ul>
+<li>It&rsquo;s well-respected software, head and shoulders above other competitors</li>
+<li>Simulink has no real alternatives</li>
+<li>It has fast matrix math, a good debugger, and special syntax to facilitate numerical analysis:
+<ul>
+<li>array slices: <code>A(:,5:10) = 33;</code></li>
+<li>sequence creation: <code>B = [1:3:30];</code></li>
+<li>array concatenation: <code>Brepeat = [B, B, B]; C = [B; B*2; B.*B];</code></li>
+</ul>
+</li>
+<li>GUI tools like SPTool (for general signal visualization and filtering) or FDATool (for digital filter design)</li>
+<li>For high-quality professional-grade signal processing and control systems design</li>
+</ul>
+<h3>Reasons not to use MATLAB</h3>
+<ul>
+<li><strong>It&rsquo;s expensive for individual licenses!</strong> A copy of the core MATLAB is US$2150 at the time of this writing. That&rsquo;s not so bad in a corporate environment, but multiply that by the number of people who need to use it, and all their other toolboxes are sold &agrave; la carte.</li>
+<li><strong>It&rsquo;s expensive for group licenses!</strong> A network-licensed version of MATLAB or any of its toolboxes costs 4x as much as a license for an individual PC. I can&rsquo;t say I&rsquo;ve ever seen a bandsaw or lathe for sale with two prices, one for individual use, and one which costs 4x as much if you want to share it among several people. At my old company we had 7 network licenses of MATLAB, with 40 or so people using it on various occasions &mdash; so for the core MATLAB program, it was worth the cost, but the toolboxes were rarely used, so we couldn&rsquo;t justify purchasing more than 1 license of the toolboxes, and in some cases we couldn&rsquo;t justify the toolboxes at all. I would have loved to be able to use the Matlab compiler, but a network license was just too pricey. Other software programs offer network licenses with multipliers in the 1.25-2.0 range, to justify the added convenience of being able to share it among multiple people as long as they don&rsquo;t use a license simultaneously, but The MathWorks is the only company I&rsquo;ve ever seen that uses a 4x multiplier.</li>
+<li><strong>It&rsquo;s expensive to get toolboxes just to use one feature on rare occasions!</strong> So you need some curve fitting tools two or three times a year? That&rsquo;s not really enough to justify purchasing a $1000 Curve Fitting Toolbox. I think what bothers me most is the attitude The MathWorks takes about their toolboxes. They seem to treat their customers as though they all have deep pockets. All their webinars and training sessions promote toolboxes &mdash; that part is okay, but they never bring up the cost unless you ask them, and they don&rsquo;t offer justification that technical staff could use with management to back up a request for the purchase of a $1000 license. And often there are mundane functions located in the toolboxes that really should be in the core MATLAB distribution. Here&rsquo;s an example: the <a href="http://www.mathworks.com/help/stats/norminv.html"><code>norminv()</code></a> function is located in the Statistics Toolbox; it&rsquo;s easily calculated by using the <a href="http://www.mathworks.com/help/matlab/ref/erfinv.html"><code>erfinv()</code></a> function built into MATLAB. But if someone working with you puts <code>norminv()</code> into their script because they have a license for Statistics Toolbox, then <em>you</em> either have to get Statistics Toolbox, or rewrite their script to use <code>erfinv()</code>.</li>
+<li><strong>The syntax is a bit quirky sometimes.</strong> Array numbering starts from 1. You have choices of a script file (.m) or a function (.m) that have consequences: Script files can&rsquo;t have subfunctions, and modify the global environment; function files can have subfunctions, and don&rsquo;t modify the global environment. If you forget to end a line with a semicolon, it&rsquo;s not an error, but the MATLAB interpreter will print out a value, and I can&rsquo;t tell you how many times I&rsquo;ve wasted 30 minutes trying to find out where that damn missing semicolon is, so I can get rid of the unintended printed value. strcmp() returns 0 for a mismatch and 1 for a match, which is incompatible with the usual C version of strcmp() which returns -1,0,1 depending on which string is first in order. I could go on but I&rsquo;ll stop.</li>
+<li><strong>Namespace management sucks.</strong> You want to keep your control systems gains out of Simulink models (akin to keeping hard-coded constants out of C code and in a separate .h file)? They have to go into the MATLAB base workspace. You can hack the <code>sim()</code> command into using the calling function&rsquo;s workspace, but it&rsquo;s kinda tricky and not compatible with other features of Simulink. It would be soooooooo easy for MathWorks to allow passing in a structure as an argument to Simulink, which is used as the source for all named constant lookups and &ldquo;From Workspace&rdquo; blocks. Alas, you can&rsquo;t do it. Same thing with the &ldquo;To Workspace&rdquo; blocks in Simulink, it just spews the results into the top-level workspace, clobbering any variables you might have with the same names. MATLAB does have the <a href="http://www.mathworks.com/help/matlab/ref/assignin.html"><code>assignin()</code></a> function, but it only has a limited selection of workspaces, and there isn&rsquo;t first-class workspace support.</li>
+</ul>
+<h3>Reasons to use Python</h3>
+<ul>
+<li>It&rsquo;s a beautiful, widely used language. Array numbering starts from 0, the language syntax is much better thought out, as is the class system. The module/packaging system in Python is much better than MATLAB&rsquo;s path. And I happen to like iterators and generators in Python, which aren&rsquo;t in MATLAB.</li>
+<li>Matplotlib is like MATLAB&rsquo;s plotting utility, but improved and easier to use.</li>
+<li>You get all the nifty Python libraries as well. Opening files, iterating over directories, etc. is all easier.</li>
+<li>If you want a MATLAB-like environment, you can use the <a href="http://ipython.org/">IPython</a> (interactive Python) shell, which includes goodies like tab-completion, debugging-on-error, and &ldquo;notebooks&rdquo; to record your exploration.</li>
+<li>The numpy/scipy/pandas libraries are comparable to MATLAB <em>plus</em> a bunch of toolboxes. For instance, I was recently able to work with some cubic-spline-fitting functions of scipy. I wouldn&rsquo;t have been able to do the same thing in MATLAB unless I had the Curve-Fitting Toolbox.</li>
+<li>It&rsquo;s free!</li>
+</ul>
+<h3>Things you give up when using Python</h3>
+<p>All of the following issues are caused by the fact that numpy is an add-on library to Python, vs. a first-class feature of the language.</p>
+<ul>
+<li>Array literals aren&rsquo;t as easy, you have to use <code>numpy.array([1,2,3])]</code> instead of <code>[1,2,3]</code> if you want full matrix-aware math.</li>
+<li>To operate on numpy arrays with elementary functions like <code>sin()</code> and <code>exp()</code>, you need to explicitly use the numpy versions of these functions.</li>
+<li>Array concatenation isn&rsquo;t as easy, you have to use <code>numpy.hstack</code> and <code>numpy.vstack</code> instead of <code>[A,B]</code> or <code>[A;B]</code></li>
+</ul>
+<h2>Want to learn more about PyLab?</h2>
+<p>First and foremost: try it!</p>
+<p>There are some great tutorials on <a href="http://scipy.org/getting-started.html">scipy.org</a>. Python is widespread enough that there are also many other tutorials scattered around the internet. <a href="http://scipy-lectures.github.io/intro/index.html">Here&rsquo;s one</a> that I found which looks like a good place to start.</p>
+<p>For Python in general, the O'Reilly book <a href="http://shop.oreilly.com/product/0636920028154.do"><em>Learning Python</em></a> is a classic &mdash; the 5th edition is just about nearing publication, but for the basics, you won&rsquo;t miss much by getting an earlier edition. There&rsquo;s also <a href="http://learnpythonthehardway.org/book/">Learn Python The Hard Way</a>, available free as an online series of exercises.</p>
+<h2>Other resources</h2>
+<p>I&rsquo;ve just started learning how to use <a href="http://pandas.pydata.org/">pandas</a> and <a href="http://ipython.org/">IPython</a>.</p>
+<h3>pandas</h3>
+<p>The <a href="http://pandas.pydata.org/">pandas</a> package includes tools for data analysis with Python. The numpy and scipy libraries work with N-dimensional arrays. The pandas library adds named and indexed columns and rows to arrays. If you&rsquo;ve ever worked with CSV files that have column headers, you know what I mean. Imagine removing the headers from a CSV file: what you have left is a matrix, where you have to remember that column 0 is time and columns 1-3 are motor phase voltage. The pandas library gives you a Python class called <a href="http://pandas.pydata.org/pandas-docs/dev/dsintro.html#dataframe">DataFrame</a>, which lets you annotate matrices with information about each of the rows and columns. There are a lot of other goodies in pandas.DataFrame for number-crunching on this type of data.</p>
+<p>Want to learn more about pandas?</p>
+<ul>
+<li>check out the <a href="http://pandas.pydata.org/pandas-docs/dev/index.html">documentation</a>: it&rsquo;s got a quick introduction and detailed information.</li>
+<li>get the O'Reilly book, <a href="http://shop.oreilly.com/product/0636920023784.do"><em>Python for Data Analysis</em></a>.</li>
+</ul>
+<h3>IPython</h3>
+<p>If you&rsquo;re used to the interactive shell in Matlab, IPython is for you. If you type <code>ipython notebook --pylab inline</code> it will start a webserver, open up your web browser, and pre-import the pylab libraries:</p>
+<p><img src="http://farm3.staticflickr.com/2837/9116645797_a6d1393c25_o.png" alt="image" /></p>
+<p>If you forget the methods available from an object, you can just press the tab key to get interactive completion:</p>
+<p><img src="http://farm8.staticflickr.com/7413/9118911552_bbe6a0699f_o.png" alt="image" /></p>
+<p>If you start writing a function call and hesitate, IPython will prompt you with some basic help:</p>
+<p><img src="http://farm8.staticflickr.com/7394/9116762597_5b0b40914c_o.png" alt="image" /></p>
+<p>And that&rsquo;s just the beginning. Like I said, I&rsquo;m still learning IPython. Want to learn more?</p>
+<ul>
+<li>check out the <a href="http://ipython.org/documentation.html">documentation</a></li>
+<li>watch the <a href="http://ipython.org/videos.html">tutorial videos</a></li>
+</ul>
+<h2>Conclusion</h2>
+<p>The more I learn about Python, the less dependent on MATLAB I become for the data analysis and visualization tasks I need for my job.</p>
+<p>Remember: embedded systems development isn&rsquo;t just about coding. It&rsquo;s about planning, in the context of a real system with electronic components and sometimes mechanical components. To make a better system, you can save yourself a lot of hassle by analyzing it <em>before</em> you just start throwing embedded C code at it. Tools like MATLAB and Python can help; if you or the people you work with don&rsquo;t have access to MATLAB, give Python a try.</p>
+<p>And have fun!</p><!-- google_ad_section_end --><br /><br /> 
+		
+
+				<strong>Rate this article:</strong><br />
+				<div class="rating" id="rating_359">4</div><span class="ratingtext"><div id="response_359">Rating: 4 | Votes: 2</div></span>			
+
+				<div style="height:20px; background:url(http://cdn.embeddedrelated.com/images/3x1.gif) repeat-x center;">&nbsp;</div>	 
+				<a name="authorbio" style="text-decoration: none;"></a>
+<!-- AddThis Button BEGIN -->
+<div class="addthis_toolbox addthis_default_style">
+<a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+<a class="addthis_button_tweet"></a>
+<a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+<a class="addthis_button_linkedin_counter"></a>
+<script type="IN/Share" data-counter="right"></script>
+&#160;&#160;&#160;<script type="text/javascript" src="http://www.reddit.com/static/button/button1.js"></script>
+</div>
+<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=xa-51c1be5c0d3cd31b"></script>
+<!-- AddThis Button END -->
+<div style="height:6px; background:url(http://cdn.embeddedrelated.com/images/3x1.gif) repeat-x center;">&nbsp;</div>	 
+
+
+	
+
+				<div style="float:left; width:70px; margin-top:5px;"><img src="/new/images/bloggers/88624.jpg" alt="" width="59" height="54" align="left" style="" class="image" /></div>
+				<strong>posted by</strong> <a href="/blogs-1/nf/Jason_Sachs.php" class="name">Jason Sachs</a>	 <br />
+			    Jason has 17 years of experience in signal conditioning (both analog + digital) in motion control + medical applications. He likes making things spin.<br />
+				
+				<div style="clear:both"></div>
+				<br />
+				Previous post by Jason Sachs: <a href="/showarticle/178.php"><em>Implementation Complexity, Part II: Catastrophe, Dear Liza, and the M Word</em></a><br />Next post by Jason Sachs: <a href="/showarticle/421.php"><em>Lost Secrets of the H-Bridge, Part I: Ripple Current in Inductive Loads</em></a><br />
+				<a href="/blogs-1/nf/Jason_Sachs.php"><em>all articles by Jason Sachs</em></a><br />
+			 </div>
+			 <span class="txtCommentBlogTitle">
+			 <br />
+			 Comments / Replies</span>		 
+			 <br />
+			 <br />
+				<div id="commax_container">
+				    <input type="hidden" id="ref_id_value" value="blogs-359" />
+				<div class="comment id_1459  ">
+					<div class="com_wrapper">
+						<a name="comment_1459"></a>
+						<div class="avatar">
+							<img src="http://www.gravatar.com/avatar/17f6bd25a1b5e256df00c51b3ba3d5bf?size=50&amp;default=http%3A%2F%2Fwww.embeddedrelated.com%2Fnew%2FCommax%2F%2Fassets%2Fimg%2Fdefault_avatar.gif" />
+						</div>
+						
+						<div class="name">Chuck</div>
+						<div class="says">Said:</div>
+						
+						<div class="body">You touched on this, but I think it's important to emphasize that Python is a widely accepted, general purpose programming language, with an amazingly rich, open-source ecosystem. Although MATLAB is probably a tad better for things that are in the center of its domain, Python lets you play in many, many more domains.<br /><br />I started out doing scientific programming in MATLAB. Switched to Python because I could not afford the MATLAB license. Then ended up doing web development because of my Python skills. Now I am back to scientific programming at a company that would buy me a MATLAB license, but I am sticking with Python because it does everything I need and helps me maintain my Python skills.</div>
+						<div class="btn_tools" id="tools_1459">
+							<div class="date" title="Added at 10:30 on 24 Jun 2013">1 year ago</div>
+							
+							<div id="karma_1459" class="karma karma_positive" title="Karma is positive. 2 votes up, 0 votes down">+2</div>
+							<div  id="karma_vote_1459" class="vote">
+								<a id="karma_vote_up_1459" class="vote_up" href="#"></a><a id="karma_vote_down_1459" class="vote_down" href="#"></a><span id="karma_msg_1459" class="karma_msg"></span>
+							</div>
+							
+							<a class="reply_btn" id="replyto_1459" href="#">Reply</a>
+							<div class="admin_tools">
+								
+							</div>
+							<div class="commax_clear"></div>
+						</div>
+						<div class="commax_clear"></div>
+						<div class="reply_container" id="rplcont_1459">
+							
+		<div class="no_javascript_no_form">Sorry, you need javascript enabled to post any comments.</div>
+		<div style="display: none;" class="yes_javascript_yes_form">
+			<form id="addCommentReply_1459" class="addReplyForm" method="post" action="">
+				Add a reply
+				<input type="hidden" name="ref_id" id="reply_ref_id_1459" value="blogs-359" />
+				<input type="hidden" name="userid" value="" />									
+				<input type="hidden" name="parent" value="1459" />
+				<div>				
+					<label for="reply_name_1459">Username</label><br>
+					<input type="text" name="name" id="reply_name_1459" />
+					
+					<label for="reply_email_1459">Your Email (won't be published)</label><br/>
+					<input type="text" name="email" id="reply_email_1459" />
+					
+<!--					<label for="reply_url_1459">Website (not required)</label><br />
+					<input type="text" name="url" id="reply_url_1459" />-->
+					
+					<label for="reply_body_1459">Comment Body</label><br/>
+					<textarea class="reply_text_area" name="body" id="reply_body_1459"></textarea>
+		
+					<input type="submit" class="reply_submit" id="reply_submit_1459" value="Submit" /><span id="rpl_count_1459" class="reply_char_counter">3000</span>
+				</div>
+			</form>
+		</div>
+		
+						</div>
+					</div>
+				</div>
+				
+				<div class="comment id_1460  ">
+					<div class="com_wrapper">
+						<a name="comment_1460"></a>
+						<div class="avatar">
+							<img src="http://www.gravatar.com/avatar/f6dee22da63e21b1f135cff6a9bc3e20?size=50&amp;default=http%3A%2F%2Fwww.embeddedrelated.com%2Fnew%2FCommax%2F%2Fassets%2Fimg%2Fdefault_avatar.gif" />
+						</div>
+						
+						<div class="name">markrages</div>
+						<div class="says">Said:</div>
+						
+						<div class="body">Python is great for code generation, because it has excellent support for string manipulation.<br /><br />I put a simple example at this chiphacker answer: <a rel="nofollow" target="blank" href="http://electronics.stackexchange.com/a/68083/411">http://electronics.stackexchange.com/a/68083/411</a><br /><br />This is a simplified example.   But with not much more code I can generate FIR filters at compile-time with scipy's remez algorithm,.  It makes experimentation so much easier.<br /></div>
+						<div class="btn_tools" id="tools_1460">
+							<div class="date" title="Added at 11:26 on 24 Jun 2013">1 year ago</div>
+							
+							<div id="karma_1460" class="karma karma_positive" title="Karma is positive. 1 votes up, 0 votes down">+1</div>
+							<div  id="karma_vote_1460" class="vote">
+								<a id="karma_vote_up_1460" class="vote_up" href="#"></a><a id="karma_vote_down_1460" class="vote_down" href="#"></a><span id="karma_msg_1460" class="karma_msg"></span>
+							</div>
+							
+							<a class="reply_btn" id="replyto_1460" href="#">Reply</a>
+							<div class="admin_tools">
+								
+							</div>
+							<div class="commax_clear"></div>
+						</div>
+						<div class="commax_clear"></div>
+						<div class="reply_container" id="rplcont_1460">
+							
+		<div class="no_javascript_no_form">Sorry, you need javascript enabled to post any comments.</div>
+		<div style="display: none;" class="yes_javascript_yes_form">
+			<form id="addCommentReply_1460" class="addReplyForm" method="post" action="">
+				Add a reply
+				<input type="hidden" name="ref_id" id="reply_ref_id_1460" value="blogs-359" />
+				<input type="hidden" name="userid" value="" />									
+				<input type="hidden" name="parent" value="1460" />
+				<div>				
+					<label for="reply_name_1460">Username</label><br>
+					<input type="text" name="name" id="reply_name_1460" />
+					
+					<label for="reply_email_1460">Your Email (won't be published)</label><br/>
+					<input type="text" name="email" id="reply_email_1460" />
+					
+<!--					<label for="reply_url_1460">Website (not required)</label><br />
+					<input type="text" name="url" id="reply_url_1460" />-->
+					
+					<label for="reply_body_1460">Comment Body</label><br/>
+					<textarea class="reply_text_area" name="body" id="reply_body_1460"></textarea>
+		
+					<input type="submit" class="reply_submit" id="reply_submit_1460" value="Submit" /><span id="rpl_count_1460" class="reply_char_counter">3000</span>
+				</div>
+			</form>
+		</div>
+		
+						</div>
+					</div>
+				</div>
+				
+				<div class="comment id_1462  ">
+					<div class="com_wrapper">
+						<a name="comment_1462"></a>
+						<div class="avatar">
+							<img src="http://www.gravatar.com/avatar/34224ef6f90fafdc3811d6b9755d8e28?size=50&amp;default=http%3A%2F%2Fwww.embeddedrelated.com%2Fnew%2FCommax%2F%2Fassets%2Fimg%2Fdefault_avatar.gif" />
+						</div>
+						
+						<div class="name">hal98x</div>
+						<div class="says">Said:</div>
+						
+						<div class="body">Great article I was hoping somebody would mention the cost of toolboxes and the functions you get for the cost. The biggest jip of all is cross correlation. You have to buy the Signal Processing toolbox just to get this function while in scipy it is free.<br /><br />Thank you for the resources, I am making the transition from Matlab to Pylab. Here is one more resource that I have found very useful for learning the python language. <a rel="nofollow" target="blank" href="https://developers.google.com/edu/python/">https://developers.google.com/edu/python/</a></div>
+						<div class="btn_tools" id="tools_1462">
+							<div class="date" title="Added at 12:23 on 27 Jun 2013">1 year ago</div>
+							
+							<div id="karma_1462" class="karma " title="Karma is neutral. 0 votes up, 0 votes down">0</div>
+							<div  id="karma_vote_1462" class="vote">
+								<a id="karma_vote_up_1462" class="vote_up" href="#"></a><a id="karma_vote_down_1462" class="vote_down" href="#"></a><span id="karma_msg_1462" class="karma_msg"></span>
+							</div>
+							
+							<a class="reply_btn" id="replyto_1462" href="#">Reply</a>
+							<div class="admin_tools">
+								
+							</div>
+							<div class="commax_clear"></div>
+						</div>
+						<div class="commax_clear"></div>
+						<div class="reply_container" id="rplcont_1462">
+							
+		<div class="no_javascript_no_form">Sorry, you need javascript enabled to post any comments.</div>
+		<div style="display: none;" class="yes_javascript_yes_form">
+			<form id="addCommentReply_1462" class="addReplyForm" method="post" action="">
+				Add a reply
+				<input type="hidden" name="ref_id" id="reply_ref_id_1462" value="blogs-359" />
+				<input type="hidden" name="userid" value="" />									
+				<input type="hidden" name="parent" value="1462" />
+				<div>				
+					<label for="reply_name_1462">Username</label><br>
+					<input type="text" name="name" id="reply_name_1462" />
+					
+					<label for="reply_email_1462">Your Email (won't be published)</label><br/>
+					<input type="text" name="email" id="reply_email_1462" />
+					
+<!--					<label for="reply_url_1462">Website (not required)</label><br />
+					<input type="text" name="url" id="reply_url_1462" />-->
+					
+					<label for="reply_body_1462">Comment Body</label><br/>
+					<textarea class="reply_text_area" name="body" id="reply_body_1462"></textarea>
+		
+					<input type="submit" class="reply_submit" id="reply_submit_1462" value="Submit" /><span id="rpl_count_1462" class="reply_char_counter">3000</span>
+				</div>
+			</form>
+		</div>
+		
+						</div>
+					</div>
+				</div>
+				
+				<div class="comment id_1463  ">
+					<div class="com_wrapper">
+						<a name="comment_1463"></a>
+						<div class="avatar">
+							<img src="http://www.gravatar.com/avatar/42c7026f075b02996fd835701f8ee3d0?size=50&amp;default=http%3A%2F%2Fwww.embeddedrelated.com%2Fnew%2FCommax%2F%2Fassets%2Fimg%2Fdefault_avatar.gif" />
+						</div>
+						
+						<div class="name">Scott</div>
+						<div class="says">Said:</div>
+						
+						<div class="body">Check out Spyder (<a rel="nofollow" target="blank" href="https://code.google.com/p/spyderlib/">https://code.google.com/p/spyderlib/</a>). Finding it was what enabled me to move to Python completely. I have Matlab installed on all my machines and still choose Python.</div>
+						<div class="btn_tools" id="tools_1463">
+							<div class="date" title="Added at 16:24 on 27 Jun 2013">1 year ago</div>
+							
+							<div id="karma_1463" class="karma " title="Karma is neutral. 0 votes up, 0 votes down">0</div>
+							<div  id="karma_vote_1463" class="vote">
+								<a id="karma_vote_up_1463" class="vote_up" href="#"></a><a id="karma_vote_down_1463" class="vote_down" href="#"></a><span id="karma_msg_1463" class="karma_msg"></span>
+							</div>
+							
+							<a class="reply_btn" id="replyto_1463" href="#">Reply</a>
+							<div class="admin_tools">
+								
+							</div>
+							<div class="commax_clear"></div>
+						</div>
+						<div class="commax_clear"></div>
+						<div class="reply_container" id="rplcont_1463">
+							
+		<div class="no_javascript_no_form">Sorry, you need javascript enabled to post any comments.</div>
+		<div style="display: none;" class="yes_javascript_yes_form">
+			<form id="addCommentReply_1463" class="addReplyForm" method="post" action="">
+				Add a reply
+				<input type="hidden" name="ref_id" id="reply_ref_id_1463" value="blogs-359" />
+				<input type="hidden" name="userid" value="" />									
+				<input type="hidden" name="parent" value="1463" />
+				<div>				
+					<label for="reply_name_1463">Username</label><br>
+					<input type="text" name="name" id="reply_name_1463" />
+					
+					<label for="reply_email_1463">Your Email (won't be published)</label><br/>
+					<input type="text" name="email" id="reply_email_1463" />
+					
+<!--					<label for="reply_url_1463">Website (not required)</label><br />
+					<input type="text" name="url" id="reply_url_1463" />-->
+					
+					<label for="reply_body_1463">Comment Body</label><br/>
+					<textarea class="reply_text_area" name="body" id="reply_body_1463"></textarea>
+		
+					<input type="submit" class="reply_submit" id="reply_submit_1463" value="Submit" /><span id="rpl_count_1463" class="reply_char_counter">3000</span>
+				</div>
+			</form>
+		</div>
+		
+						</div>
+					</div>
+				</div>
+				
+				<div class="comment id_1465  ">
+					<div class="com_wrapper">
+						<a name="comment_1465"></a>
+						<div class="avatar">
+							<img src="http://www.gravatar.com/avatar/641fcaca69e5dce296abc400f9832682?size=50&amp;default=http%3A%2F%2Fwww.embeddedrelated.com%2Fnew%2FCommax%2F%2Fassets%2Fimg%2Fdefault_avatar.gif" />
+						</div>
+						
+						<div class="name">Luke</div>
+						<div class="says">Said:</div>
+						
+						<div class="body">Close to the top of all my py files: "from numpy import array as a"<br />and use "a([1, 2, 3])" instead of "<a rel="nofollow" target="blank" href="http://numpy.array">numpy.array</a>([1,2,3])]", not as good as "[1 2 3]" but inability to use "a" as a variable is a small price to pay for the convenience.</div>
+						<div class="btn_tools" id="tools_1465">
+							<div class="date" title="Added at 07:11 on 28 Jun 2013">1 year ago</div>
+							
+							<div id="karma_1465" class="karma karma_positive" title="Karma is positive. 1 votes up, 0 votes down">+1</div>
+							<div  id="karma_vote_1465" class="vote">
+								<a id="karma_vote_up_1465" class="vote_up" href="#"></a><a id="karma_vote_down_1465" class="vote_down" href="#"></a><span id="karma_msg_1465" class="karma_msg"></span>
+							</div>
+							
+							<a class="reply_btn" id="replyto_1465" href="#">Reply</a>
+							<div class="admin_tools">
+								
+							</div>
+							<div class="commax_clear"></div>
+						</div>
+						<div class="commax_clear"></div>
+						<div class="reply_container" id="rplcont_1465">
+							
+		<div class="no_javascript_no_form">Sorry, you need javascript enabled to post any comments.</div>
+		<div style="display: none;" class="yes_javascript_yes_form">
+			<form id="addCommentReply_1465" class="addReplyForm" method="post" action="">
+				Add a reply
+				<input type="hidden" name="ref_id" id="reply_ref_id_1465" value="blogs-359" />
+				<input type="hidden" name="userid" value="" />									
+				<input type="hidden" name="parent" value="1465" />
+				<div>				
+					<label for="reply_name_1465">Username</label><br>
+					<input type="text" name="name" id="reply_name_1465" />
+					
+					<label for="reply_email_1465">Your Email (won't be published)</label><br/>
+					<input type="text" name="email" id="reply_email_1465" />
+					
+<!--					<label for="reply_url_1465">Website (not required)</label><br />
+					<input type="text" name="url" id="reply_url_1465" />-->
+					
+					<label for="reply_body_1465">Comment Body</label><br/>
+					<textarea class="reply_text_area" name="body" id="reply_body_1465"></textarea>
+		
+					<input type="submit" class="reply_submit" id="reply_submit_1465" value="Submit" /><span id="rpl_count_1465" class="reply_char_counter">3000</span>
+				</div>
+			</form>
+		</div>
+		
+						</div>
+					</div>
+				</div>
+				
+				<div class="comment id_1587 its_a_reply to_1465 ">
+					<div class="com_wrapper">
+						<a name="comment_1587"></a>
+						<div class="avatar">
+							<img src="http://www.gravatar.com/avatar/daed9a8b379708a0415b381c511d97d1?size=50&amp;default=http%3A%2F%2Fwww.embeddedrelated.com%2Fnew%2FCommax%2F%2Fassets%2Fimg%2Fdefault_avatar.gif" />
+						</div>
+						
+						<div class="name">cfelton</div>
+						<div class="says">Replied:</div>
+						
+						<div class="body">In the numpy namespace they inculde "r_".  This is intended to be the short-hand.<br /><br />&gt;&gt; x = r_[1,2,3,4,5]<br /></div>
+						<div class="btn_tools" id="tools_1587">
+							<div class="date" title="Added at 00:03 on 03 Aug 2013">11 months ago</div>
+							
+							<div id="karma_1587" class="karma karma_positive" title="Karma is positive. 2 votes up, 0 votes down">+2</div>
+							<div  id="karma_vote_1587" class="vote">
+								<a id="karma_vote_up_1587" class="vote_up" href="#"></a><a id="karma_vote_down_1587" class="vote_down" href="#"></a><span id="karma_msg_1587" class="karma_msg"></span>
+							</div>
+							
+							
+							<div class="admin_tools">
+								
+							</div>
+							<div class="commax_clear"></div>
+						</div>
+						<div class="commax_clear"></div>
+						<div class="reply_container" id="rplcont_1587">
+							
+						</div>
+					</div>
+				</div>
+				
+		<div id="addCommentContainer">
+			<div class="no_javascript_no_form">Sorry, you need javascript enabled to post any comments.</div>
+			<div style="display: none;" class="yes_javascript_yes_form">
+				<p>Add a Comment</p>
+				<form id="addCommentForm" method="post" action="">
+					<input type="hidden" name="ref_id" value="blogs-359" />
+					<input type="hidden" name="userid" value="" />					
+					<input type="hidden" name="parent" value="-" />
+					<div>
+						<label for="name">Username</label>
+						<input type="text" name="name" id="name" />
+						<label for="email">Your Email (won't be published)</label>
+						<input type="text" name="email" id="email" />
+						<!--<label for="url">Website (not required)</label>
+						<input type="text" name="url" id="url" />-->
+						<label for="body">Comment Body</label>
+						<textarea name="body" id="body" cols="20" rows="5"></textarea>
+		
+						<input type="submit" id="submit" value="Submit" /><span class="comment_char_counter">5000</span>
+					</div>
+				</form>
+			</div>
+		</div>
+		
+				</div>
+
+    </div>
+   </div>
+ <div id="foother">
+	<ul>
+   		<li><a href="http://www.embeddedrelated.com">Home</a></li>
+   		<li><a href="http://www.embeddedrelated.com/blogs.php">Blogs</a></li><li><a href="http://www.embeddedrelated.com/groups.php">Discussion&nbsp;Groups</a></li><li><a href="http://www.embeddedrelated.com/usenet/embedded.php">Comp.Arch.Embedded</a></li>
+        <li><a href="http://www.embeddedrelated.com/books.php">Embedded Systems Books</a></li>
+        <li><a href="http://www.embeddedrelated.com/resources.php">Internet Resources</a></li>		
+        <li><a href="http://www.embeddedrelated.com/new/privacypolicy.php" rel="nofollow">Privacy Policy</a></li>
+        <li><a href="http://www.embeddedrelated.com/contact.php" rel="nofollow">Contact</a></li>
+   </ul>
+
+
+   
+   </div></body>
+</html>
+

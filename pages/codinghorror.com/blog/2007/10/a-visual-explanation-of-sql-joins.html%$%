@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>A Visual Explanation of SQL Joins</title>
+<meta name="description" content=""/>
+<meta name="HandheldFriendly" content="True"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="shortcut icon" href="/assets/images/favicon.ico?v=a9521e2e2d">
+<link rel="apple-touch-icon" href="/assets/images/codinghorror-app-icon.png?v=a9521e2e2d">
+<meta name="google-site-verification" content="sl0m9SU_4V0JcvjWlOX4dUFBR6VS2P4tlxjJMo0gphU"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/screen.css?v=a9521e2e2d"/>
+<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700"/>
+<link rel="alternate" type="application/rss+xml" title="Coding Horror" href="http://feeds.feedburner.com/codinghorror">
+</head>
+<body class="post-template">
+<header class="site-head">
+<div class="site-head-content">
+<a class="blog-logo" href="http://blog.codinghorror.com"><img src="/assets/images/codinghorror-app-icon.png?v=a9521e2e2d" alt="Coding Horror Logo" width="158" height="158"/></a>
+<h1 class="blog-title"><a href="http://blog.codinghorror.com">Coding Horror</a></h1>
+<h2 class="blog-description">programming and human factors</h2>
+<div class="site-search">
+<script>
+                  (function() {
+                    var cx = '016956275695630057531:lqveu9tah7y';
+                    var gcse = document.createElement('script');
+                    gcse.type = 'text/javascript';
+                    gcse.async = true;
+                    gcse.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//www.google.com/cse/cse.js?cx=' + cx;
+                    var s = document.getElementsByTagName('script')[0];
+                    s.parentNode.insertBefore(gcse, s);
+                  })();
+                </script>
+<gcse:search></gcse:search>
+</div>
+</div>
+</header>
+<div class="wrap clearfix">
+<div class="clearfix"></div>
+<main class="content" role="main">
+<article class="post">
+<span class="post-meta"><time datetime="2007-10-11">11 Oct 2007</time> </span>
+<h1 class="post-title">A Visual Explanation of SQL Joins</h1>
+<section class="post-content">
+<p>I thought Ligaya Turmelle's <a href="http://www.khankennels.com/blog/index.php/archives/2007/04/20/getting-joins">post on SQL joins</a> was a great primer for novice developers. Since SQL joins <i>appear</i> to be set-based, the use of <a href="http://en.wikipedia.org/wiki/Venn_diagram">Venn diagrams</a> to explain them seems, at first blush, to be a natural fit. However, like the commenters to her post, I found that the Venn diagrams didn't quite match the <a href="http://en.wikipedia.org/wiki/Join_(SQL)">SQL join syntax</a> reality in my testing.</p>
+<p>I love the concept, though, so let's see if we can make it work. Assume we have the following two tables. <strong>Table A</strong> is on the left, and <strong>Table B</strong> is on the right. We'll populate them with four records each.</p>
+<pre>id name       id  name
+-- ----       --  ----
+1  <span style="color:red">Pirate</span>     1   Rutabaga
+2  Monkey     2   <span style="color:red">Pirate</span>
+3  <span style="color:red">Ninja</span>      3   Darth Vader
+4  Spaghetti  4   <span style="color:red">Ninja</span></pre>
+Let's join these tables by the name field in a few different ways and see if we can get a conceptual match to those nifty Venn diagrams.
+<table cellpadding="6" cellspacing="4" width="900">
+<thead></thead>
+<tbody>
+<tr>
+<td valign="top">
+<pre>SELECT * FROM TableA
+<b>INNER JOIN</b> TableB
+ON TableA.name = TableB.name
+
+id  name       id   name
+--  ----       --   ----
+1   Pirate     2    Pirate
+3   Ninja      4    Ninja
+</pre>
+<p><strong>Inner join</strong> produces only the set of records that match in both Table A and Table B.
+</td> <br/>
+<td valign="top"> <br/>
+<img alt="Venn diagram of SQL inner join" height="329" src="/content/images/uploads/2007/10/6a0120a85dcdae970b012877702708970c-pi.png" width="502"/> <br/>
+</td> <br/>
+</tr></p>
+<p><tr> <br/>
+<td valign="top"> </p>
+<pre>SELECT * FROM TableA
+<b>FULL OUTER JOIN</b> TableB
+ON TableA.name = TableB.name
+
+id    name       id    name
+--    ----       --    ----
+1     Pirate     2     Pirate
+2     Monkey     <span style="color:#ccc">null</span>  <span style="color:#ccc">null</span>
+3     Ninja      4     Ninja
+4     Spaghetti  <span style="color:#ccc">null</span>  <span style="color:#ccc">null</span>
+<span style="color:#ccc">null</span>  <span style="color:#ccc">null</span>       1     Rutabaga
+<span style="color:#ccc">null</span>  <span style="color:#ccc">null</span>       3     Darth Vader
+</pre>
+<p><strong>Full outer join</strong> produces the set of all records in Table A and Table B, with matching records from both sides where available. If there is no match, the missing side will contain null.
+</td> <br/>
+<td valign="top"> <br/>
+<img alt="Venn diagram of SQL cartesian join" height="329" src="/content/images/uploads/2007/10/6a0120a85dcdae970b012877702725970c-pi.png" width="502"/></td> <br/>
+</tr> <br/>
+<tr> <br/>
+<td valign="top"></p>
+<pre>SELECT * FROM TableA
+<b>LEFT OUTER JOIN</b> TableB
+ON TableA.name = TableB.name
+
+id  name       id    name
+--  ----       --    ----
+1   Pirate     2     Pirate
+2   Monkey     <span style="color:#ccc">null</span>  <span style="color:#ccc">null</span>
+3   Ninja      4     Ninja
+4   Spaghetti  <span style="color:#ccc">null</span>  <span style="color:#ccc">null</span>
+</pre>
+<p><strong>Left outer join</strong> produces a complete set of records from Table A, with the matching records (where available) in Table B. If there is no match, the right side will contain null.
+</td> <br/>
+<td valign="top"> <br/>
+<img alt="Venn diagram of SQL left join" height="329" src="/content/images/uploads/2007/10/6a0120a85dcdae970b01287770273e970c-pi.png" width="502"/> <br/>
+</td> <br/>
+</tr> <br/>
+<tr> <br/>
+<td valign="top"> </p>
+<pre>SELECT * FROM TableA
+LEFT OUTER JOIN TableB
+ON TableA.name = TableB.name
+<b>WHERE TableB.id IS null</b>
+
+id  name       id     name
+--  ----       --     ----
+2   Monkey     <span style="color:#ccc">null</span>   <span style="color:#ccc">null</span>
+4   Spaghetti  <span style="color:#ccc">null</span>   <span style="color:#ccc">null</span>
+</pre>
+<p>To produce the set of records only in Table A, but not in Table B, we perform the same left outer join, then <strong>exclude the records we don't want from the right side via a where clause</strong>. <br/>
+</td> <br/>
+<td valign="top"> <br/>
+<img alt="join-left-outer.png" height="329" src="/content/images/uploads/2007/10/6a0120a85dcdae970b012877702754970c-pi.png" width="502"/></td> <br/>
+</tr> <br/>
+<tr> <br/>
+<td valign="top"> </p>
+<pre>
+SELECT * FROM TableA
+FULL OUTER JOIN TableB
+ON TableA.name = TableB.name
+<b>WHERE TableA.id IS null
+OR TableB.id IS null</b>
+
+id    name       id    name
+--    ----       --    ----
+2     Monkey     <span style="color:#ccc">null</span>  <span style="color:#ccc">null</span>
+4     Spaghetti  <span style="color:#ccc">null</span>  <span style="color:#ccc">null</span>
+<span style="color:#ccc">null</span>  <span style="color:#ccc">null</span>       1     Rutabaga
+<span style="color:#ccc">null</span>  <span style="color:#ccc">null</span>       3     Darth Vader
+</pre>
+<p>To produce the set of records unique to Table A and Table B, we perform the same full outer join, then <strong>exclude the records we don't want from both sides via a where clause</strong>. <br/>
+</td> <br/>
+<td valign="top"> <br/>
+<img alt="join-outer.png" height="329" src="/content/images/uploads/2007/10/6a0120a85dcdae970b012877702769970c-pi.png" width="502"/></td> <br/>
+</tr> <br/>
+</tbody> <br/>
+</table></p>
+<p>There's also a cartesian product or <strong>cross join</strong>, which as far as I can tell, can't be expressed as a Venn diagram:</p>
+<pre>SELECT * FROM TableA
+<b>CROSS JOIN</b> TableB
+</pre>
+<p>This joins "everything to everything", resulting in 4 x 4 = 16 rows, far more than we had in the original sets. If you do the math, you can see why this is a <em>very</em> dangerous join to run against large tables.</p>
+</section>
+<footer class="post-footer">
+<section class="author">
+<h4>Written by Jeff Atwood</h4>
+<p>Indoor enthusiast. Co-founder of Stack Exchange and Discourse. Disclaimer: I have no idea what I&#x27;m talking about. Find me here: <a href="http://twitter.com/codinghorror">http://twitter.com/codinghorror</a></p>
+</section>
+</footer>
+<div id="nrelate_related_placeholder"></div> <script async id="nrelate_loader_script" type="text/javascript" src="http://static.nrelate.com/common_js/0.52.1/loader.min.js"></script>
+</article>
+<div id="discourse-comments"></div>
+<script type="text/javascript">
+      var discourseUrl = "http://discourse.codinghorror.com/",
+          discourseEmbedUrl = 'http://blog.codinghorror.com/a-visual-explanation-of-sql-joins/';
+
+      (function() {
+        var d = document.createElement('script'); d.type = 'text/javascript'; d.async = true;
+          d.src = discourseUrl + 'javascripts/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(d);
+      })();
+    </script>
+</main>
+<aside class="sidebar">
+ 
+<div id="carbonads-container"><div class="carbonad"><div id="azcarbon"></div><script type="text/javascript">var z = document.createElement("script"); z.type = "text/javascript"; z.async = true; z.src = "http://engine.carbonads.com/z/56742/azcarbon_2_1_0_VERT"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(z, s);</script></div></div>
+<div id="hireme" class="hireme codinghorror" style="min-height: 220px; margin-bottom: 15px;"></div>
+<script>
+    setTimeout(function () {
+        var a = document.createElement("script");
+        var b = document.getElementsByTagName('script')[0];
+        a.src = "http://careers.stackoverflow.com/ad/js";
+        a.async = true; 
+        a.type = "text/javascript"; 
+        b.parentNode.insertBefore(a, b);
+    }, 5);
+</script>
+<div class="welovecodinghorror" style="margin-bottom:15px">
+[ad] Enjoy the blog? Read <b><a href="http://www.hyperink.com/Effective-Programming-More-Than-Writing-Code-b1559">Effective Programming: More than Writing Code</a></b> and <b><a href="http://www.hyperink.com/How-To-Stop-Sucking-And-Be-Awesome-Instead-b9A74B5CBA6">How to Stop Sucking and Be Awesome Instead</a></b> on your Kindle, iPad, Nook, or as a PDF.
+</div>
+<h3>Resources</h3>
+<ul>
+<li><a href="/about-me/">About Me</a></li>
+<li><a href="http://twitter.com/codinghorror">@codinghorror</a></li>
+<li><a href="http://www.discourse.org/">discourse.org</a></li>
+<li><a href="http://stackexchange.com/">stackexchange.com</a></li>
+<li><a href="/recommended-reading-for-developers/">Recommended Reading</a></li>
+</ul>
+<ul>
+<li><a href="http://feeds.feedburner.com/codinghorror" class="icon-feed">&nbsp;Subscribe in a reader</a></li>
+<li><a href="http://feedburner.google.com/fb/a/mailverify?uri=codinghorror&amp;loc=en_US" class="icon-email">&nbsp;Subscribe via email</a></li>
+</ul>
+<p>Coding Horror has been continuously published since 2004</p>
+<ul>
+<li><img src="http://feeds.feedburner.com/~fc/codinghorror?bg=EEEEEE&amp;fg=111111&amp;anim=0" height="26" width="88" style="border:0" alt="Count of RSS readers"></li>
+<li><a href="http://my.statcounter.com/project/standard/stats.php?project_id=2600027&amp;guest=1">Traffic Stats</a></li>
+</ul>
+<footer class="site-footer">
+<section class="copyright">Copyright <a rel="author" href="https://profiles.google.com/codinghorror1">Jeff Atwood</a> &copy; 2014<br/>
+Logo image &copy; 1993 Steven C. McConnell <br/>
+Proudly published with <a class="icon-ghost" href="http://ghost.org">Ghost</a></section>
+</footer>
+</aside>
+</div>
+<script src="/public/jquery.js?v=a9521e2e2d"></script>
+<script type="text/javascript" src="/assets/js/jquery.fitvids.js?v=a9521e2e2d"></script>
+<script type="text/javascript" src="/assets/js/index.js?v=a9521e2e2d"></script>
+<script async src="http://www.statcounter.com/counter/counter.js"></script>
+<noscript><a href="http://www.statcounter.com/"><img src="http://c26.statcounter.com/counter.php?sc_project=2600027&amp;java=0&amp;security=dcff5548&amp;invisible=0" alt="web metrics"></a> </noscript>
+ 
+<script>
+    document.write(unescape("%3Cscript src='" + (document.location.protocol == "https:" ? "https://sb" : "http://b") + ".scorecardresearch.com/beacon.js'%3E%3C/script%3E"));
+    </script>
+<script>
+    COMSCORE.beacon({
+      c1: 2,
+      c2: "6035669",
+      c3: "",
+      c4: "http://www.codinghorror.com/blog/",
+      c5: "",
+      c6: "",
+      c15: ""
+    });
+    </script>
+<noscript>
+<img src="http://b.scorecardresearch.com/b?c1=2&amp;c2=6035669&amp;c3=&amp;c4=http%3A%2F%2Fwww.codinghorror.com%2Fblog%2F&amp;c5=&amp;c6=&amp;c15=&amp;cv=1.3&amp;cj=1" style="display:none" width="0" height="0" alt=""/>
+</noscript>
+<img src="/view.gif?page=/a-visual-explanation-of-sql-joins/" alt="" style="display:none" hidden />
+</body>
+</html>

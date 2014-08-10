@@ -1,0 +1,570 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Python 3 and ASCII Compatible Binary Protocols &mdash; Nick Coghlan&#39;s Python Notes 1.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+
+  
+    <link rel="stylesheet" href="https://media.readthedocs.org/css/sphinx_rtd_theme.css" type="text/css" />
+  
+    <link rel="stylesheet" href="https://media.readthedocs.org/css/readthedocs-doc-embed.css" type="text/css" />
+  
+    <link rel="top" title="Nick Coghlan&#39;s Python Notes 1.0 documentation" href="../index.html"/>
+        <link rel="up" title="Python 3" href="index.html"/>
+        <link rel="next" title="Processing Text Files in Python 3" href="text_file_processing.html"/>
+        <link rel="prev" title="Python 3 Q &amp; A" href="questions_and_answers.html"/>
+ 
+<!-- RTD Extra Head -->
+
+
+
+  
+  <!-- 
+  Always link to the latest version, as canonical.
+  http://docs.readthedocs.org/en/latest/canonical.html
+  -->
+  <link rel="canonical" href="http://python-notes.curiousefficiency.org/en/latest/python3/binary_protocols.html" />
+  
+
+<script type="text/javascript">
+  // This is included here because other places don't have access to the pagename variable.
+  var READTHEDOCS_DATA = {
+    project: "nick-coghlans-python-notes",
+    version: "latest",
+    language: "en",
+    page: "python3/binary_protocols",
+    theme: "sphinx_rtd_theme",
+    docroot: "/notes/",
+    source_suffix: ".rst",
+    api_host: "https://readthedocs.org"
+  }
+  // Old variables
+  var doc_version = "latest";
+  var doc_slug = "nick-coghlans-python-notes";
+  var page_name = "python3/binary_protocols";
+  var html_theme = "sphinx_rtd_theme";
+</script>
+<!-- RTD Analytics Code -->
+<!-- Included in the header because you don't have a footer block. -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  // User Analytics Code
+  _gaq.push(['user._setAccount', 'UA-122762-1']);
+  _gaq.push(['user._trackPageview']);
+  // End User Analytics Code
+
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+<!-- end RTD Analytics Code -->
+<!-- end RTD <extrahead> -->
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> Nick Coghlan's Python Notes</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Python 3</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="questions_and_answers.html">Python 3 Q &amp; A</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Python 3 and ASCII Compatible Binary Protocols</a></li>
+<li class="toctree-l2"><a class="reference internal" href="text_file_processing.html">Processing Text Files in Python 3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enum_creation.html">Python, Enumerations and &#8220;Good Enough&#8221;</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../python_concepts/index.html">Python Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../python_concepts/import_traps.html">Traps for the Unwary in Python&#8217;s Import System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../python_concepts/break_else.html">Else Clauses on Loop Statements</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../pep_ideas/index.html">Various Ideas for Python and CPython</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pep_ideas/index.html#development-philosophy">Development Philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pep_ideas/index.html#current-activities">Current Activities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pep_ideas/index.html#help-needed">Help Needed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pep_ideas/index.html#other-interests">Other Interests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pep_ideas/index.html#tinkering-with-ideas">Tinkering with Ideas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pep_ideas/index.html#ideas-for-pypi-prototype-packages">Ideas for PyPI Prototype Packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pep_ideas/index.html#dubious-ideas">Dubious Ideas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pep_ideas/index.html#past-ideas">Past Ideas</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../python_kerberos.html">Using the Python Kerberos Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../python_kerberos.html#kerberos-basics">Kerberos Basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../python_kerberos.html#the-role-of-the-python-kerberos-module">The Role of the Python Kerberos Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../python_kerberos.html#the-initial-request-and-response">The Initial Request and Response</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../python_kerberos.html#the-kerberos-authenticated-request">The Kerberos Authenticated Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../python_kerberos.html#authenticating-the-reply-from-the-server">Authenticating the reply from the server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../python_kerberos.html#wrapping-this-up-in-a-helper-class">Wrapping this up in a helper class</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../linux/index.html">General Linux Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../linux/yum_clone.html">Rebuilding a Fedora system on new hardware</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../conferences/index.html">Python Conferences</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../conferences/pyconau2012/index.html">PyCon Australia 2012</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../conferences/pyconus2013/index.html">PyCon US 2013</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">Nick Coghlan's Python Notes</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Python 3</a> &raquo;</li>
+      
+    <li>Python 3 and ASCII Compatible Binary Protocols</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="https://bitbucket.org/ncoghlan/misc/src/default/notes/python3/binary_protocols.rst" class="fa fa-bitbucket"> Edit on Bitbucket</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+
+  <div class="section" id="python-3-and-ascii-compatible-binary-protocols">
+<span id="binary-protocols"></span><h1>Python 3 and ASCII Compatible Binary Protocols<a class="headerlink" href="#python-3-and-ascii-compatible-binary-protocols" title="Permalink to this headline">Â¶</a></h1>
+<p>Last Updated: 6th January, 2014</p>
+<p>If you pay any attention to the Twittersphere (and likely several other
+environments), you may have noticed various web framework developers having a
+few choice words regarding the Unicode handling design in Python 3.</p>
+<p>They actually have good reason to be upset with python-dev: we broke their
+world. Not only did we break it, but we did it on purpose.</p>
+<div class="section" id="what-did-we-break">
+<h2>What did we break?<a class="headerlink" href="#what-did-we-break" title="Permalink to this headline">Â¶</a></h2>
+<p>What we broke is a very specific thing: many of the previously idiomatic
+techniques for transparently accepting both Unicode text and text in an ASCII
+compatible binary encoding no longer work in Python 3. Given that the web
+(along with network protocols in general) is <em>built</em> on the concept of ASCII
+compatible binary encodings, this is causing web framework developers an
+understandable amount of grief as they start making their first serious efforts
+at supporting Python 3.</p>
+<p>The key thing that changed is that it is no longer easy to write text
+manipulation algorithms that can work transparently on either actual text
+(i.e. 2.x <tt class="docutils literal"><span class="pre">unicode</span></tt> objects) and on text encoded to binary using an ASCII
+compatible encoding (i.e. some instances of 2.x <tt class="docutils literal"><span class="pre">str</span></tt> objects).</p>
+<p>There are a few essential changes in Python 3 which make this no longer
+practical:</p>
+<ul class="simple">
+<li>In 2.x, when <tt class="docutils literal"><span class="pre">unicode</span></tt> and <tt class="docutils literal"><span class="pre">str</span></tt> meet, the latter is automatically
+promoted to <tt class="docutils literal"><span class="pre">unicode</span></tt> (usually assuming a default <tt class="docutils literal"><span class="pre">ascii</span></tt> encoding). In
+3.x, this changes such that when <tt class="docutils literal"><span class="pre">str</span></tt> (now always Unicode text) meets
+<tt class="docutils literal"><span class="pre">bytes</span></tt> (the new binary data type) you get an exception. Significantly,
+this means you can no longer share literal values between the two
+algorithm variants (in 2.x, you could just use <tt class="docutils literal"><span class="pre">str</span></tt> literals and rely on
+the automatic promotion to cover the <tt class="docutils literal"><span class="pre">unicode</span></tt> case).</li>
+<li>Iterating over a string produces a series of length 1 strings. Iterating over
+a 3.x bytes object, on the other hand, produces a series of integers.
+Similarly, indexing a bytes object produces an integer - you need to use
+slicing syntax if you want a length 1 bytes object.</li>
+<li>The <tt class="docutils literal"><span class="pre">encode()</span></tt> and <tt class="docutils literal"><span class="pre">decode()</span></tt> convenience methods no longer support the
+text-&gt;text and binary-&gt;binary transforms, instead being limited to the actual
+text-&gt;binary and binary-&gt;text encodings. The <tt class="docutils literal"><span class="pre">codecs.encode</span></tt> and
+<tt class="docutils literal"><span class="pre">codecs.decode</span></tt> functions need to be used instead in order to handle these
+transforms in addition to the regular text encodings (these functions are
+available as far back as Python 2.4, so they&#8217;re usable in the common subset
+of Python 2 and Python 3).</li>
+<li>In 2.x, the <tt class="docutils literal"><span class="pre">unicode</span></tt> type supported the buffer API, allowing direct access
+to the raw multi-byte characters (stored as UCS4 in wide builds, and a
+UCS2/UTF-16 hybrid in narrow builds). In 3.x, the only way to access this
+data directly is via the Python C API. At the Python level, you only have
+access to the code point data, not the individual bytes.</li>
+</ul>
+<p>The recommended approach to handling both binary and text inputs to an API
+without duplicating code is to explicitly decode any binary data on input
+and encode it again on output, using one of two options:</p>
+<ol class="arabic simple">
+<li><tt class="docutils literal"><span class="pre">ascii</span></tt> in <tt class="docutils literal"><span class="pre">strict</span></tt> mode (for true 7-bit ASCII data)</li>
+<li><tt class="docutils literal"><span class="pre">ascii</span></tt> in <tt class="docutils literal"><span class="pre">surrogateescape</span></tt> mode (to allow any ASCII compatible
+encoding)</li>
+</ol>
+<p>However, it&#8217;s important to be very careful with the latter approach - when
+applied to an ASCII incompatible encoding, manipulations that assume ASCII
+compatibility may still cause data corruption, even with explicit decoding
+and encoding steps. It can be better to assume strict ASCII-only data for
+implicit conversions, and require external conversion to Unicode for other
+ASCII compatible encodings (e.g. this is the approach now taken by the
+<tt class="docutils literal"><span class="pre">urllib.urlparse</span></tt> module).</p>
+</div>
+<div class="section" id="why-did-we-break-it">
+<h2>Why did we break it?<a class="headerlink" href="#why-did-we-break-it" title="Permalink to this headline">Â¶</a></h2>
+<p>That last paragraph in the previous section hints at the answer: <em>assuming</em>
+that binary data uses an ASCII compatible encoding and manipulating it
+accordingly can lead to silent data corruption if the assumption is incorrect.</p>
+<p>In a world where there are multiple ASCII <em>incompatible</em> text encodings in
+regular use (e.g. UTF-16, UTF-32, ShiftJIS, many of the CJK codecs), that&#8217;s
+a problem.</p>
+<p>Another regular problem with code that supposedly supports both Unicode and
+encoded text is that it may not correctly handle multi-byte, variable
+width and other stateful encodings where the meaning of the current byte
+may depend on the values of one or more previous bytes, even if the code
+does happen to correctly handle ASCII-incompatible stateless single-byte
+encodings.</p>
+<p>All of these problem can be dealt with if you appropriately vet the encoding
+of any binary data that is passed in. However,  this is not only often easier
+said than done, but Python 2 doesn&#8217;t really offer you any good tools for
+finding out when you&#8217;ve stuffed it up. They&#8217;re data driven bugs, but the
+errors may never turn into exceptions, instead just causing flaws in the
+resulting text output.</p>
+<p>This was a gross violation of &#8220;The Zen of Python&#8221;, specifically the part about
+&#8220;Errors should never pass silently. Unless explicitly silenced&#8221;.</p>
+<p>As a concrete example of the kind of obscure errors this can cause, I recently
+tracked down an obscure problem that was leading to my web server receiving
+a request that consisted solely of the letter &#8220;G&#8221;. From what I have been able
+to determine, that error was the result of:</p>
+<ol class="arabic simple">
+<li>M2Crypto emitting a Unicode value for a HTTP header value</li>
+<li>The SSL connection combining this with other values, creating an entire
+Unicode string instead of the expected byte sequence</li>
+<li>The SSL connection interpreting that string via the buffer API</li>
+<li>The SSL connection seeing the additional NULs due to the UCS4 internal
+encoding and truncating the string accordingly</li>
+</ol>
+<p>This has now been worked around by explicitly encoding the Unicode value
+erroneously emitted, but it was a long hunt to find the problem when the
+initial symptom was just a 404 error from the web server.</p>
+<p>Since Python 3 is a lot fussier when it comes to the ways it will
+allow binary and text data to implicitly interact, this would have been
+picked up client side as soon as any attempt was made to combine the
+Unicode text value with the already encoded binary data.</p>
+<p>The other key reason for changing the text model of the language is that
+the Python 2 model only works properly on POSIX systems. Unlike POSIX,
+Unicode capable interfaces on Windows, the JVM and the CLR (whether .NET
+or mono), use Unicode natively rather than using encoded bytestrings.</p>
+<p>The Python 3 model, by contrast, aims to handle Unicode correctly on all
+platforms, with the surrogateescape error handler introduced to handle the
+case of data in operating system interfaces that doesn&#8217;t match the declared
+encoding on POSIX systems.</p>
+</div>
+<div class="section" id="why-are-the-web-framework-developers-irritated">
+<h2>Why are the web framework developers irritated?<a class="headerlink" href="#why-are-the-web-framework-developers-irritated" title="Permalink to this headline">Â¶</a></h2>
+<p>We knew when we released Python 3 that it was going to take quite a while for
+the binary/text split to be fully resolved. Most of the burden of that
+resolution falls on the shoulders of those dealing with the boundaries
+between text data and binary protocols. Web frameworks have to deal with
+these issues both on the network side <em>and</em> on the data storage side.</p>
+<p>Those developers also have good reason to want to avoid decoding to Unicode -
+until Python 3.3 was released, Unicode strings consumed up to four times
+the memory consumed by 8 bit strings (depending on build options).</p>
+<p>That means framework developers face an awkward choice in their near term
+Python 3 porting efforts:</p>
+<ul class="simple">
+<li>do it &#8220;right&#8221; (i.e. converting to the text format for text manipulations),
+and keep track of the need to convert the result back to bytes</li>
+<li>split their code into parallel binary and text APIs (potentially duplicating
+a lot of code and making it much harder to maintain)</li>
+<li>including multiple &#8220;binary or text&#8221; checks within the algorithm
+implementation (this can get very untidy very quickly)</li>
+<li>develop a custom extension type for implementing a str-style API on top of
+encoded binary data (this is hard to do without reintroducing all the
+problems with ASCII incompatible encodings noted above, but a custom
+type provides more scope to make it clear it is only appropriate in
+contexts where ASCII compatible encodings can be safely assummed, such
+as many web protocols)</li>
+</ul>
+<p>I have a personal preference for the first choice as the current path
+of least resistance, as reflected in the way I implemented the binary
+input support for the <tt class="docutils literal"><span class="pre">urllib.parse</span></tt> APIs in Python 3.2. However, the
+last option (or something along those lines) will likely be needed in
+order to make ASCII compatible binary protocol handling as convenient
+in Python 3 as it is in Python 2.</p>
+<p>The last option is still one of the options for possible future Python 3
+improvements listed under <a class="reference internal" href="questions_and_answers.html#room-for-improvement"><em>Is Python 3 more convenient than Python 2 in every respect?</em></a>.</p>
+</div>
+<div class="section" id="couldn-t-the-implicit-decoding-just-be-disabled-in-python-2">
+<h2>Couldn&#8217;t the implicit decoding just be disabled in Python 2?<a class="headerlink" href="#couldn-t-the-implicit-decoding-just-be-disabled-in-python-2" title="Permalink to this headline">Â¶</a></h2>
+<p>While Python 2 <em>does</em> provide a mechanism that allows the implicit
+decoding mechanism to be disabled, actually trying to use it breaks the
+world:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">urlparse</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="s">&quot;http://example.com&quot;</span><span class="p">)</span>
+<span class="go">SplitResult(scheme=&#39;http&#39;, netloc=&#39;example.com&#39;, path=&#39;&#39;, query=&#39;&#39;, fragment=&#39;&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="s">u&quot;http://example.com&quot;</span><span class="p">)</span>
+<span class="go">SplitResult(scheme=u&#39;http&#39;, netloc=u&#39;example.com&#39;, path=u&#39;&#39;, query=&#39;&#39;, fragment=&#39;&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s">&quot;undefined&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urlparse</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="s">&quot;http://example.com&quot;</span><span class="p">)</span>
+<span class="go">SplitResult(scheme=&#39;http&#39;, netloc=&#39;example.com&#39;, path=&#39;&#39;, query=&#39;&#39;, fragment=&#39;&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="s">u&quot;http://example.com&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
+  File <span class="nb">&quot;/usr/lib64/python2.7/urlparse.py&quot;</span>, line <span class="m">181</span>, in <span class="n">urlsplit</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+  File <span class="nb">&quot;/usr/lib64/python2.7/encodings/undefined.py&quot;</span>, line <span class="m">22</span>, in <span class="n">decode</span>
+    <span class="k">raise</span> <span class="ne">UnicodeError</span><span class="p">(</span><span class="s">&quot;undefined encoding&quot;</span><span class="p">)</span>
+<span class="gr">UnicodeError</span>: <span class="n">undefined encoding</span>
+</pre></div>
+</div>
+<p>(If you don&#8217;t clear the parsing cache after disabling the default encoding
+and retest with the same URLs, that second call may appear to be work,
+but that&#8217;s only because it gets a hit in the cache from the earlier
+successful call. Using a different URL or clearing the caches as shown
+will reveal the error).</p>
+<p>This is why turning off the implicit decoding is such a big deal that it
+required a major version bump for the language definition: there is
+a <em>lot</em> of Python 2 code that only handles Unicode because 8-bit strings
+(including literals) are implicitly promoted to Unicode as needed. Since
+Python 3 removes all the implicit conversions, code that previously relied
+on it in order to accept both binary and text inputs (like the Python 2 URL
+parsing code shown above) instead needs to be updated to explicitly handle
+both binary and text inputs.</p>
+<p>So, in contrast to Python 2 code above, the Python 3 version not only
+changes the types of the components in the result, but also changes the
+type of the result itself:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">urllib</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="s">&quot;http://example.com&quot;</span><span class="p">)</span>
+<span class="go">SplitResult(scheme=&#39;http&#39;, netloc=&#39;example.com&#39;, path=&#39;&#39;, query=&#39;&#39;, fragment=&#39;&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">b</span><span class="s">&quot;http://example.com&quot;</span><span class="p">)</span>
+<span class="go">SplitResultBytes(scheme=b&#39;http&#39;, netloc=b&#39;example.com&#39;, path=b&#39;&#39;, query=b&#39;&#39;, fragment=b&#39;&#39;)</span>
+</pre></div>
+</div>
+<p>However, it&#8217;s also no longer dependent on a global configuration setting that
+controls how 8-bit string literals are converted to Unicode text - instead,
+the decision on how to convert from bytes to text is handled entirely
+within the function call.</p>
+</div>
+<div class="section" id="where-to-from-here">
+<h2>Where to from here?<a class="headerlink" href="#where-to-from-here" title="Permalink to this headline">Â¶</a></h2>
+<p>The revised text handling design in Python 3 is definitely a case of the
+pursuit of correctness triumphing over convenience. &#8220;Usually handy, but
+occasionally completely and totally wrong&#8221; is not a good way to design a
+language (If you question this, compare and contrast the experience of
+programming in C++ and Python. Both are languages with a strong C influence,
+but the former makes a habit of indulging in premature optimisations that can
+go seriously wrong if their assumptions are violated. Guess which of the two
+is almost universally seen as being more developer hostile?).</p>
+<p>The challenge for Python 3.3 and beyond is to start bringing back some of
+the past convenience that resulted from being able to blur the lines between
+binary and text data without unduly compromising on the gains in correctness.</p>
+<p>The efficient Unicode representation in Python 3.3 (which uses the
+smallest per-character size out of 1, 2 and 4 that can handle all characters
+in the string) was a solid start down that road, as was the restoration of
+Unicode string literal support in <span class="target" id="index-0"></span><a class="pep reference external" href="http://www.python.org/dev/peps/pep-0414"><strong>PEP 414</strong></a> (as that was a change library
+and framework developers couldn&#8217;t address on behalf of their users).</p>
+<p>Python 3.4 restored full support for the binary transform codecs through
+the existing type neutral codecs module API (along with improved handling
+of codec errors in general).</p>
+<p>Some other possible steps towards making Python 3 as convenient a langauge
+as Python 2 for wire protocol handling are discussed in
+<a class="reference internal" href="questions_and_answers.html#room-for-improvement"><em>Is Python 3 more convenient than Python 2 in every respect?</em></a></p>
+<p>But for most Python programmers, this issue simply doesn&#8217;t arise. Binary
+data is binary data, text characters are text characters, and the two only
+meet at well-defined boundaries. It&#8217;s only people that are writing the
+libraries and frameworks that <em>implement</em> those boundaries that really need
+to grapple with the details of these concepts.</p>
+</div>
+</div>
+
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  /**
+    * var disqus_identifier; [Optional but recommended: Define a unique identifier (e.g. post id or slug) for this thread]
+    */
+  (function() {
+   var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+   dsq.src = 'https://ncoghlan-dev-python-notes.disqus.com/embed.js';
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript=ncoghlan-dev-python-notes">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a>
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="text_file_processing.html" class="btn btn-neutral float-right" title="Processing Text Files in Python 3">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="questions_and_answers.html" class="btn btn-neutral" title="Python 3 Q &amp; A"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2011, Nick Coghlan.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Read the Docs</span>
+      v: latest
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      <dl>
+        <dt>Versions</dt>
+        
+          <dd><a href="/en/latest/">latest</a></dd>
+        
+      </dl>
+      <dl>
+        <dt>Downloads</dt>
+        
+          <dd><a href="https://media.readthedocs.org/pdf/nick-coghlans-python-notes/latest/nick-coghlans-python-notes.pdf">PDF</a></dd>
+        
+          <dd><a href="https://media.readthedocs.org/htmlzip/nick-coghlans-python-notes/latest/nick-coghlans-python-notes.zip">HTML</a></dd>
+        
+          <dd><a href="https://media.readthedocs.org/epub/nick-coghlans-python-notes/latest/nick-coghlans-python-notes.epub">Epub</a></dd>
+        
+      </dl>
+      <dl>
+        <dt>On Read the Docs</dt>
+          <dd>
+            <a href="//readthedocs.org/projects/nick-coghlans-python-notes/?fromdocs=nick-coghlans-python-notes">Project Home</a>
+          </dd>
+          <dd>
+            <a href="//readthedocs.org/builds/nick-coghlans-python-notes/?fromdocs=nick-coghlans-python-notes">Builds</a>
+          </dd>
+      </dl>
+      <hr/>
+      Free document hosting provided by <a href="http://www.readthedocs.org">Read the Docs</a>.
+
+    </div>
+  </div>
+
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="https://media.readthedocs.org/javascript/jquery/jquery-2.0.3.min.js"></script>
+      <script type="text/javascript" src="https://media.readthedocs.org/javascript/jquery/jquery-migrate-1.2.1.min.js"></script>
+      <script type="text/javascript" src="https://media.readthedocs.org/javascript/underscore.js"></script>
+      <script type="text/javascript" src="https://media.readthedocs.org/javascript/doctools.js"></script>
+      <script type="text/javascript" src="https://media.readthedocs.org/javascript/readthedocs-doc-embed.js"></script>
+
+  
+
+  
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+ 
+<script type="text/javascript">
+/* DISQUS Settings */
+var disqus_shortname = 'ncoghlan-dev-python-notes';
+(function () {
+  var s = document.createElement('script'); s.async = true;
+  s.src = 'https://disqus.com/forums/ncoghlan-dev-python-notes/count.js';
+  (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+}());
+
+/* Google Analytics */
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-122762-1']);
+_gaq.push(['_setDomainName', 'boredomandlaziness.org']);
+_gaq.push(['_trackPageview']);
+
+(function() {
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'https://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+</script>
+
+
+</body>
+</html>

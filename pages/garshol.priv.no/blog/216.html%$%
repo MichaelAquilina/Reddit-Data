@@ -1,0 +1,363 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html xmlns:v="urn:schemas-microsoft-com:vml">
+<title>What's up? | Larsblog</title>
+<meta property="og:title" content="What's up?">
+<meta property="og:description" content="While RSS and Atom are a great way to stay up to date on what is published around the web, I think the feed-centric approach taken by most feed readers is suboptimal">
+<link type="text/css" rel=stylesheet href="blog.css">
+<link type="application/rss+xml" rel="alternate" title="rss" href="index.xml">
+<style type="text/css"><!-- to get lines to work in MSIE -->
+v\:* {
+  behavior:url(#default#VML);
+}
+</style>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-8436249-5']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+<body>
+
+
+<div class=header>
+<a href="http://www.garshol.priv.no/blog/"><h1>Larsblog</h1></a>
+</div>
+
+<table width="100%" cellspacing="0">
+<tr><td class=menu width="15%">
+  <a href="/blog/">&gt; Home</a><br>
+  <a href="/blog/technology/">&gt;&nbsp;Technology</a><br>
+  <a href="/blog/beer/"      >&gt; Beer</a><br>
+  <a href="/blog/personal/"  >&gt; Personal</a><br><br>
+
+  <a href="/personal/me.html">&gt; The author</a>
+  <a href="http://technorati.com/claim/479646bg5b" rel="me">.</a><br>
+  <a href="http://twitter.com/larsga">&gt; On Twitter</a></p>
+
+<h2 class=sidebar>Follow</h2>
+
+<a href="index.xml" class="xmlbutton">RSS</a><br><br>
+
+
+
+<p><a href='http://cloud.feedly.com/#subscription%2Ffeed%2Fhttp%3A%2F%2Fwww.garshol.priv.no%2Fblog%2Ftechnology%2Findex.xml'  target='blank'><img id='feedlyFollow' src='http://s3.feedly.com/img/follows/feedly-follow-rectangle-flat-small_2x.png' alt='follow us in feedly' width='66' height='20' style="border: none"></a></p>
+
+<h2 class=sidehead>Technology blogs</h2><p>
+<a href="http://kill.devc.at">Robert Barta</a><br>
+<a href="http://www.topicobserver.com/blog">TopicObserver.Com</a><br>
+<a href="http://sveino.blogspot.com/">Sveins blogg</a><br>
+<a href="http://stephenfry.com/blog">Stephen Fry</a><br>
+<a href="http://www.tbray.org/ongoing/">ongoing</a><br>
+<a href="http://people.w3.org/~cmsmcq/blog">Messages in a bottle</a><br>
+<a href="http://www.adjb.net/">Alex Brown</a><br>
+<a href="http://topicmaps.bouvet.no/planet/">Planet Topic Maps</a><br>
+
+<td class=body>
+
+<table width="100%">
+<td><h1 class="title">What's up?</h1>
+<td style="text-align: right; font-size: 80%"><p style="margin-top: 12pt"><a href="215.html">Previous</a><br>
+                              <a href="217.html">Next</a></style>
+</table>
+
+<p class=dateline>Posted in <a href="technology/">Technology</a> on 2011-02-03 19:50</p>
+
+<div class=body>
+
+
+<table class=figure>
+<tr><td>
+  <a href="http://www.garshol.priv.no/tmphoto/photo.jsp?id=t223640"
+   ><img src="http://larsga.geirove.org/photoserv.fcgi?t223640" width=600></a>
+  <p>Houses
+</table>
+
+<p>While RSS and Atom are a great way to stay up to date on what is
+published around the web, I think the feed-centric approach taken by
+most feed readers is suboptimal. For some feeds I want to read
+everything that is posted, but for others I want to read only those
+few posts which are about subjects I care about, or by authors I like
+particularly. Another problem is that some feeds (for example those of
+newspapers) have hundreds of posts every day. Staying on top of that
+is just too much manual effort.
+
+<p>So, what to do?
+
+<p>To handle this, I wrote my own little RSS reader in Python, called
+"What's up". So far I've been using it for about two years, and for
+most of that time I've used no other RSS reader, or even thought about
+switching. Over the time that I've used it I've marked 22,000 URLs as
+read in the reader.
+
+<h2>Implementation</h2>
+
+<p>I came up with an approach that has just a single list of posts,
+regardless of which feeds they come from, where posts get an
+automatically computed relevance score, decreasing with the age of the
+post. (This was more than a little inspired
+by <a href="http://reddit.com" >Reddit</a>.)</p>
+
+<table class=figure>
+<tr><td>
+  <a href="images/whazzup-screenshot.png"
+    ><img src="images/whazzup-screenshot.png" width="600"></a>
+  <p>Screenshot
+</table>
+
+<p>The difficulty, of course, is to compute a relevance score given
+nothing more than the information in an RSS feed. To do this, I
+decided to use an approach that's common in spam filters (such as
+<a href="http://spambayes.sourceforge.net/">SpamBayes</a>).
+Basically, the text in the post title and summary gets broken
+into tokens, and each token is assigned a probability between 0
+and 1. To begin with the probability is 0.5, but each post in the
+list can be voted up or down with the up and down arrows. When
+the user does that, the probability of each word in the post is
+adjusted accordingly. (The minus button is used to remove a story
+without voting on it.)
+
+<p>To turn the list of probabilities into a relevance score, I
+simply use <a
+href="http://en.wikipedia.org/wiki/Bayes'_theorem">Bayes'
+theorem</a>. To handle the age of posts I divide the relevance
+score by the logarithm of the number of seconds since the post
+was published.
+
+<h2>How it works</h2>
+
+<p>Overall it actually works surprisingly well. All sports news,
+celebrities twaddle and so on gets filtered out. Stories about
+beer, airlines, interesting technology, and so on rise up to the
+front page magically. Some feeds have many different authors, and
+in these cases, stories by the authors I'm keen to follow rise
+above those by the others. With 137 feeds in the reader, I get a nice
+mix of things from different sources.
+
+<p>Unfortunately, it doesn't work perfectly. The biggest problem is
+how little metadata there is in the feeds, and how poor it is.  Many
+feeds, such as newspapers, don't list an author, even though a byline
+is given in the article. For those that do provide an author, there's
+often weird formatting in the field, which tends to change randomly
+over time. Many escape special characters twice, causing a mess in the
+data. The date formats are a total mess. Many feeds include just a
+short title and a very short summary in the feed, leaving the tool
+almost nothing to work with. In many cases, the tool gets nothing more
+than about 10 words. Not much of a basis for deciding if the post is
+interesting.
+
+<p>One blog post about a pub to pub round in Manchester got filtered
+out because the short paragraph given said nothing about beer or
+pubs, but did mention Manchester quite a bit. Of course, news
+stories including the word Manchester are mostly about Manchester
+United, and so the score for that particular word is very low.
+
+<p>Here's an example of a deeply uninteresting story, and how it's
+rated:
+
+<blockquote>
+  <p><b><a href="http://www.bbc.co.uk/go/rss/int/news/-/news/entertainment-arts-12345879">Fawcett swimsuit given to museum</a></b> - BBC News</p>
+
+  <p>Late actress Farrah Fawcett's trademark red swimsuit, which
+  she wore in a popular 1976 poster, is being donated to
+  Washington's Smithsonian museum.
+</blockquote>
+
+<p>Apart from the time and URL, this all the useful information we
+have about the story. It's not a lot to go on.
+
+<p>After breaking up the text (and URL) into tokens, this is what we
+get:
+
+<pre>
+  given : 0.418181818182,
+  wore : 0.375,
+  farrah : 0.5,
+  poster : 0.590909090909,
+  museum : 0.58064516129,
+  museum : 0.58064516129,
+  trademark : 0.545454545455,
+  donat : 0.5,
+  actress : 0.294117647059,
+  swimsuit : 0.5,
+  swimsuit : 0.5,
+  late : 0.407894736842,
+  smithsonian : 0.5,
+  washington : 0.545454545455,
+  popular : 0.602739726027,
+  fawcett : 0.5,
+  fawcett : 0.5,
+  red : 0.289719626168
+  url:rss : 0.424242424242,
+  url:www.bbc.co.uk : 0.333333333333,
+  url:int : 0.428571428571,
+  url:go : 0.424242424242,
+  url:new : 0.354838709677,
+  url:new : 0.354838709677,
+</pre>
+
+<p>Many of the terms, like Fawcett's name, "swimsuit", "Smithsonian"
+and so on are all at 0.5, because they are unknown. A few get a
+mildly positive score, like "poster", "museum", "washington",
+"popular", and so on. What kills the story is the negative terms,
+particularly "actress", but also "wore", "red", and "given".
+Together with all the negatively rated URL tokens, this is enough
+to bury the story. It gets a word probability score of 0.018 (on
+a scale from 0 to 1), which is very low.</p>
+
+<table class=figure>
+<tr><td>
+  <a href="http://www.garshol.priv.no/tmphoto/photo.jsp?id=t223652"
+   ><img src="http://larsga.geirove.org/photoserv.fcgi?t223652" width=600></a>
+  <p>Road
+</table>
+
+  
+<h2>The code</h2>
+
+<p>The actual code is a bit of a mess. It's written in Python based on
+web.py (using the built-in templates). It runs as a server on my
+laptop, and I access it with a browser at <tt>localhost:7000</tt>.
+Underneath is an RSS- and Atom-reading library I wrote, plus some NLP
+code from the prototype I wrote of the Ontopia autoclassifier. This is
+all rather loosely cobbled together with bits of chicken wire and
+chewing gum, but actually works and doesn't crash much.
+
+<p>The CPU usage when recalculating points is quite high, and
+sometimes the UI hangs for a while during recalculation. The memory
+usage is also substantial: right now, for 3200 posts, it uses 140 MB
+of memory. (Update: 24 hours later, with 4200 posts, it uses 160 MB.)
+
+<p>Still, it works, which is the main thing for me. And I'm quite
+pleased with the basic concept.
+
+<p><b>Update:</b> Because of the interest in this code on Reddit, I
+put the code into <a href="http://code.google.com/p/whazzup/"
+>a Google Code project</a>. Documentation etc will follow.
+  
+
+</div>
+
+<br><br><br>
+<br><br><br>
+
+<div class="separator"></div>
+
+<!--h2><a name="similar">Similar posts</a></h2>
+
+
+
+<br><br><br-->
+
+<div class="separator"></div>
+
+<h2><a name="comments">Comments</a></h2>
+
+<a name="1"></a><p class=from><a href='http://schakeduta.blogspot.com'>marten marteria</a> - 2011-02-03 15:10:35</p>
+<p class=comment>This is a great project. I wish I could programm as good as you!</p>
+<p class=comment>Isn't it possible to exclude certain (stop)words? NLTK comes to mind. You could even balance the rating of synonyms out - if that makes any sense regarding the rating-system.</p>
+<a name="2"></a><p class=from>Lars Marius - 2011-02-03 15:40:03</p>
+<p class=comment>> I wish I could programm as good as you!</p>
+<p class=comment>It's kind of you to say that, but please remember that you haven't seen the code. :-)</p>
+<p class=comment>> Isn't it possible to exclude certain (stop)words? </p>
+<p class=comment>The code already does that, because autoclassifier that it's based on can do that. It also does stemming.</p>
+<p class=comment>If you compare the input text in the example with the word vector below, you'll note the absence of "which", "the", etc.</p>
+<p class=comment>> You could even balance the rating of synonyms out - if that makes any<br> 
+> sense regarding the rating-system.</p>
+<p class=comment>This is much harder than it sounds, because it requires you to know what are true synonyms. If "plane" appears in the text, is that a synonym with "level" or "aircraft"?</p>
+<a name="3"></a><p class=from><a href='http://www.cerny-online.com'>Robert Cerny</a> - 2011-02-03 16:02:31</p>
+<p class=comment>Sounds cool. One remark: The false positives and the false negatives, e.g. the Manchester story, indicate IMO a measure of how explicit the story is (for you). The Manchester story was given a low score because some important keywords were not explicitly mentioned. You could figure out the true value of the story by drawing conclusions with the help of your otherwise acquired knowledge. A false positive might as well be initially mistaken by a human reader as interesting. Again only the access of out-of-band information makes it possible to interpret the message correctly. In both cases the news snippet must be more difficult to process cognitively by the person which parametrized the system.</p>
+<a name="4"></a><p class=from>Lars Marius - 2011-02-04 03:03:12</p>
+<p class=comment>Robert: It's true that human readers would not always perform better than the tool, and that sometimes the tool does better than human users. A major underlying cause (and problem) is that (usually) the tool doesn't have access to the entire article.</p>
+<p class=comment>I've thought about following the link and downloading the story to get a more complete data set to work with, but the trouble is that most real web pages contain a lot of garbage text in addition to the story. I have some ideas for how to automatically extract just the real text (and not all the menu bars, navigational links, "related stories" and so on), but haven't done more than a trivial experiment so far.</p>
+<a name="5"></a><p class=from><a href='http://tm.durusau.net'>Patrick Durusau</a> - 2011-02-04 05:52:08</p>
+<p class=comment>If you are successful at filtering everything but "...the real text..." that could be the basis for a very cool web browser. </p>
+<p class=comment>As you remember, in the very earliest days of the web, users were supposed to be in charge of how content displayed, on their computers. </p>
+<p class=comment>Sigh, seems like long ago and far away.</p>
+<p class=comment>Would be interesting to have a subject service that identifies advertising and pushes that out to browsers so ad content, popup and otherwise could be filtered out from any display.</p>
+<a name="6"></a><p class=from><a href='http://edward.oconnor.cx/'>Edward O'Connor</a> - 2011-02-04 13:39:37</p>
+<p class=comment>I'm surprised to read that you wrote your own Python RSS &amp; Atom parsing library. Is there a particular reason you didn't use the Universal Feed Parser?</p>
+<a name="7"></a><p class=from>Lars Marius - 2011-02-05 06:43:34</p>
+<p class=comment>Patrick: That is an interesting idea, and one that hadn't occurred to me. Hmmm.</p>
+<p class=comment>Edward: Two reasons. One being that I wasn't aware of the UFP. Maybe I should switch to that and get rid of some of the code. The other was that I already had an RSS parsing library from the around 2000 which I just reused.</p>
+<a name="8"></a><p class=from>heimo hänninen - 2011-02-07 15:27:52</p>
+<p class=comment>Good stuff. When will it run on Android? :-) But seriously, I feel the paiin of feed glut too. Itreresting to see that your app does a good job even without more sophisticated linguistic analysis. Could make it learn by allowing reader's feedback to promote or dentote future results?</p>
+<a name="9"></a><p class=from>Lars Marius - 2011-02-07 15:43:27</p>
+<p class=comment>Heimo: It does use reader feedback now. That's how it arrives at the probabilities for the various words. When you first start it all words (and all authors and all feeds) are rated at 0.5. When you vote a story up the score for the author, the feed, and all words in the story are incremented (to 0.54545454...). As you vote on more stories the votes accumulate and you get a more useful system.</p>
+<p class=comment>But in the beginning the system does no more than rank stories by which are the newest. :)</p>
+<a name="10"></a><p class=from>Tobias Brox - 2011-02-11 05:21:03</p>
+<p class=comment>I noticed the BBC example included "entertainment" in the URL, but there was no mentioning of it in the tokens.  "entertainment" in the URL should certainly give it a low rating?</p>
+<a name="11"></a><p class=from>Lars Marius - 2011-02-11 05:56:23</p>
+<p class=comment>Tobias: usually the last part of the URI contains the ID of the post, and to avoid getting huge numbers of garbage tokens in the data I strip out the last part of the URI (after the last /). So that part got stripped out.</p>
+<p class=comment>I agree that 'entertainment' here indicates a category, and so over time probably it would have gotten downrated enough to get a low score.</p>
+<p class=comment>Basically this is due to the somewhat primitive URI tokenizer I'm using. It could certainly be improved.</p>
+
+
+<div class="separator"></div>
+
+<h2>Add a comment</h2>
+
+<form action="add-comment.cgi" method="POST">
+
+<table>
+<tr><td>Name    <td><input type=text name=name>
+    <span class=hint>required</span>
+<tr><td>Email   <td><input type=text name=email>
+    <span class=hint>optional, not published</span>
+<tr><td>URL     <td><input type=text name=url size=40>
+    <span class=hint>optional, published</span>
+<tr><td>Comment <td><textarea name=comment cols=70 rows=20> </textarea>
+<tr id=spam style="display: normal"
+    ><td><span title="As in, 'is this comment spam?'">Spam</span>
+    <td><input type=checkbox name=clever checked>
+    <span class=hint><b>don't</b> check this if you want to be posted</span>
+<tr id=spam2 style="display: normal"
+    ><td><span title="As in, 'please confirm that this is not comment spam'">Not spam</span>
+    <td><input type=checkbox name=clever2>
+    <span class=hint><b>do</b> check this if you want to be posted</span>
+<tr><td colspan=2><input type=submit>
+</table>
+
+<input type=hidden name=entry value="216">
+</form>
+
+<!--td width="8%"-->
+<td width="15%" class="commentbar">
+
+<h2 class=sidehead>Last comments<br>
+<a href="comments.xml" class="xmlbutton">RSS</a></h2>
+
+<p><a href='159.html#5'>Jibrin Usman..B</a> on <a href='159.html'>What is an informati...</a></p>
+<p><a href='105.html#58'>Gnurf</a> on <a href='105.html'>7 tips on writing cl...</a></p>
+<p><a href='217.html#20'>John</a> on <a href='217.html'>Bayesian identity re...</a></p>
+<p><a href='217.html#19'>john</a> on <a href='217.html'>Bayesian identity re...</a></p>
+<p><a href='159.html#4'>Khaizarani Ibrahìm bako</a> on <a href='159.html'>What is an informati...</a></p>
+<p><a href='60.html#9'>Bruce</a> on <a href='60.html'>Equivalence classes</a></p>
+<p><a href='245.html#7'>Stig </a> on <a href='245.html'>Bitcoin: promises an...</a></p>
+<p><a href='263.html#3'>Jon Bjerkelien</a> on <a href='263.html'>The curse of NOARK</a></p>
+<p><a href='265.html#2'>Lars Marius</a> on <a href='265.html'>Impressions from Str...</a></p>
+<p><a href='265.html#1'>Aad Kamsteeg</a> on <a href='265.html'>Impressions from Str...</a></p>
+
+
+</table>
+
+<!-- have to put scripts here, since MSIE doesn't support scripts in tables -->
+
+
+<script type="text/javascript">
+document.forms[0].clever.checked = false;
+document.forms[0].clever2.checked = true;
+document.getElementById("spam").style.display = "none";
+document.getElementById("spam2").style.display = "none";
+</script>
+
+<div class=footer>
+<a href="/">Lars Marius Garshol</a>.
+</div>
+</html>

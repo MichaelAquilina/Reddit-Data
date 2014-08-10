@@ -1,0 +1,252 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title> Brainfuck beware: JavaScript is after you! | Patricio Palladino</title>
+        <link rel="stylesheet" href="/css/style.css">
+        <link rel="stylesheet" href="/css/syntax.css">
+        <link href="/feed.xml" rel="alternate" type="application/rss+xml" title="RSS Feed" />
+        <meta name="descrption" content="How to write any javascript only with ()[]{}!+ charcters.">
+        <script>
+            var _gaq = [['_setAccount', 'UA-33871471-1'], ['_trackPageview']];
+            (function(d, t) {
+                var g = d.createElement(t),
+                    s = d.getElementsByTagName(t)[0];
+                g.src = '//www.google-analytics.com/ga.js';
+                s.parentNode.insertBefore(g, s);
+            }(document, 'script'));
+        </script>
+    </head>
+    <body>
+        <div id="container"  class="post" >
+            <h1>Brainfuck beware: JavaScript is after you!</h1>
+            <p><strong>tl;dr</strong> I just made a tool to transform any javascript code into an equivalent sequence of <code>()[]{}!+</code> characters. You can try it <a href="/files/hieroglyphy">here</a>, or grab it from <a href="https://github.com/alcuadrado/hieroglyphy">github</a> or <a href="https://npmjs.org/package/hieroglyphy">npm</a>. Keep on reading if you want to know how it works.</p>
+
+<h2 id="non_alphanumeric_javascript">Non alphanumeric JavaScript</h2>
+
+<blockquote>
+<p>What do you know about non-alphanumeric XSS?</p>
+</blockquote>
+
+<p>The other day one of <a href="http://mfsec.com.ar/">my friends</a> asked me that question on IRC, pointing me to some articles on <a href="http://sla.ckers.org">sla.ckers.org</a> where they tried to create some scripts like <code>alert(1)</code> with non-alphanumeric characters.</p>
+
+<p>As a security researcher and a penetration tester, he insisted that extending that concept to any javascript source would be really useful for bypassing <a href="http://en.wikipedia.org/wiki/Intrusion_detection_system">IDSs</a>, <a href="http://en.wikipedia.org/wiki/Intrusion_prevention_system">IPSs</a> and <a href="https://www.owasp.org/index.php/Web_Application_Firewall">WAFs</a>. So challange accepted!</p>
+
+<h2 id="alphabet">Alphabet</h2>
+
+<p>Many alphabets could do the job, but just for fun, I tried to keep it as small as possible, using only the following characters:</p>
+
+<ul>
+<li><code>[</code> and <code>]</code> to access array elements, objects properties, get numbers and cast elements to strings.</li>
+
+<li><code>(</code> and <code>)</code> to call functions and avoid parsing errors.</li>
+
+<li><code>+</code> to append strings, sum and cast elements to numbers.</li>
+
+<li><code>!</code> to cast elements to booleans.</li>
+
+<li><code>{</code> and <code>}</code> to get <code>NaN</code> and the infamous string <code>&quot;[object Object]&quot;</code></li>
+</ul>
+
+<h2 id="numbers">Numbers</h2>
+
+<p>To start our journey to the world of brackets, lets represent the numbers with our new alphabet.</p>
+
+<p><code>0</code> is easily obtained by casting an empty array like this <code>+[]</code>. In a similar way, we can cast the empty array to boolean to get <code>true</code>, and then to <code>1</code> with <code>+!![]</code>. Those numbers, along with <code>+</code> would be enough to get every natural.</p>
+
+<p>But if we take advantage of JavaScript coercion of types, we can reduce the size of the sequence of the numbers in two ways.</p>
+
+<p>First, if we add a number and a boolean, both operands would be casted to numbers. So instead of using sums of ones to generate larger values, we can add just a <code>1</code> and a sequence of <code>true</code>s (we can use more than one <code>true</code> at a time beacuse addition is left-to-right assosiative). For instance, here is <code>4</code>: <code>!+[]+!![]+!![]+!![]</code>.</p>
+
+<p>The second idea is to get strings representing large numbers and cast them in order to get a shorter sequence of symbols. Once we obtained all the possible digits like we did above with <code>4</code>, we can get the desired string by adding the first digit to <code>[]</code> (to make it a character), and combinig all of them with <code>+</code> (with the necessary parens). Once again, the left-to-right assosiativite would save us lots of chars. Finally, we only need to cast that. Doing this, <code>12</code> would look like this: <code>+((+!![]+[])+(!+[]+!![]))</code>.</p>
+
+<p>The second idea is to reuse what we’ve done above in order to get a shorter sequence of symbols. The main purpose of doing this is to represent bigger numbers without the need to sum <code>1</code> each time to get to our number, so instead we get it’s string representation and cast it to number. For example, representing <code>12</code> adding ones would be: <code>(!+[]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![])</code>, but by resuing <code>1</code> and <code>2</code> we can be represen it like this: <code>+((+!![]+[])+(!+[]+!![]))</code>. Here, we have casted the first digit to string, added the second, and then, converted everything to a number. Speaking in terms of code, on the first case we did a simple sum: <code>(1+1+1+1+1+1+1+1+1+1+1+1)</code>; and on the second one we concatenated two strings and casted them into a number like this: <code>+(&quot;1&quot;+2)</code>.</p>
+
+<p>Having said that, here is a table of all the possible digits:</p>
+<div class='codeblock'>
+
+
+<table class='highlighttable'><tr><td class='linenos'><div class='linenodiv'><pre><code class='javascript'><a href='#codeblock2-1'> 1</a>
+<a href='#codeblock2-2'> 2</a>
+<a href='#codeblock2-3'> 3</a>
+<a href='#codeblock2-4'> 4</a>
+<a href='#codeblock2-5'> 5</a>
+<a href='#codeblock2-6'> 6</a>
+<a href='#codeblock2-7'> 7</a>
+<a href='#codeblock2-8'> 8</a>
+<a href='#codeblock2-9'> 9</a>
+<a href='#codeblock2-10'>10</a></code></pre></div></td><td class='code'><div class='highlight'><pre><a name='codeblock2-1' /><span class='mi'>0</span> <span class='o'>+</span><span class='p'>[]</span>
+<a name='codeblock2-2' /><span class='mi'>1</span> <span class='o'>+!!</span><span class='p'>[]</span>
+<a name='codeblock2-3' /><span class='mi'>2</span> <span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span>
+<a name='codeblock2-4' /><span class='mi'>3</span> <span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span>
+<a name='codeblock2-5' /><span class='mi'>4</span> <span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span>
+<a name='codeblock2-6' /><span class='mi'>5</span> <span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span>
+<a name='codeblock2-7' /><span class='mi'>6</span> <span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span>
+<a name='codeblock2-8' /><span class='mi'>7</span> <span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span>
+<a name='codeblock2-9' /><span class='mi'>8</span> <span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span>
+<a name='codeblock2-10' /><span class='mi'>9</span> <span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span>
+</pre></div>
+</td></tr></table>
+
+
+</div>
+<h2 id="base_elements_and_strings">Base elements and strings</h2>
+
+<p>Now that we have numbers, lets go for more interesting elements from which we can obtain characters:</p>
+
+<ul>
+<li><code>true</code> as we have already seen, can be obtained from <code>!![]</code></li>
+
+<li><code>false</code> from <code>![]</code></li>
+
+<li><code>undefined</code> by accessing to non-existing element to an array: <code>[][+[]]</code></li>
+
+<li><code>NaN</code> is the result of trying to cast an object to number: <code>+{}</code></li>
+
+<li><code>&quot;[object Object]&quot;</code> with <code>[]+{}</code></li>
+</ul>
+
+<p>Casting them to string (when necessary) and accessing those like arrays will give us single characters, from which we can even get more strings! These are <code>(the space)</code>, <code>&quot;[&quot;</code>, <code>&quot;]&quot;</code>, <code>&quot;a&quot;</code>, <code>&quot;b&quot;</code>, <code>&quot;c&quot;</code>, <code>&quot;d&quot;</code>, <code>&quot;e&quot;</code>, <code>&quot;f&quot;</code>, <code>&quot;i&quot;</code>, <code>&quot;j&quot;</code>, <code>&quot;l&quot;</code>, <code>&quot;n&quot;</code>, <code>&quot;N&quot;</code>, <code>&quot;o&quot;</code>, <code>&quot;O&quot;</code>, <code>&quot;r&quot;</code>, <code>&quot;s&quot;</code>, <code>&quot;t&quot;</code> and <code>&quot;u&quot;</code>. By combining them with numbers we can get <code>&quot;1e100&quot;</code> and <code>&quot;1e1000&quot;</code>, which when casted to numbers would result in <code>1e+100</code> and <code>Infinity</code>. And by casting them back to strings we can manage to get <code>&quot;y&quot;</code>, <code>&quot;I&quot;</code> and <code>&quot;+&quot;</code>.</p>
+
+<h2 id="gathering_functions_from_available_characters">Gathering functions from available characters</h2>
+
+<p>By combining those characters, we can only get these JavaScript functions and type names: <code>&quot;call&quot;</code>, <code>&quot;concat&quot;</code>, <code>&quot;constructor&quot;</code>, <code>&quot;join&quot;</code>, <code>&quot;slice&quot;</code> and <code>&quot;sort&quot;</code>.</p>
+
+<p>Playing with our alphabet and these strings, we can get the following functions:</p>
+
+<ul>
+<li><code>Function</code> from <code>array[&quot;sort&quot;][&quot;constructor&quot;]</code></li>
+
+<li><code>Array</code> from <code>array[&quot;constructor&quot;]</code></li>
+
+<li><code>Bolean</code> from <code>false[&quot;constructor&quot;]</code></li>
+
+<li><code>Number</code> from <code>0[&quot;constructor&quot;]</code></li>
+
+<li><code>Object</code> fom <code>{}[&quot;constructor&quot;]</code></li>
+
+<li><code>String</code> fom <code>string[&quot;constructor&quot;]</code></li>
+
+<li><code>Function.prototype.call</code> from <code>f[&quot;call&quot;]</code></li>
+
+<li><code>String.prototype.concat</code> from <code>string[&quot;concat&quot;]</code></li>
+
+<li><code>Array.prototype.join</code> from <code>array[&quot;join&quot;]</code></li>
+
+<li><code>Array.prototype.slice</code> from <code>array[&quot;slice&quot;]</code></li>
+
+<li><code>Array.prototype.sort</code> from <code>array[&quot;sort&quot;]</code></li>
+</ul>
+
+<p>Unluckily, none of these functions would give us new characters, but don’t loose your hope yet!</p>
+
+<h2 id="exploting_the_dom_for_fun_and_characters">Exploting the DOM for fun and characters</h2>
+
+<p>If we sacrifice some portabilty and constraint the scripts to webpages, we can take for granted that DOM elements would be available, and get the remaining characters.</p>
+
+<p>One interesting function that becames available is <code>window.unescape</code> which would give us all the ASCII characters by calling <code>window.unescape(&quot;%&quot; + HEXA_ASCII_VAL)</code>.</p>
+
+<p>All we are missing to get <code>unescape</code> is the <code>&quot;p&quot;</code> character. So once again we make a trade-off, sacrificing some more portability to get it. If we know that we are in a webpage served over HTTP or HTTPS we can asume that by casting <code>window.location</code> to string, and getting its third character we would obtain the precious <code>&quot;p&quot;</code>.</p>
+
+<p>But how can we obtain the <code>window.location</code> object if we don’t have access to <code>window</code> yet? Luckly JavaScript, being so premissive, would give that object by doing this:</p>
+<div class='codeblock'>
+
+
+<table class='highlighttable'><tr><td class='linenos'><div class='linenodiv'><pre><code class='javascript'><a href='#codeblock8-1'>1</a></code></pre></div></td><td class='code'><div class='highlight'><pre><a name='codeblock8-1' /><span class='nb'>Function</span><span class='p'>(</span><span class='s2'>&quot;return location&quot;</span><span class='p'>)()</span>
+</pre></div>
+</td></tr></table>
+
+
+</div>
+<p>And with <code>location</code> now we can have three more characters <code>&quot;h&quot;</code>, <code>&quot;p&quot;</code>, <code>&quot;/&quot;</code>, <code>escape</code> and <code>unescape</code> functions!</p>
+
+<p>If we could get the character <code>&quot;%&quot;</code> we would be able to get the rest by calling <code>unescape(&quot;%&quot; + HEXA_ASCII_VALUE)</code>. Luckly, escaping <code>&quot;[&quot;</code> yields the string <code>&quot;%5B</code>, and from that, we can obtain the percentage sign.</p>
+
+<p>Now, we can reach any ASCII character like this:</p>
+<div class='codeblock'>
+
+
+<table class='highlighttable'><tr><td class='linenos'><div class='linenodiv'><pre><code class='javascript'><a href='#codeblock3-1'>1</a></code></pre></div></td><td class='code'><div class='highlight'><pre><a name='codeblock3-1' /><span class='p'>[][(</span><span class='o'>!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]][([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]]((</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>[][(</span><span class='o'>!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]][([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]]((</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]])())[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]])()([][(</span><span class='o'>!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]][([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]]((</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>[][(</span><span class='o'>!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]][([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]]((</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]</span><span class='o'>+!+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>+</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>([][</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>+!!</span><span class='p'>[]])())[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]]</span><span class='o'>+</span><span class='p'>(</span><span class='o'>!!</span><span class='p'>[]</span><span class='o'>+</span><span class='p'>[])[</span><span class='o'>!+</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]</span><span class='o'>+!!</span><span class='p'>[]])()(([]</span><span class='o'>+</span><span class='p'>{})[</span><span class='o'>+</span><span class='p'>[]])[</span><span class='o'>+</span><span class='p'>[]]</span><span class='o'>+</span><span class='nx'>HEXA_VALUE</span><span class='p'>)</span>
+</pre></div>
+</td></tr></table>
+
+
+</div>
+<p>Finally, all we need to transform a script into symbols, is reading it as a string, encoding it in our alphabet, and use <code>Function</code> as <code>eval</code>.</p>
+
+<h2 id="hieroglyphy">Hieroglyphy</h2>
+
+<p>With the findings in this article, I’ve made a tool for encoding scripts, strings and numbers into this alphabet. It’s available at <a href="https://github.com/alcuadrado/hieroglyphy">github</a>, so feel free to fork and modify it. You can also try it online <a href="http://patriciopalladino.com/files/hieroglyphy">here</a>.</p>
+
+<h2 id="room_from_improvement">Room from improvement</h2>
+
+<p>Both this article and Hieroglyphy are just proof of concepts, there is plenty of room from improvments:</p>
+
+<ul>
+<li>Once we were able to generate all ASCII characters, no effort was made to get the shortest representation of any of them.</li>
+
+<li>When targeting modern browsers only, <code>btoa</code> would be a great help yielding lots of characters in shorter sequences.</li>
+
+<li>Depending on the target, one may select a bigger alphabet for reducing the encoding size.</li>
+
+<li>If we know the domain where the script would be run, more characters can be graved from it.</li>
+</ul>
+<!-- * When working with XSS during a pentest, you will find appropiate to
+    easily get the characters of your need by using the current domain. -->
+<h2 id="acknowledgments">Acknowledgments</h2>
+
+<p>Thanks to Matt for giving me the initial idea, helping me with the development and the redaction of this article.</p>
+
+<p>Don’t miss <a href="http://blog.infobytesec.com/2012/09/bypassing-wafs-with-non-alphanumeric-xss.html">his future entry</a> on how can you use Hieroglyphy for XSS!</p>
+
+<h2 id="updates">Updates</h2>
+
+<ul>
+<li>As many people pointed out, there are other projects that encode javascript in a different way, but all the ones I have seen are either broken, incomplete, or they use a bast number of different characters.</li>
+
+<li><a href="https://twitter.com/littlecalculist">David Herman</a> from mozilla and <a href="https://twitter.com/aemkei">Martin Kleppe</a> from <a href="http://www.ubilabs.net/">Ubilabs</a> where both workin on this at the same time. David’s version is targeted at ES5 compatible js engines, and doesn’t need a browser. Martin’s trades off some portability by using function’s toString in a commonly implemented non-standar way to use less characters.</li>
+
+<li>Unluckly hieroglyphied code can’t run in quirksmode on IE. It’s impressive how MS takes backwards compatibility to the limit, disabling any improvement to the javascript engine (or maybe using another) in this mode.</li>
+</ul>
+
+            <div id="share">
+                <a href="http://news.ycombinator.com/submit" class="hn-share-button">Vote on HN</a>
+                <script type="text/javascript" src="http://www.reddit.com/buttonlite.js?i=1"></script>
+                <a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
+            </div>
+
+            <ul id="nav">
+                <li><a href="/">Home</a></li>
+                <li><a href="/blog">Blog</a></li>
+                <li><a href="https://github.com/alcuadrado">Github</a></li>
+                <li><a class="email" href="http://www.google.com/recaptcha/mailhide/d?k=015jNyUwb5krY_855ESlq8vg==&amp;c=JamIaqZXM7GDH5d4QGYtFcW5CpWDn9GvvYWek28MRwQ=">email</a></li>
+            </ul>
+
+        </div>
+
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script src="/js/trianglify.min.js"></script>
+        <script>
+            var t = new Trianglify({noiseIntensity: 0});
+            var pattern;
+            if (document.body.parentNode.offsetHeight == 0) {
+                pattern = t.generate(window.innerWidth, window.innerHeight);
+            } else {
+                pattern = t.generate(document.body.parentNode.offsetHeight, document.body.parentNode.offsetHeight);
+            }
+            document.body.parentNode.setAttribute('style', 'background-image: '+pattern.dataUrl);
+        </script>
+
+
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+        <script>
+            (function(d, t) {
+                var g = d.createElement(t),
+                    s = d.getElementsByTagName(t)[0];
+                g.src = '//hnbutton.appspot.com/static/hn.js';
+                s.parentNode.insertBefore(g, s);
+            }(document, 'script'));
+        </script>
+        <script src="/js/email.h.js"></script>
+    </body>
+</html>

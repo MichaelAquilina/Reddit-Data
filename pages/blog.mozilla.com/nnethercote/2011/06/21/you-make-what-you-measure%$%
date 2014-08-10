@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en-US">
+<![endif]-->
+<!--[if (gt IE 6) | (!IE)]><!-->
+<html lang="en-US">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<title>You make what you measure | Nicholas Nethercote</title>
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="http://blog.mozilla.org/nnethercote/wp-content/themes/coraline-dherman/style.css" />
+<link rel="pingback" href="http://blog.mozilla.org/nnethercote/xmlrpc.php" />
+<link rel="alternate" type="application/rss+xml" title="Nicholas Nethercote &raquo; Feed" href="http://blog.mozilla.org/nnethercote/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Nicholas Nethercote &raquo; Comments Feed" href="http://blog.mozilla.org/nnethercote/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Nicholas Nethercote &raquo; You make what you measure Comments Feed" href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/feed/" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://blog.mozilla.org/nnethercote/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://blog.mozilla.org/nnethercote/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Gmail and Bugzilla: an update' href='http://blog.mozilla.org/nnethercote/2011/06/10/gmail-and-bugzilla-an-update/' />
+<link rel='next' title='MemShrink progress, week 1' href='http://blog.mozilla.org/nnethercote/2011/06/22/memshrink-progress-week-1/' />
+<meta name="generator" content="WordPress 3.9.1" />
+<link rel='canonical' href='http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/' />
+<link rel='shortlink' href='http://blog.mozilla.org/nnethercote/?p=914' />
+            <script type="text/javascript">
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-36116321-4']);
+            _gaq.push(['_trackPageview']);
+
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+            </script><link rel="stylesheet" type="text/css" href="http://blog.mozilla.org/nnethercote/wp-content/plugins/wp-recaptcha/recaptcha.css" /></head>
+
+<body class="single single-post postid-914 single-format-standard two-column content-sidebar">
+<div id="container" class="hfeed">
+	<div id="header">
+		<div id="masthead" role="banner">
+						<div id="site-title">
+				<span>
+					<a href="http://blog.mozilla.org/nnethercote/" title="Nicholas Nethercote" rel="home">Nicholas Nethercote</a>
+				</span>
+			</div>
+			<div id="site-description">Notes on Firefox, MemShrink, JavaScript, and more</div>
+		</div><!-- #masthead -->
+
+		<div id="access" role="navigation">
+		  			<div class="skip-link screen-reader-text"><a href="#content" title="Skip to content">Skip to content</a></div>
+						<div class="menu"><ul><li ><a href="http://blog.mozilla.org/nnethercote/">Home</a></li><li class="page_item page-item-2"><a href="http://blog.mozilla.org/nnethercote/about/">About</a></li></ul></div>
+		</div><!-- #access -->
+
+		<div id="branding">
+						<a href="http://blog.mozilla.org/nnethercote/">
+									<img src="http://blog.mozilla.org/nnethercote/wp-content/themes/coraline-dherman/images/headers/water-drops.jpg" width="990" height="260" alt="" />
+							</a>
+					</div><!-- #branding -->
+	</div><!-- #header -->
+
+	<div id="content-box">
+
+		<div id="content-container">
+			<div id="content" role="main">
+
+			
+				<div id="nav-above" class="navigation">
+					<div class="nav-previous"><a href="http://blog.mozilla.org/nnethercote/2011/06/10/gmail-and-bugzilla-an-update/" rel="prev"><span class="meta-nav">&larr;</span> Gmail and Bugzilla: an update</a></div>
+					<div class="nav-next"><a href="http://blog.mozilla.org/nnethercote/2011/06/22/memshrink-progress-week-1/" rel="next">MemShrink progress, week 1 <span class="meta-nav">&rarr;</span></a></div>
+				</div><!-- #nav-above -->
+
+				<div id="post-914" class="post-914 post type-post status-publish format-standard hentry category-aboutmemory category-jagermonkey category-memory-consumption category-tracemonkey">
+					<h1 class="entry-title">You make what you measure</h1>
+
+					<div class="entry-meta">
+						<span class="meta-prep meta-prep-author">Posted on</span> <a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/" title="3:36 pm" rel="bookmark"><span class="entry-date">June 21, 2011</span></a> <span class="byline"><span class="meta-sep">by</span> <span class="author vcard"><a class="url fn n" href="http://blog.mozilla.org/nnethercote/author/nnethercotemozillacom/" title="View all posts by Nicholas Nethercote">Nicholas Nethercote</a></span></span><span class="comments-link"><span class="meta-sep">|</span> <a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/#comments" title="Comment on You make what you measure">27 Comments</a></span>
+											</div><!-- .entry-meta -->
+
+					<div class="entry-content">
+						<p>Inspired by <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=625305">Shaver&#8217;s patch</a>, I implemented some <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=661474">per-compartment stats</a> in about:memory.  I then visited <a href="http://techcrunch.com/">TechCrunch</a> because I know it stresses the JS engine.  Wow, there are over 70  compartments!  There are 20 stories on the front page.  Every story has a  Facebook &#8220;like&#8221; button, a Facebook &#8220;send&#8221; button, and a Google &#8220;+1&#8243;  button, and every button gets its own compartment.</p>
+<p>That sounds like a  bug, but it&#8217;s <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=664067">probably not</a>.  Nonetheless, every one of those buttons had an entry in about:memory that looked like this:</p>
+<p><a href="http://blog.mozilla.org/nnethercote/files/2011/06/c11.png"><img class="size-full wp-image-916 alignleft" title="c1" src="http://blog.mozilla.org/nnethercote/files/2011/06/c11.png" alt="Old compartment measurements" width="857" height="184" /></a></p>
+<p>(The &#8216;object-slots&#8217; and &#8216;scripts&#8217; and &#8216;string-chars&#8217; measurements are also new, courtesy of <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=571249">bug 571249</a>.)</p>
+<p>Ugh, 255,099 bytes for a compartment that has only 971 bytes (i.e. not much) of scripts?  Even worse, this is actually an underestimate because there is another 68KB of tjit-data memory that isn&#8217;t being measured for each compartment.  That gives a total of about 323KB per compartment.  And it turns out that no JIT compilation is happening for these compartments, so all that tjit-data and mjit-code space is allocated but unused.</p>
+<p>Fortunately, it&#8217;s not hard to avoid this wasted space, by lazily initializing each compartment&#8217;s <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=661068">TraceMonitor</a> and <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=665404">JaegerCompartment</a>.  With that done, the entry in about:memory looks like this:</p>
+<p><a href="http://blog.mozilla.org/nnethercote/files/2011/06/c22.png"><img class="alignleft" title="c2" src="http://blog.mozilla.org/nnethercote/files/2011/06/c22.png" alt="New compartment measurements" width="863" height="180" /></a></p>
+<p>That&#8217;s an easy memory saving of over 20MB for a single webpage.  The per-compartment memory reporters haven&#8217;t landed yet, and may not even land in their current form, but they&#8217;ve already demonstrated their worth.  You make what you measure.</p>
+											</div><!-- .entry-content -->
+
+					<div class="entry-info">
+						This entry was posted in <a href="http://blog.mozilla.org/nnethercote/category/aboutmemory/" title="View all posts in about:memory" rel="category tag">about:memory</a>, <a href="http://blog.mozilla.org/nnethercote/category/jagermonkey/" title="View all posts in JägerMonkey" rel="category tag">JägerMonkey</a>, <a href="http://blog.mozilla.org/nnethercote/category/memory-consumption/" title="View all posts in Memory consumption" rel="category tag">Memory consumption</a>, <a href="http://blog.mozilla.org/nnethercote/category/tracemonkey/" title="View all posts in Tracemonkey" rel="category tag">Tracemonkey</a>. Bookmark the <a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/" title="Permalink to You make what you measure" rel="bookmark">permalink</a>.											</div><!-- .entry-info -->
+				</div><!-- #post-## -->
+
+				<div id="nav-below" class="navigation">
+					<div class="nav-previous"><a href="http://blog.mozilla.org/nnethercote/2011/06/10/gmail-and-bugzilla-an-update/" rel="prev"><span class="meta-nav">&larr;</span> Gmail and Bugzilla: an update</a></div>
+					<div class="nav-next"><a href="http://blog.mozilla.org/nnethercote/2011/06/22/memshrink-progress-week-1/" rel="next">MemShrink progress, week 1 <span class="meta-nav">&rarr;</span></a></div>
+				</div><!-- #nav-below -->
+
+				
+<div id="comments">
+	
+	
+			<h3 id="comments-title">27 Responses to <span>You make what you measure</span></h3>
+
+		
+		<ol class="commentlist">
+				<li class="comment even thread-even depth-1" id="li-comment-856">
+		<div id="comment-856">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/e799a79441c7543be48562403411cd13?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Havvy</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-856">
+				June 21, 2011 at 4:46 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>When does this go into Firefox?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-859">
+		<div id="comment-859">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c373b563731bfba5dae207e3f66539dd?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://djst.org/blog/' rel='external nofollow' class='url'>David Tenser</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-859">
+				June 21, 2011 at 5:40 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Great to see examples of how we&#8217;re fighting the memory usage battle &#8212; keep it up!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-862">
+		<div id="comment-862">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/2f3f79b3fe10f621da07a524b76aadb2?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Mark</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-862">
+				June 21, 2011 at 8:38 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Holy Smokes! When does this land?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-864">
+		<div id="comment-864">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/0c4f70a1b2ebf8d3f1cad60a2a7f4f15?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Ed</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-864">
+				June 21, 2011 at 10:03 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>@ Havvy, Mark:<br />
+To follow along, check out:<br />
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=661068" rel="nofollow">https://bugzilla.mozilla.org/show_bug.cgi?id=661068</a><br />
+and<br />
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=665404" rel="nofollow">https://bugzilla.mozilla.org/show_bug.cgi?id=665404</a></p>
+<p>They both have reviewed patches, but for you to see the changes, they&#8217;ll need to land on tracemonkey first, then on mozilla-central (at which point you&#8217;ll see the bug status change to fixed and a comment with the <a href="http://hg.mozilla.org/***mozilla-central***/rev/" rel="nofollow">http://hg.mozilla.org/***mozilla-central***/rev/</a> commit message). </p>
+<p>After that (and depending on the time of day), it will be up to 24-28 hours before the change is present in the latest nightly: <a href="http://nightly.mozilla.org/" rel="nofollow">http://nightly.mozilla.org/</a></p>
+<p>Depending on which version of Firefox is listed as being in the nightly stage (<a href="https://wiki.mozilla.org/Releases" rel="nofollow">https://wiki.mozilla.org/Releases</a>) at the time of the patch landing, will determine which aurora/beta/release version of Firefox you can expect to see this in.</p>
+<p>If you are interested in following the memory leak/footprint reduction bugs in general, see:<br />
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=640457" rel="nofollow">https://bugzilla.mozilla.org/show_bug.cgi?id=640457</a><br />
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=659860" rel="nofollow">https://bugzilla.mozilla.org/show_bug.cgi?id=659860</a><br />
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=659858" rel="nofollow">https://bugzilla.mozilla.org/show_bug.cgi?id=659858</a><br />
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=659857" rel="nofollow">https://bugzilla.mozilla.org/show_bug.cgi?id=659857</a><br />
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=659855" rel="nofollow">https://bugzilla.mozilla.org/show_bug.cgi?id=659855</a></p>
+<p>Hope that helps <img src="http://blog.mozilla.org/nnethercote/wp-includes/images/smilies/icon_smile.gif" alt=":-)" class="wp-smiley" /> </p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor even depth-2" id="li-comment-870">
+		<div id="comment-870">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-870">
+				June 22, 2011 at 4:47 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Ed, thanks for the detailed response!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-867">
+		<div id="comment-867">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/1231dd25c2fce9325d24713406c52ebc?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Mardeg</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-867">
+				June 22, 2011 at 3:34 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>I&#8217;m trying to get my head around the fact that a facebook like button uses as much memory as a Commodore 64 for mjit-code that doesn&#8217;t actually do anything&#8230;</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor even depth-2" id="li-comment-868">
+		<div id="comment-868">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-868">
+				June 22, 2011 at 4:23 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Mardeg: the whole point is that it allocates the memory but doesn&#8217;t use it.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor odd alt thread-odd thread-alt depth-1" id="li-comment-869">
+		<div id="comment-869">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-869">
+				June 22, 2011 at 4:34 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Havvy, Mark:  I landed the TraceMonitor change yesterday, I&#8217;ll land the JaegerCompartment change today.  Barring disaster, they&#8217;ll be in Firefox 7 which will be out in about 3 months.</p>
+<p>I&#8217;m not sure when the per-compartment reporting will land, there&#8217;s some more work to do there.</p>
+<p>(Sorry for the slow reply;  I tried replying 3 times yesterday and the comments were swallowed every time.)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-876">
+		<div id="comment-876">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/eb99fcafb63ef68fdb19a269f4d3e3eb?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">azakai</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-876">
+				June 22, 2011 at 5:40 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Awesome!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-882">
+		<div id="comment-882">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/19addf50fcb1150f9074686c76de167f?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Jason</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-882">
+				June 22, 2011 at 4:18 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Just curious what sort of slowdown there is not having those objects cached.  Will I notice when I click something and there is a pause while it loads?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor even depth-2" id="li-comment-883">
+		<div id="comment-883">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-883">
+				June 22, 2011 at 4:25 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Jason: no slowdown. If anything you&#8217;d see a speed-up, because there are fewer allocations, but the effects will be far too small to notice.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment odd alt thread-even depth-1" id="li-comment-884">
+		<div id="comment-884">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/014ac2956df20d63d15d2d567936a19c?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://www.geeknik.com/' rel='external nofollow' class='url'>geeknik</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-884">
+				June 22, 2011 at 4:37 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Sweet! Can&#8217;t wait for these memory fixes to land on m-c. =)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-885">
+		<div id="comment-885">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/ff34020e0a05e5f3b45e4e3825bf7c64?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">ivoras</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-885">
+				June 22, 2011 at 4:40 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Memory allocated but untouched is not committed to the process. In other words, this &#8220;fix&#8221; is a no-op. You shoul probably review this: varnish-cache.org/trac/wiki/ArchitectNotes and this: <a href="http://en.wikipedia.org/wiki/Virtual_memory" rel="nofollow">http://en.wikipedia.org/wiki/Virtual_memory</a></p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor odd alt depth-2" id="li-comment-886">
+		<div id="comment-886">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-886">
+				June 22, 2011 at 4:54 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>ivoras: tell that to the Windows users who get crashes because Firefox runs out of address space <img src="http://blog.mozilla.org/nnethercote/wp-includes/images/smilies/icon_razz.gif" alt=":P" class="wp-smiley" /> </p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-892">
+		<div id="comment-892">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/b94d3947daf98d3d6c0dd5b50215e4af?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://www.hokstad.com/blog' rel='external nofollow' class='url'>Vidar</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-892">
+				June 22, 2011 at 7:07 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>ivoras: You&#8217;re assuming it&#8217;s untouched, which is not necessarily the case if a bunch of objects have been instantiated. If it&#8217;s just &#8220;raw&#8221; memory that&#8217;s been allocated, then sure.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-894">
+		<div id="comment-894">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/81e84bcf7e4ebeaffd177e7b0d9a819f?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://www.ali31.com/' rel='external nofollow' class='url'>Ali</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-894">
+				June 22, 2011 at 9:18 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Those sites need to just keep the like buttons and other crap on the actual article page. What in the hell is the point of loading up the first page with a ton of iframes?</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-896">
+		<div id="comment-896">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/fda2927dafa7525b9e0916951e94f6cc?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://fullof.bs' rel='external nofollow' class='url'>John Haugeland</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-896">
+				June 22, 2011 at 10:31 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>255,099 &#8211; 2996 = 20,000.</p>
+<p>(sigh)</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor odd alt depth-2" id="li-comment-903">
+		<div id="comment-903">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-903">
+				June 23, 2011 at 10:22 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>John Haugeland: huh?  I don&#8217;t follow.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-897">
+		<div id="comment-897">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/2d409b846c878a54cd5bc7cb573afa55?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">a</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-897">
+				June 23, 2011 at 2:24 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>If you care to test another news site with a heavyweight front page, you can look here: <a href="http://www.businessinsider.com/" rel="nofollow">http://www.businessinsider.com/</a></p>
+<p>Might pop another rivet <img src="http://blog.mozilla.org/nnethercote/wp-includes/images/smilies/icon_wink.gif" alt=";-)" class="wp-smiley" />  Thanks for the nice work.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor odd alt depth-2" id="li-comment-904">
+		<div id="comment-904">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-904">
+				June 23, 2011 at 10:24 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>a: thanks for the suggestion.  Looks like <a href="http://www.businessinsider.com" rel="nofollow">http://www.businessinsider.com</a> has about 28 compartments, including a lot of Facebook &#8220;like&#8221; buttons.  Still a pretty good stress test!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-899">
+		<div id="comment-899">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c59152a77c0bc073fe6f2a3141b99010?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Rodze</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-899">
+				June 23, 2011 at 4:30 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Will this be useful to identify memory problems with addons?</p>
+<p>Thanks for the work, anyway!</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor odd alt depth-2" id="li-comment-905">
+		<div id="comment-905">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-905">
+				June 23, 2011 at 10:26 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Rodze: in some cases.  I think &#8212; but am not certain &#8212; add-ons that use the JetPack SDK are put in their own compartment, so they will be identifiable, but non-JetPack add-ons won&#8217;t be identifiable.  I should check that out, thanks for the suggestion.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-odd thread-alt depth-1" id="li-comment-900">
+		<div id="comment-900">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/33e2c2d5624f23cd335e347c6a264c9a?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Alexandre</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-900">
+				June 23, 2011 at 4:34 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Maybe this is not an issue for this specific page, but it may be for others: since most of these compartments are duplicates of the same buttons, isn&#8217;t it possible to share the same &#8220;JITted&#8221; code?  This would save memory and the time for &#8220;re-JITting&#8221; the script.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	<ul class="children">
+	<li class="comment byuser comment-author-nnethercotemozillacom bypostauthor odd alt depth-2" id="li-comment-906">
+		<div id="comment-906">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/c39889e8c4ced7497a180fb41e3dffad?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">Nicholas Nethercote</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-906">
+				June 23, 2011 at 10:29 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>Alexandre: sharing isn&#8217;t possible, AIUI.  Each compartment has its own global object, and the JITted code that is produced depends on that global object.  In other words, the code for two seemingly-identical compartments actually has different global object addresses hard-wired into it.  My understanding is that removing this hard-wiring would hurt performance significantly.  The good news is that overall, I think the memory savings that sharing JITted code would allow are small compared to easier memory savings that we can get elsewhere in the browser.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li class="comment even thread-even depth-1" id="li-comment-907">
+		<div id="comment-907">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/0a70c84cd33dba0151fe15f2f8773137?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn">mccr8</cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-907">
+				June 23, 2011 at 1:56 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>John Haugeland: it is a savings of about (255,099 – 2,996) bytes per compartment (not kilobytes), but there are about 70 compartments on the TechCrunch webpage, due to all of the like buttons.  That&#8217;s a total of about 20 megs (17647210 bytes by my math, but close enough).</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-912">
+		<div id="comment-912">
+		<div class="comment-author vcard">
+			<img alt='' src='http://1.gravatar.com/avatar/dfc1480f6139a31af8babe6bc55090cf?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='https://www.ibm.com/developerworks/mydeveloperworks/blogs/MartinPacker?lang=en_us' rel='external nofollow' class='url'>Martin Packer</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-912">
+				June 23, 2011 at 7:24 pm</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>As a mainframe guy it&#8217;s nice to see the &#8220;breakdown usage and do something useful with it&#8221; idea being applied to Firefox memory. In <a href="https://www.ibm.com/developerworks/mydeveloperworks/blogs/MartinPacker/entry/memory_breakdown_in_firefox7?lang=en_us" rel="nofollow">https://www.ibm.com/developerworks/mydeveloperworks/blogs/MartinPacker/entry/memory_breakdown_in_firefox7?lang=en_us</a> I point to this blog entry as an example of where it appears to have paid off nicely. I would echo the point that some have made that virtualreal memory usage but also see others have pointed out that virtual is still important in and of itself, and that virtual can sometimes lead to SOME real being used anyway. Of course, in my blog post, I point out this style of problem decomposition is something we can do using interval-based instrumentation &#8211; in z/OS. I wonder if Firefox can do the same &#8211; to see the time-driven pattern.</p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+	<li class="comment byuser comment-author-genmozillacom even thread-even depth-1" id="li-comment-915">
+		<div id="comment-915">
+		<div class="comment-author vcard">
+			<img alt='' src='http://0.gravatar.com/avatar/ef1b5a29836fa211b938d8ccbbd3e0a1?s=48&amp;d=blank&amp;r=G' class='avatar avatar-48 photo' height='48' width='48' />
+			<cite class="fn"><a href='http://blog.mozilla.org/gen/' rel='external nofollow' class='url'>Gen Kanai</a></cite>
+
+			<span class="comment-meta commentmetadata">
+				|
+				<a href="http://blog.mozilla.org/nnethercote/2011/06/21/you-make-what-you-measure/comment-page-1/#comment-915">
+				June 24, 2011 at 1:22 am</a>
+					|
+													</span><!-- .comment-meta .commentmetadata -->
+		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-body"><p>jfyi:</p>
+<p><a href="http://www.reddit.com/r/programming/comments/i5ood/forthcoming_firefox_fix_thats_an_easy_memory/" rel="nofollow">http://www.reddit.com/r/programming/comments/i5ood/forthcoming_firefox_fix_thats_an_easy_memory/</a></p>
+</div>
+
+	</div><!-- #comment-##  -->
+
+	</li><!-- #comment-## -->
+		</ol>
+
+		
+	
+			
+</div><!-- #comments -->
+			
+			</div><!-- #content -->
+		</div><!-- #content-container -->
+
+
+		
+		<div id="primary" class="widget-area" role="complementary">
+			<ul class="xoxo">
+
+			
+				<li id="search" class="widget-container widget_search">
+					<h3 class="widget-title">Search It!</h3>					
+					<form role="search" method="get" id="searchform" class="searchform" action="http://blog.mozilla.org/nnethercote/">
+				<div>
+					<label class="screen-reader-text" for="s">Search for:</label>
+					<input type="text" value="" name="s" id="s" />
+					<input type="submit" id="searchsubmit" value="Search" />
+				</div>
+			</form>				</li>
+
+				<li class="widget-container">
+					<h3 class="widget-title">Recent Entries</h3>
+						<ul>
+															<li><a href="http://blog.mozilla.org/nnethercote/2014/06/16/a-browser-benchmarking-manifesto/">A browser benchmarking manifesto</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/06/16/memshrinks-3rd-birthday/">MemShrink&#8217;s 3rd birthday</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/06/16/an-even-slimmer-pdf-js/">An even slimmer pdf.js</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/06/12/areweslimyet-com-data-is-now-exportable-and-diffable/">areweslimyet.com data is now exportable and diffable</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/06/03/why-do-new-macbooks-ship-with-the-firewall-off-by-default/">Why do new MacBooks ship with the firewall off by default?</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/">AdBlock Plus&#8217;s effect on Firefox&#8217;s memory usage</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/04/07/a-story-about-brendan-eich/">A story about Brendan Eich</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/03/31/generational-gc-has-landed/">Generational GC has landed</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/02/11/nuwa-has-landed/">Nuwa has landed</a></li>
+																<li><a href="http://blog.mozilla.org/nnethercote/2014/02/07/a-slimmer-and-faster-pdf-js/">A slimmer and faster pdf.js</a></li>
+														</ul>
+				</li>
+
+				<li class="widget-container">
+					<h3 class="widget-title">Links</h3>
+						<ul>
+													</ul>
+				</li>
+
+						</ul>
+		</div><!-- #primary .widget-area -->
+
+		
+			</div><!-- #content-box -->
+
+	<div id="footer" role="contentinfo">
+		
+
+		<div id="colophon">
+			Theme: Coraline by <a href="http://automattic.com/">Automattic</a> <span class="generator-link"><a href="http://wordpress.org/" title="A Semantic Personal Publishing Platform" rel="generator">Proudly powered by WordPress.</a></span>
+		</div><!-- #colophon -->
+	</div><!-- #footer -->
+
+</div><!-- #container -->
+
+<script type='text/javascript' src='http://blog.mozilla.org/nnethercote/wp-includes/js/comment-reply.min.js?ver=3.9.1'></script>
+</body>
+</html>

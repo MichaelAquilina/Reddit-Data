@@ -1,0 +1,609 @@
+<!DOCTYPE html><!--[if IE 7]><html class="layout-wrapper ie ie7 lte9 lte8 lte7"><![endif]--><!--[if IE 8]><html class="layout-wrapper ie ie8 lte9 lte8"><![endif]--><!--[if IE 9]><html class="layout-wrapper ie ie9 lte9"><![endif]--><!--[if (gte IE 9)|!(IE)]<!--><html class="layout-wrapper"><head><title>Mocking in Python: A Guide to Better Unit Tests | Toptal</title><meta content="As a developer, you care more that your library successfully called the system function for ejecting a CD as opposed to experiencing your CD tray open every time a test is run. This guide to mocking in Python will help you keep your unit tests sane." name="description" /><meta charset="utf-8" /><meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible" />
+<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info={"beacon":"beacon-6.newrelic.com","errorBeacon":"bam.nr-data.net","licenseKey":"e3359cee6b","applicationID":"2530279","transactionName":"JV0NEUYJCQkARxgVEwReCgYbFgoWEUYYFg4JRQ==","queueTime":0,"applicationTime":23,"ttGuid":"","agentToken":null,"agent":"js-agent.newrelic.com/nr-411.min.js","extra":""}</script>
+<script type="text/javascript">window.NREUM||(NREUM={}),__nr_require=function(t,n,e){function r(e){if(!n[e]){var o=n[e]={exports:{}};t[e][0].call(o.exports,function(n){var o=t[e][1][n];return r(o?o:n)},o,o.exports)}return n[e].exports}if("function"==typeof __nr_require)return __nr_require;for(var o=0;o<e.length;o++)r(e[o]);return r}({D5DuLP:[function(t,n){function e(t,n){var e=r[t];return e?e.apply(this,n):(o[t]||(o[t]=[]),void o[t].push(n))}var r={},o={};n.exports=e,e.queues=o,e.handlers=r},{}],handle:[function(t,n){n.exports=t("D5DuLP")},{}],G9z0Bl:[function(t,n){function e(){var t=l.info=NREUM.info;if(t&&t.agent&&t.licenseKey&&t.applicationID&&p&&p.body){l.proto="https"===f.split(":")[0]||t.sslForHttp?"https://":"http://",i("mark",["onload",a()]);var n=p.createElement("script");n.src=l.proto+t.agent,p.body.appendChild(n)}}function r(){"complete"===p.readyState&&o()}function o(){i("mark",["domContent",a()])}function a(){return(new Date).getTime()}var i=t("handle"),u=window,p=u.document,s="addEventListener",c="attachEvent",f=(""+location).split("?")[0],l=n.exports={offset:a(),origin:f,features:[]};p[s]?(p[s]("DOMContentLoaded",o,!1),u[s]("load",e,!1)):(p[c]("onreadystatechange",r),u[c]("onload",e)),i("mark",["firstbyte",a()])},{handle:"D5DuLP"}],loader:[function(t,n){n.exports=t("G9z0Bl")},{}]},{},["G9z0Bl"]);</script><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" /><meta content="authenticity_token" name="csrf-param" />
+<meta content="9SgEh19IAnGALqJiOQTyDcXE6YQ5KN5Vg9uiyQFZhBY=" name="csrf-token" /><meta content="An Introduction to Mocking in Python" property="og:title" /><meta content="http://www.toptal.com/uploads/blog/post_image/24/toptal-blog-image-1389090359819.png" property="og:image" /><meta content="Toptal Engineering Blog" property="og:site_name" /><meta content="As a developer, you care more that your library successfully called the system function for ejecting a CD as opposed to experiencing your CD tray open every time a test is run. This guide to mocking in Python will help you keep your unit tests sane." property="og:description" /><link href="https://plus.google.com/114167316992110884088" rel="author" /><link href="/assets/favicons/favicon-a5173aa0a5d20de36b536216059b41ac.png" rel="icon" /><!--[if IE]><link href="/assets/favicons/favicon-df902fdb5f2fad2e38c444084cd2dcd5.ico" rel="shortcut icon" /><![endif]--><link href="/assets/favicons/touch_x57-b7bbea2ab94e028d8763d877ea57e003.png" rel="apple-touch-icon-precomposed" sizes="57x57" /><link href="/assets/favicons/touch_x72-d31b8e9543a50369f67a979121acefc6.png" rel="apple-touch-icon-precomposed" sizes="72x72" /><link href="/assets/favicons/touch_x114-d888198306815f26972b3c5bb6d1cbf2.png" rel="apple-touch-icon-precomposed" sizes="114x114" /><link href="/assets/favicons/touch_x57-b7bbea2ab94e028d8763d877ea57e003.png" rel="apple-touch-icon-precomposed" /><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" /><link href="/blog.rss" rel="alternate" title="Toptal Engineering Blog" type="application/rss+xml" /><meta content="authenticity_token" name="csrf-param" />
+<meta content="9SgEh19IAnGALqJiOQTyDcXE6YQ5KN5Vg9uiyQFZhBY=" name="csrf-token" /><script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.7.1/modernizr.min.js" type="text/javascript"></script><script type="text/javascript">// TODO: Figure out how to override Modernizr test
+(function () {
+  var isIE, noFlexboxClassName;
+  isIE = /MSIE/.test(navigator.userAgent) && !/Opera/.test(navigator.userAgent);
+  isIE11 = !!window.MSInputMethodContext
+  if (Modernizr && (Modernizr.flexbox && (isIE || isIE11))) {
+    noFlexboxClassName = document.documentElement.className.replace('flexbox', 'no-flexbox');
+    document.documentElement.className = noFlexboxClassName;
+  }
+})();</script><!--[if (lte IE 8)]><script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js" type="text/javascript"></script><![endif]--><script type="text/javascript">
+//<![CDATA[
+window.gon = {};gon.flash={};
+//]]>
+</script><link href="/assets/public-71ddce1b200b3e1daedf2dfab32d02b9.css" media="all" rel="stylesheet" type="text/css" /><link href="/assets/portal-7359598eefa899e625755b9ae507105b.css" media="all" rel="stylesheet" type="text/css" /><link href="/assets/blog-4949a22537f77758c6d2e10caa877229.css" media="all" rel="stylesheet" type="text/css" /><!--[if (lte IE 8)]><script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" type="text/javascript"></script><![endif]--><!--[if (gte IE 9)|(!IE)]><!--><script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js" type="text/javascript"></script><![endif]--><script src="//cdn.optimizely.com/js/186204918.js" type="text/javascript"></script><script type="text/javascript">window.optimizely = window.optimizely || [];</script></head><body class="layout" id="top"><div class="layout_layer" data-view="layout#layout"><header class="page_header" data-role="fixed-header"><div class="page_header_line"></div><div class="page_header" data-view="layout#menu"><div class="grid-row is-light_gray"><div class="grid-row-inner is-wide has-padding page_header_top"><div class="page_header_top-logotype_wrapper"><div class="page_header_top-logotype"><a class="logo is-big is-link" href="http://www.toptal.com/">Toptal</a></div></div><a class="page_header_top-expand" data-role="expand_menu" href="#"><span class="page_header_top-expand_icon"></span></a><nav class="page_header_top-nav_wrapper"><ul class="page_header_top-nav"><li class="page_header_top-nav_item">Join <span class="page_header_top-label_chunk is-toptal">Toptal </span>as a</li><li class="page_header_top-nav_item"><a class="button is-green_candy is-small page_header_top-nav_link is-button" href="https://www.toptal.com/companies/apply">Company</a></li><li class="page_header_top-nav_item has-right_border"><a class="button is-green_candy is-small page_header_top-nav_link is-button" href="/developers">Developer</a></li><li class="page_header_top-nav_item"><a class="button is-small is-light page_header_top-nav_link is-button" href="https://www.toptal.com/users/login">Login</a></li></ul></nav></div></div><nav class="grid-row has-top_border is-light_gray page_header_menu-wrapper" data-role="menu_wrapper"><div class="grid-row-inner is-wide has-small_padding page_header_menu"><div class="page_header_menu-items-wrapper"><ul class="page_header_menu-items" data-role="menu"><li class="page_header_menu-item is-home"><a class="page_header_menu-link" href="http://www.toptal.com/"></a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/why">Why</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/how">How</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/what">What</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/clients">Clients</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/team">Team</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/community">Community</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/blog">Blog</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/contact">Contact</a></li><li class="page_header_menu-item"><a class="page_header_menu-link" href="/faq">FAQ</a></li><li class="page_header_menu-item is-join"><a class="button is-green_candy is-small page_hader_menu-button" href="https://www.toptal.com/companies/apply">Hire a developer</a></li><li class="page_header_menu-item is-join"><a class="button is-green_candy is-small page_hader_menu-button" href="/developers">Apply as a developer</a></li><li class="page_header_menu-item is-login"><a class="button is-light is-small page_hader_menu-button is-login" href="https://www.toptal.com/users/login">Login</a></li><li class="page_header_menu-item is-contacts"><ul class="page_header_menu-contact-items is-replacable"><li class="page_header_menu-contact-item">Call us:</li><li class="page_header_menu-contact-item"><a class="link is-dark page_header_menu-contact-link" href="tel:8886043188">888.604.3188</a></li><li class="page_header_menu-contact-item"><a class="page_header_menu-contact-link is-social is-facebook" href="https://www.facebook.com/pages/toptal/141928212544793"><span class="page_header_menu-contact-link-icon"></span></a></li><li class="page_header_menu-contact-item"><a class="page_header_menu-contact-link is-social is-twitter" href="https://twitter.com/toptalllc"><span class="page_header_menu-contact-link-icon"></span></a></li><li class="page_header_menu-contact-item"><a class="page_header_menu-contact-link is-social is-google_plus" href="https://plus.google.com/+Toptalllc/"><span class="page_header_menu-contact-link-icon"></span></a></li></ul></li></ul></div><a class="button is-green_candy is-tiny page_header_menu-hire" href="https://www.toptal.com/companies/apply">Hire a developer</a><ul class="page_header_menu-contact-items is-replacable"><li class="page_header_menu-contact-item">Call us:</li><li class="page_header_menu-contact-item"><a class="link is-dark page_header_menu-contact-link" href="tel:8886043188">888.604.3188</a></li><li class="page_header_menu-contact-item"><a class="page_header_menu-contact-link is-social is-facebook" href="https://www.facebook.com/pages/toptal/141928212544793"><span class="page_header_menu-contact-link-icon"></span></a></li><li class="page_header_menu-contact-item"><a class="page_header_menu-contact-link is-social is-twitter" href="https://twitter.com/toptalllc"><span class="page_header_menu-contact-link-icon"></span></a></li><li class="page_header_menu-contact-item"><a class="page_header_menu-contact-link is-social is-google_plus" href="https://plus.google.com/+Toptalllc/"><span class="page_header_menu-contact-link-icon"></span></a></li></ul></div></nav></div></header><main class="layout-main"><div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_GB/all.js#xfbml=1&appId=565054136848482";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+<header class="grid-row has-top_border has-bottom_border post_cover is-post"><div class="grid-row-inner is-wide has-big_padding blog_title for-show"></div></header><article class="grid-row is-transparent"><div class="grid-row-inner is-wide"><div class="post_title"><h1 class="post_title-text">An Introduction to Mocking in Python</h1><a class="post_title-back" href="/blog">View all articles</a></div></div></article><section class="grid-row has-top_border is-transparent has-no_border" id="main_content"><div class="grid-row-inner has-medium_padding two_columns_layout is-wide"><div class="two_columns_layout-content"><div class="post is-full"><div class="post-meta-wrapper post_header"><div class="post_header-triangle"></div><div class="post_avatar post-meta-avatar"><img alt="Toptal-blog-image-1389090696997" class="post_avatar-image" src="/uploads/avatar/external_author_photo/45/toptal-blog-image-1389090696997.jpeg" width="50" /></div><div class="post-meta is-full"><div class="post-meta-author"><p>by <strong><a href="http://blog.tkassembled.com/" class="link is-blue" target="_blank">Naftuli Tzvi Kay</a></strong> - Software Engineer
+@ <a href="http://toptal.com" class="link is-blue" target="_blank">Toptal</a>
+</p>
+</div><div class="post-meta-tags"><a href="/blog#python-posts">#Python</a> <a href="/blog#mock-posts">#Mock</a> <a href="/blog#unittest-posts">#Unittest</a> </div></div><div class="post-meta-extra"><div class="post-meta-extra-row"><div class="post-meta-extra-icon"><div class="post-meta-extra-icon-image is-share"></div></div><div class="post-share"><ul class="social_share"><li class="social_share-item is-facebook"><div class="fb-like" data-href="http://www.toptal.com/python/an-introduction-to-mocking-in-python" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false"></div>
+</li><li class="social_share-item is-google_plus"><!-- Place this tag where you want the share button to render. -->
+<div class="g-plus" data-action="share" data-annotation="bubble" data-href="http://www.toptal.com/python/an-introduction-to-mocking-in-python"></div>
+
+<!-- Place this tag after the last share tag. -->
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script>
+</li><li class="social_share-item is-linkedin"><script src="//platform.linkedin.com/in.js" type="text/javascript"> lang: en_US</script><script type="IN/Share" data-url="http://www.toptal.com/python/an-introduction-to-mocking-in-python" data-counter="right"></script>
+</li><li class="social_share-item is-twitter"><a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.toptal.com/python/an-introduction-to-mocking-in-python" data-text="" data-via="toptalllc">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+</li></ul></div></div></div></div><div class="content_body" data-subscribe="true" data-view="content#body"><h2 id="how-to-test-without-testing-your-patience">How to Test Without Testing Your Patience</h2>
+
+<p>More often than not, the software we write directly interacts with what we would label as “dirty” services. In layman’s terms: services that are crucial to our application, but whose interactions have intended but undesired side-effects—that is, undesired in the context of an autonomous test run.</p>
+
+<p>For example: perhaps we’re writing a social app and want to test out our new ‘Post to Facebook feature’, but don’t want to <em>actually</em> post to Facebook every time we run our test suite.</p>
+
+<p>The Python <code>unittest</code> library includes a subpackage named <code>unittest.mock</code>—or if you declare it as a dependency, simply <code>mock</code>—which provides extremely powerful and useful means by which to mock and stub out these undesired side-effects.</p>
+
+<p><img src="/uploads/blog/image/252/toptal-blog-image-1389090346415.png" alt="" /></p>
+
+<p><em>Note: <code>mock</code> is <a href="http://www.python.org/dev/peps/pep-0417/">newly included</a> in the standard library as of Python 3.3; prior distributions will have to use the Mock library downloadable via <a href="https://pypi.python.org/pypi/mock">PyPI</a>.</em></p>
+
+<h2 id="fear-system-calls">Fear System Calls</h2>
+
+<p>To give you another example, and one that we’ll run with for the rest of the article, consider <strong>system calls</strong>. It’s not difficult to see that these are prime candidates for mocking: whether you’re writing a script to eject a CD drive, a web server which removes antiquated cache files from <code>/tmp</code>, or a socket server which binds to a TCP port, these calls all feature undesired side-effects in the context of your unit-tests. </p>
+
+<div class="pop_out_box is-full_width is-big">
+As a developer, you care more that your library successfully called the system function for ejecting a CD as opposed to experiencing your CD tray open every time a test is run.
+</div>
+
+<p>As a developer, you care more that your library successfully called the system function for ejecting a CD (with the correct arguments, etc.) as opposed to actually experiencing your CD tray open every time a test is run. (Or worse, multiple times, as multiple tests reference the eject code during a single unit-test run!)</p>
+
+<p>Likewise, keeping your unit-tests efficient and performant means keeping as much “slow code” out of the automated test runs, namely filesystem and network access.</p>
+
+<p>For our first example, we’ll refactor a standard Python test case from original form to one using <code>mock</code>. We’ll demonstrate how writing a test case with mocks will make our tests smarter, faster, and able to reveal more about how the software works. </p>
+
+<h2 id="a-simple-delete-function">A Simple Delete Function</h2>
+
+<p>We all need to delete files from our filesystem from time to time, so let’s write a function in Python which will make it a bit easier for our scripts to do so. </p>
+
+<pre><code>#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+
+def rm(filename):
+    os.remove(filename)
+</code></pre>
+
+<p>Obviously, our <code>rm</code> method at this point in time doesn’t provide much more than the underlying <code>os.remove</code> method, but our codebase will improve, allowing us to add more functionality here.</p>
+
+<p>Let’s write a traditional test case, i.e., without mocks:</p>
+
+<pre><code>#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from mymodule import rm
+
+import os.path
+import tempfile
+import unittest
+
+class RmTestCase(unittest.TestCase):
+
+    tmpfilepath = os.path.join(tempfile.gettempdir(), "tmp-testfile")
+
+    def setUp(self):
+        with open(self.tmpfilepath, "wb") as f:
+            f.write("Delete me!")
+        
+    def test_rm(self):
+        # remove the file
+        rm(self.tmpfilepath)
+        # test that it was actually removed
+        self.assertFalse(os.path.isfile(self.tmpfilepath), "Failed to remove the file.")
+</code></pre>
+
+<p>Our test case is pretty simple, but every time it is run, a temporary file is created and then deleted. Additionally, we have no way of testing whether our <code>rm</code> method properly passes the argument down to the <code>os.remove</code> call. We can <em>assume</em> that it does based on the test above, but much is left to be desired. </p>
+
+<h3 id="refactoring-with-mocks">Refactoring with Mocks</h3>
+
+<p>Let’s refactor our test case using <code>mock</code>:</p>
+
+<pre><code>#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from mymodule import rm
+
+import mock
+import unittest
+
+class RmTestCase(unittest.TestCase):
+    
+    @mock.patch('mymodule.os')
+    def test_rm(self, mock_os):
+        rm("any path")
+        # test that rm called os.remove with the right parameters
+        mock_os.remove.assert_called_with("any path")
+</code></pre>
+
+<p>With these refactors, we have fundamentally changed the way that the test operates. Now, we have an <em>insider</em>, an object we can use to verify the functionality of another.</p>
+
+<h4 id="potential-pitfalls">Potential Pitfalls</h4>
+
+<p>One of the first things that should stick out is that we’re using the <code>mock.patch</code> method decorator  to mock an object located at <code>mymodule.os</code>, and injecting that mock into our test case method. Wouldn’t it make more sense to just mock <code>os</code> itself, rather than the reference to it at <code>mymodule.os</code>? </p>
+
+<p>Well, Python is somewhat of a sneaky snake when it comes to imports and managing modules. At runtime, the <code>mymodule</code> module has its own <code>os</code> which is imported into its own local scope in the module. Thus, if we mock <code>os</code>, we won’t see the effects of the mock in the <code>mymodule</code> module. </p>
+
+<p>The mantra to keep repeating is this:</p>
+
+<blockquote>
+  <p>Mock an item <em>where it is used</em>, not where it came from.</p>
+</blockquote>
+
+<p>If you need to mock the <code>tempfile</code> module for <code>myproject.app.MyElaborateClass</code>, you probably need to apply the mock to <code>myproject.app.tempfile</code>, as each module keeps its own imports.</p>
+
+<p>With that pitfall out of the way, let’s keep mocking.</p>
+
+<h3 id="adding-validation-to-rm">Adding Validation to ‘rm’</h3>
+
+<p>The <code>rm</code> method defined earlier is quite oversimplified. We’d like to have it validate that a path exists and is a file before just blindly attempting to remove it. Let’s refactor <code>rm</code> to be a bit smarter:</p>
+
+<pre><code>#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+import os.path
+
+def rm(filename):
+    if os.path.isfile(filename):
+        os.remove(filename)
+</code></pre>
+
+<p>Great. Now, let’s adjust our test case to keep coverage up.</p>
+
+<pre><code>#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from mymodule import rm
+
+import mock
+import unittest
+
+class RmTestCase(unittest.TestCase):
+    
+    @mock.patch('mymodule.os.path')
+    @mock.patch('mymodule.os')
+    def test_rm(self, mock_os, mock_path):
+        # set up the mock
+        mock_path.isfile.return_value = False
+        
+        rm("any path")
+        
+        # test that the remove call was NOT called.
+        self.assertFalse(mock_os.remove.called, "Failed to not remove the file if not present.")
+        
+        # make the file 'exist'
+        mock_path.isfile.return_value = True
+        
+        rm("any path")
+        
+        mock_os.remove.assert_called_with("any path")
+</code></pre>
+
+<p>Our testing paradigm has completely changed. We now can verify and validate internal functionality of methods without <em>any</em> side-effects.</p>
+
+<h3 id="file-removal-as-a-service">File-Removal as a Service</h3>
+
+<p>So far, we’ve only been working with supplying mocks for functions, but not for methods on objects or cases where mocking is necessary for sending parameters. Let’s cover object methods first.</p>
+
+<p>We’ll begin with a refactor of the <code>rm</code> method into a service class. There really isn’t a justifiable need, per se, to encapsulate such a simple function into an object, but it will at the very least help us demonstrate key concepts in <code>mock</code>. Let’s refactor:</p>
+
+<pre><code>#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+import os.path
+
+class RemovalService(object):
+    """A service for removing objects from the filesystem."""
+
+    def rm(filename):
+        if os.path.isfile(filename):
+            os.remove(filename)
+</code></pre>
+
+<p>You’ll notice that not much has changed in our test case:</p>
+
+<pre><code>#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from mymodule import RemovalService
+
+import mock
+import unittest
+
+class RemovalServiceTestCase(unittest.TestCase):
+    
+    @mock.patch('mymodule.os.path')
+    @mock.patch('mymodule.os')
+    def test_rm(self, mock_os, mock_path):
+        # instantiate our service
+        reference = RemovalService()
+        
+        # set up the mock
+        mock_path.isfile.return_value = False
+        
+        reference.rm("any path")
+        
+        # test that the remove call was NOT called.
+        self.assertFalse(mock_os.remove.called, "Failed to not remove the file if not present.")
+        
+        # make the file 'exist'
+        mock_path.isfile.return_value = True
+        
+        reference.rm("any path")
+        
+        mock_os.remove.assert_called_with("any path")
+</code></pre>
+
+<p>Great, so we now know that the <code>RemovalService</code> works as planned. Let’s create another service which declares it as a dependency:</p>
+
+<pre><code>#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+import os.path
+
+class RemovalService(object):
+    """A service for removing objects from the filesystem."""
+
+    def rm(self, filename):
+        if os.path.isfile(filename):
+            os.remove(filename)
+            
+
+class UploadService(object):
+
+    def __init__(self, removal_service):
+        self.removal_service = removal_service
+        
+    def upload_complete(self, filename):
+        self.removal_service.rm(filename)
+</code></pre>
+
+<p>Since we already have test coverage on the <code>RemovalService</code>, we’re not going to validate internal functionality of the <code>rm</code> method in our tests of <code>UploadService</code>. Rather, we’ll simply test (without side-effects, of course) that <code>UploadService</code> <em>calls</em> the <code>RemovalService.rm</code> method, which we know “just works™” from our previous test case.</p>
+
+<p>There are two ways to go about this:</p>
+
+<ol>
+  <li>Mock out the <code>RemovalService.rm</code> method itself.</li>
+  <li>Supply a mocked instance in the constructor of <code>UploadService</code>. </li>
+</ol>
+
+<p>As both methods are often important in unit-testing, we’ll review both.</p>
+
+<h4 id="option-1-mocking-instance-methods">Option 1: Mocking Instance Methods</h4>
+
+<p>The <code>mock</code> library has a special method decorator for mocking object instance methods and properties, the <code>@mock.patch.object</code> decorator:</p>
+
+<pre><code>#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from mymodule import RemovalService, UploadService
+
+import mock
+import unittest
+
+class RemovalServiceTestCase(unittest.TestCase):
+    
+    @mock.patch('mymodule.os.path')
+    @mock.patch('mymodule.os')
+    def test_rm(self, mock_os, mock_path):
+        # instantiate our service
+        reference = RemovalService()
+        
+        # set up the mock
+        mock_path.isfile.return_value = False
+        
+        reference.rm("any path")
+        
+        # test that the remove call was NOT called.
+        self.assertFalse(mock_os.remove.called, "Failed to not remove the file if not present.")
+        
+        # make the file 'exist'
+        mock_path.isfile.return_value = True
+        
+        reference.rm("any path")
+        
+        mock_os.remove.assert_called_with("any path")
+      
+      
+class UploadServiceTestCase(unittest.TestCase):
+
+    @mock.patch.object(RemovalService, 'rm')
+    def test_upload_complete(self, mock_rm):
+        # build our dependencies
+        removal_service = RemovalService()
+        reference = UploadService(removal_service)
+        
+        # call upload_complete, which should, in turn, call `rm`:
+        reference.upload_complete("my uploaded file")
+        
+        # check that it called the rm method of any RemovalService
+        mock_rm.assert_called_with("my uploaded file")
+        
+        # check that it called the rm method of _our_ removal_service
+        removal_service.rm.assert_called_with("my uploaded file")
+</code></pre>
+
+<p>Great! We’ve validated that the <code>UploadService</code> successfully calls our instance’s <code>rm</code> method. Notice anything interesting in there? The patching mechanism actually replaced the <code>rm</code> method of all <code>RemovalService</code> instances in our test method. That means that we can actually inspect the instances themselves. If you want to see more, try dropping in a breakpoint in your mocking code to get a good feel for how the patching mechanism works. </p>
+
+<h4 id="pitfall-decorator-order">Pitfall: Decorator Order</h4>
+
+<p>When using multiple decorators on your test methods, <em>order is important</em>, and it’s kind of confusing. Basically, when mapping decorators to method parameters, <a href="http://www.voidspace.org.uk/python/mock/patch.html#nesting-patch-decorators">work backwards</a>. Consider this example:</p>
+
+<pre><code>    @mock.patch('mymodule.sys')
+    @mock.patch('mymodule.os')
+    @mock.patch('mymodule.os.path')
+    def test_something(self, mock_os_path, mock_os, mock_sys):
+        pass
+</code></pre>
+
+<p>Notice how our parameters are matched to the reverse order of the decorators? That’s partly because of <a href="http://docs.python.org/2/reference/compound_stmts.html#function-definitions">the way that Python works</a>. With multiple method decorators, here’s the order of execution in pseudocode:</p>
+
+<pre><code>patch_sys(patch_os(patch_os_path(test_something)))
+</code></pre>
+
+<p>Since the patch to <code>sys</code> is the outermost patch, it will be executed last, making it the last parameter in the actual test method arguments. Take note of this well and use a debugger when running your tests to make sure that the right parameters are being injected in the right order. </p>
+
+<h4 id="option-2-creating-mock-instances">Option 2: Creating Mock Instances</h4>
+
+<p>Instead of mocking the specific instance method, we could instead just supply a mocked instance to <code>UploadService</code> with its constructor. I prefer option 1 above, as it’s  a lot more precise, but there are many cases where option 2 might be efficient or necessary. Let’s refactor our test again:</p>
+
+<pre><code>#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from mymodule import RemovalService, UploadService
+
+import mock
+import unittest
+
+class RemovalServiceTestCase(unittest.TestCase):
+    
+    @mock.patch('mymodule.os.path')
+    @mock.patch('mymodule.os')
+    def test_rm(self, mock_os, mock_path):
+        # instantiate our service
+        reference = RemovalService()
+        
+        # set up the mock
+        mock_path.isfile.return_value = False
+        
+        reference.rm("any path")
+        
+        # test that the remove call was NOT called.
+        self.assertFalse(mock_os.remove.called, "Failed to not remove the file if not present.")
+        
+        # make the file 'exist'
+        mock_path.isfile.return_value = True
+        
+        reference.rm("any path")
+        
+        mock_os.remove.assert_called_with("any path")
+      
+      
+class UploadServiceTestCase(unittest.TestCase):
+
+    def test_upload_complete(self, mock_rm):
+        # build our dependencies
+        mock_removal_service = mock.create_autospec(RemovalService)
+        reference = UploadService(mock_removal_service)
+        
+        # call upload_complete, which should, in turn, call `rm`:
+        reference.upload_complete("my uploaded file")
+        
+        # test that it called the rm method
+        mock_removal_service.rm.assert_called_with("my uploaded file")
+</code></pre>
+
+<p>In this example, we haven’t even had to patch any functionality, we simply create an auto-spec for the <code>RemovalService</code> class, and then inject this instance into our <code>UploadService</code> to validate the functionality.</p>
+
+<p>The <a href="http://www.voidspace.org.uk/python/mock/helpers.html#autospeccing"><code>mock.create_autospec</code></a> method creates a functionally equivalent instance to the provided class. What this means, practically speaking, is that when the returned instance is interacted with, it will raise exceptions if used in illegal ways. More specifically, if a method is called with the wrong number of arguments, an exception will be raised. This is extremely important as refactors happen. As a library changes, tests break and that is expected. Without using an auto-spec, our tests will still pass even though the underlying implementation is broken.</p>
+
+<h4 id="pitfall-the-mockmock-and-mockmagicmock-classes">Pitfall: The <code>mock.Mock</code> and <code>mock.MagicMock</code> Classes</h4>
+
+<p>The <code>mock</code> library also includes two important classes upon which most of the internal functionality is built upon: <code>[mock.Mock</code>](http://www.voidspace.org.uk/python/mock/mock.html) and <a href="http://www.voidspace.org.uk/python/mock/magicmock.html#magic-mock"><code>mock.MagicMock</code></a>. When given a choice to use a <code>mock.Mock</code> instance, a <code>mock.MagicMock</code> instance, or an auto-spec, always favor using an auto-spec, as it helps keep your tests sane for future changes. This is because <code>mock.Mock</code> and <code>mock.MagicMock</code> accept all method calls and property assignments regardless of the underlying API. Consider the following use case:</p>
+
+<pre><code>class Target(object):
+    def apply(value):
+        return value
+
+def method(target, value):
+    return target.apply(value)
+</code></pre>
+
+<p>We can test this with a <code>mock.Mock</code> instance like this:</p>
+
+<pre><code>class MethodTestCase(unittest.TestCase):
+
+    def test_method(self):
+        target = mock.Mock()
+
+        method(target, "value")
+
+        target.apply.assert_called_with("value")
+</code></pre>
+
+<p>This logic seems sane, but let’s modify the <code>Target.apply</code> method to take more parameters:</p>
+
+<pre><code>class Target(object):
+    def apply(value, are_you_sure):
+        if are_you_sure:
+            return value
+        else:
+            return None
+</code></pre>
+
+<p>Re-run your test, and you’ll find that it still passes. That’s because it isn’t built against your actual API. This is why you should <em>always</em> use the <code>create_autospec</code> method and the <code>autospec</code> parameter with the <code>@patch</code> and <code>@patch.object</code> decorators.</p>
+
+<h2 id="real-world-example-mocking-a-facebook-api-call">Real-World Example: Mocking a Facebook API Call</h2>
+
+<p>To finish up, let’s write a more applicable real-world example, one which we mentioned in the introduction: posting a message to Facebook. We’ll write a nice wrapper class and a corresponding test case.</p>
+
+<pre><code>import facebook
+
+class SimpleFacebook(object):
+    
+    def __init__(self, oauth_token):
+        self.graph = facebook.GraphAPI(oauth_token)
+
+    def post_message(self, message):
+        """Posts a message to the Facebook wall."""
+        self.graph.put_object("me", "feed", message=message)
+</code></pre>
+
+<p>Here’s our test case, which checks that we post the message without <em>actually</em> posting the message:</p>
+
+<pre><code>import facebook
+import simple_facebook
+import mock
+import unittest
+
+class SimpleFacebookTestCase(unittest.TestCase):
+    
+    @mock.patch.object(facebook.GraphAPI, 'put_object', autospec=True)
+    def test_post_message(self, mock_put_object):
+        sf = simple_facebook.SimpleFacebook("fake oauth token")
+        sf.post_message("Hello World!")
+
+        # verify
+        mock_put_object.assert_called_with(message="Hello World!")
+</code></pre>
+
+<p>As we’ve seen so far, it’s <em>really</em> simple to start writing smarter tests with <code>mock</code> in Python.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Python’s <code>mock</code> library, if a little confusing to work with, is a game-changer for unit-testing. We’ve demonstrated common use-cases for getting started using <code>mock</code> in unit-testing, and hopefully this article will help Python developers overcome the initial hurdles and write excellent, tested code.</p>
+<div class="post-join"><a class="button is-white_and_green is-default is-full_width" href="/python">Looking to hire top engineers? Check out Toptal's Python developers!</a></div><div class="template" data-role="subscribe_template"><form action="/blog/subscribe" class="blog_subscribe for-post" data-placement="post" data-remote="" data-type="text" data-view="blog_subscribe#subscribe" method="post"><div class="blog_subscribe-row"><div class="blog_subscribe-label">Editor&#39;s note: want posts just like this delivered straight to your inbox? Subscribe below to receive our latest engineering articles.</div></div><div class="blog_subscribe-row"><input class="input is-medium" data-role="email" name="email" placeholder="Enter your email address..." /></div><div class="blog_subscribe-row-wrapper is-footer"><div class="blog_subscribe-row is-submit"><input class="button is-green_candy is-default is-full_width" data-role="submit" type="submit" value="Subscribe Now" /></div><div class="blog_subscribe-row is-privacy"><div class="blog_subscribe-privacy"><div class="blog_subscribe-privacy-icon"></div><div class="blog_subscribe-privacy_text">We will never share your email with any 3rd party or spam you</div></div></div></div><div class="blog_subscribe-template" data-role="success_template" style="display:none"><div class="blog_subscribe-row"><div class="blog_subscribe-label">Subscribe to Engineering Articles by Email</div></div><div class="blog_subscribe-row"><div class="blog_subscribe-label is-header">Thank you for subscribing!</div></div><div class="blog_subscribe-row"><div class="blog_subscribe-done"><ul class="blog_follow_us"><li class="blog_follow_us-source"><div class="fb-like" data-href="http://www.toptal.com/blog" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false"></div</li><li class="blog_follow_us-source is-twitter"><a href="https://twitter.com/toptalllc" class="twitter-follow-button" data-show-count="true">Follow @toptalllc</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></li><li class="blog_follow_us-source"><div class="g-follow" data-annotation="bubble" data-height="20" data-href="https://plus.google.com/109028009576318848424" data-rel="publisher"></div>
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/platform.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script></li></ul></div></div></div></form></div></div><form action="/blog/subscribe" class="blog_subscribe for-below" data-placement="below" data-remote="" data-type="text" data-view="blog_subscribe#subscribe" method="post"><div class="blog_subscribe-row"><div class="blog_subscribe-label">Subscribe to our engineering blog for the latest tips</div></div><div class="blog_subscribe-row"><input class="input is-medium" data-role="email" name="email" placeholder="Enter your email address..." /></div><div class="blog_subscribe-row-wrapper is-footer"><div class="blog_subscribe-row is-submit"><input class="button is-green_candy is-default is-full_width" data-role="submit" type="submit" value="Subscribe Now" /></div><div class="blog_subscribe-row is-privacy"><div class="blog_subscribe-privacy"><div class="blog_subscribe-privacy-icon"></div><div class="blog_subscribe-privacy_text">We will never share your email with any 3rd party or spam you</div></div></div></div><div class="blog_subscribe-template" data-role="success_template" style="display:none"><div class="blog_subscribe-row"><div class="blog_subscribe-label">Subscribe to Engineering Articles by Email</div></div><div class="blog_subscribe-row"><div class="blog_subscribe-label is-header">Thank you for subscribing!</div></div><div class="blog_subscribe-row"><div class="blog_subscribe-done"><ul class="blog_follow_us"><li class="blog_follow_us-source"><div class="fb-like" data-href="http://www.toptal.com/blog" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false"></div</li><li class="blog_follow_us-source is-twitter"><a href="https://twitter.com/toptalllc" class="twitter-follow-button" data-show-count="true">Follow @toptalllc</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></li><li class="blog_follow_us-source"><div class="g-follow" data-annotation="bubble" data-height="20" data-href="https://plus.google.com/109028009576318848424" data-rel="publisher"></div>
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/platform.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script></li></ul></div></div></div></form><div class="post_comments"><div id="disqus_thread_container"><div id="disqus_thread"><div class="d-noscript-comments"><h3>Comments</h3><div class="post-comment"><div class="post-comment-author">Enrique Conci</div><div class="post-comment-body">Great Post! It&#39;s very useful!</div></div><div class="post-comment"><div class="post-comment-author">Gabriel Pozoz</div><div class="post-comment-body">Excellent, thanks !!!</div></div><div class="post-comment"><div class="post-comment-author">Alex Parra</div><div class="post-comment-body">Great post! </div></div><div class="post-comment"><div class="post-comment-author">dd101</div><div class="post-comment-body">Top engineers&#39; tutorial!</div></div><div class="post-comment"><div class="post-comment-author">pebre79</div><div class="post-comment-body">Great post. Minor correction: os.path.isfile(self.tempfile) should be os.path.isfile(self.tmpfilepath).</div></div><div class="post-comment"><div class="post-comment-author">Jared Culp</div><div class="post-comment-body">When invoking the Facebook test suite, I get:
+
+
+AssertionError: Expected call: put_object(message=&#39;Hello World!&#39;)
+Actual call: put_object(&lt;facebook.GraphAPI object&gt;, &#39;me&#39;, &#39;feed&#39;, message=&#39;Hello World!&#39;)
+
+
+
+The put_object method takes more params than just the message. However, changing autospec=False causes the method to pass! (like the last pitfall you discussed)
+
+
+Could you shed some light into this? Thanks for the article, its resolved many confusions I had with mocking in python.</div></div><div class="post-comment"><div class="post-comment-author">chassing</div><div class="post-comment-body">Great post! thx
+btw in classes RemovalService ... def rm(filename) should be def rm(self, filename) :)</div></div><div class="post-comment"><div class="post-comment-author">Ian Liu</div><div class="post-comment-body">I&#39;m confused. For me the whole point of an abstraction is that its implementation is unimportant; you are interested in its behavior, not its implementation. So, if you refactor your &quot;rm&quot; method to use, say, subprocess.call([&quot;rm&quot;, arg]) the unit test would fail although the implementation would maintain the correct behavior.
+
+
+I didn&#39;t read the whole post, sorry for that. Please point any errors in my comment!</div></div><div class="post-comment"><div class="post-comment-author">DrWatson</div><div class="post-comment-body">Start by describing mentally what the function under test does. If you think &quot;rm(filename) deletes the file,&quot; that will be true from the caller perspective, but when unit testing it you can be more specific and describe it as &quot;rm(filename) uses os.remove to delete the file.&quot; 
+We will trust that os.remove knows how to do its job and we don&#39;t need to worry about it. All we care is that it was used by our rm function.
+For a one-liner function it sounds contrived and unnecessary. In fact, one could make a valid argument that such a function doesn&#39;t even need unit testing.
+As that function grows you&#39;ll see that there will be more nuances to how the logic flows that you&#39;ll have enough behavior to test and won&#39;t be happy worrying about side effects of external code.
+It&#39;s almost like a game of drawing the line on how far you are willing to go in order to verify if your code worked. Using mocks you can draw that line much closer to your code and your tests will typically become faster and more to the point.</div></div><div class="post-comment"><div class="post-comment-author">袁 晨思</div><div class="post-comment-body">&quot;Option 2&quot; example code has problem
+&quot;class UploadServiceTestCase&quot; method &quot;def test_upload_complete(self, mock_rm)&quot;
+should not exists param &quot;mock_rm&quot;</div></div><div class="post-comment"><div class="post-comment-author">Sven</div><div class="post-comment-body">Great illustrated! Very welll done.
+
+One more interesting point would be to mock object methods in an inheritance. Especially parent methods of an object that needs to be tested in an isolated manner.
+
+So that a given object like a mixin that expects a parent method to be existing, that gets available on usage time of the mixin, can be tested by mocking this later expected parent method.
+
+I&#39;m not so sure if this is really possible.</div></div><div class="post-comment"><div class="post-comment-author">Kevin Audleman</div><div class="post-comment-body">Oh holy cow, you just helped me understand why I couldn&#39;t patch a suds Client class one of my apps is using. I was doing @patch(&#39;suds.client.Client&#39;) instead of @patch(&#39;myapp.myfile.Client&#39;). I&#39;ve been frustrated for days. Thanks!!!</div></div><div class="post-comment"><div class="post-comment-author">raphael_carvalho</div><div class="post-comment-body">Great post !</div></div></div></div></div><script type="text/javascript">function isIos() {
+  return /(iPad|iPhone|iPod)/g.test(navigator.userAgent);
+}
+
+function adjustHeightInIos() {
+  if (isIos()) {
+    var height = $('#disqus_thread').outerHeight();
+    $('#disqus_thread_container').height(height);
+  }
+}
+
+if (isIos()) {
+  var el = document.getElementById('disqus_thread_container');
+  el.style.height = '1px';
+  el.style.overflow = 'hidden';
+  el.style.width = '100%';
+}
+
+function disqus_config() {
+  this.callbacks.onNewComment = [function() {
+    $.post('/blog/comments/on_create');
+    adjustHeightInIos();
+  }];
+
+  this.callbacks.onReady = [adjustHeightInIos];
+}
+
+var disqus_shortname = 'toptal';
+var disqus_identifier = 'python/an-introduction-to-mocking-in-python';
+
+(function() {
+  var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript><a class="dsq-brlink" href="http://disqus.com">comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div><div class="two_columns_layout-extra"><div class="blog-block-wrapper"><div class="blog-block-header">Subscribe</div><div class="blog-block"><div class="blog-block-row"><form action="/blog/subscribe" class="blog_subscribe for-extra" data-placement="extra" data-remote="" data-type="text" data-view="blog_subscribe#subscribe" method="post"><div class="blog_subscribe-row"><div class="blog_subscribe-label">Subscribe to Engineering Articles by Email</div></div><div class="blog_subscribe-row"><input class="input is-medium" data-role="email" name="email" placeholder="Enter your email address..." /></div><div class="blog_subscribe-row-wrapper is-footer"><div class="blog_subscribe-row is-submit"><input class="button is-green_candy is-default is-full_width" data-role="submit" type="submit" value="Subscribe Now" /></div><div class="blog_subscribe-row is-privacy"><div class="blog_subscribe-privacy"><div class="blog_subscribe-privacy-icon"></div><div class="blog_subscribe-privacy_text">We will never share your email with any 3rd party or spam you</div></div></div></div><div class="blog_subscribe-template" data-role="success_template" style="display:none"><div class="blog_subscribe-row"><div class="blog_subscribe-label">Subscribe to Engineering Articles by Email</div></div><div class="blog_subscribe-row"><div class="blog_subscribe-label is-header">Thank you for subscribing!</div></div><div class="blog_subscribe-row"><div class="blog_subscribe-done"><ul class="blog_follow_us"><li class="blog_follow_us-source"><div class="fb-like" data-href="http://www.toptal.com/blog" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false"></div</li><li class="blog_follow_us-source is-twitter"><a href="https://twitter.com/toptalllc" class="twitter-follow-button" data-show-count="true">Follow @toptalllc</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></li><li class="blog_follow_us-source"><div class="g-follow" data-annotation="bubble" data-height="20" data-href="https://plus.google.com/109028009576318848424" data-rel="publisher"></div>
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/platform.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script></li></ul></div></div></div></form></div></div><div class="blog-block-header">Trending articles</div><div class="blog-block"><nav class="blog-trending"><a class="post is-preview blog-trending-item" href="/emberjs/a-thorough-guide-to-ember-data"><span class="post_cover is-preview for-technology"><span class="post_cover-image" style="background-image: url(&#39;/uploads/blog/cover_image/77/side_list_cover-cover.png&#39;);"></span></span><span class="post-preview"><span class="post-title">A Thorough Guide to Ember Data</span><span class="post-meta"><span class="post-meta-date">11 days ago</span></span></span></a><a class="post is-preview blog-trending-item" href="/python/top-10-mistakes-that-python-programmers-make"><span class="post_cover is-preview for-technology"><span class="post_cover-image" style="background-image: url(&#39;/uploads/blog/cover_image/69/side_list_cover-cover.png&#39;);"></span></span><span class="post-preview"><span class="post-title">10 Most Common Mistakes that Python Programmers Make</span><span class="post-meta"><span class="post-meta-date">about 1 month ago</span></span></span></a><a class="post is-preview blog-trending-item" href="/ruby-on-rails/top-10-mistakes-that-rails-programmers-make"><span class="post_cover is-preview for-technology"><span class="post_cover-image" style="background-image: url(&#39;/uploads/blog/cover_image/74/side_list_cover-cover.png&#39;);"></span></span><span class="post-preview"><span class="post-title">10 Most Common Mistakes that Rails Programmers Make</span><span class="post-meta"><span class="post-meta-date">26 days ago</span></span></span></a><a class="post is-preview blog-trending-item" href="/c-sharp/top-10-mistakes-that-c-sharp-programmers-make"><span class="post_cover is-preview for-technology"><span class="post_cover-image" style="background-image: url(&#39;/uploads/blog/cover_image/67/side_list_cover-cover.png&#39;);"></span></span><span class="post-preview"><span class="post-title">10 Most Common Mistakes that C# Programmers Make</span><span class="post-meta"><span class="post-meta-date">2 months ago</span></span></span></a><a class="post is-preview blog-trending-item" href="/api-developers/5-golden-rules-for-designing-a-great-web-api"><span class="post_cover is-preview for-technology"><span class="post_cover-image" style="background-image: url(&#39;/uploads/blog/cover_image/75/side_list_cover-cover.png&#39;);"></span></span><span class="post-preview"><span class="post-title">5 Golden Rules for Designing a Great Web API</span><span class="post-meta"><span class="post-meta-date">19 days ago</span></span></span></a><a class="post is-preview blog-trending-item" href="/ruby/the-many-shades-of-the-ruby-programming-language"><span class="post_cover is-preview for-technology"><span class="post_cover-image" style="background-image: url(&#39;/uploads/blog/cover_image/76/side_list_cover-cover.png&#39;);"></span></span><span class="post-preview"><span class="post-title">The Many Shades of the Ruby Programming Language</span><span class="post-meta"><span class="post-meta-date">17 days ago</span></span></span></a></nav></div><div class="blog-block-header">Relevant technologies</div><div class="blog-block"><div class="blog-block-row"><ul class="blog-relevant"><li class="blog-relevant-item"><a class="link is-blue" href="/python">Python</a></li></ul></div></div></div></div></div></section></main><footer><section class="grid-row page_footer_map-wrapper"><div class="grid-row-inner has-huge_padding page_footer_map"><p>At <strong>Toptal</strong>, we connect the best developers all over the world.</p>
+</div></section><section class="grid-row has-top_border"><div class="grid-row-inner has-padding page_footer_join"><h2 class="page_footer_join-header">Join the Toptal community.</h2><nav class="page_footer_join-actions"><div class="page_footer_join-item"><a class="button is-green_candy is-big is-fixed page_footer_join-button" href="https://www.toptal.com/companies/apply">Hire a Developer</a></div><div class="page_footer_join-item is-or">or</div><div class="page_footer_join-item"><a class="button is-green_candy is-big is-fixed page_footer_join-button" href="/developers">Apply as a Developer</a></div></nav></div></section><section class="grid-row page_footer_links-wrapper"><div class="grid-row-inner is-wide has-big_padding"><nav class="page_footer_links"><section class="page_footer_links-column is-1"><h3 class="page_footer_links-column-header">Trending on blog</h3><ul class="page_footer_links-list is-trending"><li class="page_footer_links-item"><a class="page_footer_links-link" href="/emberjs/a-thorough-guide-to-ember-data">A Thorough Guide to Ember Data</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/python/top-10-mistakes-that-python-programmers-make">10 Most Common Mistakes that Python Programmers Make</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/ruby-on-rails/top-10-mistakes-that-rails-programmers-make">10 Most Common Mistakes that Rails Programmers Make</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/c-sharp/top-10-mistakes-that-c-sharp-programmers-make">10 Most Common Mistakes that C# Programmers Make</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/api-developers/5-golden-rules-for-designing-a-great-web-api">5 Golden Rules for Designing a Great Web API</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/ruby/the-many-shades-of-the-ruby-programming-language">The Many Shades of the Ruby Programming Language</a></li></ul></section><section class="page_footer_links-column is-2"><h3 class="page_footer_links-column-header">Navigation</h3><ul class="page_footer_links-list is-main"><li class="page_footer_links-item"><a class="page_footer_links-link" href="/why">Why</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/how">How</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/what">What</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/clients">Clients</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/team">Team</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/community">Community</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/blog">Blog</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/contact">Contact</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/faq">FAQ</a></li></ul></section><section class="page_footer_links-column is-3"><h3 class="page_footer_links-column-header">Contact</h3><ul class="page_footer_links-list"><li class="page_footer_links-item"><a class="page_footer_links-link" href="/developers">Apply for work</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/talent_partners">Become a partner</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="/contact">Send us an email</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="tel:8886043188">Call 888.604.3188</a></li></ul></section><section class="page_footer_links-column is-4"><h3 class="page_footer_links-column-header">Social</h3><ul class="page_footer_links-list"><li class="page_footer_links-item"><a class="page_footer_links-link" href="https://www.facebook.com/pages/toptal/141928212544793" target="_blank">Facebook</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="https://twitter.com/toptalllc" target="_blank">Twitter</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="https://plus.google.com/+Toptalllc/" target="_blank">Google+</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="https://github.com/toptal" target="_blank">GitHub</a></li><li class="page_footer_links-item"><a class="page_footer_links-link" href="http://dribbble.com/toptal" target="_blank">Dribbble</a></li></ul></section></nav></div></section><section class="grid-row page_footer_legal-wrapper"><div class="grid-row-inner is-wide has-medium_padding page_footer_legal"><div class="logo-wrapper page_footer_legal-logotype"><a class="logo is-mini is-link" href="/">Toptal</a><p class="logo-motto is-mini">Exclusive access to top developers</p></div><ul class="page_footer_legal-links"><li class="page_footer_legal-links_item is-copyright"><p class="page_footer_legal-copyright">© Copyright 2010 - 2014 Toptal, LLC</p></li><li class="page_footer_legal-links_item"><a class="page_footer_legal-link" href="/privacy">Privacy Policy</a>,</li><li class="page_footer_legal-links_item"><a class="page_footer_legal-link" href="/developers/tos">Terms of Service</a></li></ul></div></section></footer></div><div class="layout-overlay" data-view="layout#overlay"></div><div class="notification-container" data-view="notifications#service"></div><script type="text/javascript">setTimeout(function () {
+  classNameWithFont = document.documentElement.className + ' wf-active'
+  document.documentElement.className = classNameWithFont
+}, 0);</script><script src="/assets/public-2a61b67bebbcdc9a4b67d266ce9e7055.js" type="text/javascript"></script><script src="/assets/blog-636ea15588c60c125b834ec87204def9.js" type="text/javascript"></script><div class="layout-counters"><script type="text/javascript">window.googleAnalytics = new Widgets.GoogleAnalytics('UA-21104039-1', 'auto');
+window.googleAnalytics.trackPageview();
+window.googleAnalytics.track15secondsRead();</script><script type="text/javascript">(function(d) {
+  var e = d.createElement('script');
+  e.src = d.location.protocol + '//bounceexchange.com/tag/929/i.js';
+  e.async = true;
+  d.getElementsByTagName("head")[0].appendChild(e);
+}(document));</script><!-- begin olark code --><script type='text/javascript'>/*{literal}<![CDATA[*/window.olark||(function(i){var e=window,h=document,a=e.location.protocol=="https:"?"https:":"http:",g=i.name,b="load";(function(){e[g]=function(){(c.s=c.s||[]).push(arguments)};var c=e[g]._={},f=i.methods.length; while(f--){(function(j){e[g][j]=function(){e[g]("call",j,arguments)}})(i.methods[f])} c.l=i.loader;c.i=arguments.callee;c.f=setTimeout(function(){if(c.f){(new Image).src=a+"//"+c.l.replace(".js",".png")+"&"+escape(e.location.href)}c.f=null},20000);c.p={0:+new Date};c.P=function(j){c.p[j]=new Date-c.p[0]};function d(){c.P(b);e[g](b)}e.addEventListener?e.addEventListener(b,d,false):e.attachEvent("on"+b,d); (function(){function l(j){j="head";return["<",j,"></",j,"><",z,' onl'+'oad="var d=',B,";d.getElementsByTagName('head')[0].",y,"(d.",A,"('script')).",u,"='",a,"//",c.l,"'",'"',"></",z,">"].join("")}var z="body",s=h[z];if(!s){return setTimeout(arguments.callee,100)}c.P(1);var y="appendChild",A="createElement",u="src",r=h[A]("div"),G=r[y](h[A](g)),D=h[A]("iframe"),B="document",C="domain",q;r.style.display="none";s.insertBefore(r,s.firstChild).id=g;D.frameBorder="0";D.id=g+"-loader";if(/MSIE[ ]+6/.test(navigator.userAgent)){D.src="javascript:false"} D.allowTransparency="true";G[y](D);try{D.contentWindow[B].open()}catch(F){i[C]=h[C];q="javascript:var d="+B+".open();d.domain='"+h.domain+"';";D[u]=q+"void(0);"}try{var H=D.contentWindow[B];H.write(l());H.close()}catch(E){D[u]=q+'d.write("'+l().replace(/"/g,String.fromCharCode(92)+'"')+'");d.close();'}c.P(2)})()})()})({loader:(function(a){return "static.olark.com/jsclient/loader0.js?ts="+(a?a[1]:(+new Date))})(document.cookie.match(/olarkld=([0-9]+)/)),name:"olark",methods:["configure","extend","declare","identify"]});
+/* custom configuration goes here (www.olark.com/documentation) */
+olark.identify('5230-809-10-4522');/*]]>{/literal}*/</script>
+<!-- end olark code --><script type="text/javascript">
+adroll_adv_id = "6ZOMR2QLHZBEFEIMAJHJ4K";
+adroll_pix_id = "FBQUGOS3RRAI3PZP2HVOYG";
+(function () {
+var oldonload = window.onload;
+window.onload = function(){
+   __adroll_loaded=true;
+   var scr = document.createElement("script");
+   var host = (("https:" == document.location.protocol) ? "https://s.adroll.com" : "http://a.adroll.com");
+   scr.setAttribute('async', 'true');
+   scr.type = "text/javascript";
+   scr.src = host + "/j/roundtrip.js";
+   ((document.getElementsByTagName('head') || [null])[0] ||
+    document.getElementsByTagName('script')[0].parentNode).appendChild(scr);
+   if(oldonload){oldonload()}};
+}());
+</script><img src="//ib.adnxs.com/seg?add=308219&t=2" width="1" height="1" /></div></body></html>

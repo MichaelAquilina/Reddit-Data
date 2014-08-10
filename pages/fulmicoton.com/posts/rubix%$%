@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <title>Of solving the rubik's from scratch [Python]</title>
+  <meta name="viewport" content="width=600">
+  <meta name="author" content="Paul Masurel" />
+  
+  <meta name="description" content="Fulmicoton - Solving the rubik's cube from scratch in python." />
+  
+
+  <link rel="alternate" type="application/rss+xml" href="/atom.xml" />
+  <link media="(min-width:800px)" rel="stylesheet" href="/css/base.css" type="text/css"/>
+  <link media="(max-width:800px)" href="/css/phone.css" type="text/css" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="/css/pygments.css" type="text/css" />
+  <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz' rel='stylesheet' type='text/css'>
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <script type="text/javascript" src="/js/application.js"></script>
+</head>
+
+<body>
+  <section class="sidebar">
+    <a href="/">
+      <img src="http://gravatar.com/avatar/1cd46a26ceada395ae900bd4cd40a052?s=150" height="75" width="75" class="avatar" />
+    </a>
+
+    <section class="name">
+      <a href="/">
+        <span id="fname">Paul</span>
+        <span id="lname">Masurel</span>
+      </a>
+    </section>
+
+    <section class="meta">
+
+
+
+      <!--<a href="https://github.com/poulejapon" target="_blank"><img src="/images/github.png" /></a>
+      <a href="https://twitter.com/fulmicoton" target="_blank"><img src="/images/twitter.png"></a>
+      <a href="/atom.xml"><img src="/images/rss.png" /></a>
+      <a href="https://plus.google.com/106830395024961735687" rel="publisher">Find us on Google+</a>-->
+     </section>
+  
+        <nav class="sections">
+      <ul>
+        <li><a href="https://www.vizify.com/paul-masurel/">about</a></li>
+        <li><a href="/">posts</a></li>
+      </ul>
+    </nav>
+
+
+      <nav class="social">
+        <a href="/atom.xml"><img src="/images/rss.png" /></a>
+      <a href="https://twitter.com/fulmicoton" target="_blank"><img src="/images/twitter.png"></a>
+            <!--<a href="http://fr.linkedin.com/in/paulmasurel"><img src="/images/linkedin.png" /></a>-->
+      <a href="https://plus.google.com/106830395024961735687" target="_blank" rel="publisher"><img src="/images/google+.png" /></a>
+      </nav>
+
+    <!--
+    <section class="sections projects">
+    <h1>projects</h1>
+    <ul>
+        <li><a href="/potato/">potato</a></li>
+        <li><a href="/readymade/">readymade</a></li>
+    </ul>
+    </section>
+  -->
+  </section>
+  <section class="content">
+  <h1 class='title'>
+    Of solving the rubik's from scratch [Python]
+  </h1>
+
+  <section class="byline">
+    <time itemprop="startDate" datetime="2013-08-18">
+    August 18, 2013
+    </time>
+  </section>
+
+  <p>Internet is full of solution for the rubik&rsquo;s cube. However, it is seldom described how these solutions were discovered. In this post I&rsquo;ll try to detail how one can solve the rubik&rsquo;s cube from scratch.</p>
+
+<p><strong>Disclaimer : </strong> The solution presented here is by no mean the fastest&hellip; It is actually very long to solve the Rubix Cube using this algorithm. It is just the one I came up with, so I guess it is probably in some sense one of the simplest. Though I am very proud of having cracked it up, there isn&rsquo;t much to be proud about : it took me about a year to come up with a solution. At that time, I was always carrying a rubik&rsquo;s cube and a notebook to search for the magic moves in the train like a lunatic.</p>
+
+<p>At that time, I was kind of making a point of using a computer as little as possible. It was years ago and I forgot the moves I came up with. So in this post I try to find these moves again, but in python.</p>
+
+<h2>What is a rubik&rsquo;s cube anyway?</h2>
+
+<h3>A fixed referential and six possible moves.</h3>
+
+<p>I&rsquo;m pretty sure you know what a rubik&rsquo;s cube is.
+Let&rsquo;s still make a couple of obvious statements.</p>
+
+<p>We&rsquo;ll assuming that the rubik&rsquo;s cube&rsquo;s faces center are
+fixed, and that we never rotate the whole thing. Which such
+as setting, there is 6 atomic move you can make with a rubik&rsquo;s cube. They each consists of turning one of its faces one way or the other.</p>
+
+<p>Each operation will be named after the face that we are turning, and the sens of rotation will be the so-called positive sens, more commonly called counterclockwise.</p>
+
+<p>We will associate a 3D-referential to the rubik&rsquo;s to
+easily code the rotation operations. The referential will be so-called direct. The normal vector for the right face, the upper face and the front face will respectively be <code>(1,0,0)</code>, <code>(0,1,0)</code>, and <code>(0,0,1)</code>.</p>
+
+<p>Clockwise turn can be obtained by repeating a turn three times.</p>
+
+<h3>Two different sets of blocks</h3>
+
+<p><img src="/images/rubix/rubix2.png"></p>
+
+<p>The rubik&rsquo;s cube is made of smaller blocks. Let alone the block at the very center of the rubik&rsquo;s cube, and the center of the faces,
+we have <code>3x3x3 - 1 - 6 = 20</code> blocks. They are of two types. Corners (8 blocks) and side blocks (12 blocks), showing respectively 3 and 2 faces. While moving the rubik&rsquo;s cube, corners will not become side blocks and side blocks will not become corner blocks
+(obvious statements remember?). Everything happens as if they are living independant lives. That will be the root of the method I&rsquo;m presenting here.</p>
+
+<h2>What&rsquo;s the plan then?</h2>
+
+<p>We will solve the rubik&rsquo;s cube the following way.</p>
+
+<p><strong>Step 1</strong></p>
+
+<p>Place the side blocks at the correct position with their correct orientation.</p>
+
+<p><img src="/images/rubix/rubix1.jpg"></p>
+
+<p><strong>Step 2</strong></p>
+
+<p>Place the corners blocks at their correct location regardless of their orientation.</p>
+
+<p><img src="/images/rubix/rubix2.jpg"></p>
+
+<p><strong> Step 3 </strong>
+Fix the orientation of the corners.</p>
+
+<p><img src="/images/rubix/rubix3.jpg"></p>
+
+<p>Reaching step 1 is a very nice and cute puzzle that does not
+require much crunching. I will not detail its solution here.</p>
+
+<p>Step 2 and step 3 however are very difficult.</p>
+
+<p>The trick to achieve step 2 will be to find some simple sequences of moves that makes it possible to move corner blocks without moving the side blocks.</p>
+
+<p>The trick to achieve step 3 will be to find some simple sequence of moves that leaves all blocks at the same place, but change the orientation of some of the corners.</p>
+
+<p>We also want to find movements that can generates all the possible positions
+of the rubik&rsquo;s cube.</p>
+
+<h1>A bit of math</h1>
+
+<p>For step two we ideally would want to generate all permutations on the corner, while letting the side in place. However this is not quite reasonable. Let&rsquo;s proof that it is not possible to apply any permutation on corners, while letting sides unchanged..</p>
+
+<p>The proof relies on letting alone the orientations of the cube of the rubik&rsquo;s cubes, and consider only the effect of the basic moves on the permutation of the side blocks on one hand, and the permutations of the corners on the other hand. The basic moves are a cycle of length 4 in both case. That&rsquo;s an odd signature. The identity has an even signature. In other words, any sequence of basic operation letting the sides untouched has an even number of operation. Hence, the permutations applied on the corners for any sequence of moves letting sides untouched must have an even signature. A transposition for instance, is not possible.</p>
+
+<p><strong>For step 2</strong>, we&rsquo;ll be happy if we find a move that generates all the permutations with a even signature. <strong>A cycle of length 3 of corners belonging all on one face should do the trick.</strong></p>
+
+<p>For similar reasons, it is not possible to turn only one corner as well.
+<strong>For step 3, the move we will be looking for is a move that changes the orientation of at most 3 corners belonging to the same face</strong>.</p>
+
+<p>Let&rsquo;s bruteforce finding these movements.</p>
+
+<h1>Coding a rubik&rsquo;s cube in python</h1>
+
+<p>We will need to be able to handle very simple geometry
+operations. Considering numpy as a bit overkill, let&rsquo;s just recode a couple of 3D vector operation.</p>
+
+<div class="highlight"><pre><code class="python"><span class="c"># The six directions</span>
+<span class="n">DIRECTIONS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span> <span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">),</span> <span class="c">#right</span>
+    <span class="p">(</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">),</span> <span class="c">#up</span>
+    <span class="p">(</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">),</span> <span class="c">#front </span>
+    <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">),</span> <span class="c">#left</span>
+    <span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">),</span> <span class="c">#down</span>
+    <span class="p">(</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c">#back</span>
+<span class="p">)</span>
+
+<span class="n">DIRECTIONS_NAME</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">DIRECTIONS</span><span class="p">,</span> <span class="s">&quot;rufldb&quot;</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">cross</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span><span class="n">direction</span><span class="p">):</span>
+    <span class="c"># cross product</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">axis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">direction</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">axis</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">direction</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">axis</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">direction</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">axis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">direction</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">dot</span><span class="p">(</span><span class="n">va</span><span class="p">,</span><span class="n">vb</span><span class="p">):</span>
+    <span class="c"># dot product</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">a</span><span class="o">*</span><span class="n">b</span> <span class="k">for</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">va</span><span class="p">,</span><span class="n">vb</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">scale</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+    <span class="c"># scaling a vector</span>
+    <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">)</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">alpha</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">alpha</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="n">alpha</span><span class="o">*</span><span class="n">z</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="n">v</span><span class="p">):</span>
+    <span class="c"># adding two vectors</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+    <span class="c"># rotation by a quarter in the</span>
+    <span class="c"># positive sense around a normal vector.</span>
+    <span class="n">axis_projection</span> <span class="o">=</span> <span class="n">scale</span><span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span><span class="n">u</span><span class="p">),</span> <span class="n">axis</span><span class="p">)</span>
+    <span class="n">ortho_projection</span> <span class="o">=</span> <span class="n">cross</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">add</span><span class="p">(</span><span class="n">axis_projection</span><span class="p">,</span> <span class="n">ortho_projection</span><span class="p">)</span>
+</code></pre></div>
+
+
+<p>Representing the rubik&rsquo;s cube by a data structure is actually pretty tricky. To keep code small and cute, I chose to avoid implementing a rubik&rsquo;s cube class, but instead represent the rubik&rsquo;s cube state as a simple dictionary.</p>
+
+<p>In order to solve step 2 or step 3, we will also need
+to be able to consider a rubik&rsquo;s cube with only side cubes,
+a rubik&rsquo;s cube with only corner cubes, a rubik&rsquo;s cube for which corners are not oriented but are different one to each other (as if they had a number associated) and finally a full rubik&rsquo;s cube.</p>
+
+<p>In the following piece of code, the rubik&rsquo;s cube will just be a dictionary having for key coordinates in the 3x3x3 3D grid,
+and for value an object describe the part of the rubik&rsquo;s cube associated (simply called cube in the code).</p>
+
+<p>We use alternatively different implementation of a cube.
+One storing orientation information while the other does not.</p>
+
+<p>Note that it would have been possible to use much a much more abstract and efficient way to describe the rubik&rsquo;s cube, but I prefer to keep things as explicit as possible here.</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">degree</span><span class="p">(</span><span class="n">coords</span><span class="p">):</span>
+    <span class="c"># Given the position of a block</span>
+    <span class="c"># return the number of faces that</span>
+    <span class="c"># that are visible.</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">abs</span><span class="p">,</span><span class="n">coords</span><span class="p">))</span>
+
+<span class="k">class</span> <span class="nc">NonOrientedCube</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<span class="k">class</span> <span class="nc">OrientedCube</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">__slots__</span><span class="o">=</span><span class="p">(</span><span class="s">&quot;orientation&quot;</span><span class="p">)</span>  
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="n">DIRECTIONS</span><span class="p">[:</span><span class="mi">2</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orientation</span> <span class="o">=</span> <span class="n">orientation</span>
+    <span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">OrientedCube</span><span class="p">(</span>
+            <span class="nb">tuple</span><span class="p">(</span><span class="n">rotate</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span><span class="n">u</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">orientation</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orientation</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">orientation</span>
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orientation</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">orientation</span>
+
+<span class="c"># The oriented rubik&#39;s cube at its initial</span>
+<span class="c"># state. All blocks are oriented the same way.</span>
+<span class="n">zero_oriented</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">coords</span><span class="p">:</span> <span class="n">OrientedCube</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">coords</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">([(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span><span class="o">*</span><span class="mi">3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">degree</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span>
+<span class="p">}</span>
+
+<span class="c"># The oriented rubik&#39;s cube at its initial</span>
+<span class="c"># state. Cube are not oriented. Only their position counts.</span>
+<span class="n">zero_non_oriented</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">coords</span><span class="p">:</span> <span class="n">NonOrientedCube</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">coords</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">([(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span><span class="o">*</span><span class="mi">3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">degree</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span>
+<span class="p">}</span>
+
+<span class="c"># Applying a basic operation on the rubik&#39;s</span>
+<span class="c"># cube.</span>
+<span class="c">#</span>
+<span class="c"># Turning the face facing the direction</span>
+<span class="c"># axis by a quarter in the positive sense.</span>
+<span class="c"># (counter clockwise)</span>
+<span class="k">def</span> <span class="nf">turn</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">rubix_cube</span><span class="p">):</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">cube</span><span class="p">)</span> <span class="ow">in</span> <span class="n">rubix_cube</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span> <span class="n">x</span><span class="o">==</span><span class="n">y</span><span class="o">!=</span><span class="mi">0</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">coord</span><span class="p">)):</span>
+            <span class="c"># this cube is on the face rotating,</span>
+            <span class="c"># let&#39;s rotate it and register it to</span>
+            <span class="c"># its destination.</span>
+            <span class="n">new_cube</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+            <span class="n">new_coord</span> <span class="o">=</span> <span class="n">rotate</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">coord</span><span class="p">)</span>
+            <span class="n">parts</span><span class="p">[</span><span class="n">new_coord</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_cube</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># this cube is not on the face that is rotating.</span>
+            <span class="n">parts</span><span class="p">[</span><span class="n">coord</span><span class="p">]</span> <span class="o">=</span> <span class="n">cube</span>
+    <span class="k">return</span> <span class="n">parts</span>
+
+<span class="c"># Returns a partial rubik&#39;s cube :</span>
+<span class="c"># only the blocks with d faces visibles.</span>
+<span class="k">def</span> <span class="nf">project</span><span class="p">(</span><span class="n">rubix</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">coords</span><span class="p">:</span><span class="n">v</span> 
+        <span class="k">for</span> <span class="p">(</span><span class="n">coords</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">rubix</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">degree</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">==</span> <span class="n">d</span>
+    <span class="p">}</span>
+
+<span class="c"># Returns a partial rubik&#39;s cube :</span>
+<span class="c"># only the side blocks</span>
+<span class="k">def</span> <span class="nf">sides</span><span class="p">(</span><span class="n">rubix</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">project</span><span class="p">(</span><span class="n">rubix</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+
+<span class="c"># Returns a partial rubik&#39;s cube :</span>
+<span class="c"># only the corner blocks</span>
+<span class="k">def</span> <span class="nf">corners</span><span class="p">(</span><span class="n">rubix</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">project</span><span class="p">(</span><span class="n">rubix</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</code></pre></div>
+
+
+<h2>Finding your own magic move</h2>
+
+<p><img src="/images/rubix/magic_move.jpg"></p>
+
+<p>All the difficulty left here is to find a <strong>magic move</strong> which leaves sides untouched and yet have some effect on the corners. Let&rsquo;s call such a combination a magic move!</p>
+
+<p>When trying to find a magic move, especially without a computer, a good trick is to test many moves and consider for each of them what happens if you repeat this moves over and over. The images obtained by repeating the operation is also called an orbit.</p>
+
+<p>When doing that by hand, it can be tested very rapidly by representing the underlying permutations as a union of cycles.</p>
+
+<p>But with a computer we can do all this very simply.</p>
+
+<div class="highlight"><pre><code class="python"><span class="c"># Possible moves</span>
+<span class="c"># we add clockwise quater turn (counterclockwise * 3)</span>
+<span class="c"># and half turn (counterclockwise * 2)</span>
+<span class="n">OPERATIONS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span> <span class="n">direction</span> <span class="p">]</span><span class="o">*</span><span class="n">i</span>
+    <span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="n">DIRECTIONS</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">sequence</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">rubix</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">seq</span><span class="p">:</span>
+        <span class="n">rubik</span><span class="s">&#39;s = turn(axis, rubix)</span>
+    <span class="k">return</span> <span class="n">rubix</span>
+
+<span class="k">def</span> <span class="nf">differences</span><span class="p">(</span><span class="n">rubix_1</span><span class="p">,</span> <span class="n">rubix_2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">k</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">rubix_1</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">rubix_1</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">!=</span> <span class="n">rubix_2</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+    <span class="p">]</span>
+
+<span class="c"># yields all possible tuples of size n </span>
+<span class="c"># of a given set of elements</span>
+<span class="k">def</span> <span class="nf">browse_with_length</span><span class="p">(</span><span class="n">els</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">head</span> <span class="ow">in</span> <span class="n">els</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">tail</span> <span class="ow">in</span> <span class="n">browse_with_length</span><span class="p">(</span><span class="n">els</span><span class="p">,</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">head</span> <span class="o">+</span> <span class="n">tail</span>
+
+<span class="c"># yields all possible tuples of a</span>
+<span class="c"># given set of elements</span>
+<span class="k">def</span> <span class="nf">browse_tuples</span><span class="p">(</span><span class="n">els</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">count</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">browse_with_length</span><span class="p">(</span><span class="n">els</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">seq</span>
+
+<span class="c"># Returns true if all the position given </span>
+<span class="c"># belong to the same face</span>
+<span class="k">def</span> <span class="nf">all_on_one_face</span><span class="p">(</span><span class="n">positions</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">els</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">positions</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">els</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="bp">False</span>
+
+<span class="c"># Search within the orbit of an operation</span>
+<span class="c"># for an operation that leaves fixed_rubik&#39;s fix,</span>
+<span class="c"># and has a diff with diff rubik&#39;s of at most 3</span>
+<span class="c"># elements, all from the same face. </span>
+<span class="k">def</span> <span class="nf">search_orbit</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">fixed_rubix</span><span class="p">,</span> <span class="n">diff_rubix</span><span class="p">,</span> <span class="n">max_depth</span><span class="p">):</span>
+    <span class="n">iter_fixed_rubix</span> <span class="o">=</span> <span class="n">fixed_rubix</span>
+    <span class="n">iter_diff_rubix</span> <span class="o">=</span> <span class="n">diff_rubix</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">max_depth</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span> <span class="c"># we don&#39;t want to find moves </span>
+                         <span class="c"># that we repeat more than 6 times.</span>
+        <span class="n">iter_fixed_rubix</span> <span class="o">=</span> <span class="n">sequence</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">iter_fixed_rubix</span><span class="p">)</span>
+        <span class="n">iter_diff_rubix</span> <span class="o">=</span> <span class="n">sequence</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">iter_diff_rubix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">differences</span><span class="p">(</span><span class="n">fixed_rubix</span><span class="p">,</span> <span class="n">iter_fixed_rubix</span><span class="p">):</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="n">differences</span><span class="p">(</span><span class="n">diff_rubix</span><span class="p">,</span> <span class="n">iter_diff_rubix</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">diff</span><span class="p">:</span>
+                <span class="k">break</span> <span class="c"># we ran through a full orbit.</span>
+            <span class="k">elif</span> <span class="n">all_on_one_face</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">diff</span><span class="p">)</span>
+
+<span class="n">DIRECTIONS_NAME</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">DIRECTIONS</span><span class="p">,</span>
+    <span class="p">[</span><span class="s">&quot;right&quot;</span><span class="p">,</span>
+     <span class="s">&quot;up&quot;</span><span class="p">,</span>
+     <span class="s">&quot;front&quot;</span><span class="p">,</span>
+     <span class="s">&quot;left&quot;</span><span class="p">,</span>
+     <span class="s">&quot;down&quot;</span><span class="p">,</span>
+     <span class="s">&quot;back&quot;</span> <span class="p">]))</span>
+
+<span class="k">def</span> <span class="nf">operation_to_string</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span> <span class="n">DIRECTIONS_NAME</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">seq</span> <span class="p">])</span>
+
+<span class="k">print</span> <span class="s">&quot;&quot;&quot;</span>
+
+<span class="s">Step 2</span>
+
+<span class="s">Searching for a move letting sides</span>
+<span class="s">untouched, letting all but three corners belonging to the</span>
+<span class="s">same face at the same place.</span>
+
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">search_step2_move</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">browse_tuples</span><span class="p">(</span><span class="n">OPERATIONS</span><span class="p">):</span>
+        <span class="n">seq</span> <span class="o">=</span> <span class="p">[</span><span class="n">DIRECTIONS</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">seq</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">magic_move</span> <span class="o">=</span> <span class="n">search_orbit</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span>
+                <span class="n">sides</span><span class="p">(</span><span class="n">zero_oriented</span><span class="p">),</span>
+                <span class="n">corners</span><span class="p">(</span><span class="n">zero_non_oriented</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">magic_move</span><span class="p">:</span>
+                <span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">repeat</span><span class="p">,</span> <span class="n">dist</span><span class="p">)</span><span class="o">=</span><span class="n">magic_move</span>
+                <span class="k">print</span> <span class="n">operation_to_string</span><span class="p">(</span><span class="n">operation</span><span class="p">),</span>
+                <span class="k">print</span> <span class="s">&quot;x&quot;</span> <span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">repeat</span><span class="p">),</span>
+                <span class="k">print</span> <span class="n">dist</span>
+                <span class="k">break</span>
+
+<span class="n">search_step2_move</span><span class="p">()</span>
+
+<span class="k">print</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">---------------</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="k">def</span> <span class="nf">search_step3_move</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">browse_tuples</span><span class="p">(</span><span class="n">OPERATIONS</span><span class="p">):</span>
+        <span class="n">seq</span> <span class="o">=</span> <span class="p">[</span><span class="n">DIRECTIONS</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">seq</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span> <span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">corners_non_oriented</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">zero_oriented</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">corners</span><span class="p">(</span><span class="n">zero_non_oriented</span><span class="p">))</span>
+            <span class="n">magic_move</span> <span class="o">=</span> <span class="n">search_orbit</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span>
+                <span class="n">corners_non_oriented</span><span class="p">,</span>
+                <span class="n">corners</span><span class="p">(</span><span class="n">zero_oriented</span><span class="p">),</span>
+                <span class="mi">6</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">magic_move</span><span class="p">:</span>
+                <span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">repeat</span><span class="p">,</span> <span class="n">dist</span><span class="p">)</span><span class="o">=</span><span class="n">magic_move</span>
+                <span class="k">print</span> <span class="n">operation_to_string</span><span class="p">(</span><span class="n">operation</span><span class="p">),</span>
+                <span class="k">print</span> <span class="s">&quot;x&quot;</span> <span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">repeat</span><span class="p">),</span>
+                <span class="k">print</span> <span class="n">dist</span>
+                <span class="k">break</span>
+
+
+<span class="k">print</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">Step 3</span>
+
+<span class="s">Searching a sequence that only change the orientation</span>
+<span class="s">of three corners.</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="n">search_step3_move</span><span class="p">()</span>
+</code></pre></div>
+
+
+<h2>We gat da moves!</h2>
+
+<p><a href="https://github.com/poulejapon/poulejapon.github.com/blob/master/code/rubix/rubix.py">The code is available here</a>,
+and should take a couple of minutes to run on your computer.</p>
+
+<p>The output you should get is</p>
+
+<pre><code>Step 2
+
+Searching for a move letting sides
+untouched, letting all but three corners belonging to the
+same face at the same place.
+
+
+right-left-left-up-down-down x4
+[(-1, 1, 1), (-1, -1, 1), (1, -1, 1)]
+
+
+---------------
+
+
+Step 3
+
+Searching a sequence that only change the orientation
+of three corners.
+
+right-up-right-right-right-front-front-up-up-up x6
+[(-1, 1, 1), (-1, -1, 1), (1, 1, 1)]
+</code></pre>
+
+<p>Let&rsquo;s what these operation look like when applied on a resolved rubik&rsquo;s cube.</p>
+
+<p><img src="/images/rubix/initial.jpg"></p>
+
+<p>The operation returned for step 2 is permuting 3 cubes on the back of the rubik&rsquo;s cube.</p>
+
+<p><img src="/images/rubix/step2.jpg"></p>
+
+<p>The operation returned for step 3 is changing the orientation on 3 cubes on the front face.</p>
+
+<p><img src="/images/rubix/step3.jpg"></p>
+
+
+    <section class="discuss">
+    <!--<h3>Discussion, links, and tweets</h3>-->
+    <section class="copy">
+
+      <script>
+var idcomments_acct = 'da56e81930a98eada4878e14cb46bb3e';
+var idcomments_post_id;
+var idcomments_post_url;
+</script>
+<span id="IDCommentsPostTitle" style="display:none"></span>
+<script type='text/javascript' src='http://www.intensedebate.com/js/genericCommentWrapperV2.js'></script>
+
+      
+
+      <script src="http://platform.twitter.com/widgets.js" type="text/javascript">
+      </script>
+    </section>
+  </section>
+</section>
+
+
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script>
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea']
+      }
+    });
+    MathJax.Hub.Config({
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+  </section>
+  <!--
+  <section class="amazon">
+
+
+<SCRIPT charset="utf-8" type="text/javascript" src="http://ws-na.amazon-adsystem.com/widgets/q?rt=tf_mfw&ServiceVersion=20070822&MarketPlace=US&ID=V20070822%2FUS%2Fpoulejapon-20%2F8001%2F98c76caf-a577-4059-a9c6-f728bd90a938">
+</SCRIPT>
+<NOSCRIPT>
+  <A HREF="http://ws-na.amazon-adsystem.com/widgets/q?rt=tf_mfw&ServiceVersion=20070822&MarketPlace=US&ID=V20070822%2FUS%2Fpoulejapon-20%2F8001%2F98c76caf-a577-4059-a9c6-f728bd90a938&Operation=NoScript">Amazon.com Widgets</A>
+</NOSCRIPT>
+
+
+  </section>
+-->
+  
+  <script type="text/javascript">
+
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-38194295-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+  </script>
+
+<!--
+<section class="google-ads">
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:inline-block;width:160px;height:600px"
+     data-ad-client="ca-pub-1443738683569942"
+     data-ad-slot="9581623131"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</section>
+-->
+
+</body>
+
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title> &nbsp; Python: What the Hell is a Slot?&nbsp;by&nbsp;Elf Sternberg</title> 
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" /> 
+<link rel="shorcut icon" type="image/x-ico" href="http://www.elfsternberg.com/wp-content/themes/bloggingpro/favicon.ico" />
+<link href="http://www.elfsternberg.com/wp-content/themes/bloggingpro/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="http://www.elfsternberg.com/wp-content/themes/bloggingpro/javascript/imghover.js"> </script>
+<link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="http://www.elfsternberg.com/feed/" />
+<link rel="alternate" type="text/xml" title="RSS .92" href="http://www.elfsternberg.com/feed/rss/" />
+
+<link rel="alternate" type="application/rss+xml" title="Elf Sternberg &raquo; Python: What the Hell is a Slot? Comments Feed" href="http://www.elfsternberg.com/2009/07/06/python-what-the-hell-is-a-slot/feed/" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://www.elfsternberg.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://www.elfsternberg.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='The perfect has become the enemy of the sufficient' href='http://www.elfsternberg.com/2009/07/03/the-perfect-has-become-the-enemy-of-the-sufficient/' />
+<link rel='next' title='Perl is not Python, and other painfully obvious musings&#8230;' href='http://www.elfsternberg.com/2009/07/10/perl-is-not-python-and-other-painfully-obvious-musings/' />
+<meta name="generator" content="WordPress 3.5.1" />
+<link rel='canonical' href='http://www.elfsternberg.com/2009/07/06/python-what-the-hell-is-a-slot/' />
+<link rel='shortlink' href='http://www.elfsternberg.com/?p=297' />
+</head> 
+<body> 
+
+<div id="bgcontain">
+<!-- header START -->
+
+<div class="header-bg">
+ <div class="header">
+ 
+<div class="top-menu">
+ <ul>
+   <li class="page_item page-item-2"><a href="http://www.elfsternberg.com/about/">About</a></li>
+<li class="page_item page-item-14"><a href="http://www.elfsternberg.com/software/">Software</a></li>
+<li class="page_item page-item-65"><a href="http://www.elfsternberg.com/disclaimers/">Disclaimers</a></li>
+<li class="page_item page-item-117"><a href="http://www.elfsternberg.com/resume/">Resume</a></li>
+<li class="page_item page-item-240"><a href="http://www.elfsternberg.com/portfolio/">Portfolio</a></li>
+<li class="page_item page-item-1211"><a href="http://www.elfsternberg.com/itches/">Itches</a></li>
+  </ul>
+ </div>
+
+<div class="logo">
+ <div class="txt">
+ <h1><a href="http://www.elfsternberg.com/">Elf Sternberg</a></h1>
+ <p class="desc">Done, and gets things smart.</p>
+</div></div>
+ 
+<div class="search">
+  <form method="get" action="http://www.elfsternberg.com/">
+   <fieldset>
+   <input type="text" value="" name="s" /><button type="submit">Search</button>
+   </fieldset>
+  </form>
+</div>
+
+</div> 
+<!-- header END -->
+
+
+<!-- container START -->
+<div class="container-bg"><div class="container"> 
+
+<!-- Side Central START -->
+<div class="SC">
+
+<!--Start Post-->
+<div class="post" style="padding-bottom: 40px;">
+
+<div class="p-head">
+<p class="p-date"><span class="day">06</span><span class="month">Jul</span></p>
+ <h1>Python: What the Hell is a Slot?</h1>
+  <p class="p-categ">Posted by Elf Sternberg as <a href="http://www.elfsternberg.com/category/programming/" title="View all posts in programming" rel="category tag">programming</a>, <a href="http://www.elfsternberg.com/category/python/" title="View all posts in python" rel="category tag">python</a></p>
+</div>
+  
+<div class="p-con">
+  <p>So, while working my way through my current project, I came across the notion of a &#8216;slot&#8217; as discussed <a href="http://mail.python.org/pipermail/python-list/2002-July/152650.html">here</a>.  And I wondered, what the Hell is a slot?</p>
+<p>A slot is nothing more than a memory management nicety: when you define <tt>__slots__</tt> on a class, you&#8217;re telling the Python interpreter that the list of attributes described within are the only attributes this class will ever need, and a dynamic dictionary is not needed to manage the references to other objects within the class.  This can save enormous amounts of space if you have thousands or millions of objects in memory.</p>
+<p>For example, if you define:</p>
+<pre>class Foo:
+    __slots__ = ['x']
+    def __init__(self, n):
+        self.x = n
+
+y = Foo(1)
+print y.x  # prints "1"
+y.x = 2
+print y.x  # prints "2"
+y.z = 4    # Throws exception.
+print y.z</pre>
+<p>Without the <tt>__slots__</tt> definition, that last assignment would have worked.  Without any other magic (say, overrides of <tt>getattr</tt> or <tt>setattr</tt>), you can always assign attributes to an object.  But with a <tt>__slots__</tt> definition, you can&#8217;t: python hasn&#8217;t allocated a dictionary for the object, so you&#8217;re stuck with what you&#8217;ve got and nothing more.</p>
+<p>Slots should only be used as a memory optimization tool; using it to constrain attribute management is silly, and breaks important features like static serialization.</p>
+  
+</div>
+
+  
+</div>
+<!--End Post-->
+
+
+<!-- You can start editing here. -->
+
+<div id="comments" class="comments-list">
+<h2>9 Responses to Python: What the Hell is a Slot?</h2>
+       
+ <div class="entry  alt" id="comment-326">
+ <p class="avt">  <img alt='' src='http://0.gravatar.com/avatar/?d=<path_to_url>&amp;s=35' class='avatar avatar-35 photo avatar-default' height='35' width='35' /></p>
+ 
+ <p class="name">Bram</p>
+ <p class="date"><a href="#comment-326">July 6th, 2009 at 3:22 pm</a>  </p>
+ <div class="con"><p>FYI, you were posted on reddit: <a href="http://www.reddit.com/r/Python/comments/8yqj4/python_what_the_hell_is_a_slot/" rel="nofollow">http://www.reddit.com/r/Python/comments/8yqj4/python_what_the_hell_is_a_slot/</a></p>
+</div>
+</div>
+
+ <div class="entry " id="comment-327">
+ <p class="avt">  <img alt='' src='http://0.gravatar.com/avatar/?d=<path_to_url>&amp;s=35' class='avatar avatar-35 photo avatar-default' height='35' width='35' /></p>
+ 
+ <p class="name">David W</p>
+ <p class="date"><a href="#comment-327">July 6th, 2009 at 3:58 pm</a>  </p>
+ <div class="con"><p>It&#8217;s worth note that there are various gotchas regarding slots, particularly since they&#8217;re implemented as descriptors. One of my preferred tricks, defining a class variable to act as a default for an instance variable, cannot work, since the slot&#8217;s descriptor needs to be in the class dictionary.</p>
+<p>It&#8217;s also worth note that slots layer up &#8211; a little confusingly at first, but quite understandably. You can define a class X(slots=a) and subclass Y(slots=b) and things will work as expected. I have no idea how memory is allocated for that underneath. Perhaps Python&#8217;s type object is smart enough to merge them into a single object.</p>
+<p>The other last thing worth note is that slots can have a very positive impact on performance, not just on memory usage.</p>
+<p>Great post,</p>
+<p>David (dwdwdw@Reddit!)</p>
+</div>
+</div>
+
+ <div class="entry  alt " id="comment-335">
+ <p class="avt">  <img alt='' src='http://0.gravatar.com/avatar/?d=<path_to_url>&amp;s=35' class='avatar avatar-35 photo avatar-default' height='35' width='35' /></p>
+ 
+ <p class="name"><a href='http://blog.engledew.com' rel='external nofollow' class='url'>Simon</a></p>
+ <p class="date"><a href="#comment-335">July 7th, 2009 at 2:31 am</a>  </p>
+ <div class="con"><p>This only works on new style classes. Your example should be updated to read:</p>
+<p>class Foo(object):<br />
+    __slots__ = ['x']<br />
+    def __init__(self, n):<br />
+        self.x = n</p>
+<p>y = Foo(1)<br />
+print y.x  # prints &#8220;1&#8243;<br />
+y.x = 2<br />
+print y.x  # prints &#8220;2&#8243;<br />
+y.z = 4    # Throws exception.<br />
+print y.z</p>
+<p>Cheers though! Very helpful!</p>
+</div>
+</div>
+
+ <div class="entry " id="comment-336">
+ <p class="avt">  <img alt='' src='http://0.gravatar.com/avatar/?d=<path_to_url>&amp;s=35' class='avatar avatar-35 photo avatar-default' height='35' width='35' /></p>
+ 
+ <p class="name">Chewie</p>
+ <p class="date"><a href="#comment-336">July 7th, 2009 at 4:07 am</a>  </p>
+ <div class="con"><p>Warning: unless you&#8217;re using Python 3000, you must use new-style classes for __slots__ to work, i.e., you should write class Foo(object):.</p>
+</div>
+</div>
+
+ <div class="entry  alt " id="comment-339">
+ <p class="avt">  <img alt='' src='http://0.gravatar.com/avatar/?d=<path_to_url>&amp;s=35' class='avatar avatar-35 photo avatar-default' height='35' width='35' /></p>
+ 
+ <p class="name">StCredZero</p>
+ <p class="date"><a href="#comment-339">July 7th, 2009 at 8:03 am</a>  </p>
+ <div class="con"><p>Smalltalk just has the slots.  Slots are easier to optimize and make fast with a JIT VM.  If you need a class to have the functionality of a Hashtable, you just put a Dictionary into an instance variable.  (Then you have to write some plumbing code, which is not so convenient.)  </p>
+<p>This ability to add slots allows one to put in optimizations if needed, but keeps the default case simple and flexible.  I like that.</p>
+</div>
+</div>
+
+ <div class="entry " id="comment-340">
+ <p class="avt">  <img alt='' src='http://0.gravatar.com/avatar/?d=<path_to_url>&amp;s=35' class='avatar avatar-35 photo avatar-default' height='35' width='35' /></p>
+ 
+ <p class="name"><a href='http://bytebaker.com' rel='external nofollow' class='url'>Basu</a></p>
+ <p class="date"><a href="#comment-340">July 7th, 2009 at 11:39 am</a>  </p>
+ <div class="con"><p>One of the philosophical (and somewht practical) dilemmas that i find myself thinking about as a programming languages buff is how much work should the language do and how much should the programmer do. I personally try to stay away from manual management of any sort, but sometimes performance requires it. It&#8217;s unfortunate, but soemthing that needs to be done sometimes. I think language features like slots are a good way to bypass the languages dynamic, automated features but should be used only in the final optimization stage of a program&#8217;s development cycle.</p>
+</div>
+</div>
+
+ <div class="entry  alt " id="comment-556">
+ <p class="avt">  <img alt='' src='http://0.gravatar.com/avatar/?d=<path_to_url>&amp;s=35' class='avatar avatar-35 photo avatar-default' height='35' width='35' /></p>
+ 
+ <p class="name">LE</p>
+ <p class="date"><a href="#comment-556">July 29th, 2009 at 7:54 am</a>  </p>
+ <div class="con"><p>@Manual management guy above:</p>
+<p>No, you can implement the slots in pure Python if you&#8217;d like. You&#8217;ll be wasting a perfectly good dictionary on each object, but that&#8217;s still less processing overhead.</p>
+<p>What slots do is they essentially create descriptors for each attribute named. For example: <a href="http://pb.lericson.se/p/SkRPZb/" rel="nofollow">http://pb.lericson.se/p/SkRPZb/</a></p>
+<p>Descriptors are used for implementing static methods, class methods, unbound/bound methods, and properties. They&#8217;re very essential to Python&#8217;s OOP. Nothing weird.</p>
+</div>
+</div>
+
+ <div class="entry " id="comment-12609">
+ <p class="avt">  <img alt='' src='http://0.gravatar.com/avatar/?d=<path_to_url>&amp;s=35' class='avatar avatar-35 photo avatar-default' height='35' width='35' /></p>
+ 
+ <p class="name"><a href='http://www.hellolinux.org/?p=206' rel='external nofollow' class='url'>How to Create “Immutable” Classes in Python | Hello Linux</a></p>
+ <p class="date"><a href="#comment-12609">January 17th, 2014 at 8:20 pm</a>  </p>
+ <div class="con"><p>[...] What the H*ll is a slot? [...]</p>
+</div>
+</div>
+
+ <div class="entry  alt " id="comment-12698">
+ <p class="avt">  <img alt='' src='http://0.gravatar.com/avatar/?d=<path_to_url>&amp;s=35' class='avatar avatar-35 photo avatar-default' height='35' width='35' /></p>
+ 
+ <p class="name"><a href='http://www.malhar2010.blogspot.com' rel='external nofollow' class='url'>Malhar Vora</a></p>
+ <p class="date"><a href="#comment-12698">February 15th, 2014 at 3:07 am</a>  </p>
+ <div class="con"><p>Really nice and informative article. Most of my python scripts do not use assign attributes dynamically to class so I guess I can take advantage of __slots__.</p>
+<p>Thank you.</p>
+</div>
+</div>
+
+							
+</div>
+
+	
+				
+<div class="comments-form-all"><div class="comments-form">	
+<h3 id="respond">Comment Form</h3>
+<form id="comment-form" action="http://www.elfsternberg.com/wp-comments-post.php" method="post">
+								
+<p><input id="comment-name" value="" name="author"  type="text" class="formid" /> <label for="comment-name">Your Name <strong class="required">(required)</strong></label></p>
+<p><input id="comment-email" name="email" value="" type="text" class="formemail" /> <label for="comment-name">Your Email <strong class="required">(required)</strong></label></p>
+<p><input id="comment-url" name="url" value="" type="text" class="formuri"/> <label for="comment-name">Your URL</label></p>
+								
+<p><textarea name="comment" cols="50" rows="8"></textarea></p>
+<p><input name="submit" type="submit" id="submit" tabindex="5" class="button" value="Post" />
+<input type="hidden" name="comment_post_ID" value="297" />
+</form>
+</div></div>						
+				
+<div class="nav">
+ 	<div class="left"></div>
+ 	<div class="right"></div>
+</div>
+</div>
+<!--End SC-->
+  <!-- Side Right - START -->
+<div class="SR">
+
+<div class="SRL">
+
+<div class="syndicate">
+<h3>Subscribe to Feed</h3>
+ <ul>
+  <li><a href="http://www.elfsternberg.com/feed/">Entries</a> (RSS)</li>
+  <li><a href="http://www.elfsternberg.com/comments/feed/">Comments</a> (RSS)</li>
+ </ul>
+</div>
+ 
+  
+   <div class="widget"> 
+	<h3>Categories</h3> 
+	<ul> 
+			<li class="cat-item cat-item-24"><a href="http://www.elfsternberg.com/category/chat/" title="View all posts filed under chat">chat</a> (17)
+</li>
+	<li class="cat-item cat-item-146"><a href="http://www.elfsternberg.com/category/coffeescript-2/" title="View all posts filed under Coffeescript">Coffeescript</a> (1)
+</li>
+	<li class="cat-item cat-item-12"><a href="http://www.elfsternberg.com/category/credit/" title="View all posts filed under credit">credit</a> (1)
+</li>
+	<li class="cat-item cat-item-104"><a href="http://www.elfsternberg.com/category/css/" title="View all posts filed under css">css</a> (2)
+</li>
+	<li class="cat-item cat-item-137"><a href="http://www.elfsternberg.com/category/database/" title="View all posts filed under database">database</a> (3)
+</li>
+	<li class="cat-item cat-item-46"><a href="http://www.elfsternberg.com/category/design/" title="View all posts filed under Design">Design</a> (23)
+</li>
+	<li class="cat-item cat-item-57"><a href="http://www.elfsternberg.com/category/django/" title="View all posts filed under django">django</a> (34)
+</li>
+	<li class="cat-item cat-item-40"><a href="http://www.elfsternberg.com/category/javascript/" title="View all posts filed under javascript">javascript</a> (32)
+</li>
+	<li class="cat-item cat-item-103"><a href="http://www.elfsternberg.com/category/jquery/" title="View all posts filed under jquery">jquery</a> (2)
+</li>
+	<li class="cat-item cat-item-34"><a href="http://www.elfsternberg.com/category/linux/" title="View all posts filed under Linux">Linux</a> (9)
+</li>
+	<li class="cat-item cat-item-10"><a href="http://www.elfsternberg.com/category/personal/" title="View all posts filed under personal">personal</a> (8)
+</li>
+	<li class="cat-item cat-item-73"><a href="http://www.elfsternberg.com/category/php/" title="View all posts filed under PHP">PHP</a> (6)
+</li>
+	<li class="cat-item cat-item-4"><a href="http://www.elfsternberg.com/category/programming/" title="View all posts filed under programming">programming</a> (79)
+</li>
+	<li class="cat-item cat-item-3"><a href="http://www.elfsternberg.com/category/python/" title="View all posts filed under python">python</a> (44)
+</li>
+	<li class="cat-item cat-item-18"><a href="http://www.elfsternberg.com/category/ruby/" title="View all posts filed under ruby">ruby</a> (11)
+</li>
+	<li class="cat-item cat-item-9"><a href="http://www.elfsternberg.com/category/site-administration/" title="View all posts filed under site administration">site administration</a> (3)
+</li>
+	<li class="cat-item cat-item-1"><a href="http://www.elfsternberg.com/category/uncategorized/" title="View all posts filed under Uncategorized">Uncategorized</a> (81)
+</li>
+	<li class="cat-item cat-item-6"><a href="http://www.elfsternberg.com/category/web-development/" title="View all posts filed under web development">web development</a> (44)
+</li>
+	<li class="cat-item cat-item-5"><a href="http://www.elfsternberg.com/category/webware/" title="View all posts filed under webware">webware</a> (1)
+</li>
+ 
+	</ul> 
+ </div>
+    
+	<div class="widget">
+	 <h3>Archives</h3>
+	  <ul>
+	   	<li><a href='http://www.elfsternberg.com/2014/01/' title='January 2014'>January 2014</a></li>
+	<li><a href='http://www.elfsternberg.com/2013/10/' title='October 2013'>October 2013</a></li>
+	<li><a href='http://www.elfsternberg.com/2013/09/' title='September 2013'>September 2013</a></li>
+	<li><a href='http://www.elfsternberg.com/2013/08/' title='August 2013'>August 2013</a></li>
+	<li><a href='http://www.elfsternberg.com/2013/07/' title='July 2013'>July 2013</a></li>
+	<li><a href='http://www.elfsternberg.com/2013/06/' title='June 2013'>June 2013</a></li>
+	<li><a href='http://www.elfsternberg.com/2013/05/' title='May 2013'>May 2013</a></li>
+	<li><a href='http://www.elfsternberg.com/2013/04/' title='April 2013'>April 2013</a></li>
+	<li><a href='http://www.elfsternberg.com/2013/03/' title='March 2013'>March 2013</a></li>
+	<li><a href='http://www.elfsternberg.com/2013/02/' title='February 2013'>February 2013</a></li>
+	<li><a href='http://www.elfsternberg.com/2013/01/' title='January 2013'>January 2013</a></li>
+	<li><a href='http://www.elfsternberg.com/2012/11/' title='November 2012'>November 2012</a></li>
+	<li><a href='http://www.elfsternberg.com/2012/10/' title='October 2012'>October 2012</a></li>
+	<li><a href='http://www.elfsternberg.com/2012/09/' title='September 2012'>September 2012</a></li>
+	<li><a href='http://www.elfsternberg.com/2012/08/' title='August 2012'>August 2012</a></li>
+	<li><a href='http://www.elfsternberg.com/2012/07/' title='July 2012'>July 2012</a></li>
+	<li><a href='http://www.elfsternberg.com/2012/06/' title='June 2012'>June 2012</a></li>
+	<li><a href='http://www.elfsternberg.com/2012/05/' title='May 2012'>May 2012</a></li>
+	<li><a href='http://www.elfsternberg.com/2012/04/' title='April 2012'>April 2012</a></li>
+	<li><a href='http://www.elfsternberg.com/2012/03/' title='March 2012'>March 2012</a></li>
+	<li><a href='http://www.elfsternberg.com/2012/02/' title='February 2012'>February 2012</a></li>
+	<li><a href='http://www.elfsternberg.com/2012/01/' title='January 2012'>January 2012</a></li>
+	<li><a href='http://www.elfsternberg.com/2011/12/' title='December 2011'>December 2011</a></li>
+	<li><a href='http://www.elfsternberg.com/2011/11/' title='November 2011'>November 2011</a></li>
+	<li><a href='http://www.elfsternberg.com/2011/10/' title='October 2011'>October 2011</a></li>
+	<li><a href='http://www.elfsternberg.com/2011/09/' title='September 2011'>September 2011</a></li>
+	<li><a href='http://www.elfsternberg.com/2011/08/' title='August 2011'>August 2011</a></li>
+	<li><a href='http://www.elfsternberg.com/2011/07/' title='July 2011'>July 2011</a></li>
+	<li><a href='http://www.elfsternberg.com/2011/06/' title='June 2011'>June 2011</a></li>
+	<li><a href='http://www.elfsternberg.com/2011/04/' title='April 2011'>April 2011</a></li>
+	<li><a href='http://www.elfsternberg.com/2011/03/' title='March 2011'>March 2011</a></li>
+	<li><a href='http://www.elfsternberg.com/2011/02/' title='February 2011'>February 2011</a></li>
+	<li><a href='http://www.elfsternberg.com/2011/01/' title='January 2011'>January 2011</a></li>
+	<li><a href='http://www.elfsternberg.com/2010/12/' title='December 2010'>December 2010</a></li>
+	<li><a href='http://www.elfsternberg.com/2010/11/' title='November 2010'>November 2010</a></li>
+	<li><a href='http://www.elfsternberg.com/2010/10/' title='October 2010'>October 2010</a></li>
+	<li><a href='http://www.elfsternberg.com/2010/09/' title='September 2010'>September 2010</a></li>
+	<li><a href='http://www.elfsternberg.com/2010/08/' title='August 2010'>August 2010</a></li>
+	<li><a href='http://www.elfsternberg.com/2010/07/' title='July 2010'>July 2010</a></li>
+	<li><a href='http://www.elfsternberg.com/2010/06/' title='June 2010'>June 2010</a></li>
+	<li><a href='http://www.elfsternberg.com/2010/05/' title='May 2010'>May 2010</a></li>
+	<li><a href='http://www.elfsternberg.com/2010/04/' title='April 2010'>April 2010</a></li>
+	<li><a href='http://www.elfsternberg.com/2010/03/' title='March 2010'>March 2010</a></li>
+	<li><a href='http://www.elfsternberg.com/2010/02/' title='February 2010'>February 2010</a></li>
+	<li><a href='http://www.elfsternberg.com/2010/01/' title='January 2010'>January 2010</a></li>
+	<li><a href='http://www.elfsternberg.com/2009/12/' title='December 2009'>December 2009</a></li>
+	<li><a href='http://www.elfsternberg.com/2009/11/' title='November 2009'>November 2009</a></li>
+	<li><a href='http://www.elfsternberg.com/2009/10/' title='October 2009'>October 2009</a></li>
+	<li><a href='http://www.elfsternberg.com/2009/09/' title='September 2009'>September 2009</a></li>
+	<li><a href='http://www.elfsternberg.com/2009/08/' title='August 2009'>August 2009</a></li>
+	<li><a href='http://www.elfsternberg.com/2009/07/' title='July 2009'>July 2009</a></li>
+	<li><a href='http://www.elfsternberg.com/2009/06/' title='June 2009'>June 2009</a></li>
+	<li><a href='http://www.elfsternberg.com/2009/05/' title='May 2009'>May 2009</a></li>
+	<li><a href='http://www.elfsternberg.com/2009/04/' title='April 2009'>April 2009</a></li>
+	<li><a href='http://www.elfsternberg.com/2009/02/' title='February 2009'>February 2009</a></li>
+	<li><a href='http://www.elfsternberg.com/2009/01/' title='January 2009'>January 2009</a></li>
+	<li><a href='http://www.elfsternberg.com/2008/11/' title='November 2008'>November 2008</a></li>
+	<li><a href='http://www.elfsternberg.com/2008/10/' title='October 2008'>October 2008</a></li>
+	<li><a href='http://www.elfsternberg.com/2008/09/' title='September 2008'>September 2008</a></li>
+	<li><a href='http://www.elfsternberg.com/2008/08/' title='August 2008'>August 2008</a></li>
+	<li><a href='http://www.elfsternberg.com/2008/07/' title='July 2008'>July 2008</a></li>
+	<li><a href='http://www.elfsternberg.com/2008/06/' title='June 2008'>June 2008</a></li>
+	<li><a href='http://www.elfsternberg.com/2008/05/' title='May 2008'>May 2008</a></li>
+	  </ul>
+	</div>
+
+  <div class="widget">
+   <h3><strong>Links</strong></h3>
+    <ul>
+     <li><a href="http://python.org/" title="Best dynamic languange on the planet.">Python</a></li>
+<li><a href="http://www.zedshaw.com/blog/index.html" title="One of my favorite python bloggers.">Zed Shaw</a></li>
+<li><a href="http://fallenpegasus.livejournal.com/tag/geek">Mark Atwood</a></li>
+<li><a href="http://elfs.livejournal.com" title="Personal life stuff.">Elf&#8217;s Livejournal Page</a></li>
+<li><a href="http://www.pendorwright.com" title="Elf&#8217;s fiction.  Warning: Smut.">Elf&#8217;s Pendorwright Projects</a></li>
+<li><a href="http://pylonshq.com/" title="Python application server framework.">Pylons</a></li>
+<li><a href="http://pythonpaste.org/" title="Python application server">Python Paste</a></li>
+    </ul>
+   </div>
+ 
+<div class="widget">  
+<h3>Meta</h3>
+<ul>
+ <li><a href="http://www.elfsternberg.com/wp-login.php">Log in</a></li>
+ <li><a href="http://validator.w3.org/check/referer" title="This page validates as XHTML 1.0 Transitional">Valid <abbr title="eXtensible HyperText Markup Language">XHTML</abbr></a></li>
+ <li><a href="http://gmpg.org/xfn/"><abbr title="XHTML Friends Network">XFN</abbr></a></li>
+ <li><a href="http://wordpress.org/" title="Powered by WordPress, state-of-the-art semantic personal publishing platform.">WordPress</a></li>
+</ul>
+</div>
+</div>
+
+
+<div class="SRR">
+ <div class="widget">
+ <h3>Calendar</h3>
+ <table id="wp-calendar">
+	<caption>July 2009</caption>
+	<thead>
+	<tr>
+		<th scope="col" title="Monday">M</th>
+		<th scope="col" title="Tuesday">T</th>
+		<th scope="col" title="Wednesday">W</th>
+		<th scope="col" title="Thursday">T</th>
+		<th scope="col" title="Friday">F</th>
+		<th scope="col" title="Saturday">S</th>
+		<th scope="col" title="Sunday">S</th>
+	</tr>
+	</thead>
+
+	<tfoot>
+	<tr>
+		<td colspan="3" id="prev"><a href="http://www.elfsternberg.com/2009/06/" title="View posts for June 2009">&laquo; Jun</a></td>
+		<td class="pad">&nbsp;</td>
+		<td colspan="3" id="next"><a href="http://www.elfsternberg.com/2009/08/" title="View posts for August 2009">Aug &raquo;</a></td>
+	</tr>
+	</tfoot>
+
+	<tbody>
+	<tr>
+		<td colspan="2" class="pad">&nbsp;</td><td>1</td><td>2</td><td><a href="http://www.elfsternberg.com/2009/07/03/" title="The perfect has become the enemy of the sufficient">3</a></td><td>4</td><td>5</td>
+	</tr>
+	<tr>
+		<td><a href="http://www.elfsternberg.com/2009/07/06/" title="Python: What the Hell is a Slot?">6</a></td><td>7</td><td>8</td><td>9</td><td><a href="http://www.elfsternberg.com/2009/07/10/" title="Perl is not Python, and other painfully obvious musings&#8230;">10</a></td><td>11</td><td>12</td>
+	</tr>
+	<tr>
+		<td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td>
+	</tr>
+	<tr>
+		<td>20</td><td><a href="http://www.elfsternberg.com/2009/07/21/" title="Drupal hangs on installation: cause and workaround">21</a></td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td>
+	</tr>
+	<tr>
+		<td><a href="http://www.elfsternberg.com/2009/07/27/" title="Going back to basics: CSS, Viewports, and sliders with jQuery.">27</a></td><td>28</td><td>29</td><td>30</td><td>31</td>
+		<td class="pad" colspan="2">&nbsp;</td>
+	</tr>
+	</tbody>
+	</table></div>
+ </div>
+</div> 
+<!-- Side Right - END -->
+ </div>
+</div>
+<!-- container END -->
+ 
+<!--Start Extra-->
+ <div class="extra-bg">
+  <div class="extra">
+    <div class="RecentPosts">
+   <h3>Recent Entries</h3>
+    <ul><li><a href="http://www.elfsternberg.com/2014/01/16/airplane-mode-cli/" rel="bookmark" title="Permanent Link: Airplane Mode from the Ubuntu Terminal">Airplane Mode from the Ubuntu Terminal</a></li><li><a href="http://www.elfsternberg.com/2014/01/07/git-wordcount/" rel="bookmark" title="Permanent Link: git wordcount">git wordcount</a></li><li><a href="http://www.elfsternberg.com/2013/10/16/mapping-currying/" rel="bookmark" title="Permanent Link: Now I get mapping and currying...">Now I get mapping and currying...</a></li><li><a href="http://www.elfsternberg.com/2013/09/28/added-years-emacs-file/" rel="bookmark" title="Permanent Link: I should have added these years ago to me .emacs file!">I should have added these years ago to me .emacs file!</a></li><li><a href="http://www.elfsternberg.com/2013/09/26/smart-clever/" rel="bookmark" title="Permanent Link: Be smart.  Don't be clever.">Be smart.  Don't be clever.</a></li><li><a href="http://www.elfsternberg.com/2013/09/11/functional-programming-crock/" rel="bookmark" title="Permanent Link: The Functional Programming Crock">The Functional Programming Crock</a></li><li><a href="http://www.elfsternberg.com/2013/08/26/upgraded-linux-mint-15-painless/" rel="bookmark" title="Permanent Link: I upgraded to Linux Mint 15, and it was almost painless.">I upgraded to Linux Mint 15, and it was almost painless.</a></li><li><a href="http://www.elfsternberg.com/2013/07/03/wizard/" rel="bookmark" title="Permanent Link: &quot;Need a wizard...&quot;">&quot;Need a wizard...&quot;</a></li><li><a href="http://www.elfsternberg.com/2013/06/14/sql-hell-left/" rel="bookmark" title="Permanent Link: SQL from Hell, my left...">SQL from Hell, my left...</a></li><li><a href="http://www.elfsternberg.com/2013/06/11/tumble-updated/" rel="bookmark" title="Permanent Link: Tumble updated">Tumble updated</a></li></ul>
+  </div>
+      <div class="LastComments" style="margin: 0px 30px;">
+   <h3>Recent Comments</h3>
+    <ul><li>Malhar Vora:  <a href="http://www.elfsternberg.com/2009/07/06/python-what-the-hell-is-a-slot/#comment-12698" title="View the entire comment by Malhar Vora">Really nice and informative article. [...]</a></li><li>How to Create “Immutable” Classes in Python | Hello Linux:  <a href="http://www.elfsternberg.com/2009/07/06/python-what-the-hell-is-a-slot/#comment-12609" title="View the entire comment by How to Create “Immutable” Classes in Python | Hello Linux">[...] What the H*ll is [...]</a></li><li>NX:  <a href="http://www.elfsternberg.com/2013/05/25/thinkpad-yoga-ubuntu-12/#comment-12599" title="View the entire comment by NX">Hey, thanks for the script. [...]</a></li><li>Yoga 2 Pro + Heisenbug | Lets start imagining&#8230;:  <a href="http://www.elfsternberg.com/2013/05/25/thinkpad-yoga-ubuntu-12/#comment-12550" title="View the entire comment by Yoga 2 Pro + Heisenbug | Lets start imagining&#8230;">[...] The accelerometer doesn&#8217;t work [...]</a></li><li>Elf Sternberg:  <a href="http://www.elfsternberg.com/2013/08/26/upgraded-linux-mint-15-painless/#comment-12520" title="View the entire comment by Elf Sternberg">I can't compare it to [...]</a></li><li>Gerzel:  <a href="http://www.elfsternberg.com/2013/08/26/upgraded-linux-mint-15-painless/#comment-12515" title="View the entire comment by Gerzel">How is LM 15?  [...]</a></li><li>What&#8217;s the best solution for OpenID with Django? | Ask Programming &amp; Technology:  <a href="http://www.elfsternberg.com/2009/11/24/django-socialauth-component-now-with-some-elfin-goodness/#comment-12510" title="View the entire comment by What&#8217;s the best solution for OpenID with Django? | Ask Programming &amp; Technology">[...] Who knows if and [...]</a></li><li>Backbone.js Tutorials in CoffeeScript | InfoLogs:  <a href="http://www.elfsternberg.com/2011/08/22/backbone-store-version-20-backbonejs-coffeescript-haml-stylus-edition/#comment-12481" title="View the entire comment by Backbone.js Tutorials in CoffeeScript | InfoLogs">[...] The Backbone Store, version [...]</a></li><li>Dynamic names as first-level URL path objects in Django | BlogoSfera:  <a href="http://www.elfsternberg.com/2009/06/26/dynamic-names-as-first-level-url-path-objects-in-django/#comment-12476" title="View the entire comment by Dynamic names as first-level URL path objects in Django | BlogoSfera">[...] solution I found is [...]</a></li><li>Elf Sternberg:  <a href="http://www.elfsternberg.com/2010/12/08/backbonejs-introducing-backbone-store/#comment-12446" title="View the entire comment by Elf Sternberg">Dude, the license is BSD [...]</a></li></ul>
+  </div>
+      <div class="MostCommented">
+   <h3>Most Commented</h3>
+     <ul><li><a href="http://www.elfsternberg.com/2010/12/08/backbonejs-introducing-backbone-store/" title="Backbone.js: Introducing The Backbone Store!">Backbone.js: Introducing The Backbone Store!</a> (19)</li><li><a href="http://www.elfsternberg.com/2009/11/24/django-socialauth-component-now-with-some-elfin-goodness/" title="Django SocialAuth component, now with some Elfin goodness...">Django SocialAuth component, now with some Elfin goodness...</a> (13)</li><li><a href="http://www.elfsternberg.com/2010/11/15/linux-flash-10-saving-flash-files/" title="Linux, Flash 10, and saving Flash files">Linux, Flash 10, and saving Flash files</a> (13)</li><li><a href="http://www.elfsternberg.com/2009/08/13/dynamic-ord-queryset-creation-with-django/" title="Dynamic OR'd Queryset creation with Django">Dynamic OR'd Queryset creation with Django</a> (10)</li><li><a href="http://www.elfsternberg.com/2012/01/25/ghost-backbone-rdfa-incompatible-grand-unified-theory-thereof/" title="Ghost of Done: How Backbone and RDFa are incompatible, and a Grand Unified Theory thereof.">Ghost of Done: How Backbone and RDFa are incompatible, and a Grand Unified Theory thereof.</a> (10)</li><li><a href="http://www.elfsternberg.com/2009/07/06/python-what-the-hell-is-a-slot/" title="Python: What the Hell is a Slot?">Python: What the Hell is a Slot?</a> (9)</li><li><a href="http://www.elfsternberg.com/2011/08/08/backbone-store-version-20-regular-edition/" title="The Backbone Store, version 2.0, regular edition.">The Backbone Store, version 2.0, regular edition.</a> (9)</li><li><a href="http://www.elfsternberg.com/2009/08/31/how-to-post-to-a-facebook-users-newsfeed-via-python-and-django/" title="How to post to a facebook user's Newsfeed via Python and Django">How to post to a facebook user's Newsfeed via Python and Django</a> (8)</li><li><a href="http://www.elfsternberg.com/2009/11/20/python-decorators-with-arguments-with-bonus-django-goodness/" title="Python: Decorators With Arguments (with bonus Django goodness)">Python: Decorators With Arguments (with bonus Django goodness)</a> (8)</li><li><a href="http://www.elfsternberg.com/2011/02/14/jquery-fadeout-lot-fadein-deferred-promises-jqueryanimate/" title="jQuery: fadeOut a lot, fadeIn a little: Deferred promises and synchronizing jquery.animate()">jQuery: fadeOut a lot, fadeIn a little: Deferred promises and synchronizing jquery.animate()</a> (7)</li></ul>
+   </div>
+   </div>
+</div>
+<!--End Extra-->
+
+
+<!--Start Footer-->
+<div class="footer-bg"><div class="footer">
+<p><strong>Copyright &copy; 2007 - Elf Sternberg -  is proudly powered by <a style="text-decoration: none;" href="http://www.wordpress.com/">WordPress</a> | <a href="http://www.elfsternberg.com/wp-login.php">Log in</a></strong></p> 
+<p>Blogging Pro 2.0 Theme is created by: <a href="http://designdisease.com/" title="Professional Blog Design">Design Disease</a></p> 
+</div></div>
+<!--End Footer-->
+
+</div>
+
+<!-- Piwik -->
+<script type="text/javascript">
+var pkBaseURL = (("https:" == document.location.protocol) ? "https://elfsternberg.com/piwik/" : "http://elfsternberg.com/piwik/");
+document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
+</script><script type="text/javascript">
+try {
+var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 1);
+piwikTracker.trackPageView();
+piwikTracker.enableLinkTracking();
+} catch( err ) {}
+</script><noscript><p><img src="http://elfsternberg.com/piwik/piwik.php?idsite=1" style="border:0" alt="" /></p></noscript>
+<!-- End Piwik Tag -->
+</body>
+</html>

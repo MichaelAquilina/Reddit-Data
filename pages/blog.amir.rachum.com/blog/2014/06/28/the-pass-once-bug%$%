@@ -1,0 +1,334 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>The Pass-Once Bug - Amir Rachum</title>
+	<meta name="author" content="Amir Rachum">
+
+	
+	<meta name="description" content="The Background Docstring convention is one my pet peeves. My view is that if you need to pick
+some arbitrary convention, might as well pick an &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="http://feeds.feedburner.com/AmirRachum" rel="alternate" title="Amir Rachum" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/bootstrap-labels.custom.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script async="true" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">Amir Rachum</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</div>
+	</div>
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="http://google.com/search" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:blog.amir.rachum.com">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		
+		<a class="google" href="https://plus.google.com/+AmirRachum?rel=author" title="Google+">Google+</a>
+		
+		
+		<a class="twitter" href="http://twitter.com/AmirRachum" title="Twitter">Twitter</a>
+		
+		
+		<a class="github" href="https://github.com/Nurdok" title="GitHub">GitHub</a>
+		
+    
+		
+		
+		
+		
+		
+		<a class="rss" href="http://feeds.feedburner.com/AmirRachum" title="RSS">RSS</a>
+		
+    
+	</div>
+	<form class="search" action="http://google.com/search" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:blog.amir.rachum.com">
+	</form>
+</nav>
+
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">The Pass-Once Bug</h2>
+	<div class="entry-content">
+        <h3>The Background</h3>
+
+<p>Docstring convention is one my pet peeves. My view is that if you need to pick
+some arbitrary convention, <a href="/blog/2013/07/19/conventions-are-arbitrary-so-use-this-one/">might as well pick an official one</a>.
+In that spirit, I&rsquo;m an advocate of <a href="http://legacy.python.org/dev/peps/pep-0257/">PEP257</a>, the official Python docstring
+convention guide. Much like <a href="http://legacy.python.org/dev/peps/pep-0008/">PEP8</a>, I said to myself &ldquo;surely there&rsquo;d be a
+script to enforce it and report on errors&rdquo;.
+Lo and behold &ndash; <a href="https://github.com/GreenSteam/pep257">GreenSteam/pep257</a>.</p>
+
+<p>Since I found the pep257 script, I tried adding a few features I needed.
+Yesterday I saw that the build was failing for some time now. The CI build
+is configured to run for several different Python versions (2.6.x, 2.7.x,
+etc.), and the tests failed for some of them. I decided to try and solve them.</p>
+
+<h3>The Process</h3>
+
+<h4>Get the Facts</h4>
+
+<p>Well, my first action was to run the tests and see the failures. I ran the
+<code>py.test</code> command and the tests passed. I looked over at the TravisCI build log
+and saw that the command run there was <code>py.test --pep8</code>. Indeed the log also
+included a failed PEP8 check. Easy peasy &ndash; fixing PEP8 checks is pretty
+straightforward and doesn&rsquo;t require an intimate familiarity with the code
+base. I ran the tests with the PEP8 checks and fixed them. There were just a
+few comment formatting problems. I eagrly typed the test command again and&hellip;
+it failed.</p>
+
+<p>The weird part about this is that it wasn&rsquo;t PEP8 that failed the tests. It was
+an actual test that failed. I tried debugging it for some time, but I didn&rsquo;t
+find the bug. So &ndash; what next?</p>
+
+<h4>My First Operation</h4>
+
+<center><img src="/images/posts/operation.jpg"></center>
+
+
+<blockquote><p>Nurse, hand me the git bisect please!</p></blockquote>
+
+
+<p>So, since I&rsquo;m only mildly familiar with the code and I failed to debug it,
+I took this opportunity to use a tool I&rsquo;ve never tried before &ndash;
+<a href="https://www.kernel.org/pub/software/scm/git/docs/git-bisect.html"><code>git bisect</code></a>. For those who aren&rsquo;t familiar with it, here&rsquo;s the basic
+workflow:</p>
+
+<ol>
+<li>Start the bisect process (<code>git bisect start</code>).</li>
+<li>Find and mark at least one good and one bad commit, manually (by doing <code>git
+bisect good</code> or <code>git bisect bad</code>).</li>
+<li>Let git run the bisect (<code>git bisect run</code>). It will update the working
+directory to a commit in the middle (in effect, it will run a binary search)
+and ask you whether it&rsquo;s &ldquo;good&rdquo; or &ldquo;bad&rdquo;. After you answer, it will ask you
+about the next commit in the search, until you found the commit that ruined the
+codebase.</li>
+</ol>
+
+
+<p>Except I never to got to the third step &ndash; I couldn&rsquo;t find a single bad commit.</p>
+
+<p>THIS IS IMPOSSIBLE.<br/>
+I CAN SEE THE BUILD IS FAILING FOR THESE COMMITS IN TRAVIS.<br/>
+<strong>WHAT GIVES?</strong></p>
+
+<h4>Realization</h4>
+
+<p>After a long time of jumping between commits and running the tests, I had an
+idea. When I first ran the tests in the master branch, they passed. On the
+second run, the didn&rsquo;t.
+<em>Maybe that&rsquo;s what happened in all these other commits as well?</em>. Maybe the
+commits weren&rsquo;t good? Maybe they just passed because I only ran them once?
+I jumped to another early commit and ran the tests. <em>They passed</em>. Arrow up and
+ENTER. <em>They fail</em>. What the hell is going on?</p>
+
+<p>Well, in one of the test files there was the following line:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pep257</span><span class="o">.</span><span class="n">check</span><span class="p">([</span><span class="n">__file__</span><span class="p">]))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The key thing to see here is the <code>__file__</code> parmeter. It&rsquo;s pretty convenient to
+use it to refer to the file containing it, but here it caused the bug. The
+reason is that <code>__file__</code> doesn&rsquo;t always reference the same value. On the first
+run, it referred to the source file &ndash; i.e., <code>&lt;codebase&gt;/test.py</code>. On the
+<strong>second</strong> run it referred to the bytecode file, i.e., <code>&lt;codebase&gt;/test.pyc</code>.
+The bytecode doesn&rsquo;t exist on the beginning of the first run, and that&rsquo;s why
+<code>__file__</code> can&rsquo;t refer to it. However, since between two consecutive run the
+file wasn&rsquo;t changed, Python didn&rsquo;t have to rewrite the bytecode file and so
+<code>__file__</code> could refer to it.</p>
+
+<p>But why did this behvior cause the bug?</p>
+
+<p>In most cases, the use of <code>__file__</code> works just fine when it related to either
+the source or the bytecode file. However, PEP257 is a <strong>static analysis</strong> tool.
+This means that it accepts as a parameter a source file only. Docstrings have
+no meaning in bytecode form, so pep257 doesn&rsquo;t return any errors when handed such
+a file. The solution was to simply replace <code>__file__</code> with the path to the
+source file, and not just the executing file (which is either source or
+bytecode).</p>
+
+<h3>The Conclusion</h3>
+
+<p>I manage a small software team at work. One of the members in my team was
+assigned a debugging task, and he kept complaining about it. About two hours
+after he was assigned, he came to me and said &ldquo;I looked at the code and I have
+no idea what&rsquo;s wrong. I suck at debugging. Please give this task to someone
+else!&rdquo;</p>
+
+<p>Here&rsquo;s my answer to these kinds of claims:</p>
+
+<p>If you know what the bug is, you&rsquo;re not debugging. You&rsquo;re fixing the code.
+There are such things as &ldquo;good&rdquo; bugs. &ldquo;Good&rdquo; bugs are bugs that
+change your understanding of something; they&rsquo;re bugs you call other people to
+see &ndash; you tell them the problem, then the solution and wait for that
+realization to hit them, just as it hit you; they&rsquo;re bugs that make you proud
+of solving and sometimes they&rsquo;re bugs that cause you to face-palm.
+They all start with looking at the code and shouting &ldquo;THIS DOESN&rsquo;T MAKE
+SENSE!&rdquo;.</p>
+
+<p>This is what we do.</p>
+
+    </div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-28T15:28:00+03:00" pubdate data-updated="true">Jun 28<span>th</span>, 2014</time></div>
+	<div class="tags">
+
+
+	<a class='category label label-info' href='/blog/categories/debug/'>debug</a>&nbsp;<a class='category label label-info' href='/blog/categories/python/'>python</a>
+
+
+</div>
+	
+	<div class="comments"><a href="#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style meta">
+		
+		<a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><br/>
+		
+		
+		<a class="addthis_button_tweet"></a><br/>
+		
+		
+		<a class="addthis_button_google_plusone" g:plusone:size="medium"></a><br/>
+		
+		
+		<a class="addthis_counter addthis_pill_style"></a><br/>
+		
+	</div>
+	
+	<script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-527e34905317e48d"></script>
+	
+
+    
+<div id="related_posts" class="entry-content">
+    <h2>Related Posts</h2>
+    <ul>
+    
+        <li><a href="/blog/2013/12/14/document-for-the-impatient/">Document for the Impatient</a></li>
+    
+        <li><a href="/blog/2013/11/10/python-tips-iterate-with-a-sentinel-value/">Python Tips: Iterate with a Sentinel Value</a></li>
+    
+        <li><a href="/blog/2013/10/15/i-want-to-fix-it-now/">I Want to Fix it NOW</a></li>
+    
+        <li><a href="/blog/2013/10/10/python-importing/">Python Importing</a></li>
+    
+        <li><a href="/blog/2013/09/18/a-pretty-good-work-day/">A Pretty Good Work Day</a></li>
+    
+    </ul>
+</div>
+
+
+</div>
+
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2014
+
+    Amir Rachum
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'amirrachum';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://blog.amir.rachum.com/blog/2014/06/28/the-pass-once-bug/';
+        var disqus_url = 'http://blog.amir.rachum.com/blog/2014/06/28/the-pass-once-bug/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//go.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-30855914-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE HTML>
+
+
+<html lang='en'><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width"><title>Ned Batchelder: Print this file, your printer will jam</title><link rel='stylesheet' href='http://nedbatchelder.com/style.css' type='text/css'><link rel='stylesheet' href='http://nedbatchelder.com/printstyle.css' type='text/css' media='print'><link rel="alternate" type="application/rss+xml" href="http://nedbatchelder.com/blog/rss.xml" title="RSS feed for Ned's blog"><script type='text/javascript' src='http://nedbatchelder.com/nedbatchelder.js'></script><script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-32134006-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script></head><body><table id='logo_banner'><tr><td id='logo'><a href='/'><img src='/dodeca3_100.gif' width='100' height='120' alt='[*]'></a></td><td id='banner'><span class='path'><a href='/'>Ned Batchelder</a> : <a href='/blog'>Blog</a> | <a href='/code'>Code</a> | <a href='/text'>Text</a> | <a href='/site'>Site</a></span><br><span class='headslug'>Print this file, your printer will jam</span><br><span class='path'>
+                    &#xbb; <a href='/'>Home</a> : <a href='/blog'>Blog</a> : <a href='/blog/200811.html'>November 2008</a></span></td></tr></table><table id='content_menu'><tr><td id='content'><div class='body'><div id='searchwelcome'></div><div class='blog-entry' id='e20081124T202830'><div class='head'><h3 class='title'><a class='s' href='/blog/200811/print_this_file_your_printer_will_jam.html' rel='bookmark' title='Link to this post'>Print this file, your printer will jam</a></h3><p class='date'>Monday 24 <a class='s' href='/blog/200811.html'>November 2008</a></p></div><p>Another story from printer-land of 20 years ago: this time about a seemingly
+impossible bug.
+</p><p>While working on the LPS-20 PostScript software, a bug was filed that said roughly,</p><blockquote><div><p>Print the attached file.  The LPS-20 will jam.  You'll have to open
+the printer to remove the scrunched up paper.</p></div></blockquote><p>We were no strangers to jammed printers, but a particular file that could jam
+the printer?  Yeah, right.  It was crazy.</p><p>I printed the file.  The printer jammed!  I cleared the jam, printed the file
+again, it jammed again.  I printed a different file, it printed fine.  I printed
+a third file, it printed fine.  Printed the bug report file again, the printer
+jammed, WTF!? How can a file reliably cause a printer to jam?</p><p>The mystery in this case was solved by the hardware team, because while we
+software guys were working on the software that fed PostScript files to the printer,
+the hardware guys were still getting the kinks out of the printer itself.</p><p>A laser printer has a drum on which the image is formed, and then used to
+transfer the image to the paper.  In a 20 ppm printer like the LPS-20,
+the drum rotates once every three seconds.  With a PostScript printer, a page
+could take an arbitrary amount of time to render.  If the page takes less than
+three seconds to render, then the drum will rotate at full speed, with no pauses.
+</p><p>But if the PostScript interpreter takes longer than three seconds to finish a page,
+then the drum has to stop and wait for the image to be ready.  Starting and stopping
+the drum and all the associated feed machinery is not trivial to get right.</p><p>In the case of the bug report file, the page took longer than three seconds,
+but only slightly longer, so not only did the drum have to stop, but it hadn't
+quite totally stopped before it was started again.  That mechanical edge case
+is what made the printer jam.  The file had pages that took just the right
+amount of time to hit a bad timing window in the drive train firmware, and the
+printer jammed every time. Once the hardware guys adjusted the firmware, the
+problem went away.</p><p>Lessons:</p><ul><li>Just because a bug seems impossible doesn't mean it is.</li><li>Abstractions are everywhere, and they can be broken.  As a software guy, I
+believed that getting the paper into the output tray was a solved problem.</li></ul><div class='foot'><span class='via'>
+
+    
+    
+        tagged: 
+        <a href='/blog/tag/history.html' rel='tag'>history</a>,
+    
+        
+        <a href='/blog/tag/debugging.html' rel='tag'>debugging</a>,
+    
+        
+        <a href='/blog/tag/printing.html' rel='tag'>printing</a></span><span class='react'>&#xbb;&#xa0;29 reactions</span></div></div><div class='comments' id='comments'>
+<h1>Comments</h1>
+
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/c508768a33e3bee9999ec30421df030c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa20.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Doug</b></span>
+			<span class='when'><span class='adminlink'></span> 10:39 PM on 24 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			As a QA guy I enjoyed this posting.  Sometimes 'luck' is involved with running into the defect but it takes follow through on the part of the tester and developer to see it to resolution.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/0ef75b29146bca59d9a2e30ca6db1ff8.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa114.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Jon</b></span>
+			<span class='when'><span class='adminlink'></span> 12:21 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			Oh yeah I see this kind of thing every day. Finding proof is nearly impossible though. Could you please provide a like to the example page that caused the jam?
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/50bd8bb298d31c8f1aeff7fc1b1b1078.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa188.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Vincent Manis</b></span>
+			<span class='when'><span class='adminlink'></span> 1:00 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			I well recall the IBM 1403, a massive line-printer that was the workhorse of 1960s and 70s computer centers. This thing had a massive rotating chain that smashed down onto the paper in order to print (think of a typewriter wielded by the Terminator while on speed). Printing a + in the first position caused the printer to overprint; overprint enough lines (say around 20, with various combinations of AAAA and ZZZZ), and the printer would jam. The thing ran fast enough that any jam had fed enough paper into the printer to require some serious work to clear. <br><br>1403s had another peculiarity. There was a paper tape that told the printer where the top of page was. An eject command caused the printer to space the paper forward until the tape (moving at the same speed) indicated the top of the next page. If the tape broke, the paper would eject at high speed...generally most of a box of paper (2000 sheets) would eject before the operator noticed it.<br><br>I don't know when IBM discontinued the 1403, but a Google search just now revealed several companies that sell ribbon cartridges for them.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/4c2a339acbd6d3d8230a52ace597a820.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa94.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>interesting</b></span>
+			<span class='when'><span class='adminlink'></span> 1:28 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			why does it take 3 seconds to interpret a postscript file
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/9f8cec73db81828ed3eb9a716dbfdaaf.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa127.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://techsociety.ca' rel='nofollow' target='_blank'>JD</a></b></span>
+			<span class='when'><span class='adminlink'></span> 1:39 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			>why does it take 3 seconds to interpret a postscript file <br><br>"Another story from printer-land of 20 years ago"<br>Things were not as fast then.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/879dbfa2645a2a7a343c4aa807dfdf57.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa14.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Ruben</b></span>
+			<span class='when'><span class='adminlink'></span> 2:06 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			This reminds me of a similar problem I once had with a Word document that crashed our departemental server.  As you probably know, in windows networking the printer driver is running on the server and not on the client.  Due to an obscure bug in the printer driver, every time somebody printed a certain Word Document, the server rebooted.  It took 6 days before our IT experts realised that the combination of that Word document + printer driver were causing the issue.  Everyone was thinking that the document was not printed because the server crashed, while it was the other way around.   A group of 80 people in the IT darkness for 6 days, isn't that funny.  By the way the Word document that caused the issue was a normal Word document that could be opened and saved in Ms Office without problems.  The printer was an HP laserprinter with a Microsoft certified printer driver
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/84fabc1977a6fa1074c3a59d90f0af2c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa268.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>dec printer</b></span>
+			<span class='when'><span class='adminlink'></span> 2:19 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			Like the experience with the IBM 1403, we had a DEC chain line printer when I was at a university back in the late 70's. The chain held all the slugs which whirred rapidly like a tank tread over the paper. When a slug with the desired character was over the correct space, an electro-mechanical hammer, one of 132 for each space on the line, would stamp it. Each hammer was actuated independently so multiple characters might be stamped at the same time and the chain would spin until all the characters on the line were stamped before line feeding. It was loud enough that it had to be inside a large refrigerator sized foam lined box. But if you printed a line with the same character order as the slugs on the chain though...omigod...it sounded like bowling balls raining on a used car lot and the printer would start skittering around the floor. We expected something amusing to happen but not for it to be shaking itself to death. Being back in the days when mainframe printers cost more than any university student dared to imagine, we did not repeat our little hardware experiment.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/7d6c0be8c0d18eee076bb60eec671209.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa249.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://svein.halvorsen.cc' rel='nofollow' target='_blank'>Svein Halvor</a></b></span>
+			<span class='when'><span class='adminlink'></span> 5:54 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			This reminds me of the case of the <a rel='nofollow' href="http://www.ibiblio.org/harris/500milemail.html">500 mile email</a>.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/75e9a11371cbe1566607180863efdf4c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa104.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://nedbatchelder.com' rel='nofollow' target='_blank'>Ned Batchelder</a></b></span>
+			<span class='when'><span class='adminlink'></span> 6:45 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			For those that want a copy of the file: I don't have it, and it wouldn't do you any good anyway, it was particular to a bug in a specific model of printer, and the bug was fixed 20 years ago!<br><br>About why the file would take 3 seconds to execute: not only were things not as fast then as now, but PostScript is a Turing-complete programming language.  You can construct a file to take as long as you like.<br><br>As I recall, the file was a TeX output file full of Type3 bitmap fonts.  Perhaps that had something to do with the complexity.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/18639954ed3dd5b3ac736dc2996f247e.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa72.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://orangeapplegroup.com' rel='nofollow' target='_blank'>tenaciousJk</a></b></span>
+			<span class='when'><span class='adminlink'></span> 8:45 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			@svein<br><br>The 500 mile email. A Classic!
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/ca75c6ee45fc05e406746137ed4f04da.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa179.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://www.FollowSteph.com' rel='nofollow' target='_blank'>Steph</a></b></span>
+			<span class='when'><span class='adminlink'></span> 10:24 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			That's a pretty amazing bug story! I have to admit, I would have been in the same boat. How can a particular file cause a printer jam. It's amazing how working in the abstract world of software so much causes us to forget that there's real hardware running our software underneath the seams. Great story.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/53ca8b33c85cdba2f4e1096593b01531.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa149.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://jessta.id.au' rel='nofollow' target='_blank'>Jesse McNelis</a></b></span>
+			<span class='when'><span class='adminlink'></span> 10:58 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			I heard a story about a program that would crash on wednesdays in september. Sounds crazy...but it was an off-by-one error in a buffer allocation to store the date in the format "Wednesday, 01 September 2005".<br>"wednesday" and "september" are the two longest day and month names.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/9f8cec73db81828ed3eb9a716dbfdaaf.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa127.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://techsociety.ca' rel='nofollow' target='_blank'>JD</a></b></span>
+			<span class='when'><span class='adminlink'></span> 11:03 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			Good sir, I have looked for an email for you but failed, so I must reply here.<br><br>The emails you send in 'Email me future comments' appears to be broken. I am using Evolution as my email client that does not seem to like HTML mail, and you don't send a plain version - so I cannot easily read these emails.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/3a376892f2a908264ed2c87974b0d00c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa137.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://igoe-ip.com' rel='nofollow' target='_blank'>Patrick</a></b></span>
+			<span class='when'><span class='adminlink'></span> 11:26 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			Ned, I think it is very possible that I wrote that bug report.  I was a co-op in the Westford "TASTE" group in 1989/90.  My responsibility was to help with development of the PostScript test suite, with the LPS-20 and LPS-40 (I think) being my key targets.  I recall writing some long-duration-interpretation tests with delay loops and reporting bugs like this.  I think we actually met briefly a few times.  I worked with Shari?<br><br>I found your blog through a reference on Gruber's blog.  Quite a blast from the past.<br><br>- Patrick
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/f4d14b022d9e3a036d807ef8f9b6242c.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa207.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>leo</b></span>
+			<span class='when'><span class='adminlink'></span> 11:42 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			ruben,<br><br>Your right but your wrong, its not windows networking, its called having a Print Server. The driver is downloaded to your machine from the print server, and when you print the document is converted into the output file that the print driver would create and sends it to the printer THROUGH the print server. SO you are right, but you said windows networking as if it has anything to do with your print driver or the process of printing. Microsoft Networking is just the general name that all the different components of networking fall under.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/b0cea66dc91b4468018ac2f7a88eb26a.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa29.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Brian Costlow</b></span>
+			<span class='when'><span class='adminlink'></span> 11:50 AM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			> About why the file would take 3 seconds <br><br>Oh, for files that only took three seconds. <br><br>I worked on desktop publishing software that printed to some of the early hi-res filmsetters using a PostScript RIP. It was normal to print a 32 page tabloid document and wait an hour or two for all of it to finish. Sometimes, a single complex page done in Adobe Illustrator, or its then competitor, FreeHand, would take an overnight shift to output. Worse, it might run for several hours then die when the RIP ran out of memory and/or temp disk space. Good times.<br><br>> PostScript is a Turing-complete programming language.<br><br>My first programming language was PostScript. I learned while working as a QA tester, by debugging and optimizing PS routines in some of our products. Long story on why I had to do that instead of just demonstrate the issue and send it back to engineering. <br><br>It warps you for life, sort of like if your cradle language was pig-latin.<br><br>Thanks for the trip down memory lane.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/84a148cbf5a051a819f38ffc2b53d529.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa43.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>David</b></span>
+			<span class='when'><span class='adminlink'></span> 12:47 PM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			I'm really glad to read this article. My experience is that the more I working with software, the more I learn to doubt my own assumptions when encountering seemingly "non-deterministic" or "paranormal" behavior. A classic example is editing a file that drives dynamic web content but forgetting to restart Apache. In the default configuration, there are multiple processes, so if some have not launched yet, then you will get random results depending on whether or not your request is served by a process that has already launched.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/9cbf9b07cfb1b04c11412d57c357520b.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa131.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Johnjay60</b></span>
+			<span class='when'><span class='adminlink'></span> 1:16 PM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			I know this is only marginally related, but I have a brand new out-of-the box HP 6000, with an HP 300 printer.  I have to restart the print spooler in XP every time I print a document.  I went to HP's official site: their 'fix' for the problem is to restart the print spooler every time you print a document.  Some help desk you got there, HP.<br><br>But on a closer note - back at McDonnell-Douglas in late 70's a legend was that someone figured out the arm movement speeds on an old hard disk (IBM 3380?) and and set up a program to seek back and forth at high speed and start moving the disk drive unit across the floor, like a washing machine that is unbalanced.  Never saw it happen.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/da100cac5bc15d7a179b4636a88ec040.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa278.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Galen</b></span>
+			<span class='when'><span class='adminlink'></span> 1:37 PM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			I've seen and heard the chain printer phenomenon (severely clattering printer) described above with some old (even at that time) CDC chain printers that we had at Lockheed Martin in Sunnyvale back in the mid-1980's. Also something similar, though perhaps less severe-sounding, with band printers. And fun with rapid paper ejection when the "form control" tape (made of Mylar in these printers, I think) occasionally got damaged. Was there a common generic name for such tapes?<br><br>I wonder what would happen if you sent that same text over and over, with no paper feed, and each time shifting the text one character in the direction the band or chain was moving--until you'd made two or three complete cycles through the character set?<br><br>And on the dot-matrix graphic line printers like the Printronix P600 or the DEC-branded LG02, you could tell whenever the printer drew a horizontal line by the "bzzzt" that was a little louder than usual.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/1ffb6dc166e6fd7b642a973516c5926d.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa99.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b><a href='http://livejournal.com/users/drjon' rel='nofollow' target='_blank'>DrJon</a></b></span>
+			<span class='when'><span class='adminlink'></span> 3:03 PM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			This is a perfect real-world example of Doug Hofstaeder's machine-killing information from <i>Godel Escher Bach</i>.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/6f7a5ad2f92f170ecd67037d9ee8a477.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa121.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>TJ</b></span>
+			<span class='when'><span class='adminlink'></span> 3:30 PM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			Hollerith (punch) card readers (like line printers) were also 'fragile'. Punching too many holes in a card caused it to become too flexible; inserting one in a deck of cards (the machines sorted dozens a second) would reliably cause the machine to jam ... and destroying many of the cards in the process.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/50bd8bb298d31c8f1aeff7fc1b1b1078.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa188.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Vincent Manis</b></span>
+			<span class='when'><span class='adminlink'></span> 5:05 PM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			@johnjay60: i can well recall IBM 2311 disk drives (7.5MB, with the form factor of a washing machine), which did move while seeking. I used to operate a System/360 Model 40 (small-scale mainframe), with a bunch of these. When you ran the sort program, the drives started swaying in a distinctly eerie manner. The IBM 1130 small computer system had a disk drive with a noisy stepping motor for seeking. You could be down at the other end of the building and hear the distinctive noise that meant that the Fortran compiler had found no errors, and was beginning to write out the object file. <br><br>@galen: we called them `carriage control tapes'. I don't know if there was an official IBM name for them. My memory is hazy now, but I believe the early ones were indeed paper. Maybe later 1403 carriage control tapes were Mylar too.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/c04204ce417eea36fa87bd0c0a4fc814.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa265.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>William</b></span>
+			<span class='when'><span class='adminlink'></span> 5:21 PM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			Re: Long Render times in PS.<br><br>PS is a turing complete language (as noted above), and in those days ran on a 4Mhz 68000 -- hence, pretty slow. At one point, it was considered grand fun to write ray tracers in PostScript, which were programs that would render within the memory of the printer, and then print out the resultant image. <br><br>It took hours and hours of time to run programs that were under a page long. Irritated the hell out of the admins...
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/2e3cf2af730ad3967072acf3e88c72e3.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa4.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Dave P</b></span>
+			<span class='when'><span class='adminlink'></span> 5:49 PM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			I got that beat. Herewith is the hands-down weirdest printer bug I've ever seen.<br><br>I was working for QualityLogic (formerly Genoa), a company that produced, among other things, certification tests for page description languages. Without boring you with the details, these tests just ran through each command in a PDL and exercised it six ways from Sunday.<br><br>Anyway, I was working on an upgrade to an HP PCL-XL test, and I came to the command (I don't recall the name off the top of my head) that set the color mode for printing bitmaps. This command actually did TWO things: it set the color mode to either indexed or direct, and it created a palette in memory.<br><br>Now, if you had set the color mode to direct, the palette was pointless, the color information came from the bitmap. So I figured it would be a good test to try poking various colors into the palette with direct mode set, and verify that the palette colors had no effect on the printed image.<br><br>And sure enough, on our reference printer (some HP color Laser Jet model), the command worked exactly as expected.<br><br>Our test pages had several pre-defined cells per page for separate tests, so I created a few tests that poked various colors into the palette, and verified that none of them affected the output.<br><br>Then I noticed I had one cell left on the page, so just for grins, I used it to set a palette that was all grays (ie, the R, G, and B values were equal).<br><br>The image didn't print. All the other tests on the page (the ones with non-gray palettes) printed. Just not the grayscale test.<br><br>I thought I'd made some kind of mistake, so I tried it again, with a different set of grays.<br><br>The image didn't print.<br><br>I tried a whole series of grayscale palettes, and in every case, the image didn't print. But when I inserted just ONE non-gray color into the palette, the image printed just fine. If I altered a gray by so much as +/-1 in any channel, the image printed. If I mixed gray and non-gray tests on a page, all of the non-gray tests printed fine, none of the gray ones did.<br><br>Unfortunately, since what I was doing was essentially black-box testing, I never got a chance to see the source code for the printer, so I have no idea what caused this. If you told me to write a command that would *deliberately* do this, it would be trivial. But if you wanted a command that was supposedly properly-written, yet had this as a side-effect, I wouldn't even know where to start.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/c440efbc7162f263a2a05a52c5a3c995.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa146.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Stephen</b></span>
+			<span class='when'><span class='adminlink'></span> 7:10 PM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			Now -- imagine you are the poor sucker who, as the end user, "discovers" a bug like this. Who on earth is going to believe you? You could spend hours, nay DAYS on the phone with technical support until somebody has the compassion to elevate it and get it into the hands of the engineering team.<br><br>That is, IF they even bother to let it get that far.<br><br>Lord help us all.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/6516a86adb71e9b4d2576f428ca99ab4.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa105.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Peter</b></span>
+			<span class='when'><span class='adminlink'></span> 7:34 PM on 25 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			IBM 1403 printers, LPS40's and 20's used them all. The 1403 when connected to a IBM 7044/1401 could not over print and treated the "+" in column one the same as a space, some users started always using "+", which caused some problems when an upgraded printer (CDC 512?) did overprint!<br><br>The oddest problem I saw on a LPS20, was a paper jam error on every page. It turned out the paper was A4, but the printer was set for A5, and complained that each page took too long to exit the printer!<br><br>Don't get me started on old disk drives!<br><br>Peter.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/d96cee2deeb48a12c1e6030202a92fdd.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa63.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Alan Frisbie</b></span>
+			<span class='when'><span class='adminlink'></span> 8:30 PM on 26 Nov 2008</span>
+		</div>
+		
+		<p class='commenttext'>
+			About a year or two ago, I discovered a Postscript file that would cause<br>most HP B&W LaserJet printers to lock up, requiring a power-off cycle to<br>clear.   It was a color operator that was not properly handled by the<br>printer firmware.   <br><br>I reported the bug, but for some reason HP was reluctant to issue<br>fixes for all their Postscript printers.   :-)
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/c4be031678fa14017556e6ca845621c8.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa57.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>sing yee</b></span>
+			<span class='when'><span class='adminlink'></span> 7:53 PM on 20 Feb 2009</span>
+		</div>
+		
+		<p class='commenttext'>
+			One of the PC in my office is having this problem: each time sending a new word file to print will cause a paper jam but it's no problem with the old generated word file.  There is no problem with .xls or .jpeg .... documents.<br><br>  Reinstalled the Office didn't seem to solve the problem.  I have no idea at all.
+		</p>
+	</div>
+	<div class='comment'>
+		<img class='gravatar' src='http://www.gravatar.com/avatar/40b6d93443ccb1b32322b6052e66bd9a.jpg?default=http%3A%2F%2Fnedbatchelder.com%2Fpix%2Favatar%2Fa210.jpg&amp;size=40' width='40' height='40' alt='[gravatar]'>
+		<div class='head'>
+			<span class='who'><b>Adrian Hutchinson</b></span>
+			<span class='when'><span class='adminlink'></span> 12:49 AM on 3 Nov 2012</span>
+		</div>
+		
+		<p class='commenttext'>
+			Here we are in 2012 and I have an ms word document that can make an HP inkjet go "out of paper". Works on 3 different models I know of. Copying the text to a new document which prints will stop that document ever printing!<br>We have a spare printer now as we purchased a new 8600 pro as our other printers were apparently broken!<br>I will ave to spend some time with this document finding out how it does it.
+		</p>
+	</div>
+
+<div id='commentform'>
+<h2>Add a comment:</h2>
+<div>
+	<form method="post" action="http://nedbatchelder.com/blog/200811/print_this_file_your_printer_will_jam.html#commentform" id="commentformform">
+		<table>
+			<tr>
+				<td class="labels">
+					<div class='label'>name</div>
+				</td>
+				<td class="inputs">
+					<input class='edit' type="text" name="fb464115ff484989fb0a4dede8a34bdeb" id="fb464115ff484989fb0a4dede8a34bdeb" size="40" value="">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class='label'>email</div>
+				</td>
+				<td>
+					<div class="dn">
+                        Ignore this:
+                        <input class='edit' type="email" name="f5d50dd087f7772039d069869de8a0a6a" id="f5d50dd087f7772039d069869de8a0a6a" size="40">
+					</div>
+					<input class='edit' type="email" name="ffe33ef4e62e80e9a7bc9ac895c33d36b" id="ffe33ef4e62e80e9a7bc9ac895c33d36b" size="40" value="">
+					<span class='notice'>not displayed and no spam.</span>
+					<div class="dn">
+                        Leave this empty:
+                        <input class='edit' type="email" name="f5833974019b2bce419b34ba145477fe8" id="f5833974019b2bce419b34ba145477fe8" size="40">
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div class='label'>www</div>
+				</td>
+				<td>
+					<input class='edit' type="url" name="f9ea5efbfc59a73856aa94e32b1c3b30a" id="f9ea5efbfc59a73856aa94e32b1c3b30a" size="40" value="">
+					<span class='notice'>not searched.</span>
+				</td>
+			</tr>
+			<tr>
+				<td>&nbsp;</td>
+				<td>
+					<div class="notice">Name and either email or www are required.</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="dn">
+						Don't put anything here:
+						<textarea name="f0f9b8f1858ecfd1a6e1b3968e55fec37" id="f0f9b8f1858ecfd1a6e1b3968e55fec37" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+					<div>
+						<textarea name="fd93d686acb3c8866aab7637584de938e" id="fd93d686acb3c8866aab7637584de938e" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+					<div class="dn">
+						Leave this empty:
+						<textarea name="fa6405c7052659bcf159fe833364af606" id="fa6405c7052659bcf159fe833364af606" rows="7" cols="77" style='width:100%'></textarea>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="notice right">
+					URLs auto-link and some tags are allowed: &lt;a&gt;&lt;b&gt;&lt;i&gt;&lt;p&gt;&lt;br&gt;&lt;pre&gt;.
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<div class="notice right">
+						<label for="cbnotify">
+							<input type="checkbox" name="f421c86548da0397e1e2f483b16c86307" id="cbnotify" >
+							<span class='label'>Email me future comments</span>
+						</label>&#160;&#160;
+						<input id="previewbtn" type="submit" name="f2e4f112238d03eccbb831e29ae101827" value="preview >>">
+						<span class="dn">
+                            <input type="submit" name="f413e407e814d00c7e6d11deb180f6062" value="I'm a spambot">
+						</span>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<input type='hidden' name='f787004a3ffa4e772c038bc310c5785f2' value='e20081124T202830'>
+		<input type='hidden' name='spinner' value='3bd806ac9ba4c8ecb02247132e785507'>
+		<input type='hidden' name='fcf91d817cd80a0bebbb83740d666ef66' value='1404248418'>
+
+
+	</form>
+</div>
+</div>
+
+</div>
+</div></td><td id='menu'><div class='sidebar'>
+
+
+<div class='blogroll'><ul class='first'><li class='first'>Search this site:
+            
+<form action="http://www.google.com/cse" id="searchbox_007818501792991951010:s9hiibxg-ty" style="margin-top:6px;"><input type="hidden" name="cx" value="007818501792991951010:s9hiibxg-ty"><table><tr><td class="vmid"><input type="text" name="q" style='border:1px solid #7e9db9;padding:2px;width:144px;height:16px;'></td><td class="vmid"><input id="submit" class="vmid" type="image" title="Search" alt="Search" src="/pix/search.png"></td></tr></table></form><script type="text/javascript">
+    (function() {
+        var f = document.getElementById('searchbox_007818501792991951010:s9hiibxg-ty');
+        if (f && f.q) {
+            var q = f.q;
+            var b = function() {
+                if (q.value == '') {
+                    q.style.background = '#fff url(http:\x2F\x2Fwww.google.com\x2Fcoop\x2Fintl\x2Fen\x2Fimages\x2Fgoogle_custom_search_watermark.gif) left no-repeat';
+                }
+            };
+            var f = function() {
+                q.style.background = '#fff';
+            };
+            q.onfocus = f;
+            q.onblur = b;
+            if (!/[&?]q=[^&]/.test(location.search)) {
+                b();
+            }
+        }
+    })();
+</script></li><li><a href='/site/aboutned.html' rel='author'>About me</a></li><li class='inline'>Also me:
+            <ul><li><a href='http://twitter.com/nedbat'>twitter</a>&#xa0;&#xb7; </li><li><a href='mailto:ned@nedbatchelder.com'>email</a></li></ul></li><li class='inline'>Tip me:
+            <ul><li><a href='http://gittip.com/nedbat'>gittip</a>&#xa0;&#xb7; </li><li><a href='https://coinbase.com/checkouts/c2a7f9652ecc0f6bf9c240c05109305f'>bitcoin</a></li></ul></li><li>Commerce:
+            <ul class='compact'><li>&#xbb;&#xa0;<a href='http://www.amazon.com/exec/obidos/redirect-home/nedbatchelder-20'>Amazon</a></li><li>&#xbb;&#xa0;<a href='http://susansenator.com/survivalguide.html'>Susan's books</a><br><a href='http://susansenator.com/makingpeace.html'><img src='/pix/makingpeacetiny.png' alt='Making Peace With Autism' width='83' height='127' style='margin: 10px 0 0 0'></a> <a href='http://susansenator.com/dirt.html'><img src='/pix/dirttiny.png' alt='Dirt, a novel' width='86' height='125' style='margin: 10px 0 0 0'></a><!--
+                    <a href='http://susansenator.com/survivalguide.html'><img src='pix/survivalguidetiny.png' alt='Autism Mom&#39;s Survival Guide' width='86' height='121' style='margin: 10px 0 0 0'></a>
+                    --></li></ul></li><li class='inline'>More blog:
+            <ul><li><a href='/blog/tag/python.html'>python</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/art.html'>art</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2014.html'>14</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/funny.html'>funny</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/webpage.html'>web</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2013.html'>13</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/tools.html'>tools</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/parenting.html'>parenting</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2012.html'>12</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/math.html'>math</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/politics.html'>politics</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2011.html'>11</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/movies.html'>movies</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/ling.html'>language</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2010.html'>10</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/mycode.html'>my code</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/history.html'>history</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2009.html'>09</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/books.html'>books</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/type.html'>typography</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2008.html'>08</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/business.html'>business</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/autism.html'>autism</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2007.html'>07</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/howto.html'>how-to</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/coverage.html'>coverage</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2006.html'>06</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/games.html'>games</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/quick.html'>quick links</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2005.html'>05</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/science.html'>science</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/windows.html'>windows</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2004.html'>04</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/friendfam.html'>friends & family</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/work.html'>work</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2003.html'>03</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/online.html'>online</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/photos.html'>photos</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archive2002.html'>02</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/crafts.html'>crafts</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tag/music.html'>music</a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/tags.html'><i>all tags</i></a><span class='thinspace'>&#xa0;</span>&#xb7;<span class='thinspace'> </span></li><li><a href='/blog/archiveall.html'><b><i>everything!</i></b></a></li></ul></li><li><a
+                href='/blog/rss.xml'
+                type='application/rss+xml'
+                style='
+                    padding: 0 .4em;
+                    background: #F60;
+                    color: white;
+                    border: 1px solid;
+                    border-color: #FC9 #630 #330 #F96;
+                    font-weight: bold;
+                    text-decoration: none;
+                    '
+                >RSS</a></li></ul></div>
+
+</div></td></tr><tr><td id='copyright' colspan='2'><p class='copyright'><a rel='copyright license' href='/site/legal.html'>
+                            &#xa9; Copyright
+                            
+                                2008,
+                            
+                            Ned Batchelder
+                        </a></p></td></tr></table></body></html>

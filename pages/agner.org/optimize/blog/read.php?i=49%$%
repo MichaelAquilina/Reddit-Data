@@ -1,0 +1,2092 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD>
+<META name='generator' content='AForum 1.42'>
+<TITLE>Agner`s CPU blog - Intel's &quot;cripple AMD&quot; function</TITLE>
+<STYLE type="text/css"><!--
+BODY {color:#000000; background-color:#F0F0F0; background-image:none; font-family:Verdana,Arial,Sans-Serif; margin-left:0px; margin-right:0px;}
+A:link {color:#0000FF;text-decoration:underline}
+A:visited {color:#CC00FF;}
+A:active,A:hover {color:#CC0000;text-decoration:underline}
+A.nav {text-decoration:underline}
+A.nav1 {text-decoration:none}
+A.unread:link,A.unread:visited {color:#0000FF;}
+A.read:link {color:#CC00FF;}
+A.hidden:link,A.hidden:visited {color:#FF0000}
+A.read:active,A.read:hover,A.unread:active,A.unread:hover,A.nav:active,A.nav:hover,A.nav1:active,A.nav1:hover {color:#CC0000;text-decoration:underline}
+TD.preview A:hover,TD.preview A:active {color:#CC0000}
+BLOCKQUOTE {font-size:80%; border-left:solid 2px #804000; padding-left:1em; margin-left:0px; margin-top:0.5em; margin-bottom:0.5em;}
+BLOCKQUOTE BLOCKQUOTE {font-size:1em;}
+H1 {font-size:130%; text-align:center}
+H1.boardtitle {font-size:180%; text-align:center}
+TD.boardslist {font-size:100%; color:#000000; background-color:#FFFFFF;}
+TH.boardslist {font-size:120%; text-align:left}
+A.boardslist {font-size:110%;}
+EM.boardslist {font-weight:normal; font-style:normal; color:#0000FF}
+DD.boardslist {font-size:100%;}
+TABLE.nav {background-color:#CCCCCC; table-layout:auto; border-style:none}
+TD.nav {text-align:center; font-size:80%; color:#000000; background-color:#9999FF; border-left:solid 1px #0000FF}
+TD.nav:first-child {border-left:none}
+TABLE.ttable {table-layout:fixed; color:#000000; background-color:#CCCCCC; border-left:solid 1px #999999; border-right:solid 1px #999999;}
+TABLE.ttable1 {table-layout:fixed; border-left:solid 1px #999999; border-right:solid 1px #999999;}
+TD.ttable1 {color:#000000; background-color:#FFFFFF;}
+TD.ttable2 {color:#000000; background-color:#CCCCCC;}
+TD.ttable3 {color:#000000;}
+TD.ttable1,TD.ttable2 {font-size:14px; height:21px; padding-left:0.5em; overflow:hidden; white-space:nowrap}
+TABLE.ttable TH, TABLE.ttable1 TD, TABLE.ttable1 TH {padding-left:0.5em;}
+TD.message {color:#000000; background-color:#CCFFCC; padding:0.5em}
+TD.ttable {color:#000000; background-color:#FFFFFF;}
+TH.ttable {font-size:120%; text-align:left; padding:3px}
+TH.listhead1,TH.listhead2 {font-size:105%; text-align:left; padding:2px;
+  color:#FFFFFF; background-color:#0000EE; border-color:#6666FF; border-width:3px;
+  margin:0px; font-family:Arial,Sans-Serif; overflow:hidden; white-space:nowrap}
+TH.listhead2 {border-style:inset}
+TH.listhead1 {border-style:outset}
+A.listhead1:link, A.listhead1:visited {color:#FFFFFF; text-decoration:none}
+A.listhead1:hover {color:#FFFFFF; text-decoration:underline}
+TH.boardslist, TH.subject, TH.ttable {color:#FFFFFF; background-color:#0000CC; font-family:Arial,Sans-Serif}
+TH.subject {font-size:120%; text-align:left; padding:3px}
+TH.notapproved {color:#FFFFFF; background-color:#CC3300; font-size:120%; text-align:left; padding:3px}
+.loggedin {text-align:center; color:#CC3300; font-weight:bold; font-size:120%; padding-bottom:10px}
+.mod {color:#FF9900; font-weight:bold;}
+TABLE.modmsg {border:none; border-collapse:collapse;}
+TABLE.modmsg TD {border: solid 1px #808080;}
+TD.author,TD.date,TD.expires {color:#000000; background-color:#CCCCCC;}
+SMALL.date,SMALL.expires {font-size:70%;}
+DT.search {font-size:100%; font-weight:bold}
+DD.search {font-size:100%;}
+B.same {font-weight:bold;color:#FF0000}
+SMALL.search {font-size:80%; font-weight:bold}
+.new {color:#FF0000; font-size:80%}
+TABLE.form {color:#000000; background-color:#999999;}
+TH.form {color:#FFFFFF; background-color:#0000FF; text-align:left; padding-left:1em}
+TD.form {color:#000000; background-color:#999999; text-align:left; padding-left:1em}
+TEXTAREA.form {width:75%; color:#000000; background-color:#FFFFFF;font-family:Arial,Helvetica;}
+INPUT.form {color:#000000; background-color:#FFFFFF; width:350px}
+TABLE.preview {table-layout:fixed; padding-left:0.5em}
+TH.preview {text-align:center; color:#000000; background-color:#FFFFFF; padding:1em}
+H2.preview {font-size:120%; text-align:center;}
+FORM.preview {font-size:100%; text-align:center; color:#000000; background-color:#FFFFFF;}
+BIG.preview {font-size:106%;}
+TD.preview {font-size:100%; color:#000000; background-color:#FFFF99; padding:0.5em}
+EM.preview {font-weight:bold; font-style:normal; color:#000000}
+TD.feedback {font-size:106%; text-align:center; color:#000000; background-color:#FFFFFF;}
+.confirm {font-size:110%; text-align:center; color:#993300; background-color:#FFFFFF;}
+TABLE.error {background-color:#FFFFFF; border:solid 2px #999999;}
+TD.error {text-align:center; font-size:110%; color:#CC0000; padding:1.5em}
+KBD, KBD.faq, CODE {font-family:'Courier New'; font-weight:bold}
+
+--></STYLE>
+<STYLE type="text/css" media="print"><!--
+BODY {color:#000000; background-color:#FFFFFF; font-size:12pt; font-family:Arial,Sans-Serif;}
+TH.boardslist, TH.subject, TH.ttable {color:#000000; background-color:#CCCCCC; font-weight:bold}
+TH.listhead1,TH.listhead2 {color:#000000; background-color:#CCCCCC; border-color:#B0B0B0}
+.nav {display:none}
+A:link,A:visited {COLOR:#0000ff; TEXT-DECORATION:underline}
+TABLE.ttable, TABLE.ttable1 {border:none}
+TD.ttable,TD.ttable1 {color:#000000; background-color:#FFFFFF;}
+TD.ttable2 {color:#000000; background-color:#CCCCCC;}
+BLOCKQUOTE {BORDER-LEFT: #993300 2px solid;}
+TABLE.preview,TD.preview,EM.preview,TD.error,TD.feedback {color:#000000; background-color:#FFFFFF;}
+TD.boardslist,DD.boardslist,EM.boardslist {color:#000000; background-color:#FFFFFF;}
+
+--></STYLE>
+</HEAD>
+<BODY BGCOLOR="#CCCCCC">
+
+<H1 class="boardtitle"> Agner`s CPU blog </H1>
+<p align="center">
+<a href="/optimize/">Software optimization resources</a> 
+  | <a href="http://www.agner.org/mailman/listinfo/cpublog_agner.org">E-mail subscription to this blog</a>
+  | <a href="http://www.agner.org">www.agner.org</a>
+</p>
+
+
+
+<script language='JavaScript'>
+function mailr(mail1,subj,mail2,author) {
+document.write('<a href="mailto:'+mail1+'&#64;'+mail2+'?subject='+subj+'">'+author+'</a>');}
+</script>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="read.php?i=49&v=t" class='nav1' title="View each message on a separate page." accesskey='V'>Threaded <u>V</u>iew</a></td><td class='nav'><a href="search.php" class='nav1' title="Search for messages." accesskey='S'><u>S</u>earch</a></td><td class='nav'><a href="./" class='nav1' title="Go back to the list of threads." accesskey='L'><u>L</u>ist</a></td><td class='nav'><a href="/messageboards" class='nav1' title="There are more messageboards on this website. Click here to list them." accesskey='M'>List <u>M</u>essageboards</a></td><td class='nav'><a href="faq.php" class='nav1' title="Answers to Frequently Asked Questions.
+Click here if you are in doubt about how to use the messageboard." accesskey='H'><u>H</u>elp</a></td></tr>
+</table>
+&nbsp;<TABLE class='ttable1' WIDTH="100%" cellspacing="0" cellpadding="0" border="0">
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#49" class="read" accesskey='1'>Intel's &quot;cripple AMD&quot; function</A>  - Agner Fog - 2009-12-30</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#56" class="read" accesskey='2'>Intel's &quot;cripple AMD&quot; function</A>  - inhahe - 2010-01-03</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#58" class="read" accesskey='3'>Intel's</A>  - Agner Fog - 2010-01-04</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#60" class="read" accesskey='4'>Intel's compiler is the best?</A>  - Weber - 2010-01-04</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#63" class="read" accesskey='5'>Intel's compiler is the best?</A>  - Agner Fog - 2010-01-09</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#74" class="read" accesskey='6'>Intel article</A>  - Agner Fog - 2010-01-22</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#59" class="read" accesskey='7'>Web Parallels</A>  - Jeff Craig - 2010-01-04</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#75" class="read" accesskey='8'>More Parallels</A>  - Agner Fog - 2010-01-23</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#80" class="read" accesskey='9'>Early Examples</A>  - Yuhong Bao - 2010-02-01</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#93" class="read">More Parallels</A>  - Yuhong Bao - 2010-02-20</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#73" class="read">New CPUID manipulation program</A>  - Agner Fog - 2010-01-22</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#117" class="read">CPUID manipulation through virtualization</A>  - Andrew Lofthouse - 2010-08-16</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#118" class="read">CPUID manipulation through virtualization</A>  - Agner Fog - 2010-08-16</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#131" class="read">CPUID manipulation program for AMD</A>  - Agner - 2010-10-01</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#182" class="read">CPUID manipulation program for AMD</A>  - Ralf - 2012-01-30</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#183" class="read">CPUID manipulation program for AMD</A>  - Agner - 2012-01-31</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#147" class="read">New CPUID manipulation program</A>  - AVK - 2011-02-09</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#148" class="read">New CPUID manipulation program</A>  - Agner - 2011-02-09</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#79" class="read">AMD Blog on compilers/benchmarch</A>  - margaret lewis - 2010-02-01</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#107" class="read">New version is still crippling Intel's competitors</A>  - Agner Fog - 2010-06-29</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#112" class="read">Out of court settlement with FTC</A>  - Agner Fog - 2010-08-05</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#115" class="read">AMD library contains Intel's cripple-AMD function!</A>  - Agner Fog - 2010-08-11</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#120" class="read">Common math programs are affected</A>  - Agner Fog - 2010-08-20</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#126" class="read">Preliminary test results for Matlab</A>  - Agner Fog - 2010-09-16</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#121" class="read">Overview of CPU dispatching in Intel software</A>  - Agner Fog - 2010-08-23</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#127" class="read">New Intel compiler version - still the same!</A>  - Agner Fog - 2010-09-22</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#134" class="read">Intel compiler question</A>  - James Russell - 2010-10-11</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#135" class="read">Intel compiler question</A>  - Agner - 2010-10-12</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#179" class="read">New Intel compiler version - still the same!</A>  - Daniel - 2011-12-23</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#180" class="read">New Intel compiler version - still the same!</A>  - Agner - 2011-12-25</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#184" class="read">New Intel compiler version - still the same!</A>  - Stanley Theamer - 2012-02-12</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#194" class="read">New Intel compiler version - still the same!</A>  - Stretcho - 2012-03-14</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#209" class="read">Still no library that is optimal on all processors</A>  - Agner - 2012-04-18</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/t.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#213" class="read">Still no library that is optimal on all processors</A>  - Guest - 2012-05-17</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#214" class="read">Still no library that is optimal on all processors</A>  - Agner - 2012-05-17</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#215" class="read">Still no library that is optimal on all processors</A>  - David - 2012-05-19</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/i.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=""><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#216" class="read">Still no library that is optimal on all processors</A>  - Agner - 2012-05-20</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/m.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="thread">&nbsp;<A href="#268" class="read">Still no library that is optimal on all processors</A>  - Marat Dukhan - 2013-05-20</TD></TR>
+<TR valign="middle"><TD class='ttable3'><IMG SRC="/messageboards/images/trans.gif" WIDTH="5" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/trans.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''><IMG SRC="/messageboards/images/l.gif" WIDTH="12" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT="last reply"><IMG SRC="/messageboards/images/c.gif" WIDTH="9" HEIGHT="21" BORDER="0" ALIGN="absmiddle" ALT=''>&nbsp;<A href="#269" class="read">Still no library that is optimal on all processors</A>  - Agner - 2013-05-21</TD></TR>
+</TABLE>
+ &nbsp;
+<a name="49"></a><table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Intel's &quot;cripple AMD&quot; function</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2009-12-30 10:22</td>
+<tr><td class='message' width="100%" colspan="2"><h2>Will Intel be forced to remove the &quot;cripple AMD&quot; function from
+their compiler?</h2>
+<p>Many software programmers consider Intel's compiler the best optimizing
+compiler on the market, and it is often the preferred compiler for the most
+critical applications. Likewise, Intel is supplying a lot of highly optimized
+function libraries for many different technical and scientific applications. In
+many cases, there are no good alternatives to Intel's function libraries.</p>
+<p>Unfortunately, software compiled with the Intel compiler or the Intel
+function libraries has inferior performance on AMD and VIA processors. The
+reason is that the compiler or library can make multiple versions of a piece of
+code, each optimized for a certain processor and instruction set, for example
+SSE2, SSE3, etc. The system includes a function that detects which type of CPU
+it is running on and chooses the optimal code path for that CPU. This is called
+a CPU dispatcher. However, the Intel CPU dispatcher does not only check which
+instruction set is supported by the CPU, it also checks the vendor ID string. If
+the vendor string says &quot;GenuineIntel&quot; then it uses the optimal code
+path. If the CPU is not from Intel then, in most cases, it will run the slowest
+possible version of the code, even if the CPU is fully compatible with a better
+version.</p>
+<p>I have complained about this behavior for years, and so have many others, but
+Intel have refused to change their CPU dispatcher. If Intel had advertised their
+compiler as compatible with Intel processors only, then there would probably be
+no complaints. The problem is that they are trying to hide what they are doing.
+Many software developers think that the compiler is compatible with AMD
+processors, and in fact it is, but unbeknownst to the programmer it puts in a
+biased CPU dispatcher that chooses an inferior code path whenever it is running
+on a non-Intel processor. If programmers knew this fact they would probably use
+another compiler. Who wants to sell a piece of software that doesn't work well
+on AMD processors? </p>
+<p>Because of their size, Intel can afford to put more money into their compiler
+than other CPU vendors can. The Intel compiler is relatively cheap, it has superior
+performance, and the support is excellent. Selling such a compiler is certainly
+not a profitable business in itself, but it is obviously intended as a way of
+supporting Intel's microprocessors. There would be no point in adding new
+advanced instructions to the microprocessors if there were no tools to use these
+instructions. AMD is also making a compiler, but the current version supports
+only Linux, not Windows. </p>
+<p>Various people have raised suspicion that the biased CPU dispatching has made its way into
+common benchmark programs (<a href="http://www.brightsideofnews.com/print/2009/12/17/why-the-ftc-lawsuit-against-intel-has-substance.aspx">link</a>
+<a href="http://arstechnica.com/hardware/reviews/2008/07/atom-nano-review.ars/6">link</a>).
+This is a serious issue indeed. We know that many customers base their buying
+decision on published benchmark results, and a biased benchmark means an unfair
+market advantage worth billions of dollars. </p>
+<p>&nbsp;&nbsp; </p>
+<h2>The legal battle </h2>
+<p>AMD have sued Intel for unfair competition at least since 2005, and the case
+has been <a href="http://download.intel.com/pressroom/legal/AMD_settlement_agreement.pdf">settled</a>
+in November 2009. This settlement deals with many issues of unfair competition,
+apparently including the Intel compiler. The settlement says: </p>
+<blockquote>
+<p>2.3 TECHNICAL PRACTICES<br>
+<br>
+Intel shall not include any Artificial Performance Impairment in any Intel
+product or require any Third Party to include an Artificial Performance
+Impairment in the Third Partys product. As used in this Section 2.3, <u>Artificial
+Performance Impairment</u> means an affirmative engineering or design action
+by Intel (but not a failure to act) that (i) degrades the performance or
+operation of a Specified AMD product, (ii) is not a consequence of an Intel
+Product Benefit and (iii) is made intentionally to degrade the performance or
+operation of a Specified AMD Product. For purposes of this Section 2.3, <u>Product
+Benefit</u> shall mean any benefit, advantage, or improvement in terms of
+performance, operation, price, cost, manufacturability, reliability,
+compatibility, or ability to operate or enhance the operation of another
+product.<br>
+<br>
+In no circumstances shall this Section 2.3 impose or be construed to impose any
+obligation on Intel to (i) take any act that would provide a Product Benefit to
+any AMD or other non-Intel product, either when such AMD or non-Intel product is
+used alone or in combination with any other product, (ii) optimize any products
+for Specified AMD Products, or (iii) provide any technical information,
+documents, or know how to AMD. </p>
+</blockquote>
+<p>This looks like a victory for AMD. If we read &quot;any Intel product&quot;
+as Intel's compilers and function libraries, &quot;any Third Party&quot; as
+programmers using these compilers and libraries, and &quot;Artificial
+Performance Impairment&quot; as the CPU dispatcher checking the vendor ID
+string; then the settlement puts an obligation on Intel to change their CPU
+dispatcher. I will certainly check the next version of Intel's compiler and
+libraries to see if they have done so or they have found a loophole in the
+settlement. </p>
+<p>Interestingly, this is not the end of the story. Only about one month after
+the AMD/Intel settlement, the US Federal Trade Commission (FTC) filed an <a href="http://www.ftc.gov/os/adjpro/d9341/091216intelcmpt.pdf">antitrust
+complaint</a> against Intel. The accusations in the FTC complaint are unusually
+strong: </p>
+<blockquote>
+  <p>Intel sought to undercut the performance advantage of
+  non-Intel x86 CPUs relative to Intel x86 CPUs when it redesigned and
+  distributed software products, such as compilers and libraries.<br>
+  [...]<br>
+  To the public, OEMs, ISVs, and benchmarking organizations, the slower
+  performance of non-Intel CPUs on Intel-compiled software applications appeared
+  to be caused by the non-Intel CPUs rather than the Intel software. Intel
+  failed to disclose the effects of the changes it made to its software in or
+  about 2003 and later to its customers or the public. Intel also disseminated
+  false or misleading documentation about its compiler and libraries. Intel
+  represented to ISVs, OEMs, benchmarking organizations, and the public that
+  programs inherently performed better on Intel CPUs than on competing CPUs. In
+  truth and in fact, many differences were due largely or entirely to the Intel
+  software. Intels misleading or false statements and omissions about the
+  performance of its software were material to ISVs, OEMs, benchmarking
+  organizations, and the public in their purchase or use of CPUs. Therefore,
+  Intels representations that programs inherently performed better on Intel
+  CPUs than on competing CPUs were, and are, false or misleading. Intels
+  failure to disclose that the differences were due largely to the Intel
+  software, in light of the representations made, was, and is, a deceptive
+  practice. Moreover, those misrepresentations and omissions were likely to harm
+  the reputation of other x86 CPUs companies, and harmed competition.<br>
+  [...]<br>
+  Some ISVs requested information from Intel concerning the apparent variation
+  in performance of identical software run on Intel and non-Intel CPUs. In
+  response to such requests, on numerous occasions, Intel misrepresented,
+  expressly or by implication, the source of the problem and whether it could be
+  solved.<br>
+  [...]<br>
+  Intels software design changes slowed the performance of non-Intel x86 CPUs
+  and had no sufficiently justifiable technological benefit. Intels deceptive
+  conduct deprived consumers of an informed choice between Intel chips and rival
+  chips, and between Intel software and rival software, and raised rivals
+  costs of competing in the relevant CPU markets. The loss of performance caused
+  by the Intel compiler and libraries also directly harmed consumers that used
+  non-Intel x86 CPUs.</p>
+</blockquote>
+<p>The remedy that the FTC asks for is also quite farreaching: </p>
+<blockquote>
+  <p>Requiring that, with respect to those Intel customers that purchased from
+  Intel a software compiler that had or has the design or effect of impairing
+  the actual or apparent performance of microprocessors not manufactured by
+  Intel (&quot;Defective Compiler&quot;), as described in the Complaint:</p>
+  <ol type="a">
+    <li>Intel provide them, at no additional charge, a substitute compiler that is
+  not a Defective Compiler;</li>
+    <li>Intel compensate them for the cost of recompiling the software they had
+  compiled on the Defective Compiler and of substituting, and distributing to
+  their own customers, the recompiled software for software compiled on a Defective
+  Compiler; and</li>
+    <li>Intel give public notice and warning, in a manner likely to be communicated
+  to persons that have purchased software compiled on Defective Compilers
+  purchased from Intel, of the possible need to replace that software.</li>
+  </ol>
+</blockquote>
+<p>Maybe the FTC has decided&nbsp;that the AMD/Intel settlement was not a fair
+and sufficient remedy against Intel's monopoly behavior? The settlement
+compensates AMD, but not VIA and other microprocessor vendors, and not the customers who have been harmed by
+insufficient competition and by the &quot;defective&quot; software produced with
+the Intel compiler. </p>
+<p>&nbsp;&nbsp; </p>
+<h2>My own findings </h2>
+<p>When I started testing Intel's compiler several years ago, I soon found out
+that it had a biased CPU dispatcher. Back in January 2007 I complained to Intel
+about the unfair CPU dispatcher. I had a long correspondence with Intel
+engineers about the issue, where they kept denying the problem and I kept
+providing more evidence. They said that: </p>
+<blockquote>
+  <p>The CPU dispatch, coupled with optimizations, is designed to optimize
+  performance across Intel and AMD processors to give the best results. This is
+  clearly our goal and with one exception we believe we are there now. The one
+  exception is that our 9.x compilers do not support SSE3 on AMD processors
+  because of the timing of the release of AMD processors vs. our compiler (our
+  compiler was developed before AMD supported SSE3). The future 10.x compilers,
+  which enter beta this quarter and release around the middle of the year, will
+  address this now that weve had time to tune and adjust to the new AMD
+  processors.</p>
+</blockquote>
+<p>Sounds nice, but the truth is that the CPU dispatcher didn't support SSE or
+SSE2 or any higher SSE in AMD processors and still doesn't today (Intel compiler
+version 11.1.054). I have
+later found out that others have made similar complaints to Intel and got
+similarly useless answers (<a href="http://yro.slashdot.org/comments.pl?sid=155593&amp;cid=13042922">link</a>
+<a href="http://www.swallowtail.org/naughty-intel.shtml">link</a>). </p>
+<p>The Intel CPU dispatcher does not only check the vendor ID string and the
+instruction sets supported. It also checks for specific processor models. In
+fact, it will fail to recognize future Intel processors with a family number
+different from 6. When I mentioned this to the Intel engineers they replied: </p>
+<blockquote>
+  <p>You mentioned we will not support future Intel processors with non-'6'
+  family designations without a compiler update. Yes, that is correct and
+  intentional. Our compiler produces code which we have high confidence will
+  continue to run in the future. This has the effect of not assuming anything
+  about future Intel or AMD or other processors. You have noted we could be more
+  aggressive. We believe that would not be wise for our customers, who want a
+  level of security that their code (built with our compiler) will continue to
+  run far into the future. Your suggested methods, while they may sound
+  reasonable, are not conservative enough for our highly optimizing compiler.
+  Our experience steers us to issue code conservatively, and update the compiler
+  when we have had a chance to verify functionality with new Intel and new AMD
+  processors. That means there is a lag sometime in our production release
+  support for new processors. </p>
+</blockquote>
+<p>In other words, they claim that they are optimizing for specific processor
+models rather than for specific instruction sets. If true, this gives Intel an
+argument for not supporting AMD processors properly. But it also means that all
+software developers who use an Intel compiler have to recompile their code and
+distribute new versions to their customers every time a new Intel processor
+appears on the market. Now, this was three years ago. What happens if I try to
+run a program compiled with an old version of Intel's compiler on the newest
+Intel processors? You guessed it: It still runs the optimal code path. But the
+reason is more difficult to guess: Intel have manipulated the CPUID family numbers on new processors in such a way that they appear as known models to older Intel
+software. I have described the technical details <a href="http://aceshardware.freeforums.org/cpuid-family-bits-added-because-of-flaw-in-intel-compiler-t428.html">elsewhere</a>. </p>
+<p>Perhaps the initial design of Intel's CPU dispatcher was indeed intended
+to optimize for known processor models only, without regard for future models.
+If any of my students had made such a solution that was not future-oriented, I
+would consider it a serious flaw. Perhaps the Intel engineers discovered the
+missing support for future processors too late so that they had to design the
+next generation of their processors in such a way that they appeared as known
+models to existing Intel software. </p>
+<p>After Intel had flatly denied to change their CPU dispatcher, I decided that
+the most efficient way to make them change their minds was to create publicity
+about the problem. I contacted several IT magazines, but nobody wanted to write
+about it. Sad, but not very surprising, considering that they all depend on
+advertising money from Intel. The only publicity was my own <a href="http://www.agner.org/optimize/#manual_cpp">optimization
+manual</a> where I have described the problem in detail and given instructions
+on how to replace the unfair CPU dispatcher. I wonder why AMD didn't create
+public awareness about the problem. Were they obliged to keep quiet about an
+ungoing lawsuit? And what about VIA/Centaur? </p>
+<p>&nbsp;&nbsp; </p>
+<h2>Workarounds </h2>
+<p>At present, we don't know if or when Intel will make a new compiler and new
+software libraries that do not check the vendor ID string. In the meantime, here
+is what we can do about the problem. </p>
+<ul>
+  <li>Use another compiler. In <a href="http://www.agner.org/optimize/#manual_cpp">my
+    tests</a>, the Gnu compiler for Linux has an optimizing performance similar
+    to the Intel compiler, but the Gnu function library (glibc) is inferior. All
+    other compilers gave lower performance in my tests. There is no other Windows
+    compiler with a similar performance, not even the Gnu compiler for Windows.<br>
+    &nbsp;&nbsp;</li>
+  <li>Use the Intel software and patch the CPU dispatcher. In <a href="http://www.agner.org/optimize/#manual_cpp">my
+    C++ manual</a>, I have provided the code for alternative CPU dispatchers for
+    Intel's compiler and function libraries and descriptions on how to patch
+    them into your software. This, of course, relies on undocumented details of
+    the Intel software. This dispatcher-patch can improve performance on
+    non-Intel processors considerably in many cases.<br>
+    &nbsp;&nbsp;</li>
+  <li>Never trust any benchmark unless it is open source and compiled with a
+    neutral compiler, such as Gnu or Microsoft.<br>
+    &nbsp; &nbsp;</li>
+  <li>It is possible to change the CPUID of AMD processors by using
+    the AMD virtualization instructions. I hope that somebody will volunteer to
+    make a program for this purpose. This will make it easy for anybody to check
+    if their benchmark is fair and to improve the performance of software
+    compiled with the Intel compiler on AMD processors.</li>
+</ul>
+<p>&nbsp;&nbsp;</p>
+<h2>Links</h2>
+<p><a href="http://aceshardware.freeforums.org/cpuid-family-bits-added-because-of-flaw-in-intel-compiler-t428.html">My
+Discussion in Aceshardware forum 2007</a>.</p>
+<p><a href="http://forums.amd.com/devforum/messageview.cfm?catid=203&amp;threadid=95754">Discussion
+in AMD Developer Forums 2008</a>. </p>
+<p><a href="http://www.amdzone.com/phpbb3/viewtopic.php?f=52&amp;t=137269&amp;sid=3571329cc7c1238a819d02de4bf906f5">My
+Discussion in AMDzone 2009</a>. </p>
+<p><a href="http://groups.google.co.uk/group/comp.arch/browse_frm/thread/4e42f16511cf8640?hl=en&amp;lr=&amp;ie=UTF-8&amp;rnum=1&amp;prev=/groups%3Fq%3Dintel%2Bcompiler%2Btrick%26hl%3Den%26lr%3D%26ie%3DUTF-8%26selm%3Dvlfnf1-8tm.ln1%2540miriam.mikron.de%26rnum%3D1">Discussion
+in comp.arch 2004</a>. </p>
+<p><a href="http://yro.slashdot.org/comments.pl?sid=155593&amp;cid=13042922">Complaint
+to Intel 2004, discussion in slashdot.org</a>. </p>
+<p><a href="http://www.swallowtail.org/naughty-intel.shtml">Mark Mackey,
+complaint to Intel 2005</a>. </p>
+<p><a href="http://arstechnica.com/hardware/reviews/2008/07/atom-nano-review.ars/6">PCMark
+2005 benchmark proven unfair. Arstechnica</a>. </p>
+<p><a href="http://www.brightsideofnews.com/print/2009/12/17/why-the-ftc-lawsuit-against-intel-has-substance.aspx">Testimony
+by <span id="ctl00_ContentPlaceHolder1_NewsXXL1_Label4">John Oram regarding <span id="ctl00_ContentPlaceHolder1_NewsXXL1_Label3">BAPCo</span></span><span id="ctl00_ContentPlaceHolder1_NewsXXL1_Label3">
+</span>benchmark organization</a>. </p>
+<p><a href="http://developer.amd.com/documentation/articles/pages/4292005119.aspx">Comment
+on AMD Developer Central 2005</a>. </p>
+<p><a href="http://www.theregister.co.uk/2005/07/12/amd_vs_intel_code/">AMD
+files lawsuit 2005</a>. </p>
+<p><a href="http://techreport.com/discussions/8547">AMD untitrust complaints
+2005</a>. </p>
+<p><a href="http://download.intel.com/pressroom/legal/AMD_settlement_agreement.pdf">Settlement agreement
+between AMD and Intel, 2009</a>. </p>
+<p><a href="http://www.ftc.gov/os/adjpro/d9341/091216intelcmpt.pdf">FTC complaint
+2009</a>. </p>
+<p><a href="http://www.agner.org/optimize/#manual_cpp">Technical details
+in my C++ optimization manual</a>.</p>
+<p><span class="mod">[Added later:]</span></p>
+<p><a href="http://www.xtremesystems.org/forums/showthread.php?t=242272">Discussion on XtremeSystems Forum</a>. </p>
+<p><a href="http://www.osnews.com/story/22683/Intel_Forced_to_Remove_quot_Cripple_AMD_quot_Function_from_Compiler_">Discussion on OSnews</a>.</p></td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=49&subject=Intel%27s+%26quot%3Bcripple+AMD%26quot%3B+function"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="56"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Intel's &quot;cripple AMD&quot; function</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;
+<script language='JavaScript'>
+mailr("inhahe","Intel's &quot;cripple AMD&quot; function","gmail.com","inhahe");
+</script>
+<noscript>inhahe</noscript>
+</td>
+<td class='date' width="30%">Date:&nbsp;2010-01-03 18:37</td>
+<tr><td class='message' width="100%" colspan="2">I think it's arguable whether or not Intel crippled AMD via an &quot;affirmative engineering or design action&quot; as opposed to a &quot;failure to act&quot; (as distinguished in the settlement).  They optimize code paths based on Vendor ID, which obviously has to do with more than supported instruction sets, or they wouldn't have to do it by processor family, etc.  I doubt Intel can be required to optimize specifically for a CPU that's not theirs (also implying they wouldn't necessarily know its internal workings in order to do so).  <P>Yes, it may be true that the same code paths they used for Intel CPUs would have optimized well for AMD CPUs, but Intel probably isn't required to know that.  Also, their code path optimizations are apparently targeted for specific vendors (namely, theirs, I guess) and models, not generic strategies, so it would have been a hack for them to apply an Intel-derived code path to AMD processors, because, while being better than no optimizer, the code might also include superfluous and deleterious algorithms as applied to AMD CPUs.  Yes, it's pragmatic to do so and would have been better for consumers, but can we ethically require them to engineer a dirty hack into their programming structure?  Another reason it's a gray area is that it's possible that the code path optimizations they took were obvious and would likely apply to any modern x86 CPU (though the fact that AMD and Intel are the only two players in the game sort of makes it beg the question), and if only some of them were obvious those optimizations may or may not be modularized already for easy extraction and universal use.<P>From a business standpoint, this was obviously a strategic decision on Intel's part to undermine AMD, but if it's an ideological grey area whether they undermined AMD or simply took advantage of the fact that they happen to be the producers of one of the CPUs they compile for in order to improve their compiler for their *own* product, then they can't necessarily be faulted, because the law requires evidence and analysis.  (Taking in-house advantage isn't necessarily anti-competitive in itself; for example, Microsoft makes plenty of applications that run on their own OS but not on Linux or Mac OS.)<P>It is true that the settlement they issued flat-out admits wrongdoing; i.e., it implies that they did, in fact, effect an &quot;affirmative or design action&quot; meant to undermine AMD.  As far as I can see there are three possible reasons for this.<BR>
+1. We don't know all the details regarding how their code paths engine was implemented and other contingent issues.  Being that it's a gray area, depending on these details we don't know, they could have been clearly in the wrong and thus admitted it.<BR>
+2. It's a settlement; settlements are always political.  Therefore the fact that they made a statement implying wrongdoing doesn't necessarily mean a whole lot.  In fact, the excerpt shown doesn't really say *anything* except that Intel will not in the future do things that are already clearly classified as anti-competitive.  In other words, it's a formal statement that they won't break the law... and not being able to break the law is already implied.<BR>
+3. As per Reason 2, given the small excerpt of the settlement shown, it seems possible to me that what they *actually* did is make something up that will sate AMD's lawyers while at the same time leaving the door open for them to either continue the same practice, or cease the practice (if it's too obviously anti-competitive or if they explicitly said they'd cease it elsewhere) but instate similar and/or related practices in the future, on account of the fact that those practices can easily be classified as &quot;failures to act.&quot;<P>Of course it complicates the matter that there is actually a complete instruction set (SSE) that they don't support for the AMD.  They have an excuse for that.   Whether or not it's valid who knows.  Since they do support that instruction set, it would seem deliberate &quot;affirmative action&quot; to disable it on AMD since AMD supports it in exactly the same way that Intel does on a purely functional level (independently of speed), and SSE is generally more efficient when applicable.  However, if the decisions for how and when to use SSE instructions are intricately tied in with the rest of their code path algorithm (and possibly rely on internal structure of the CPU design), then the caveats I brought up earlier still apply.<P>In any case, whether not supporting optimizations on AMD's CPUs was an affirmative design decision to undermine AMD machines or merely a failure to act (to benefit AMD machines), either way, it's clearly wrong for them to publish benchmarks to OEMs, etc. comparing AMD CPUs to Intel CPUs using their own compiler that specifically optimizes for Intel CPUs (based on Vendor ID no less!, but either way) and not for AMD CPUs.  It's misleading, and according to the UTC, even when specifically confronted with the issue they would habitually either mislead or directly lie about the cause for the speed difference and whether it could be solved.  So *that's* the part that's really devious, and I can see why the FTC sued them.  I *hate* companies like that.  Incidentally, though, all companies are companies like that.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=56&subject=Intel%27s+%26quot%3Bcripple+AMD%26quot%3B+function"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="58"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Intel's</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-01-04 03:28</td>
+<tr><td class='message' width="100%" colspan="2">inhahe wrote:<BR>
+<BLOCKQUOTE>
+    I think it's arguable whether or not Intel crippled
+    AMD via an "affirmative engineering or design
+    action" as opposed to a "failure to
+    act" (as distinguished in the settlement).
+</BLOCKQUOTE>Checking for vendor ID is an affirmative action. The grey area is whether they are optimizing for specific CPU models or for specific instruction sets. There is only one case where they distinguish between different CPU models that have the same instruction set, namely Pentium 4 versus Pentium M. In most cases, however, they use the same code path for both, or the two paths are identical or almost identical. The distinction may be unimportant from a technical point of view, but it may give Intel a legal excuse for claiming that they are optimizing for specific CPU models.<BR>
+<BLOCKQUOTE> 
+I doubt Intel can be required
+    to optimize specifically for a CPU that's not theirs
+</BLOCKQUOTE>The settlement doesn't require that.<BR>
+<BLOCKQUOTE> 
+  Another reason it's a gray area is that
+    it's possible that the code path optimizations they
+    took were obvious and would likely apply to any modern
+    x86 CPU (though the fact that AMD and Intel are the
+    only two players in the game sort of makes it beg the
+    question),
+</BLOCKQUOTE>Most optimizations are indeed obvious applications of the available instruction set. If you have SSE2 you can do four additions in one instruction. That's an obvious thing to do regardless of CPU model. Don't forget there is a third player, VIA. Their chips are fast enough for being relevant here.<BR>
+<BLOCKQUOTE> 
+given the small excerpt of the
+    settlement shown, it seems possible to me that what
+    they *actually* did is make something up that will
+    sate AMD's lawyers while at the same time leaving the
+    door open for them to either continue the same
+    practice, or cease the practice (if it's too obviously
+    anti-competitive or if they explicitly said they'd
+    cease it elsewhere) but instate similar and/or related
+    practices in the future, on account of the fact that
+    those practices can easily be classified as
+    "failures to act." [...]
+    However, if the decisions
+    for how and when to use SSE instructions are
+    intricately tied in with the rest of their code path
+    algorithm (and possibly rely on internal structure of
+    the CPU design), then the caveats I brought up earlier
+    still apply.
+</BLOCKQUOTE>Yes, they will probably be able to claim that. From a merely technical perspective, I think it's a bad idea to make different code paths for two processors that support the same instruction set based on whether a particular instruction runs a little faster on one than on the other. If you consider the time it takes to develop a complete program plus the time it takes to market it, then it is likely that the processors you optimized for will be obsolete for your most demanding customers before the time your software peaks on the market. My advise would certainly be to optimize for the newest processor, but make sure you maintain compatibility with older processors.<P>But of course Intel compiler engineers are not obliged to listen to my advice if doing otherwise enables them to harm their competitors.<BR>
+<BLOCKQUOTE>
+In any case, whether not supporting
+    optimizations on AMD's CPUs was an affirmative design
+    decision to undermine AMD machines or merely a failure
+    to act (to benefit AMD machines), either way, it's
+    clearly wrong for them to publish benchmarks to OEMs,
+    etc. comparing AMD CPUs to Intel CPUs using their own
+    compiler that specifically optimizes for Intel CPUs
+    (based on Vendor ID no less!, but either way) and not
+    for AMD CPUs.  It's misleading, and according to the
+    UTC, even when specifically confronted with the issue
+    they would habitually either mislead or directly lie
+    about the cause for the speed difference and whether
+    it could be solved.  So *that's* the part that's
+    really devious, and I can see why the FTC sued them. 
+    I *hate* companies like that.  Incidentally, though,
+    all companies are companies like that.
+</BLOCKQUOTE>Fortunately, not all companies are like that. I am sure this case has harmed Intel's reputation. They can be damn sure that their next compiler version will be thoroughly scrutinized. Hopefully, they will take their reputation into account when they design the next compiler version and function libraries.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=58&subject=Intel%27s"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="60"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Intel's compiler is the best?</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Weber</td>
+<td class='date' width="30%">Date:&nbsp;2010-01-04 16:46</td>
+<tr><td class='message' width="100%" colspan="2">You wrote: &quot;There is no other Windows compiler with a similar performance, not even the Gnu compiler for Windows.&quot;<P>Which compilers did you test?<P>Did you try e.g. the Portland Group (PGI) compiler? That means, does Intel's compiler (icc) produce faster executables than e.g. the PGI compiler for Intel CPU's? Does icc (with a patched CPU dispatcher) even produce faster executables than e.g. PGI for AMD CPU's?<P>Not that I'd try to challenge your claims (I haven't benchmarked any of the compilers), I'm just interested. Thanks! :-)</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=60&subject=Intel%27s+compiler+is+the+best%3F"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="63"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Intel's compiler is the best?</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-01-09 04:23</td>
+<tr><td class='message' width="100%" colspan="2">Weber wrote:<BR>
+<BLOCKQUOTE>
+Which compilers did you test?
+</BLOCKQUOTE>You can see my comparison of compilers in <a href="http://www.agner.org/optimize/#manual_cpp">my C++ manual</a>. The PathScale and PGI compilers are also fairly good, but not the best.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=63&subject=Intel%27s+compiler+is+the+best%3F"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="74"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Intel article</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-01-22 04:04</td>
+<tr><td class='message' width="100%" colspan="2">Intel have just published an article on how the CPU dispatching works in the Intel Performance Primitives (IPP) function library, see <a href="http://software.intel.com/en-us/articles/intel-integrated-performance-primitives-intel-ipp-understanding-cpu-optimized-code-used-in-intel-ipp/">software.intel.com/en-us/articles/intel-integrated-performance-primitives-intel-ipp-understanding-cpu-optimized-code-used-in-intel-ipp/</a><P>The article indicates a fair handling of non-Intel processors in the IPP library. This is in accordance with my test results.<P>What the article <i>doesn't</i> mention is the unfair CPU dispatching in several other Intel function libraries :-)</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=74&subject=Intel+article"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="59"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Web Parallels</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;
+<script language='JavaScript'>
+mailr("foxxtrot","Web Parallels","foxxtrot.net","Jeff Craig");
+</script>
+<noscript>Jeff Craig</noscript>
+</td>
+<td class='date' width="30%">Date:&nbsp;2010-01-04 10:12</td>
+<tr><td class='message' width="100%" colspan="2">Really fascinating article. I've generally deferred to open source compilers, like GCC, but that's largely been because of preferring open source to proprietary software when possible. I'd not realized that Intel was doing this in their compilers, which is a major concern for me, since I purchased an Intel desktop processor for home use in well over a decade. <P>What I found most interesting, is how this seems to parallel a fight we've been having in the web development community a lot over the last five years or so, on the benefits of feature detection versus browser detection. I'll defer to Nicholas Zakas' explanation here: <a href="http://www.nczonline.net/blog/2009/12/29/feature-detection-is-not-browser-detection/">www.nczonline.net/blog/2009/12/29/feature-detection-is-not-browser-detection/</a><P>Now, on the web it's a bit trickier, web browsers' behaviour tends to be considerably more variable than x86 behaviour across different vendors, but ultimately, the desire is the same. Check what is supported, and select code-paths based on what's supported, not based on whether you're on IE or Safari or Firefox, etc. And the bad design is generally made by the developer, not some third-party vendor (though not always, as Nicholas talks about in his post).<P>I'm going to be publicizing this issue, to the best of my ability, since I think it's important that people understand the implications of choosing to use Intel's compiler, which is otherwise quite high quality. And, while I didn't understand why the antitrust suit was filed by the US government when it was announced, I'm certainly far more interested in it's outcome than I was before.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=59&subject=Web+Parallels"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="75"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>More Parallels</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-01-23 02:28</td>
+<tr><td class='message' width="100%" colspan="2">I have always thought that it is bad programming practice to make software that relies on specific CPU brands and models. Any program that makes assumptions based on the CPU model number is likely to be obsolete as soon as a new processor appears on the market.
+<p>
+Unfortunately, this practice is more widespread than I thought. Here are some examples:
+<ol>
+<li>According to CNET news, Skype has made a deal with Intel to limit the functionality on non-Intel computers, alleging that contemporary AMD processors were not powerful enough. See <a href="http://news.cnet.com/Intels-mantra-Lets-make-a-deal/2100-1006_3-6038282.html">CNET News</a> and <a href="http://slashdot.org/article.pl?sid=06/02/13/2015236&tid=118">Slashdot News</a>. This limitation has later been <a href="http://share.skype.com/sites/en/2006/11/skype_for_mac_beta_with_sms_an.html">removed</a>.
+<br> &nbsp;</li>
+<li>64-bit Windows will only run on processors with known vendor names. This is a serious barrier for new companies to enter the x86 processor market and it is an obstackle to emulation. Same problem <a href="http://old.nabble.com/Via-Nano-CPU:-Can-boot-7.0-RELEASE-amd64,-can%27t-boot-7.1-RELEASE-amd64:-%22cpu-doesn%27t-support-long-mode%22-td21298381.html">in FreeBSD</a>.   In fact, VIA had to make a feature to change the vendor string in their processors in order to run 64-bit Windows. See <a href="http://www.geoffchappell.com/viewer.htm?doc=studies/windows/km/bugchecks/5d.htm&tx=24">analysis by Geoff Chappell</a>. Incidentally, this feature made it possible for me to make my <a href="http://agner.org/optimize/blog/read.php?i=49#73">CPUID manipulation</a> program. 
+<br> &nbsp;</li>
+<li>An Intel employee is making a separate branch for the Intel Atom processor in a certain function in the Gnu Libc library (see <a href="http://sourceware.org/ml/libc-alpha/2009-08/msg00058.html">libc-alpha archive</a>). Intel also have a separate branch for the Atom processor in their IPP library. If this practice spreads then the libraries will soon be bloated with many separate branches for different brands and models of microprocessors. In my opinion, the branching should be based on certain performance characteristics, not on specific processor models. If necessary, add CPUID bits for specific performance parameters, or let the software test which branch is fastest.
+<br> &nbsp;</li>
+</ol>
+Thank you to Yuhong Bao for sending me the first two examples.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=75&subject=More+Parallels"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="80"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Early Examples</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;
+<script language='JavaScript'>
+mailr("yuhongbao_386","Early Examples","hotmail.com","Yuhong Bao");
+</script>
+<noscript>Yuhong Bao</noscript>
+</td>
+<td class='date' width="30%">Date:&nbsp;2010-02-01 22:03</td>
+<tr><td class='message' width="100%" colspan="2">In fact, it dates to when AMD released the Athlon XP back in 2001, which was I think the first non-Intel processor that supported SSE. Back then it was discovered that Windows Movie Maker 1.1 shipped with the original RTM release of Windows XP as well as Windows Movie Encoder 7 did not use SSE on non-Intel processors. Luckily by the time of the XP launch in October 2001, MS was ready with WMM 1.2, as well as WME 7.1, which removed the vendor check, and AMD itself had patches as well. BTW, It was reported that it accounted for a dip in the Sysmark 2001 and Winstone 2002 Content Creation benchmarks.<BR>
+References:<BR>
+<a href="http://www.geek.com/articles/chips/wmm-v12-adds-athlon-xp-sse-support-for-wme-20020110/">www.geek.com/articles/chips/wmm-v12-adds-athlon-xp-sse-support-for-wme-20020110/</a><BR>
+<a href="http://www.anandtech.com/showdoc.aspx?i=1543&amp;p=5">www.anandtech.com/showdoc.aspx?i=1543&amp;p=5</a><BR>
+<a href="http://www.tomshardware.com/forum/68600-28-toms-super-comparision">www.tomshardware.com/forum/68600-28-toms-super-comparision</a></td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=80&subject=Early+Examples"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="93"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>More Parallels</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;
+<script language='JavaScript'>
+mailr("yuhongbao_386","More Parallels","hotmail.com","Yuhong Bao");
+</script>
+<noscript>Yuhong Bao</noscript>
+</td>
+<td class='date' width="30%">Date:&nbsp;2010-02-20 23:56</td>
+<tr><td class='message' width="100%" colspan="2">Also, currently OpenSolaris checks for a vendor of GenuineIntel before using SSSE3 and later extensions. While that wasn't a problem initially when the code was written because only Intel implemented them and AMD was going to go their own path with SSE5, VIA now implement them too with the Nano, and AMD later decided to change and implement all of them up to AVX in Bulldozer. <p>
+Bug has been filed at:<BR>
+<a href="http://defect.opensolaris.org/bz/show_bug.cgi?id=14706">defect.opensolaris.org/bz/show_bug.cgi?id=14706</a></td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=93&subject=More+Parallels"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="73"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>New CPUID manipulation program</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-01-22 03:54</td>
+<tr><td class='message' width="100%" colspan="2">It it possible to manipulate the CPUID in VIA Nano processors. This feature is currently undocumented, and it is different from the method described in manuals for earlier VIA processors. I have got the necessary information now, and I have made a little program that can change the CPUID vendor string, family and model number on a VIA Nano processor.<P>You can download the program from <a href="http://www.agner.org/optimize/cpuidfake.zip">www.agner.org/optimize/cpuidfake.zip</a>. It is open source (GPL). Please read the included instructions.<P>The program requires a VIA Nano processor, and Windows (32 or 64 bit). This program makes it possible to test if a benchmark result depends on the CPUID vendor string. You can also test if the performance of other CPU-intensive programs perform differently depending on the CPUID.<P>If you find any benchmark or other generally used CPU-intensive program that appears to have an unfair CPU dispatching then please let me know. You may also contact the producer of the program and ask if it has been built with an Intel compiler or Intel function libraries. It is important to know how widespread this problem is.</P>
+<div align="center">
+<img border="0" src="http://www.agner.org/optimize/blog/img/Agner_rules_processor.png" width="407px" height="391px">
+</div>  
+</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=73&subject=New+CPUID+manipulation+program"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="117"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>CPUID manipulation through virtualization</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;
+<script language='JavaScript'>
+mailr("loftyhauser","CPUID manipulation through virtualization","yahoo.com","Andrew Lofthouse");
+</script>
+<noscript>Andrew Lofthouse</noscript>
+</td>
+<td class='date' width="30%">Date:&nbsp;2010-08-16 08:31</td>
+<tr><td class='message' width="100%" colspan="2">If you do not have a VIA processor, you can also test applications using a VMWare virtual machine.  If VMWare is using hardware virtualization, all cpuid instructions are intercepted and hence can be spoofed.  Using the following lines in my .vmx file, I can change the vendor_id string from GenuineIntel (I have a Core 2 Duo) to AuthenticAMD:<P>cpuid.0.ebx=&quot;0110:1000:0111:0100:0111:0101:0100:0001&quot;<BR>
+cpuid.0.edx=&quot;0110:1001:0111:0100:0110:1110:0110:0101&quot;<BR>
+cpuid.0.ecx=&quot;0100:0100:0100:1101:0100:0001:0110:0011&quot;<P>I've verified the behavior of Intel's Compiler using this method...</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=117&subject=CPUID+manipulation+through+virtualization"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="118"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>CPUID manipulation through virtualization</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-08-16 12:24</td>
+<tr><td class='message' width="100%" colspan="2">Andrew Lofthouse wrote:
+<BLOCKQUOTE>
+   If VMWare is using hardware virtualization, all cpuid
+    instructions are intercepted and hence can be
+    spoofed.
+</BLOCKQUOTE>
+Thanks a lot for the tip. Now everybody can test if their software has vendor-specific performance. You can get a 60 days evaluation from <a href="https://www.vmware.com/tryvmware/">VMWare</a> or get the server version <a href="http://www.vmware.com/products/server/">for free</a>.
+<p>
+By analogy to Andrew's code, I assume that you can make an AMD processor spoof to be "GenuineIntel" with these lines:<pre>
+cpuid.0.ebx="0111:0101:0110:1110:0110:0101:0100:0111"
+cpuid.0.edx="0100:1001:0110:0101:0110:1110:0110:1001"
+cpuid.0.ecx="0110:1100:0110:0101:0111:0100:0110:1110"</pre>
+The Intel software also checks the family number, which should be set to 6:<pre>
+cpuid.1.eax="0000:0000:0000:0001:0000:0110:0111:0001"</pre>
+
+You can verify this with <a href="http://www.cpuid.com/softwares/cpu-z/versions-history.html">CPUID</a>.<p>
+Anybody who finds software with a strong performance effect of the vendor string are welcome to post the details here or mail them to me.
+<p>
+I am currently testing this effect in various math programs. I will post the findings here soon.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=118&subject=CPUID+manipulation+through+virtualization"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="131"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>CPUID manipulation program for AMD</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner</td>
+<td class='date' width="30%">Date:&nbsp;2010-10-01 06:11</td>
+<tr><td class='message' width="100%" colspan="2">Here is a CPUID manipulation program for AMD processors that I have received from a Russian friend. <a href="http://agner.org/optimize/vCPUID.zip">link</a>. I haven't tested it. Use it at your own risk. 
+<a href="http://translate.google.com/translate?js=n&prev=_t&hl=en&ie=UTF-8&layout=2&eotf=1&sl=ru&tl=en&u=http%3A%2F%2Fwww.vmgu.ru%2Farticles%2Fred-pill-virtualization-security">Explanation</a>.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=131&subject=CPUID+manipulation+program+for+AMD"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="182"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>CPUID manipulation program for AMD</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;
+<script language='JavaScript'>
+mailr("rohbeck","CPUID manipulation program for AMD","yahoo.com","Ralf");
+</script>
+<noscript>Ralf</noscript>
+</td>
+<td class='date' width="30%">Date:&nbsp;2012-01-30 19:15</td>
+<tr><td class='message' width="100%" colspan="2">I just came across this:<BR>
+<a href="https://github.com/jimenezrick/patch-AuthenticAMD">https://github.com/jimenezrick/patch-AuthenticAMD</a><BR>
+Interesting.<BR>
+Not what I want though, I'm googling for a way to make KVM return &quot;GenuineIntel&quot; for the CPUID instruction.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=182&subject=CPUID+manipulation+program+for+AMD"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="183"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>CPUID manipulation program for AMD</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner</td>
+<td class='date' width="30%">Date:&nbsp;2012-01-31 01:56</td>
+<tr><td class='message' width="100%" colspan="2">Ralf wrote:<BR>
+<BLOCKQUOTE>
+    I just came across this:   <a
+    href="https://github.com/jimenezrick/patch-AuthenticAMD">https://github.com/jimenezrick/patch-AuthenticAMD</a>
+</BLOCKQUOTE>Thanks for the reference. The patch program is not a perfect solution. I would prefer that the patch skips the vendor string test rather than replace it with a test for &quot;AuthenticAMD&quot; so that it would work with any vendor. It should also remove the check for CPU family number. But it's a quick solution in some cases, including Intel .DLL and .SO library files. Try it at your own risk, and make sure you make a backup first :)</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=183&subject=CPUID+manipulation+program+for+AMD"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="147"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>New CPUID manipulation program</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;AVK</td>
+<td class='date' width="30%">Date:&nbsp;2011-02-09 00:55</td>
+<tr><td class='message' width="100%" colspan="2">Mr. Fog,<P>Have you read AMD #43170 document &quot;BKDG for AMD Processors Family 14h?&quot; In there, on page 319, I've noticed an interesting table 102 named as: &quot;Reset mapping for CPUID Fn0000_0000_E[B,C,D]X&quot;. What do you think about the &quot;Reset mapping&quot; sentence? Does it mean that AMD CPUs finally get a feature to change its CPUID.Vendor string like VIA CPUs have? If it so, would you update your CPUID Fake utility?</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=147&subject=New+CPUID+manipulation+program"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="148"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>New CPUID manipulation program</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner</td>
+<td class='date' width="30%">Date:&nbsp;2011-02-09 02:15</td>
+<tr><td class='message' width="100%" colspan="2">AVK wrote:<BR>
+<BLOCKQUOTE>
+     Does it mean that AMD CPUs
+    finally get a feature to change its CPUID.Vendor
+    string like VIA CPUs have?
+</BLOCKQUOTE>Unfortunately not. It is read-only.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=148&subject=New+CPUID+manipulation+program"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="79"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>AMD Blog on compilers/benchmarch</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;
+<script language='JavaScript'>
+mailr("margaret.lewis","AMD Blog on compilers/benchmarch","amd.com","margaret lewis");
+</script>
+<noscript>margaret lewis</noscript>
+</td>
+<td class='date' width="30%">Date:&nbsp;2010-02-01 18:50</td>
+<tr><td class='message' width="100%" colspan="2">Posted a blog on compilers/benchmarks - Chipping Away the Façade on Compilers and Benchmarks for AMD Processors<BR>
+<a href="http://blogs.amd.com/work/2010/01/22/chipping-away-the-facade-on-compilers-and-benchmarks-for-amd-processors/">blogs.amd.com/work/2010/01/22/chipping-away-the-facade-on-compilers-and-benchmarks-for-amd-processors/</a></td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=79&subject=AMD+Blog+on+compilers%2Fbenchmarch"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="107"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>New version is still crippling Intel's competitors</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-06-29 04:16</td>
+<tr><td class='message' width="100%" colspan="2">Intel have released a new version of their Math Kernel Library (v. 10.3) in <a href="http://software.intel.com/en-us/articles/intel-math-kernel-library-103-beta/">beta test</a>.
+<p>
+I have tested the new libraries and found that the CPU dispatching works basically the same way as before. The standard math library, vector math library, short vector math library and the 64-bit version of other math kernel library functions still use an inferior code path for non-Intel processors.
+<p>
+I have found the following differences from previous versions:
+<ul><li>Many functions now have a branch for the forthcoming AVX instruction set, but still only for Intel processors. This will increase the difference in performance between Intel and AMD processors on these functions. Both Intel and AMD are planning to support AVX in 2011. <br> &nbsp;  
+<li>The CPU dispatcher for the vector math library has a new branch for non-Intel processors with SSE2. Unlike the generic branch, the new non-Intel SSE2 branch is used only on non-Intel processors, and it is inferior in many cases to the branch used by Intel processors with the same instruction set. The non-Intel SSE2 branch is implemented in the 32-bit Windows version and the 32-bit Linux version, but not in the 64-bit versions of the library. <br> &nbsp;
+<li>A new Summary Statistics library uses the same CPU dispatcher as the vector math library.
+</ul>
+<p>
+Obviously, I haven't tested all functions in the library. There may be more differences that I haven't discovered. But it is clear that many functions in the new version of the library still cripples performance on non-Intel processors. I don't understand how they can do this without violating the legal settlement with AMD.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=107&subject=New+version+is+still+crippling+Intel%27s+competitors"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="112"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Out of court settlement with FTC</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-08-05 09:43</td>
+<tr><td class='message' width="100%" colspan="2"><h2>Out of court settlement with FTC</h2>
+Yesterday, the Federal Trade Commission (FTC) announced that they are going for an out of court settlement with Intel. See their <a href="http://www.ftc.gov/opa/2010/08/intel.shtm">press release</a> and <a href="http://www.ftc.gov/os/adjpro/d9341/100804inteldo.pdf">proposed decision</a>.
+<p>
+I will comment only on the part of the settlement that deals with Intel's compilers and function libraries. The FTC orders that Intel must inform its software customers about the CPU dispatch mechanism that leads to suboptimal performance on non-Intel CPUs. It also recognizes that certain published benchmarks were misleading. The advantage of an out-of-court settlement is that it is faster. A court battle could take so long time that the issues were obsolete before a decision was made. In a <a href="http://www.ftc.gov/os/adjpro/d9341/100804intelanal.pdf">comment</a>, the FTC explains that the purpose of the order is not punitive but remedial.
+<p>
+The settlement with FTC is less far-reaching than the settlement with AMD. The <a href="http://download.intel.com/pressroom/legal/AMD_settlement_agreement.pdf">AMD settlement</a> requires that Intel remove any "Artificial Performance Impairment", while the FTC settlement requires only that Intel inform their customers of what they do. This will not solve the problem, only make it more visible. The wording of the settlement is also somewhat ambiguous as to which clauses apply to both the compiler and the function libraries, and which clauses apply to the compiler only. This is unfortunate since many software developers are using the Intel function libraries without using the Intel compiler.
+<p>
+The FTC have asked me to testify in court about the CPU dispatching in Intel's compilers and function libraries. I will not have to do this now, of course, but I will continue to publish my findings here on my blog. I am currently doing a survey
+of software that is affected by the biased CPU dispatching and I am going to publish the results here soon.
+<p>
+Since Intel have not removed the biased CPU dispatching from their MKL library despite the settlement with AMD, and since the settlement with FTC does not require them to do so, we can expect that the problem will persist.
+<p>
+It is interesting that the FTC in their comment suggests that software developers can override the code dispatch mechanisms in Intel compilers and libraries. This is a technique that I have developed and described in <a href="http://www.agner.org/optimize/#manual_cpp">my C++ manual</a>. However, I doubt that commercial software developers will be happy to use such hacking techniques that rely on undocumented features.
+<p>
+The response of the software community will probably be to avoid Intel software products entirely. In my test of the optimizing performance of C++ compilers, the Intel compiler and the Gnu compiler for Linux shared the first place. Unfortunately, the Gnu compiler for Windows is not up to date so we still need a good replacement for the Intel compiler for Windows. It is not a profitable business to make a well optimized math function library. If we cannot use Intel's libraries then we probably have to rely on the open source community for making such libraries. The Gnu function libraries (glibc) are not very well optimized, so there is still a lot of work to do. The work of optimizing the Gnu function libraries is going very slowly and is done mainly by an Intel guy. Why don't AMD and independent programmers contribute to this work to make sure the software performs well on non-Intel processors as well?
+<p>
+After all, the FTC settlement leaves the software community with more problems than we could expect after the AMD settlement. Maybe this reflects the limited power of the FTC?</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=112&subject=Out+of+court+settlement+with+FTC"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="115"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>AMD library contains Intel's cripple-AMD function!</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-08-11 10:57</td>
+<tr><td class='message' width="100%" colspan="2"><p>This issue is getting more and more absurd the more I dig into it. AMD makes a function library called AMD Core Math Library (ACML) to match Intel's Math Kernel Library (MKL). I have tested a Windows version of ACML and found that some of the functions run faster when the CPU vendor ID is artificially changed to "GenuineIntel". Maybe this is not so surprising after all, since this version of ACML is compiled with Intel's Fortran compiler.</p>
+<p>Here are some of the most marked test results:</p>
+  <table border="1" cellpadding="0" cellspacing="1">
+    <tr>
+      <td>Execution time<br>
+        (lower is better)</td>
+      <td colspan="3" align="center">Faked CPU vendor ID</td>
+      <td align="center"> </td>
+    </tr>
+    <tr>
+      <td>ACML function</td>
+      <td align="center">VIA</td>
+      <td align="center">AMD</td>
+      <td align="center">Intel</td>
+      <td align="center">% difference</td>
+    </tr>
+    <tr>
+      <td>drandlogistic</td>
+      <td align="center">1.95</td>
+      <td align="center">1.96</td>
+      <td align="center">1.84</td>
+      <td align="center">6</td>
+    </tr>
+    <tr>
+      <td>drandexponential</td>
+      <td align="center">1.67</td>
+      <td align="center">1.72</td>
+      <td align="center">1.57</td>
+      <td align="center">8</td>
+    </tr>
+    <tr>
+      <td>drandlognormal</td>
+      <td align="center">3.42</td>
+      <td align="center">3.46</td>
+      <td align="center">2.99</td>
+      <td align="center">15</td>
+    </tr>
+    <tr>
+      <td colspan="5" align="center">ACML version acml4.4.0-ifort32.exe, VIA L3050
+        1.8 GHz processor, Windows 7, 32 bit. MS VS 2010 C++.
+        Loop 100000 times * 256 values. Time unit = 10<sup>9</sup> clock cycles.
+        Average of 20 runs.</td>
+   </tr>
+  </table>
+<p>On many of the functions in ACML there is little or no difference in
+performance depending on the CPU vendor ID, but some functions have a
+significant bias, as shown in the table above. Intel have repeatedly claimed
+that their compilers give a good performance on AMD chips if you compile for the
+SSE2 instruction set. Maybe the AMD people have believed this claim, or maybe
+they had no other option since they couldn't find a better Fortran compiler.
+With this compiler option, the compiler-generated code will be for the SSE2
+instruction set only. I think that Intel first made the SSE2 recommendation at
+the time when AMD processors supported only SSE2, so this was the best
+performance you could get at that time. Today, you get suboptimal performance
+when compiling for SSE2 because later instruction sets are not used. And of
+course, the code will not work on older computers without SSE2.</p>
+<p>To find the reason for the vendor ID effect, I decided to investigate the
+function with the strongest effect, which is the drandlognormal function. After
+a lot of detective work, I found that drandlognormal calls a logarithm function
+in Intel's Short Vector Math Library (SVML). This logarithm function is
+dispatched into three branches for the SSE2/generic, SSE3, and the future AVX
+instruction set, respectively. It uses the standard Intel CPU dispatcher, which
+gives the generic branch to all non-Intel processors. The SVML library supports
+only SSE2 and above, so the generic branch uses SSE2. When my VIA processor
+fakes to be an Intel, it gets the SSE3 branch, which is better optimized. The
+difference in performance is likely to be higher on future processors that
+support AVX.</p>
+<p>There is another version of ACML for Windows built with the PGI compiler, but
+I couldn't make it work because some library files were missing.</p>
+<p>The proposed settlement with FTC requires that Intel shall reimburse its
+compiler customers for the cost of recompiling their code with a different
+compiler. While this reimbursement program probably has little more than
+symbolic significance, it would be funny to see Intel compensating AMD for
+relying on their compiler. Unfortunately, it will be difficult for AMD to find a better Fortran compiler.</p></td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=115&subject=AMD+library+contains+Intel%27s+cripple-AMD+function%21"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="120"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Common math programs are affected</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-08-20 11:05</td>
+<tr><td class='message' width="100%" colspan="2"><p>Back in January, I made a tool to manipulate the CPUID of VIA processors and <a href="http://www.agner.org/optimize/blog/read.php?i=49#73">published</a>
+the code here in the hope that somebody would test a lot of programs to see if
+the performance depends on the CPU vendor. The research staff of a Russian IT
+webzine <a href="http://ixbtlabs.com/">iXBT.com</a> offered to help with this. I
+gave them some equipment that they couldn't get in Russia, and they have tested
+a lot of programs. Their results are published <a href="http://www.ixbt.com/cpu/via-nano-cpuid-fake.shtml">in
+Russian</a>, and later also <a href="http://ixbtlabs.com/articles3/cpu/via-nano-cpuid-fake-p1.html">in English</a>.</p>
+<p>The Russian researchers found several programs where the performance depended
+on the vendor name on the CPU. While this is ground for suspicion, it does not
+necessarily mean that Intel software is involved. It is necessary to make a
+deeper investigation in order to see if the programs are compiled with an Intel
+compiler or an Intel function library.</p>
+<p>I noticed from the screening results that Matlab and Mathematica were among
+the programs where the vendor name effect was highest. I decided therefore to
+make further investigations of mathematical programs and found that Mathcad was
+also affected. Matlab, Mathematica and Mathcad are the most commonly used math
+programs at universities and colleges.</p>
+<p>Below are the results of my investigations so far on a VIA Nano L3050, 1.8
+GHz.</p>
+<h2>Mathematica</h2>
+<p>Mathematica version 7.0.1 was tested using the BenchmarkReport function that is included with the package.
+The overall benchmark result for different (faked) CPU vendors was as follows (average of 5 tests):</p>
+<div align="center">
+  <center>
+  <table border="1" cellpadding="2" cellspacing="1">
+    <tr>
+      <td align="center">Faked vendor and family number</td>
+      <td align="center">Benchmark<br>
+        (higher is better)</td>
+    </tr>
+    <tr>
+      <td align="center">VIA</td>
+      <td align="center">                            1.078</td>
+    </tr>
+    <tr>
+      <td align="center">AMD</td>
+      <td align="center">                            1.102</td>
+    </tr>
+    <tr>
+      <td align="center">Intel, (nonexisting) family 7</td>
+      <td align="center">    1.102</td>
+    </tr>
+    <tr>
+      <td align="center">Intel, family 6</td>
+      <td align="center">                1.114</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<p>A further investigation shows that Mathematica uses the Intel Math Kernel Library (MKL version 10.1 beta, 2008),
+including the Vector Math Library (VML) which contains optimized code paths used exclusively for Intel processors, and the Gnu Multiple Precision Arithmetic Library (GMP,
+no version info), which contains Intel-specific and AMD-specific code paths but no VIA-specific code paths. Another executable file (mathdll.dll) with Mathematica's own kernel code contains a check for the Intel vendor string, but I could not find out what the purpose of this check is, and I found no evidence that it originates from Intel software.<br>
+<br>
+The benchmark is based on 15 different tests. Some of these tests were influenced by the CPU
+ID, others were not. The benchmark for elementary mathematical functions was 26.9% better when the CPU was identified as an Intel
+than when it was identified as anything else, probably due to the VML. The tests
+for high precision math was better for both AMD and Intel, probably due to the
+GMP.</p>
+<h2>Mathcad</h2>
+<p>Mathcad version 15.0 was tested with some simple benchmarks made by myself.
+Matrix algebra was among the types of calculations that were highly affected by
+the CPU ID. The calculation time for a series of matrix inversions was as
+follows:</p>
+<div align="center">
+  <center>
+  <table border="1" cellpadding="2" cellspacing="1">
+    <tr>
+      <td>Faked CPU</td>
+      <td>Computation time, s</td>
+      <td>      MKL version loaded</td>
+      <td>          Instruction set used</td>
+    </tr>
+    <tr>
+      <td>VIA Nano</td>
+      <td align="center">             69.6</td>
+      <td align="center">  default</td>
+      <td align="center">386</td>
+    </tr>
+    <tr>
+      <td>AMD Opteron</td>
+      <td align="center">          68.7</td>
+      <td align="center">  default</td>
+      <td align="center">386</td>
+    </tr>
+    <tr>
+      <td>Intel Core 2</td>
+      <td align="center">         44.7</td>
+      <td align="center">Pentium 3</td>
+      <td align="center">         SSE</td>
+    </tr>
+    <tr>
+      <td>Intel Atom</td>
+      <td align="center">           73.9</td>
+      <td align="center">Pentium 3</td>
+      <td align="center">         SSE</td>
+    </tr>
+    <tr>
+      <td>Intel Pentium 4</td>
+      <td align="center">      33.2</td>
+      <td align="center">Pentium 4 w. SSE3</td>
+      <td align="center">  SSE3</td>
+    </tr>
+    <tr>
+      <td>Intel nonexisting fam. 7</td>
+      <td align="center">    69.5</td>
+      <td align="center">  default</td>
+      <td align="center">386</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<p>Using a debugger, I could verify that it uses an old version of Intel MKL (version 7.2.0,
+2004), and that it loads different versions of the MKL depending on the CPU ID
+as indicated in the table above. The speed is more than doubled when the CPU
+fakes to be an Intel Pentium 4.</p>
+<p>It is interesting that this version of MKL doesn't choose the optimal code path for an Intel Core 2. This proves my
+point that dispatching by CPU model number rather than by instruction set is not sure to be optimal on future processors,
+and that it sometimes takes years before a new library makes it to the end product. Any processor-specific optimization is likely to be obsolete at that time. In this case the library is
+six years behind the software it is used in.</p>
+<h2>Matlab</h2>
+<p>I haven't got a Matlab package for testing yet, so the detailed results will
+have to wait. However, it is known that Matlab uses Intel's MKL library. The
+Russians report that Matlab runs 28% slower when the CPU identifies as a VIA
+compared to an Intel Core 2.</p>
+<p>Apparently, the Matlab people are aware of the problem because they have <a href="http://www.mathworks.com/access/helpdesk/help/techdoc/rn/f14-998197.html#f14-1009978">announced</a>
+that they are now using Intel's MKL library on Intel machines, and AMD's ACML
+library on AMD machines for basic linear algebra calculations. However, this is
+probably no improvement. Our Russian friends <a href="http://www.ixbt.com/cpu/phenom-x4-matlab.shtml">reported
+two years ago</a> that Matlab runs faster with MKL than with ACML on an AMD
+machine!</p>
+<p>It may sound like a fair solution that each CPU vendor makes its own function
+libraries, but this can soon be a nightmare for the producers of application
+software. This goes against the very principle of having a standardized
+instruction set. And apparently, only Intel can afford the costs of optimizing
+large function libraries on the detailed instruction level. They don't make much
+money on these function libraries, and it is surely very costly to develop, test
+and optimize such a big library of complicated mathematical functions, let alone
+the costs of making a different version for every new instruction set extension.
+The AMD libraries cannot match this level of optimization, and VIA can hardly
+afford to make any function libraries at all.</p>
+<p>This is the core of the problem. By investing in the development of large,
+comprehensive and highly optimized math libraries, Intel have obtained a
+dominating market position in mathematical software, but in a very subtle way.
+They are not making the application software for the end user; but they are
+making some of the tools and building blocks for making such software. This
+enables them to manipulate the performance of this software on the CPUs produced
+by their competitors. And this manipulation is completely invisible to the end
+user and perhaps even to the application programmer. In fact, Intel have managed
+to put their CPU dispatcher into an AMD function library, as revealed in <a href="http://www.agner.org/optimize/blog/read.php?i=49#115">a
+previous post</a> here.</p>
+<p>Intel are putting themselves into an advantageous position by making better
+function libraries than everybody else, and they are taking advantage of this
+position by lowering the performance of common mathematical software on the CPUs
+of their competitors relative to their own. We have probably not seen the end of the legal battles yet.</p></td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=120&subject=Common+math+programs+are+affected"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="126"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Preliminary test results for Matlab</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-09-16 07:20</td>
+<tr><td class='message' width="100%" colspan="2"><h1>Preliminary test results for Matlab</h1>
+<p>I have now verified that the performance of Matlab depends strongly on the CPU vendor
+string. The benchmark test on my VIA processor gives the following results.</p>
+<div align="center">
+  <center>
+  <table border="1" cellpadding="2" cellspacing="1">
+    <tr>
+      <td>&nbsp;</td>
+      <td colspan="6">
+        <p align="center">Benchmark timing (lower is better)</p>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">Faked CPU</td>
+      <td align="center">Matrix LU factorization</td>
+      <td align="center">Fast Fourier Transform</td>
+      <td align="center">Ordinary differential equation</td>
+      <td align="center">Solve sparce matrix</td>
+      <td align="center">2-D graphics</td>
+      <td align="center">3-D graphics</td>
+    </tr>
+    <tr>
+      <td align="center">VIA</td>
+      <td align="center">0.7243</td>
+      <td align="center">0.4415</td>
+      <td align="center">0.2074</td>
+      <td align="center">0.5543</td>
+      <td align="center">1.1418</td>
+      <td align="center">0.8214</td>
+    </tr>
+    <tr>
+      <td align="center">AMD</td>
+      <td align="center">0.3197</td>
+      <td align="center">0.4502</td>
+      <td align="center">0.2201</td>
+      <td align="center">0.4952</td>
+      <td align="center">1.1812</td>
+      <td align="center">0.8179</td>
+    </tr>
+    <tr>
+      <td align="center">Intel</td>
+      <td align="center">0.3161</td>
+      <td align="center">0.2729</td>
+      <td align="center">0.2218</td>
+      <td align="center">0.4958</td>
+      <td align="center">1.1967</td>
+      <td align="center">0.7945</td>
+    </tr>
+    <tr>
+      <td colspan="7">Built-in benchmark test on Matlab v. 7.11, 32 bit, Windows
+        7, VIA Nano L3050, 1.8 GHz. Average of 10 measurements.</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<p>These differences in benchmarks are mostly due to the fact that Matlab uses
+different function libraries for different processors. (The graphics performance
+is irrelevant here since I have no proper graphics card on my test board).</p>
+<p> It is possible to choose
+different function libraries by modifying two poorly documented configuration files, named
+blas.spec and fftw.spec.</p>
+<p>By modifying these configuration files, I got the following benchmarks for different function libraries on the VIA processor.</p>
+<div align="center">
+  <center>
+  <table border="1" cellpadding="2" cellspacing="1">
+    <tr>
+      <td>&nbsp;</td>
+      <td colspan="3">
+        <p align="center">Benchmark timing (lower is better)</td>
+    </tr>
+    <tr>
+      <td align="center">BLAS library</td>
+      <td align="center">Matrix LU factorization</td>
+      <td align="center">Solve sparce matrix</td>
+      <td align="center">Ordinary differential equation</td>
+    </tr>
+    <tr>
+      <td align="center">mkl.dll</td>
+      <td align="center">0.3162</td>
+      <td align="center">0.4949</td>
+      <td align="center">0.2213</td>
+    </tr>
+    <tr>
+      <td align="center">acml.dll</td>
+      <td align="center">0.6232</td>
+      <td align="center">0.7589</td>
+      <td align="center">0.2355</td>
+    </tr>
+    <tr>
+      <td align="center">Default</td>
+      <td align="center">0.7238</td>
+      <td align="center">0.5537</td>
+      <td align="center">0.2075</td>
+    </tr>
+    <tr>
+      <td colspan="4">Benchmark tests on VIA processor with different libraries
+        specified in blas.spec file. Same conditions as above.</td>
+    </tr>
+  </table>
+  </center>
+</div>
+&nbsp;<br>
+<div align="center">
+  <center>
+  <table border="1" cellpadding="2" cellspacing="1">
+    <tr>
+      <td>&nbsp;</td>
+      <td>
+        <p align="center">Benchmark timing (lower is better)</p>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">FFT libraries</td>
+      <td align="center">Fast Fourier Transform</td>
+    </tr>
+    <tr>
+      <td align="center">libfftw3.dll libfftw3f.dll</td>
+      <td align="center">0.4494</td>
+    </tr>
+    <tr>
+      <td align="center">libfftw3i.dll libfftw3f.dll</td>
+      <td align="center">0.2708</td>
+    </tr>
+    <tr>
+      <td colspan="2">Benchmark tests on VIA processor with different libraries
+        specified in fftw.spec file. Same conditions as above.</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<p>This shows that most of the difference in performance can be accounted for by
+the fact that Matlab has specified different libraries to be used on different
+processor brands. The Matlab configuration files make specifications only for
+Intel and AMD processors, while VIA processors get a default library.
+Apparently, they have never heard about VIA processors. As you can see, the
+speed can be more than doubled for some tasks by adding an appropriate
+specification for VIA processors to the configuration files.</p>
+<p>Next, I analyzed the library files to see if there was any CPU dispatching
+inside these libraries. This analysis gave the following results:</p>
+<p><b>mkl.dll<br>
+</b>This is Intel's Math Kernel Library version 10.2.3, 32 bit. As mentioned in <a href="http://www.agner.org/optimize/blog/read.php?i=49#121">another
+posting</a>, this 32-bit version of MKL uses the same instruction sets for Intel
+and non-Intel processors, while the 64-bit version gives a (minor) advantage to
+Intel processors over non-Intel processors. What is more important is that this
+MKL contains another check for the Intel vendor string in connection with a
+check for the number of processor cores. It looks like multithreading works
+inferior, or not at all, on non-Intel processors in this library. If this
+suspicion holds true then it can have quite a dramatic negative effect on the
+performance on AMD processors. However, I cannot test this with my current test
+methods because there is no VIA processor with multiple cores yet. I don't have
+the time to make another test setup right now so unfortunately we can't tell yet
+if this affects multi-threading on AMD processors.&nbsp;</p>
+<p><b>acml.dll<br>
+</b>This is AMD's Core Math Library, version 4.2.0. This version of ACML is
+compiled with an Intel compiler, just like the one I have reported about in <a href="http://www.agner.org/optimize/blog/read.php?i=49#115">a
+previous posting</a>. It contains an Intel CPU dispatcher which enables the SSE2
+instruction set only on Intel processors. This has minor effect in this case
+because only a few functions are affected. Furthermore, it uses
+Intel's Open MP library for threading. This library may have inferior
+functionality on non-Intel processors.</p>
+<p><b>default blas library</b><br>
+This library contains no CPU dispatching. It calls several other libraries that
+do have CPU dispatching, but apparently nothing that favorizes a specific CPU
+vendor.</p>
+<p><b>FFT libraries</b><br>
+These libraries contain a CPU dispatcher that enables SSE2 in some functions.
+They are compiled with a Microsoft compiler and they contain no check for the
+CPU vendor. The library used for AMD and VIA processors (libfftw3.dll) has very
+little SSE2 code, while the library used for Intel processors (libfftw3i.dll)
+has more SSE2 code. Reportedly, Matlab have disabled the use of SSE2 on AMD
+processors because it was inefficient in their tests (<a href="http://www.mathworks.com/support/solutions/en/data/1-9OZ6QP/?solution=1-9OZ6QP">link</a>).
+This decision is probably based on the old AMD K8 processors, while SSE2 is more
+efficient in newer AMD processors.</p>
+<p>My conclusion so far is that the performance of Matlab depends strongly on
+the CPU vendor string, but this effect is mainly due to suboptimal settings in
+the configuration files, and this problem can be solved easily by modifying
+these files. Several of the library files contain Intel CPU dispatchers that
+favorize Intel processors, but the effect of this is too small to give
+statistically significant results in my tests.</p>
+<p>So far, I have only made tests on a single-core processor. There may be
+larger effects on multi-core processors, but I have not been able to test this
+yet. I have made a small test package with the appropriate configuration files
+and descriptions for my readers to experiment with. You can download it <a href="http://www.agner.org/optimize/matlab_test.zip">here</a>.</p></td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=126&subject=Preliminary+test+results+for+Matlab"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="121"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Overview of CPU dispatching in Intel software</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-08-23 06:38</td>
+<tr><td class='message' width="100%" colspan="2"><p>There are many different versions of Intel compilers and function libraries
+with different CPU dispatching schemes. Some of these are fair to non-Intel
+processors and some are unfair. By unfair dispatching I mean that it
+chooses a suboptimal code path when running on a non-Intel CPU even when the CPU
+is compatible with a better code path. The different versions can get quite confusing, so I have
+tried to test as many different versions of Intel software products as I could
+get my hands on and present an overview of the results here.</p>
+<p>The tables below show the highest instruction set available to Intel and
+non-Intel processors when running the different software products. The sequence
+of instruction sets have the not very logical names:</p>
+<div align="center">
+  <center>
+  <table border="1" cellpadding="2" cellspacing="1">
+    <tr>
+      <td>386</td>
+      <td>MMX</td>
+      <td>SSE</td>
+      <td>SSE2</td>
+      <td>SSE3</td>
+      <td>SSSE3</td>
+      <td>SSE4.1</td>
+      <td>SSE4.2</td>
+      <td>AVX</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<h2>Intel Math Kernel Library</h2>
+<p>The Math Kernel Library (MKL) contains many advanced mathematical functions.
+The results in the following table do not apply to various (sub-)packages that may be bundled with
+the MKL, such as the Intel Vector Math Library (VML), Intel Performance
+Primitives (IPP) and Intel Threading Building Blocks (TBB).</p>
+<div align="center">
+  <center>
+  <table border="1" cellpadding="2" cellspacing="1">
+    <tr>
+      <td>Library version</td>
+      <td>Intel processor<br>
+        32 bit mode</td>
+      <td>non-Intel processor<br>
+        32 bit mode</td>
+      <td>Intel processor<br>
+        64 bit mode</td>
+      <td>non-Intel processor<br>
+        64 bit mode</td>
+    </tr>
+    <tr>
+      <td align="center">MKL 7.0, 2004</td>
+      <td align="center">SSE3</td>
+      <td align="center">386</td>
+      <td align="center">n.a.</td>
+      <td align="center">n.a.</td>
+    </tr>
+    <tr>
+      <td align="center">MKL 8.1, 2006</td>
+      <td align="center">SSSE3</td>
+      <td align="center">SSSE3</td>
+      <td align="center">SSSE3</td>
+      <td align="center">SSSE3</td>
+    </tr>
+    <tr>
+      <td align="center">MKL 9.0, 2006</td>
+      <td align="center">SSSE3</td>
+      <td align="center">SSSE3</td>
+      <td align="center">SSSE3</td>
+      <td align="center">SSSE3</td>
+    </tr>
+    <tr>
+      <td align="center">MKL 10.2, 2008</td>
+      <td align="center">SSE4.2</td>
+      <td align="center">SSE4.2</td>
+      <td align="center">SSE4.2</td>
+      <td align="center">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center">MKL 10.3, 2010</td>
+      <td align="center">SSE4.2</td>
+      <td align="center">SSE4.2</td>
+      <td align="center">AVX</td>
+      <td align="center">SSE2</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<p>As we can see, version 8 and 9 give Intel and non-Intel processors access to
+the same instruction sets, while version 7 and the
+64-bit version 10 have unfair dispatching. MKL 7.0 has no x86-64 version. </p>
+<h2>Intel Vector Math Library</h2>
+<p>The Vector Math Library (VML) contains procedures for calculating elementary
+mathematical functions on vectors of arbitrary size.</p>
+<div align="center">
+  <center>
+  <table border="1" cellpadding="2" cellspacing="1">
+    <tr>
+      <td>Library version</td>
+      <td>Intel processor<br>
+        32 bit mode</td>
+      <td>non-Intel processor<br>
+        32 bit mode</td>
+      <td>Intel processor<br>
+        64 bit mode</td>
+      <td>non-Intel processor<br>
+        64 bit mode</td>
+    </tr>
+    <tr>
+      <td align="center">VML 7.0, 2004</td>
+      <td align="center">SSE3</td>
+      <td align="center">386</td>
+      <td align="center">n.a.</td>
+      <td align="center">n.a.</td>
+    </tr>
+    <tr>
+      <td align="center">VML 8.1, 2006</td>
+      <td align="center">SSSE3</td>
+      <td align="center">SSE</td>
+      <td align="center">SSSE3</td>
+      <td align="center">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center">VML 9.0, 2006</td>
+      <td align="center">SSSE3</td>
+      <td align="center">SSE</td>
+      <td align="center">SSSE3</td>
+      <td align="center">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center">VML 10.2, 2006</td>
+      <td align="center">SSE4.2</td>
+      <td align="center">SSE2</td>
+      <td align="center">SSE4.2</td>
+      <td align="center">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center">VML 10.3, 2010</td>
+      <td align="center">AVX</td>
+      <td align="center">SSE2</td>
+      <td align="center">AVX</td>
+      <td align="center">SSE2</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<p>As we can see, all versions have unfair dispatching. There are different
+branches for Intel processors with SSE2 and non-Intel processors with SSE2. I
+have not tested which of the SSE2 branches run fastest on non-Intel processors.</p>
+<h2>Intel Performance Primitives</h2>
+<p>All the versions I have tested have fair CPU dispatching.</p>
+<h2>Intel Threading Building Blocks</h2>
+<p>This library has some CPU dispatching, but I have not tested whether it is
+fair or not.</p>
+
+<h2>Intel standard C library and standard math library</h2>
+<p>These libraries are called automatically from code compiled with an Intel C++
+compiler.</p>
+<div align="center">
+  <center>
+  <table border="1" cellpadding="2" cellspacing="1">
+    <tr>
+      <td>Library version</td>
+      <td>Intel processor<br>
+        32 bit mode</td>
+      <td>non-Intel processor<br>
+        32 bit mode</td>
+      <td>Intel processor<br>
+        64 bit mode</td>
+      <td>non-Intel processor<br>
+        64 bit mode</td>
+    </tr>
+    <tr>
+      <td align="center">7.1, 2004</td>
+      <td align="center">SSE2</td>
+      <td align="center">386</td>
+      <td align="center">n.a.</td>
+      <td align="center">n.a.</td>
+    </tr>
+    <tr>
+      <td align="center">8.1, 2005</td>
+      <td align="center">SSE3</td>
+      <td align="center">386</td>
+      <td align="center">n.a.</td>
+      <td align="center">n.a.</td>
+    </tr>
+    <tr>
+      <td align="center">9.1, 2006</td>
+      <td align="center">SSE3</td>
+      <td align="center">386</td>
+      <td align="center">SSE3</td>
+      <td align="center">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center">10.1, 2008</td>
+      <td align="center">SSE4.2</td>
+      <td align="center">386</td>
+      <td align="center">SSE4.2</td>
+      <td align="center">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center">11.1, 2010</td>
+      <td align="center">AVX</td>
+      <td align="center">386</td>
+      <td align="center">AVX</td>
+      <td align="center">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center">12.0, 2010</td>
+      <td align="center">AVX</td>
+      <td align="center">386</td>
+      <td align="center">AVX</td>
+      <td align="center">SSE2</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<p>All versions have unfair CPU dispatching. In many cases, however, the Intel compiler can generate calls directly to the SSE2 version
+of a function when compiling for the SSE2 or higher
+instruction set. This also applies to non-Intel processors.</p>
+
+<h2>Intel Short Vector Math Library</h2>
+<p>The Short Vector Math Library (SVML) is used for elementary mathematical
+functions on vector registers (XMM and YMM registers). It is called
+automatically from code compiled with an Intel compiler when the SSE2 or
+higher instruction set is enabled. The SVML can also be used with other
+compilers such as the Gnu C++ compiler.</p>
+<div align="center">
+  <center>
+  <table border="1" cellpadding="2" cellspacing="1">
+    <tr>
+      <td>Library version</td>
+      <td>Intel processor<br>
+        32 bit mode</td>
+      <td>non-Intel processor<br>
+        32 bit mode</td>
+      <td>Intel processor<br>
+        64 bit mode</td>
+      <td>non-Intel processor<br>
+        64 bit mode</td>
+    </tr>
+    <tr>
+      <td align="center">7.1, 2004</td>
+      <td align="center">SSE2</td>
+      <td align="center">SSE2</td>
+      <td align="center">n.a.</td>
+      <td align="center">n.a.</td>
+    </tr>
+    <tr>
+      <td align="center">8.1, 2005</td>
+      <td align="center">SSE3</td>
+      <td align="center">SSE2</td>
+      <td align="center">n.a.</td>
+      <td align="center">n.a.</td>
+    </tr>
+    <tr>
+      <td align="center">9.1, 2006</td>
+      <td align="center">SSE3</td>
+      <td align="center">SSE2</td>
+      <td align="center">SSE3</td>
+      <td align="center">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center">10.1, 2008</td>
+      <td align="center">SSE4.2</td>
+      <td align="center">SSE2</td>
+      <td align="center">SSE4.2</td>
+      <td align="center">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center">11.1, 2010</td>
+      <td align="center">AVX</td>
+      <td align="center">SSE2</td>
+      <td align="center">AVX</td>
+      <td align="center">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center">12.0, 2010</td>
+      <td align="center">AVX</td>
+      <td align="center">SSE2</td>
+      <td align="center">AVX</td>
+      <td align="center">SSE2</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<h2>Intel C++ compiler</h2>
+<p>The Intel C++ compiler has various options that allow the programmer to
+generate code for a specific instruction set or to make multiple versions of the
+code for different instruction sets with automatic CPU dispatching. Non-Intel
+processors will always get the generic version of the code if CPU dispatching is
+used. The default level for the generic code is SSE2 for version 11 and 12 of the
+compiler, and 386 for version 10 and earlier in 32-bit mode as indicated in the
+following table.</p>
+<div align="center">
+  <center>
+  <table border="1" cellpadding="2" cellspacing="1" height="1">
+    <tr>
+      <td height="1">Compiler version</td>
+      <td height="1">Intel processor<br>
+        32 bit mode</td>
+      <td height="1">non-Intel processor<br>
+        32 bit mode</td>
+      <td height="1">Intel processor<br>
+        64 bit mode</td>
+      <td height="1">non-Intel processor<br>
+        64 bit mode</td>
+    </tr>
+    <tr>
+      <td align="center" height="19">7.1, 2004</td>
+      <td align="center" height="19">SSE2</td>
+      <td align="center" height="19">386</td>
+      <td align="center" height="19">n.a.</td>
+      <td align="center" height="19">n.a.</td>
+    </tr>
+    <tr>
+      <td align="center" height="19">8.1, 2005</td>
+      <td align="center" height="19">SSE3</td>
+      <td align="center" height="19">386</td>
+      <td align="center" height="19">n.a.</td>
+      <td align="center" height="19">n.a.</td>
+    </tr>
+    <tr>
+      <td align="center" height="19">9.1, 2006</td>
+      <td align="center" height="19">SSE3</td>
+      <td align="center" height="19">386</td>
+      <td align="center" height="19">SSE3</td>
+      <td align="center" height="19">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center" height="19">10.1, 2008</td>
+      <td align="center" height="19">SSE4.2</td>
+      <td align="center" height="19">386</td>
+      <td align="center" height="19">SSE4.2</td>
+      <td align="center" height="19">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center" height="19">11.1, 2010</td>
+      <td align="center" height="19">AVX</td>
+      <td align="center" height="19">SSE2</td>
+      <td align="center" height="19">AVX</td>
+      <td align="center" height="19">SSE2</td>
+    </tr>
+    <tr>
+      <td align="center" height="19">12.0, 2010</td>
+      <td align="center" height="19">AVX</td>
+      <td align="center" height="19">SSE2</td>
+      <td align="center" height="19">AVX</td>
+      <td align="center" height="19">SSE2</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<p>There is an option
+for setting the generic level higher or lower. For example, the options&nbsp;&nbsp; <code>/arch:SSE3 /QaxSSE4.1,AVX</code>&nbsp;&nbsp;
+will set the generic level to SSE3 and generate three versions of the code for
+the SSE3, SSE4.2 and AVX instruction sets. Non-Intel processors can only get the
+generic version, which will be SSE3 in this example. Code compiled with the <code>/Qx</code> option, for example&nbsp;<code>/QxSSE4.1</code> 
+will fail to run on non-Intel processors and processors without the specified
+instruction set.</p>
+<h2>Other Intel products</h2>
+<p>The above test results are obtained with Intel C++ compilers and function
+libraries for Windows and Linux. I have found no differences between the Windows
+and Linux versions in the cases where I have had access to both. I have not
+tested the Macintosh versions, but this is less relevant as long as no Macintosh
+computers are available with AMD or VIA processors. I have not tested the Intel
+Fortran compiler, but it seems to be similar to the Intel C++ compiler with
+respect to CPU dispatching.</p>
+<p>Anybody who have earlier versions of the compiler and function libraries than
+the ones I have tested are welcome to contact me.</p></td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=121&subject=Overview+of+CPU+dispatching+in+Intel+software"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="127"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>New Intel compiler version - still the same!</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner Fog</td>
+<td class='date' width="30%">Date:&nbsp;2010-09-22 11:37</td>
+<tr><td class='message' width="100%" colspan="2"><p>A new Intel C++ compiler version 12 has now been released as part of the new
+&quot;Intel Parallel Composer 2011&quot;. The CPU dispatching methods are <i>unchanged</i>
+from version 11. Apparently, all that has come out of the legal battles over CPU
+dispatching is a notice on Intel's website that the compiler does not optimize
+equally for non-Intel microprocessors (<a href="http://software.intel.com/en-us/intel-parallel-composer/">see
+link</a>).</p>
+<p>The main difference between version 11 and version 12 of the compiler is that
+the latter has more features for splitting the code into parallel threads in
+order to take advantage of multi-core processors. I have not tested how these
+features work on non-Intel processors.</p>
+<p>The settlement with AMD requires that Intel shall not include any Artificial
+Performance Impairment in any Intel product. I cannot find any change in the new
+compiler version that reflects this requirement.</p>
+<p>While the wording of the AMD settlement with regard to CPU dispatching is
+much more far-reaching than the FTC settlement, it has had no apparent effect so
+far, perhaps because it is subject to interpretation. Likewise, the FTC have not
+succeeded in making Intel change their compiler and libraries - maybe because
+they don't have the power to do so, or maybe because they don't have sufficient
+specialized knowledge to counter the technical arguments of Intel's experts.</p>
+<p>Anyway, the software community will still have to live with the technical
+problems. My best advice now is to override Intel's CPU dispatcher as explained
+in <a href="http://www.agner.org/optimize/#manual_cpp">my C++ manual</a>, or use
+another compiler.</p></td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=127&subject=New+Intel+compiler+version+-+still+the+same%21"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="134"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Intel compiler question</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;
+<script language='JavaScript'>
+mailr("j.russell.moore","Intel compiler question","gmail.com","James Russell");
+</script>
+<noscript>James Russell</noscript>
+</td>
+<td class='date' width="30%">Date:&nbsp;2010-10-11 06:21</td>
+<tr><td class='message' width="100%" colspan="2">Hello Agner and thank you for sharing all of your wisdom with us, it's really appreciated.<P>At the time of writing there's the following paragraph in your optimizing software in C++ manual:<P>&quot;Programs compiled with the Intel compiler with the /Qax option will run sub-optimally on non-Intel processors unless the above patch is included. Programs compiled with the /Qx option will not run at all on non-Intel processors unless the above patch is included.&quot;<P>Does that mean that the unfair CPU path dispatcher is only present when either of those switches are used in the compilation? Or is it present too when using /arch:SSE3 only for example?<P>Thank you very much for your time, kind regards,<BR>
+J. Russell.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=134&subject=Intel+compiler+question"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="135"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Intel compiler question</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner</td>
+<td class='date' width="30%">Date:&nbsp;2010-10-12 02:11</td>
+<tr><td class='message' width="100%" colspan="2">When the /arch option is specified to the Intel compiler, it will use the SSE2 version of most library functions (bypassing the CPU dispatching in the library) even when a higher instruction set is specified. The default value for /arch is SSE2 in version 11 and 12 of the compiler. The program will run fine on non-Intel processors unless it calls a library function with CPU dispatching, for example in the MKL library. It will not run on any CPU with an instruction set lower than specified by the /arch option.<P>The /arch:AVX option is unofficial at the moment. /arch:AVX will use the AVX version of some library functions. This doesn't work with non-Intel processors at the moment, but this is a bug which they have promised to fix.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=135&subject=Intel+compiler+question"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="179"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>New Intel compiler version - still the same!</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Daniel</td>
+<td class='date' width="30%">Date:&nbsp;2011-12-23 12:33</td>
+<tr><td class='message' width="100%" colspan="2">First of all I want to thank you for all your research an work coding a fair dispatcher override concerning Intel's Compiler. Without your work this Compiler wouldn't be usable for me at all because code that favorizes Intel CPU's is inacceptable for me!<P>I'd like to add, that in version 12 of Intel's C++ Compiler for Windows your dispatcher override code works for 32bit, but not for 64bit. Seems like the x64 equivalent for AVX is smaller than the 32bit number.<P>Adding a simple switch for 64bit and changing the the value at the line __intel_cpu_indicator = 0x20000; from  0x20000 to 1&lt;&lt;16 for the 64bit branch solves the problem. I'm not sure whether the other values are correct or not because the only AMD CPU I have available supports AVX.<P>The Code vor the MKL and VML are fine though.<P>Regards<BR>
+Daniel</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=179&subject=New+Intel+compiler+version+-+still+the+same%21"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="180"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>New Intel compiler version - still the same!</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner</td>
+<td class='date' width="30%">Date:&nbsp;2011-12-25 04:19</td>
+<tr><td class='message' width="100%" colspan="2">Daniel wrote:<BR>
+<BLOCKQUOTE>
+    Seems like the x64
+    equivalent for AVX is smaller than the 32bit
+    number.<P>Adding a simple switch for 64bit and
+    changing the the value at the line
+    __intel_cpu_indicator = 0x20000; from  0x20000 to
+    1&lt;&lt;16 for the 64bit branch solves the
+    problem.
+</BLOCKQUOTE>Please email me with an example of a function that fails with __intel_cpu_indicator = 0x20000. I will investigate it.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=180&subject=New+Intel+compiler+version+-+still+the+same%21"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="184"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>New Intel compiler version - still the same!</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;
+<script language='JavaScript'>
+mailr("Dont","New Intel compiler version - still the same!","reply.com","Stanley Theamer");
+</script>
+<noscript>Stanley Theamer</noscript>
+</td>
+<td class='date' width="30%">Date:&nbsp;2012-02-12 12:39</td>
+<tr><td class='message' width="100%" colspan="2"><a href="http://www.compilerreimbursementprogram.com/">www.compilerreimbursementprogram.com</a><p>
+<a href="http://software.intel.com/en-us/articles/optimization-notice/#opt-en">software.intel.com/en-us/articles/optimization-notice/#opt-en</a><P>Looks like the FTC has finished the ruling.  If you purchased the Intel compiler you can receive compensation.<P>Nicely Nicely.  I wasn't going to type this entire thing, however it needs to be done.<P>&quot;Intel's compilers may or may not optimize to the same degree for non-Intel microprocessors for optimizations that are not unique to Intel microprocessors. These optimizations include SSE2, SSE3, and SSSE3 instruction sets and other optimizations. Intel does not guarantee the availability, functionality, or effectiveness of any optimizations on microprocessors not manufactured by Intel. Microprocessor-dependent optimizations in this product are intended for use with Intel microprocessors. Certain optimizations not specific to Intel microarchitecture are reserved for Intel microprocessors. Please refer to the applicable product User and Reference Guides for more information regarding the specific instruction sets covered by this notice.&quot;<BR>
+Notice Revision #20110804<BR>
+ <P>They hide the text in a gif to avoid the search engines. However this site is indexed very well.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=184&subject=New+Intel+compiler+version+-+still+the+same%21"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="194"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>New Intel compiler version - still the same!</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;
+<script language='JavaScript'>
+mailr("stretcho44","New Intel compiler version - still the same!","gmail.com","Stretcho");
+</script>
+<noscript>Stretcho</noscript>
+</td>
+<td class='date' width="30%">Date:&nbsp;2012-03-14 10:50</td>
+<tr><td class='message' width="100%" colspan="2">I am not sure why Intel used images for that one instance, but their are a number of sites on the Intel web where the announcement is in text format. A quick search for a phrase of the announcement found a number of them in various formats .... PDF, text, image,<P>I doubt they were hiding anything but it makes good reading.<P><a href="http://software.intel.com/sites/products/documentation/hpc/composerxe/en-us/cpp/lin/main/main_welcome.htm">software.intel.com/sites/products/documentation/hpc/composerxe/en-us/cpp/lin/main/main_welcome.htm</a><P><P>This is not directly related to the compiler but it does raise the issue of potential problems if there is some difference in the way that Intel and others implement new features. They have updated the BOINC project PRIMEGRID to use the AVX instructions introduced on Sandy Bridge and Bulldozer. The code works fine on a Sandy Bridge part but fails on a Bulldozer. <P>AVX build of llr (20%-50% faster) <BR>
+<a href="http://www.primegrid.com/forum_thread.php?id=3912">www.primegrid.com/forum_thread.php?id=3912</a><P>&quot;This has been tested on Intel Sandy Bridge but should also work on AMD Bulldozer [UPDATE] DOES NOT WORK on AMD Bulldozer. Currently, these are the only two CPU's that support AVX. Attention: AVX is supported only after Win7 SP1. WinXP does not have AVX support.&quot;<P><BR>
+There may be a coding error that trips the AMD Bulldozer implementation of the PRIMEGRID client project but not the Sandy Bridge. If there is that difference, developers will have to be careful when they add support. I think that in this case they are using the gcc compiler. <P><BR>
+AMD FX X8 8120 not working with AVX! <BR>
+<a href="http://www.primegrid.com/forum_thread.php?id=3933">www.primegrid.com/forum_thread.php?id=3933</a><P>I thought you might be interested.<P>RJ</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=194&subject=New+Intel+compiler+version+-+still+the+same%21"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="209"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Still no library that is optimal on all processors</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner</td>
+<td class='date' width="30%">Date:&nbsp;2012-04-18 08:52</td>
+<tr><td class='message' width="100%" colspan="2"><p align="left">Choosing the most efficient function library can be a 
+  nightmare to a programmer. I have tried to calculate the cosine function with 
+  different libraries and compare the calculation time. The best version is 19 
+  times faster than the worst!</p>
+  <p align="left">AMD have now updated their math libraries and added CPU 
+  dispatching. There are two versions of code in AMD's
+  <a href="http://developer.amd.com/libraries/LibM/Pages/default.aspx">LIBM</a> 
+  library: One for the SSE2 instruction set and one for AVX and FMA4. Intel processors will run the 
+  inferior SSE2 branch because they don't have the 
+  FMA4 instruction set. The incompatibility between Intel's and AMD's FMA 
+  instructions is another scandal, which I have discussed in
+  <a href="http://www.agner.org/optimize/blog/read.php?i=25">this blog post</a>. 
+  The AMD library does not check the CPU brand name as Intel libraries do. It 
+  only checks for the FMA4 instructions which are not supported by Intel 
+  processors, although - quite ironically - they were designed by Intel. It will 
+  be possible to run the better branch on Intel processors if Intel decides to 
+  support the FMA4 instruction set in the future. </p>
+  <p align="left">The following table shows the results of some tests I have 
+  made of different math libraries. </p>
+  <table border="2" cellpadding="2" cellspacing="1">
+    <tr>
+      <td><b>Library</b></td>
+      <td align="center"><b>Elements per vector</b></td>
+      <td align="center"><b>Dispatch version</b></td>
+      <td align="center"><b>Time, 32 bit mode</b></td>
+      <td align="center"><b>Time, 64 bit mode</b></td>
+    </tr>
+    <tr>
+      <td>glibc 2.13</td>
+      <td align="center">1</td>
+      <td align="center">none</td>
+      <td align="center">1400</td>
+      <td align="center">1030</td>
+    </tr>
+    <tr>
+      <td>MS 17.00</td>
+      <td align="center">1</td>
+      <td align="center">SSE2</td>
+      <td align="center">724</td>
+      <td align="center">200</td>
+    </tr>
+    <tr>
+      <td>Intel 12.1.3</td>
+      <td align="center">1</td>
+      <td align="center">generic</td>
+      <td align="center">1950</td>
+      <td align="center">303</td>
+    </tr>
+    <tr>
+      <td>Intel 12.1.3</td>
+      <td align="center">1</td>
+      <td align="center">Intel</td>
+      <td align="center">720</td>
+      <td align="center">295</td>
+    </tr>
+    <tr>
+      <td>Intel SVML 12.1.3 </td>
+      <td align="center">4</td>
+      <td align="center">generic (SSE2)</td>
+      <td align="center">360</td>
+      <td align="center">203</td>
+    </tr>
+    <tr>
+      <td>Intel SVML 12.1.3 </td>
+      <td align="center">4</td>
+      <td align="center">Intel AVX</td>
+      <td align="center">99</td>
+      <td align="center">188</td>
+    </tr>
+    <tr>
+      <td>Intel SVML 12.1.3 </td>
+      <td align="center">8</td>
+      <td align="center">generic (AVX)</td>
+      <td align="center">112</td>
+      <td align="center">128</td>
+    </tr>
+    <tr>
+      <td>Intel SVML 12.1.3 </td>
+      <td align="center">8</td>
+      <td align="center">Intel AVX</td>
+      <td align="center">108</td>
+      <td align="center">101</td>
+    </tr>
+    <tr>
+      <td>AMD LIBM 3.0.2</td>
+      <td align="center">4</td>
+      <td align="center">generic (SSE2)</td>
+      <td align="center">n.a.</td>
+      <td align="center">245</td>
+    </tr>
+    <tr>
+      <td>AMD LIBM 3.0.2</td>
+      <td align="center">4</td>
+      <td align="center">FMA4</td>
+      <td align="center">n.a.</td>
+      <td align="center">148</td>
+    </tr>
+    <tr>
+      <td colspan="5">Calculation time in clock cycles for the cosine of a 
+      vector of 8 single-precision floats on an AMD Bulldozer CPU in a single 
+      thread with different function libraries.<br>
+      (values are imprecise due to the varying clock frequency).</td>
+    </tr>
+  </table>
+<p align="left">The Gnu function library (glibc) uses an outdated and 
+inefficient code. The Microsoft library has decent performance in the 64-bit 
+version, but of course it supports only the Windows platform. Intel's general 
+math library is no better in my test case, but Intel's Short Vector Math Library 
+(SVML) is very good. The SVML library supports vectors of 4 floats in an XMM 
+register (SSE2) or a vector of 8 floats in a YMM register (AVX). It will choose 
+the inferior generic path for non-Intel processors unless we replace Intel's 
+CPU-dispatcher as described above. Intel's libraries are available for both 
+Windows, Linux and Mac. AMD's LIBM library supports vectors of 4 floats. It is 
+available for Windows and Linux, but only in 64-bit mode.</p>
+<p align="left">The sad conclusion is that we have no fully optimized math 
+function library that supports all brands of x86 processors and all operating 
+systems. If we want optimal performance on all processors, the best choice is to 
+use Intel's SVML library and manipulate it into treating non-Intel processors 
+better.</p>
+<p align="left">It would be nice if more people would work on improving glibc. 
+This library supports all processors and platforms, but it is poorly optimized. 
+Only a few memory and string functions in glibc have CPU dispatching, while the 
+math functions have only old and poorly optimized versions. It would also be nice to have vector versions of the math functions in glibc because the Gnu compiler has support for such functions.</p></td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=209&subject=Still+no+library+that+is+optimal+on+all+processors"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="213"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Still no library that is optimal on all processors</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Guest</td>
+<td class='date' width="30%">Date:&nbsp;2012-05-17 11:38</td>
+<tr><td class='message' width="100%" colspan="2">I know this is an old blog but does anyone have any news on whether Intel has any intention of removing the performance throttle against AMD?  Seems Antitrust lawsuits isn't enough, and only when Intel starts having to continually pay fines and compensation will they realise the costs of comensation is crippling them... since most users only care about performance, then use of Intel's compiler which is made to only benefit Intel CPUs is giving Intel an unfair advantage in the market, by costing AMD sales.<P>I suppose the only way around it is for developers to blacklist and boycott the Intel compilers and move to one that is independant of CPU vendors (i.e. open source or made by the developers themselves)  Unfortunately this would cost time, effort and money and would be much easier to use Intel's considering that any such move would probably lead to Intel giving out sponsors or 'bribes' in the same way that AMD and Nvidia do with certain games, when the logo comes up at the start.<P>Whilst it could be true that Intel generally have better architechture and overall performance vs AMD, they shouldn't have to resort to cheating.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=213&subject=Still+no+library+that+is+optimal+on+all+processors"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="214"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Still no library that is optimal on all processors</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner</td>
+<td class='date' width="30%">Date:&nbsp;2012-05-17 13:40</td>
+<tr><td class='message' width="100%" colspan="2">Guest wrote:<BR>
+<BLOCKQUOTE>
+does anyone have any
+    news on whether Intel has any intention of removing
+    the performance throttle against AMD?
+</BLOCKQUOTE>It's not getting better. The latest version of Intel's SVML (small vector math library) has some functions that can only be called from processors with AVX because the input parameter is an AVX vector (YMM register). There is no logical reason why these functions should have a CPU dispatcher, yet they have two different code paths for <i>the same</i> instruction set: An optimized version for Intel processors with AVX and an inferior version for other brands of CPU with AVX.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=214&subject=Still+no+library+that+is+optimal+on+all+processors"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="215"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Still no library that is optimal on all processors</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;David</td>
+<td class='date' width="30%">Date:&nbsp;2012-05-19 16:35</td>
+<tr><td class='message' width="100%" colspan="2">For the static IPP library, can't a custom dispatcher be built with something like... if not &quot;GenuineIntel&quot; then if cpu reports support for SSE2 / 3 / 4 / etc.. then staticinitcpu(the intelcpu compatible with those instructions)??  <P>Has such a dispatcher already been created by AMD or someone??</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=215&subject=Still+no+library+that+is+optimal+on+all+processors"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="216"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Still no library that is optimal on all processors</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner</td>
+<td class='date' width="30%">Date:&nbsp;2012-05-20 01:58</td>
+<tr><td class='message' width="100%" colspan="2">David wrote:
+<BLOCKQUOTE>
+    For the static IPP library, can't a custom dispatcher
+    be built...
+</BLOCKQUOTE>
+<p>The IPP has fair CPU dispatching. There is no need for a custom dispatcher here. Dispatchers for the other Intel libraries are described in <a href="http://www.agner.org/optimize/#manual_cpp">my C++ manual</a>.</p></td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=216&subject=Still+no+library+that+is+optimal+on+all+processors"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="268"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Still no library that is optimal on all processors</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;
+<script language='JavaScript'>
+mailr("mdukhan3","Still no library that is optimal on all processors","gatech.edu","Marat Dukhan");
+</script>
+<noscript>Marat Dukhan</noscript>
+</td>
+<td class='date' width="30%">Date:&nbsp;2013-05-20 18:05</td>
+<tr><td class='message' width="100%" colspan="2">Open-source Yeppp! library (www.yeppp.info) provides vector mathematical functions optimized for both Intel and AMD processors, and demonstrates performance comparable to the best vendor-optimized libraries: <a href="http://www.yeppp.info/home/yeppp-performance-numbers">www.yeppp.info/home/yeppp-performance-numbers</a></td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=268&subject=Still+no+library+that+is+optimal+on+all+processors"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<a name="269"></a>&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><th bgcolor="#9999FF" colspan="2" class='subject'>Still no library that is optimal on all processors</th></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#FFFFFF" class='ttable'>
+<tr><td class='author' width="70%">Author:&nbsp;Agner</td>
+<td class='date' width="30%">Date:&nbsp;2013-05-21 07:22</td>
+<tr><td class='message' width="100%" colspan="2">Marat Dukhan wrote:<BR>
+<BLOCKQUOTE>
+    Open-source Yeppp! library (www.yeppp.info) provides
+    vector mathematical functions optimized for both Intel
+    and AMD processors, and demonstrates performance
+    comparable to the best vendor-optimized libraries: <a
+    href="http://www.yeppp.info/home/yeppp-performance-numbers">www.yeppp.info/home/yeppp-performance-numbers</a>
+</BLOCKQUOTE>Thank you. That is good news indeed. I hope that you will add more functions to the library.</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="post.php?t=49&p=269&subject=Still+no+library+that+is+optimal+on+all+processors"" class='nav' title="Write a reply to this message and post it">Reply To This Message</a></td></tr>
+</table>
+&nbsp;
+<table width="100%" cellspacing="0" cellpadding="4" border="0" bgcolor="#CCFFCC" class="nav">
+<tr><td class='nav'><a href="read.php?i=49&v=t" class='nav1' title="View each message on a separate page." accesskey='V'>Threaded <u>V</u>iew</a></td><td class='nav'><a href="search.php" class='nav1' title="Search for messages." accesskey='S'><u>S</u>earch</a></td><td class='nav'><a href="./" class='nav1' title="Go back to the list of threads." accesskey='L'><u>L</u>ist</a></td><td class='nav'><a href="/messageboards" class='nav1' title="There are more messageboards on this website. Click here to list them." accesskey='M'>List <u>M</u>essageboards</a></td><td class='nav'><a href="faq.php" class='nav1' title="Answers to Frequently Asked Questions.
+Click here if you are in doubt about how to use the messageboard." accesskey='H'><u>H</u>elp</a></td></tr>
+</table>
+<p align="center">
+</p>
+</body>
+</html>

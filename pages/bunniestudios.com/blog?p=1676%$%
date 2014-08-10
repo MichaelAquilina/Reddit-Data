@@ -1,0 +1,436 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">
+
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<title>Reverse Engineering Superbugs &laquo;  bunnie&#039;s blog</title>
+
+<link rel="stylesheet" href="http://www.bunniestudios.com/wordpress/wp-content/themes/default/style.css" type="text/css" media="screen" />
+<link rel="pingback" href="http://www.bunniestudios.com/wordpress/xmlrpc.php" />
+<link rel="shortcut icon" href="http://www.bunniestudios.com/wordpress/wp-content/themes/default/favicon.ico" />
+
+<style type="text/css" media="screen">
+
+	#page { background: url("http://www.bunniestudios.com/wordpress/wp-content/themes/default/images/kubrickbgwide.jpg") repeat-y top; border: none; }
+
+</style>
+
+
+<link rel="alternate" type="application/rss+xml" title="bunnie&#039;s blog &raquo; Feed" href="http://www.bunniestudios.com/blog/?feed=rss2" />
+<link rel="alternate" type="application/rss+xml" title="bunnie&#039;s blog &raquo; Comments Feed" href="http://www.bunniestudios.com/blog/?feed=comments-rss2" />
+<link rel="alternate" type="application/rss+xml" title="bunnie&#039;s blog &raquo; Reverse Engineering Superbugs Comments Feed" href="http://www.bunniestudios.com/blog/?feed=rss2&#038;p=1676" />
+<link rel='stylesheet' id='easy-tooltip-css'  href='http://www.bunniestudios.com/wordpress/wp-content/plugins/easy-tooltip/css/easy-tooltip.css?ver=1.0.0' type='text/css' media='all' />
+<script type='text/javascript' src='http://www.bunniestudios.com/wordpress/wp-includes/js/comment-reply.min.js?ver=3.5.2'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://www.bunniestudios.com/wordpress/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://www.bunniestudios.com/wordpress/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Name that Ware May 2011' href='http://www.bunniestudios.com/blog/?p=1664' />
+<link rel='next' title='Winner, Name that Ware May 2011' href='http://www.bunniestudios.com/blog/?p=1749' />
+<meta name="generator" content="WordPress 3.5.2" />
+<link rel='canonical' href='http://www.bunniestudios.com/blog/?p=1676' />
+<script type="text/javascript" src="http://www.bunniestudios.com/wordpress/wp-content/plugins/flash-video-player/swfobject.js"></script>
+</head>
+<body class="single single-post postid-1676 single-format-standard">
+<div id="page">
+
+
+<div id="header" role="banner">
+	<a href="http://www.bunniestudios.com/blog/"><div id="headerimg">
+
+	</div>		 </a>
+
+</div>
+<hr />
+
+	<div id="content" class="widecolumn" role="main">
+
+	
+		<div class="navigation">
+			<div class="alignleft">&laquo; <a href="http://www.bunniestudios.com/blog/?p=1664" rel="prev">Name that Ware May 2011</a></div>
+			<div class="alignright"><a href="http://www.bunniestudios.com/blog/?p=1749" rel="next">Winner, Name that Ware May 2011</a> &raquo;</div>
+		</div>
+
+		<div class="post-1676 post type-post status-publish format-standard hentry category-biology category-ponderings" id="post-1676">
+			<h2>Reverse Engineering Superbugs</h2>
+
+			<div class="entry">
+				<p>The outbreak of the EHEC <a href="http://en.wikipedia.org/wiki/Escherichia_coli_O104:H4">O104:H4 <em>E. coli</em></a> &#8220;superbug&#8221; in Europe has got me <a href="http://www.bunniestudios.com/blog/?p=353">thinking about biology</a> again.</p>
+<p>The rise of antibiotic-resistant superbugs are a product of our love of antibiotics. In the absence of antibiotics, a bug that has few resistances will grow faster and more efficiently than one that has to put on bullet-proof armor every morning and lug around heavy artillery.  In other words, the biological machinery required to produce antibiotic resistance comes at a fitness cost for the bug. In antibiotic-free conditions, non-resistant strains grow faster than the resistant strains; and with as little as 20 minutes per generation, just a couple days can yield hundreds of generations. This is why, thankfully, not every bug out there has a full suite of drug resistance &#8212; a chief enemy of the superbug is the common bug. </p>
+<p>According to this evolutionary theory for the acquisition and loss of drug resistance genes, a hospital is an ideal breeding environment for superbugs: they are asceptic (less competition from common bugs), and full of antibiotics (plenty of selective pressure to acquire resistance genes).  </p>
+<p>Thus it is curious to find superbugs in food. Farms are teeming with common bugs, creating a selective pressure to lose antibiotic resistance genes. While antibiotics are routinely put into farm animal feed, it&#8217;s probably not cost-effective to use broad-spectrum antibiotics on such a scale. Perhaps O104:H4 is just a spontaneous coincidence, a fluke &#8212; a bug had acquired a set of genes, got lucky and grew, and just as quickly got edged out by more competitive neighbors. This could explain why it&#8217;s been tough to find its origin. </p>
+<p>Fortunately, the entire sequence of the O104:H4 bug is available for download on the internet. Our friends in China &#8212; BGI, located in Shenzhen &#8212; acquired a sample and in an unusual act released the sequence for <a href="http://www.genomics.cn/en/news_show.php?type=show&#038;id=644">public download</a>. This is unusual because research organizations typically hold this kind of data close to the chest, partially for peer review to vet it before public release, and partially for competitive advantage in academic publications &#8212; proprietary access to data is a common method to reduce competition for high-profile publications, and thus ensure your academic reputation. Whatever their reasons are for sharing the data, I think it&#8217;s worth noting the contribution, because now everybody in the world can perform an analysis on the bug.</p>
+<p>And that&#8217;s where the fun begins! Analyzing the sequence data requires a little know-how, but fortunately, my &#8220;perlfriend&#8221; is a noted bioinformaticist. The raw sequence data provided by BGI is a set oversampled sub-sequences, which have to be assembled based on matching up overlapping regions. Once you assemble the sequence, you get a set of contiguous reads, but there are still gaps. It&#8217;s a bit like trying to compose a large picture out of a number of small photos taken at random. With enough sampling you will eventually create a complete picture, but for various technical reasons there are still ambiguities and gaps. </p>
+<p>After assembly, the genome of O104:H4 is stitched from over a half million short DNA samples into 513 contiguous fragments of DNA (&#8220;contigs&#8221; in bio-speak), with a total length of 5.3 million base pairs (notably, <a href="http://en.wikipedia.org/wiki/Escherichia_coli">wikipedia cites</a> <em>E. coli</em> as having only 4.6 million base pairs, so O104:H4 is probably at least 15% longer &#8212; and likewise takes more time to replicate than a non-drug resistant strain). Here&#8217;s contig 34 of the assembly:</p>
+<p><code><br />
+AAATGGTATTCCTGTTCACGATACTATTGCCAGAGTTGTATCCTGTATCAGTCCTGC<br />
+AAAATTTCATGAGTGCTTTATTAACTGGATGCGTGACTGCCATTCTTCAGATGATAA<br />
+AGACGTCATTGCAATTGATGGAAAAACGCTCCGGCACTCTTATGACAAGAGTCGCCG<br />
+CAGGGGAGCGATTCATGTCATTAGTGCGTTCTCAACAATGCACAGTCTGGTCATCGG<br />
+ACAGATCAAGACGGATGAGAAATCTAATGA<strong>GATTACA</strong>GCTATCCCAGAACTTCTTAA<br />
+CATGCTGGATATTAAAGGAAAAATCATCACAACTGATGCGATGGGTTGCCAGAAAGA<br />
+TATTGCAGAGAAGATACAAAAACAGGGAGGTGATTATTTATTCGCGGTAAAAGGAAA<br />
+CCAGGGGCGGCTAAATAAAGCCTTTGAGGAAAAATTTCCGCTGAAAGAATTAAATAA<br />
+TCCAGAGCATGACAGTTACGCAATTAGTGAAAAGAGTCACGGCAGAGAAGAAA<br />
+</code><br />
+(Fun fact: the word &#8220;<a href="http://en.wikipedia.org/wiki/Gattaca">Gattaca</a>&#8221; occurs 252 times in the genome of O104:H4)</p>
+<p>Aside from making gratuitous pop culture references, the raw DNA isn&#8217;t very useful to us &#8212; it&#8217;s as if we were staring at binary machine code. In order to analyze the data, you need to &#8220;decompile&#8221; the methods contained within the DNA. Fortunately, protein sequences are highly conserved. Thus, a function that has been determined through biological experiment (for example, snipping out the DNA and observing what happens to the cell, or transfecting/transforming the DNA into a new cell and seeing what new abilities are acquired) can be correlated with a sequence of DNA, which can then be pattern-matched over the entire record to determine what functions (genes) are inside the overall genome. </p>
+<p>The pieces needed to do this reverse-engineering are a protein database, and a tool called &#8220;blastx&#8221;. All of these tools are available free for download. </p>
+<p>The list of known proteins can be downloaded from <a href="http://www.uniprot.org">uniprot.org</a>. Searching for &#8220;drug resistance&#8221; restricted to <em>E. coli</em> organisms yields a nice list of proteins that have been identified by scientists over the years to confer upon <em>E. coli</em> parts of drug-resistance machinery. Overall, our query to the uniprot database returned 1,378 proteins that are described to confer drug resistance to <em>E. coli</em>.</p>
+<p>Have a look at <a href="http://www.uniprot.org/uniprot/P23895">Multidrug transporter emrE</a> [uniprot.org]. Inside the link, you&#8217;ll find a description of the biological mechanism for its function (it pumps antibiotics out of the cell), its secondary structure (a notion of the shape of the protein) and its 110-residue amino acid sequence. </p>
+<p>Here&#8217;s another example of a snippet from the database for a drug you may recognize:<br />
+<code><br />
+>sp|P0AD65|<strong>PBP2_ECOLI Penicillin-binding protein 2</strong> OS=Escherichia coli (strain K12) GN=mrdA PE=3 SV=1<br />
+MKLQNSFRDYTAESALFVRRALVAFLGILLLTGVLIANLYNLQIVRFTDYQTRSNENRIK<br />
+LVPIAPSRGIIYDRNGIPLALNRTIYQIEMMPEKVDNVQQTLDALRSVVDLTDDDIAAFR<br />
+KERARSHRFTSIPVKTNLTEVQVARFAVNQYRFPGVEVKGYKRRYYPYGSALTHVIGYVS<br />
+KINDKDVERLNNDGKLANYAATHDIGKLGIERYYEDVLHGQTGYEEVEVNNRGRVIRQLK<br />
+EVPPQAGHDIYLTLDLKLQQYIETLLAGSRAAVVVTDPRTGGVLALVSTPSYDPNLFVDG<br />
+ISSKDYSALLNDPNTPLVNRATQGVYPPASTVKPYVAVSALSAGVITRNTTLFDPGWWQL<br />
+PGSEKRYRDWKKWGHGRLNVTRSLEESADTFFYQVAYDMGIDRLSEWMGKFGYGHYTGID<br />
+LAEERSGNMPTREWKQKRFKKPWYQGDTIPVGIGQGYWTATPIQMSKALMILINDGIVKV<br />
+PHLLMSTAEDGKQVPWVQPHEPPVGDIHSGYWELAKDGMYGVANRPNGTAHKYFASAPYK<br />
+IAAKSGTAQVFGLKANETYNAHKIAERLRDHKLMTAFAPYNNPQVAVAMILENGGAGPAV<br />
+GTLMRQILDHIMLGDNNTDLPAENPAVAAAEDH<br />
+</code></p>
+<p>(Incidentally, I find it amusing that the sequence for PBP2 is shorter than, for example, my PGP public key block)</p>
+<p><a href="http://www.uniprot.org/uniprot/P0AD65">PBP2_ECOLI</a> is linked to penicillin resistance, and functions as a mutant of a gene that determines the shape of the bacteria. Reading through the bio-speak, it seems that this resistant variant is adapted to operate despite the presence of penicillin; bacteria with non-resistant forms of this gene are unable to form properly shaped cell walls and thus die. So, by browsing this database, we are getting a feel for the variety of countermeasures that bacteria has: sometimes they are active (pumping the antibiotic out of the cell) and sometimes they are passive (mutations that enable operation despite the presence of antibiotics). </p>
+<p>Now, you need the actual decompiler itself. The program we used is called <a href="http://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&#038;PAGE_TYPE=BlastDocs&#038;DOC_TYPE=Download">blast</a>; specifically, a variant known as blastx. Blast stands for &#8220;basic local alignment search tool&#8221;. This analysis program computes all of the possible translations of the <em>E. coli</em> DNA to protein sequences (there are 6 overall: 5&#8242;->3&#8242;, 3&#8242;->5&#8242;, each multiplied by three possible framing positions of the codons), and then does a pattern-matching of the resulting amino acid sequences with the provided database of known drug-resistance sequences. The result is a sorted list of each known drug resistance protein along with the region of the <em>E. coli</em> genome that best matches the protein. </p>
+<p>Here&#8217;s the output for the penicillin example:</p>
+<p><code><br />
+# BLASTX 2.2.24 [Aug-08-2010]<br />
+# Query: 43 87880<br />
+# Database: uniprot-drug-resistance-AND-organism-coli.fasta<br />
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value\<br />
+, bit score<br />
+43      sp|P0AD65|<strong>PBP2_ECOLI    100.00</strong>  632     0       0       29076   30971   1       632     0.0     1281<br />
+43      sp|P0AD68|FTSI_ECOLI    25.08   650     458     21      29064   30926   6       574     2e-33    142<br />
+43      sp|P60752|MSBA_ECOLI    32.80   186     120     6       12144   12686   378     558     6e-17   87.0<br />
+43      sp|P60752|MSBA_ECOLI    27.78   216     148     5       77054   77677   361     566     8e-14   76.6<br />
+43      sp|P77265|MDLA_ECOLI    27.98   193     133     6       12141   12701   370     555     2e-10   65.5</p>
+<p>etc...<br />
+</code></p>
+<p>Here, you can see that the gene for PBP2_ECOLI has a 100% match inside the genome of O104:H4.</p>
+<p>Now that we have this list, we can answer some interesting questions, such as &#8220;How many of the known drug resistance genes are inside O104:H4?&#8221; I find it fascinating that this question is answered with a shell script:</p>
+<p><code><br />
+cat uniprot_search_m9 | awk '{if ($3 > 99) { print;}}' | cut -f2 |grep -v ^# | cut -f1 -d"_" | cut -f3 -d"|" | sort | uniq | wc -l<br />
+</code></p>
+<p>My perlfriend writes these so quickly and effortlessly it&#8217;s as if she&#8217;s tying IMs to friends &#8212; I half expect to see an &#8220;lol&#8221; at the end of the script. Anyways, the above script tells us that 1,138 genes are a 100% match against the database of 1,378 genes. If you loosen the criteria up to a 99% match, allowing for one or two mutations per gene &#8212; possibly a result of sequencing errors or just evolution &#8212; the list expands to 1,224 out of 1,378. </p>
+<p>The inverse question is which drug-resistance genes are most definitely <strong>not</strong> in O104:H4. Maybe by looking at the resistance genes missing from O104:H4, we can gather clues as to which treatments could be effective against the bug. </p>
+<p>In order to rule out a drug-resistance gene, we (arbitrarily) set a criteria of any gene with less than 70% best-case matching as &#8220;most likely not&#8221; a resistance that the bug has. The result of this query reveals that there are 116 genes that are known to confer drug resistance that are less than 70% matching in O104:H4. Here is the list:</p>
+<p><code><br />
+A0SKI3 A2I604 A3RLX9 A3RLY0 A3RLY1 A5H8A5 B0FMU1 B1A3K9 B1LGD9 B3HN85 B3HN86 B3HP88 B5AG18 B6ECG5 B7MM15 B7MUI1 B7NQ58 B7NQ59 B7TR24 <a href="http://www.uniprot.org/uniprot/P56976">BLR</a> CML D2I9F6 D5D1U9 D5D1Z3 D5KLY6 D6JAN9 D7XST0 D7Z7R4 D7Z7W9 D7ZDQ3 D7ZDQ4 D8BAY2 D8BEX8 D8BEX9 DYR21 DYR22 DYR23 E0QC79 E0QC80 E0QE33 E0QF09 E0QF10 E0QYN4 E1J2I1 E1S2P1 E1S2P2 E1S382 E3PYR0 E3UI84 E3XPK9 E3XPQ2 E4P490 E5ZP70 E6A4R5 E6A4R6 E6ASX0 E6AT17 E6B2K3 E6BS59 E7JQV0 E7JQZ4 E7U5T3 E9U1P2 E9UGM7 E9VGQ2 E9VX03 E9Y7L7 O85667 Q05172 Q08JA7 Q0PH37 Q0T948 Q0T949 Q0TI28 Q1R2Q2 Q1R2Q3 Q3HNE8 Q4HG53 Q4HG54 Q4HGV8 Q4HGV9 Q4HH67 Q4U1X2 Q4U1X5 Q50JE7 Q51348 Q56QZ5 Q56QZ8 Q5DUC3 Q5UNL3 Q6PMN4 Q6RGG1 Q6RGG2 Q75WM3 Q79CI3 Q79D79 Q79DQ2 Q79DX9 Q79IE6 Q79JG0 Q7BNC7 Q83TT7 Q83ZP7 Q8G9W6 Q8G9W7 Q8GJ08 Q8VNN1 Q93MZ2 Q99399 Q9F0D9 Q9F0S4 Q9F7C0 Q9F8W2 Q9L798<br />
+</code></p>
+<p>Again, you can plug any of these protein codes into the uniprot database and find out more about them. For example, <a href="http://www.uniprot.org/uniprot/P56976">BLR</a> is the &#8220;Beta-lactam resistance protein&#8221;:</p>
+<blockquote><p>
+Has an effect on the susceptibiltiy to a number of antibiotics involved in peptidoglycan biosynthesis. Acts with beta lactams, D-cycloserine and bacitracin. Has no effect on the susceptibility to tetracycline, chloramphenicol, gentamicin, fosfomycin, vacomycin or quinolones. Might enhance drug exit by being part of multisubunit efflux pump. Might also be involved in cell wall biosynthesis.
+</p></blockquote>
+<p>Unfortunately, a cursory inspection reveals that most of the functions that O104:H4 lacks are just small, poorly understood fragments of machines involved in drug resistance. Which is actually an interesting lesson in itself: there is a popular notion that knowing a DNA sequence is the same as knowing what diseases or traits an organism may have. Even though we know the sequence and general properties of many proteins, it&#8217;s much, much harder to link them to a specific disease or trait. At some point, someone has to get their hands dirty and do the &#8220;wet biology&#8221; that assigns a biological significance to a given protein family. Pop culture references to DNA analysis are glibly unaware of this missing link, which leads to over-inflated expectations for genetic analysis, particularly in its utility for diagnosing and curing human disease and applications in eugenics.</p>
+<p>While the result of this just-for-the-fun-of-it exercise isn&#8217;t a cure for the superbug, the neat thing about living here in The Future is that just a few days after an outbreak of a deadly disease halfway across the world, the sequence of the pathogen is available for download &#8212; and with free, open tools anyone can perform a simple analysis. This is a nascent, but promising, technology ecosystem. </p>
+
+								
+				<p class="postmetadata alt">
+					<small>
+						This entry was posted
+												on Wednesday, June 8th, 2011 at 1:05 pm						and is filed under <a href="http://www.bunniestudios.com/blog/?cat=16" title="View all posts in Biology" rel="category">Biology</a>, <a href="http://www.bunniestudios.com/blog/?cat=5" title="View all posts in Ponderings" rel="category">Ponderings</a>.
+						You can follow any responses to this entry through the <a href='http://www.bunniestudios.com/blog/?feed=rss2&#038;p=1676'>RSS 2.0</a> feed.
+
+													Both comments and pings are currently closed.
+
+						
+					</small>
+				</p>
+
+			</div>
+		</div>
+
+	
+<!-- You can start editing here. -->
+
+	<h3 id="comments">15 Responses to &#8220;Reverse Engineering Superbugs&#8221;</h3>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+
+	<ol class="commentlist">
+			<li class="pingback even thread-even depth-1" id="comment-959580">
+				<div id="div-comment-959580" class="comment-body">
+				<div class="comment-author vcard">
+				<cite class="fn"><a href='http://www.adafruit.com/blog/2011/06/08/reverse-engineering-superbugs/' rel='external nofollow' class='url'>Reverse Engineering Superbugs &laquo; adafruit industries blog</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-959580">
+			June 8, 2011 at 1:35 pm</a>		</div>
+
+		<p>[...] Reverse Engineering Superbugs @ bunnie&#8217;s blog&#8230; While the result of this just-for-the-fun-of-it exercise isn&rsquo;t a cure for the superbug, the neat thing about living here in The Future is that just a few days after an outbreak of a deadly disease halfway across the world, the sequence of the organism is now available for download and with free, open tools anyone can perform a simple analysis. This is a nascent, but promising, technology ecosystem.  Filed under: random &#8212; by adafruit, posted June 8, 2011 at 2:34 pm    Comments (0) [...]</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		</li>
+		<li class="comment odd alt thread-odd thread-alt depth-1 parent" id="comment-959627">
+				<div id="div-comment-959627" class="comment-body">
+				<div class="comment-author vcard">
+		<img alt='' src='http://1.gravatar.com/avatar/9e36aeb20f1b4a763043d3ce4942b454?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />		<cite class="fn">Jonas</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-959627">
+			June 8, 2011 at 5:53 pm</a>		</div>
+
+		<p>It&#8217;s both awesome and scary that we can determine what antibiotics will work and not and that without being even close to understand why.</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		<ul class='children'>
+		<li class="comment even depth-2" id="comment-966348">
+				<div id="div-comment-966348" class="comment-body">
+				<div class="comment-author vcard">
+		<img alt='' src='http://0.gravatar.com/avatar/e4ac7255f8970e6e09e7f9c56e2d9b06?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />		<cite class="fn">Ian Stirling</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-966348">
+			July 9, 2011 at 7:58 am</a>		</div>
+
+		<p>It&#8217;s not quite that simple.<br />
+Knowing a car contains a 1W LED doesn&#8217;t mean that the interior lighting is LED based.<br />
+It may simply mean that the owner has an LED stuck to their shoe.</p>
+<p>It&#8217;s possible that the gene is present in a nonfunctional state, so you can&#8217;t quite say gene for X resistance present, must be resistant to X &#8211; it&#8217;s at best a hint.</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		</li>
+</ul>
+</li>
+		<li class="comment odd alt thread-even depth-1" id="comment-959670">
+				<div id="div-comment-959670" class="comment-body">
+				<div class="comment-author vcard">
+		<img alt='' src='http://0.gravatar.com/avatar/e8105d3e13aa4f2b15557be12cf2e52c?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />		<cite class="fn"><a href='http://pwnguin.net' rel='external nofollow' class='url'>jldugger</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-959670">
+			June 8, 2011 at 11:01 pm</a>		</div>
+
+		<p>&#8220;This is unusual because research organizations typically hold this kind of data close to the chest, partially for peer review to vet it before public release, and partially for competitive advantage in academic publications.&#8221;</p>
+<p>Technically, the Wellcome trust requires publication of raw data. I think the NSF has a similar attachment. Doubt the same is true in China, but I could be wrong.</p>
+<p>As far as the software analogy goes, I&#8217;d not call blast a decompiler so much as a fuzzy matching tool, along the lines of diff on steroids. Other than that, it&#8217;s true, we&#8217;re a far way from truly decompiling DNA. We&#8217;re getting better &#8212; we know what promoter /  sequences are, and where transcription starts. But beyond that, determining function from first principals and a sequence is a long long ways off.</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		</li>
+		<li class="comment even thread-odd thread-alt depth-1" id="comment-959689">
+				<div id="div-comment-959689" class="comment-body">
+				<div class="comment-author vcard">
+		<img alt='' src='http://0.gravatar.com/avatar/a545430978379821d4b1ad7c6064f4a6?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />		<cite class="fn"><a href='http://eptcomic.com' rel='external nofollow' class='url'>Mark V</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-959689">
+			June 9, 2011 at 12:08 am</a>		</div>
+
+		<p>Fun fact, the matching algorithms at the heart of GNU diff [1]<br />
+and NCBI BLAST [2] have the same author [3] =)</p>
+<p>[1] <a href="http://www.worldcat.org/title/ond-difference-algorithm-and-its-variations/oclc/15289754" rel="nofollow">http://www.worldcat.org/title/ond-difference-algorithm-and-its-variations/oclc/15289754</a><br />
+[2] <a href="http://www.worldcat.org/title/optimal-alignments-in-linear-space/oclc/21436623" rel="nofollow">http://www.worldcat.org/title/optimal-alignments-in-linear-space/oclc/21436623</a><br />
+[3] <a href="http://research.janelia.org/myers/" rel="nofollow">http://research.janelia.org/myers/</a></p>
+
+		<div class="reply">
+				</div>
+				</div>
+		</li>
+		<li class="comment odd alt thread-even depth-1" id="comment-959715">
+				<div id="div-comment-959715" class="comment-body">
+				<div class="comment-author vcard">
+		<img alt='' src='http://0.gravatar.com/avatar/a8e5416e29987d91116420dc387e7153?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />		<cite class="fn">Mihai Todor</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-959715">
+			June 9, 2011 at 3:04 am</a>		</div>
+
+		<p>Bunnie, you seem to be asking for another slashdot flood with this article :D</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		</li>
+		<li class="comment even thread-odd thread-alt depth-1 parent" id="comment-959855">
+				<div id="div-comment-959855" class="comment-body">
+				<div class="comment-author vcard">
+		<img alt='' src='http://1.gravatar.com/avatar/3565b95bc4ff974a87a65fbbfcebec9c?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />		<cite class="fn">schobi</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-959855">
+			June 9, 2011 at 3:20 pm</a>		</div>
+
+		<p>Thanks for the great introduction to the world of genes and biology!</p>
+<p>One aspect confuses me. The public download post at<br />
+<a href="http://www.genomics.cn/en/news_show.php?type=show&#038;id=644" rel="nofollow">http://www.genomics.cn/en/news_show.php?type=show&#038;id=644</a><br />
+writes: &#8220;The analysis further showed that this deadly bacterium carries several antibiotic resistance genes, including [...] Beta-lactam antibiotics&#8221;.<br />
+On other sources I find that Beta-lactam antibiotics are the class of penicillin antibiotics and EHEC is resistant.</p>
+<p>but you wrote that you identified the “Beta-lactam resistance protein” as “most likely not” and &#8220;less than 70% matching&#8221;. </p>
+<p>How should we read this? Even 70% means that the bacteria has a resistance? How reliable is this matching of bases? Is there anything left at all?</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		<ul class='children'>
+		<li class="comment byuser comment-author-bunnie-2 bypostauthor odd alt depth-2 parent" id="comment-960122">
+				<div id="div-comment-960122" class="comment-body">
+				<div class="comment-author vcard">
+		<img alt='' src='http://0.gravatar.com/avatar/80798e90e0ad7f00bd9aa22d2638f82e?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />		<cite class="fn">bunnie</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-960122">
+			June 10, 2011 at 4:41 pm</a>		</div>
+
+		<p>That&#8217;s right, beta-lactam includes penicillin. The question you ask is very apropos to a central challenge of genetic analysis that is currently under-appreciated: &#8220;we&#8217;ve got lots of data. Now what?&#8221; This is where computer science crosses over into real biology. </p>
+<p>Most biological pathways have multiple routes that can achieve a similar goal. You&#8217;ll note that in the above analysis, EHEC O157:H7 is a 100% match for PBP2, which confers penicillin resistance. The mechanism for penicillin resistance by PBP2 is completely different than the mechanism implicated by BLR. It seems that BLR may act as more of a pump to evacuate the antibiotic from the cell, whereas PBP2 is a change to the shape of the protein that penicillin binds to, making penicillin effectively useless even if it were inside the cell wall. </p>
+<p>So, even though the &#8220;suggested name&#8221; of BLR is &#8220;Beta Lactam Resistance Protein&#8221; according to the uniprot database, the short name alone cannot fully capture the biological subtleties. Also, note that names are assigned sort of in a &#8220;discovered first&#8221; order, so in fact BLR could have been named long before we knew there were multiple paths for beta-lactam resistance, so some proteins have outdated/inaccurate names that have stuck out of tradition. </p>
+<p>Perhaps more illuminating is the detailed description of BLR &#8212; notice all the qualifying &#8220;mights&#8221; &#8230; &#8220;might enhance&#8221;, &#8220;might also be involved&#8221; &#8230; clearly, while experiments have shown some correlation of BLR with beta lactam resistance, the mechanism itself has yet to be fully understood and a subject of further research. At the moment, our computational tools are not powerful enough to determine &#8220;in silico&#8221; the biological purpose of a protein; we can simply say if a protein is there or not, and we must still rely upon our front-line of &#8220;wet biologists&#8221; to fill in how to read these tea leaves. </p>
+<p>As for your question about the 70%, I had noted this was an arbitrary measure that we had picked. At 70% or less matching, in the best-case 70% of the base pairs match the known sequence. Even a mutation of just a few base pairs can disrupt or drastically change protein function, so 70% was chosen as a conservative threshold to &#8220;definitely&#8221; rule out related function. Going back to my analysis database, I find that BLR doesn&#8217;t even exist at any appreciable level of match inside EHEC O157:H7, which probably means that gene simply doesn&#8217;t exist in that bug. On the other hand, as noted above, EHEC O157:H7 has a mutation which would allow it to effectively swim in penicillin and not break a sweat, so lacking the gene could be in fact a competitive advantage, as it might be redundant and thus a cost to fitness.</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		<ul class='children'>
+		<li class="comment even depth-3" id="comment-963321">
+				<div id="div-comment-963321" class="comment-body">
+				<div class="comment-author vcard">
+		<img alt='' src='http://1.gravatar.com/avatar/31176aaa5627af27c5da910eb5534a96?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />		<cite class="fn"><a href='http://exisle.net' rel='external nofollow' class='url'>Orpheus</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-963321">
+			June 25, 2011 at 11:24 pm</a>		</div>
+
+		<p>Actually, BLR is just one of MANY β-lactam (= a certain 4-member ring found in penicillin-like drugs incl. most cephalosporins) resistance mechanisms. IIRC your description said it bound β-lactams for transport or other unknown inactivation, and though it&#8217;s been a LONG time since I was an active molecular biologist, I was taught more about β-lactamases (reusable enzymes that degrade β-lactams; one molecule could disable many β-lactam molecules) and other mechanisms. Some of those did indeed quasi-permanently bind β-lactams, but those were better understood than your BLR seems to be. Manufacturing amino acids and then synthesizing them into a big protein to inactivate a single much smaller β-lactam molecule is a pricey cellular investment. </p>
+<p>(That doesn&#8217;t make BLR a bad idea: bulletproof vests are 1000x as expensive and difficult as bullets, but they&#8217;ll keep you alive until you develop cheap small anti-bullets. β-lactams themselves are more expensive than the NAG/NAM molecules they replace in some bacterial cell walls [to creating a dead end that becomes a hole in the cell wall during growth] &#8211;doubly expensive since it can take several holes to kill one bacterium&#8211; but still MUCH &#8216;cheaper&#8217; to make than an enzyme)</p>
+<p>That&#8217;s one problem with blindly using a Perl sieve: you don&#8217;t see all the antii-β-lactam mechanisms from the list that this strain *does* possess</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		</li>
+</ul>
+</li>
+</ul>
+</li>
+		<li class="pingback odd alt thread-even depth-1" id="comment-960047">
+				<div id="div-comment-960047" class="comment-body">
+				<div class="comment-author vcard">
+				<cite class="fn"><a href='http://minutillo.com/steve/weblog/2011/06/10/decompiling-e-coli/' rel='external nofollow' class='url'>Decompiling E. coli &laquo; Steve Minutillo :: messy-78</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-960047">
+			June 10, 2011 at 11:22 am</a>		</div>
+
+		<p>[...] E. coli This post by bunnie gets my vote for blog post of the year. First he shows you where to download the genetic [...]</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		</li>
+		<li class="comment byuser comment-author-bunnie-2 bypostauthor even thread-odd thread-alt depth-1" id="comment-960133">
+				<div id="div-comment-960133" class="comment-body">
+				<div class="comment-author vcard">
+		<img alt='' src='http://0.gravatar.com/avatar/80798e90e0ad7f00bd9aa22d2638f82e?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />		<cite class="fn">bunnie</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-960133">
+			June 10, 2011 at 4:49 pm</a>		</div>
+
+		<p>I&#8217;m surprised nobody caught this before, but I had a pervasive typo in the original post. I had incorrectly named the bug O141:H4, the correct name is O104:H4. That&#8217;s fixed now&#8230;</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		</li>
+		<li class="comment odd alt thread-even depth-1 parent" id="comment-963947">
+				<div id="div-comment-963947" class="comment-body">
+				<div class="comment-author vcard">
+		<img alt='' src='http://1.gravatar.com/avatar/7f720a1e1545316cd5d37d20ee692c7d?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />		<cite class="fn">Isa</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-963947">
+			June 29, 2011 at 10:49 am</a>		</div>
+
+		<p>Where do I sign up for one of these &#8220;perlfriends?&#8221;</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		<ul class='children'>
+		<li class="comment even depth-2" id="comment-1011994">
+				<div id="div-comment-1011994" class="comment-body">
+				<div class="comment-author vcard">
+		<img alt='' src='http://1.gravatar.com/avatar/1d45eb683d31c12788bd981e250097b9?s=32&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />		<cite class="fn"><a href='http://prodigymike.com' rel='external nofollow' class='url'>Prodigy Mike</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-1011994">
+			October 27, 2011 at 12:12 pm</a>		</div>
+
+		<p>Ya, seriously. Typing bash scripts out like it&#8217;s nothing, def need one of those friends :-)</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		</li>
+</ul>
+</li>
+		<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-967637">
+				<div id="div-comment-967637" class="comment-body">
+				<div class="comment-author vcard">
+		<img alt='' src='http://0.gravatar.com/avatar/091ddafe6985861c5318f6fc77540a77?s=32&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D32&amp;r=G' class='avatar avatar-32 photo' height='32' width='32' />		<cite class="fn"><a href='http://www.eastpole.ca' rel='external nofollow' class='url'>tai viinikka</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-967637">
+			July 13, 2011 at 11:28 am</a>		</div>
+
+		<p>Nice molecular biology primer for techies, bunnie! A bunch of the people I went through my biochem undergrad with have now switched fields and don&#8217;t think much about biology any more. :( </p>
+<p>It seems like spending a couple years pondering information flow, feedbacks, transcriptions and translations, and signals and tranducers was a worthwhile preparation for things other than just growing cells and mutating genes. </p>
+<p>Cheers.</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		</li>
+		<li class="pingback even thread-even depth-1" id="comment-1033509">
+				<div id="div-comment-1033509" class="comment-body">
+				<div class="comment-author vcard">
+				<cite class="fn"><a href='http://www.super-mario-brothers.com/?p=1536' rel='external nofollow' class='url'>Super Mario Brothers &raquo; Decompiling E. coli</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://www.bunniestudios.com/blog/?p=1676#comment-1033509">
+			December 1, 2011 at 2:38 pm</a>		</div>
+
+		<p>[...] E. coli  December 1st, 2011 &#8211; Posted by: admin in SMB, tags: coli, Decompiling         This post by bunnie gets my vote for weblog post of the year. First he shows you where to download the [...]</p>
+
+		<div class="reply">
+				</div>
+				</div>
+		</li>
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+ 
+
+
+	
+	</div>
+
+
+<hr />
+<div id="footer" role="contentinfo">
+<!-- If you'd like to support WordPress, having the "powered by" link somewhere on your blog is the best way; it's our only promotion or advertising. -->
+	<p>
+		bunnie&#039;s blog is proudly powered by
+		<a href="http://wordpress.org/">WordPress</a>
+		<br /><a href="http://www.bunniestudios.com/blog/?feed=rss2">Entries (RSS)</a>
+		and <a href="http://www.bunniestudios.com/blog/?feed=comments-rss2">Comments (RSS)</a>.
+		<!-- 21 queries. 0.214 seconds. -->
+	</p>
+</div>
+</div>
+
+<!-- Gorgeous design by Michael Heilemann - http://binarybonsai.com/kubrick/ -->
+
+		<div class="license_block"><div class="wp_license">
+
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/"><img src="http://i.creativecommons.org/l/by-sa/3.0/88x31.png" alt="Creative Commons Attribution-ShareAlike 3.0 Unported"/></a>
+<br />
+This work by <a xmlns:cc="http://creativecommons.org/ns#" href="http://bunniestudios.com/blog" property="cc:attributionName" rel="cc:attributionURL">Andrew (bunnie) Huang</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-ShareAlike 3.0 Unported</a>.
+
+</div></div></body>
+</html>
+
+<!-- Dynamic page generated in 0.211 seconds. -->
+<!-- Cached page generated by WP-Super-Cache on 2014-07-02 19:08:59 -->

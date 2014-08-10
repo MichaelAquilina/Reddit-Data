@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link href='/css/jeffknupp.min.css' rel='stylesheet' type='text/css'>
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,900' rel='stylesheet' type='text/css'>
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <title>Improve Your Python: Decorators Explained</title>
+  <meta name="author" content="Jeff Knupp">
+  <meta name="description" content=""> 
+  <link rel="icon" href="/images/favicon.png" >
+  <link rel="alternate" href="http://feeds.feedblitz.com/hackersgonnahack" title="Python Programming" type="application/atom+xml">
+
+  
+<style>
+td.linenos { background-color: #f0f0f0; padding-right: 10px; }
+span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
+table.codehilitetable .hll, .codehilite pre .hll { background-color: #ffffcc }
+table.codehilitetable, .codehilite  { background: #f8f8f8; }
+table.codehilitetable .c, .codehilite pre .c { color: #408080; font-style: italic } /* Comment */
+table.codehilitetable .err, .codehilite pre .err { border: 1px solid #FF0000 } /* Error */
+table.codehilitetable .k, .codehilite pre .k { color: #008000; font-weight: bold } /* Keyword */
+table.codehilitetable .o, .codehilite pre .o { color: #666666 } /* Operator */
+table.codehilitetable .cm, .codehilite pre .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+table.codehilitetable .cp, .codehilite pre .cp { color: #BC7A00 } /* Comment.Preproc */
+table.codehilitetable .c1, .codehilite pre .c1 { color: #408080; font-style: italic } /* Comment.Single */
+table.codehilitetable .cs, .codehilite pre .cs { color: #408080; font-style: italic } /* Comment.Special */
+table.codehilitetable .gd, .codehilite pre .gd { color: #A00000 } /* Generic.Deleted */
+table.codehilitetable .ge, .codehilite pre .ge { font-style: italic } /* Generic.Emph */
+table.codehilitetable .gr, .codehilite pre .gr { color: #FF0000 } /* Generic.Error */
+table.codehilitetable .gh, .codehilite pre .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+table.codehilitetable .gi, .codehilite pre .gi { color: #00A000 } /* Generic.Inserted */
+table.codehilitetable .go, .codehilite pre .go { color: #808080 } /* Generic.Output */
+table.codehilitetable .gp, .codehilite pre .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+table.codehilitetable .gs, .codehilite pre .gs { font-weight: bold } /* Generic.Strong */
+table.codehilitetable .gu, .codehilite pre .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+table.codehilitetable .gt, .codehilite pre .gt { color: #0040D0 } /* Generic.Traceback */
+table.codehilitetable .kc, .codehilite pre .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+table.codehilitetable .kd, .codehilite pre .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+table.codehilitetable .kn, .codehilite pre .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+table.codehilitetable .kp, .codehilite pre .kp { color: #008000 } /* Keyword.Pseudo */
+table.codehilitetable .kr, .codehilite pre .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+table.codehilitetable .kt, .codehilite pre .kt { color: #B00040 } /* Keyword.Type */
+table.codehilitetable .m, .codehilite pre .m { color: #666666 } /* Literal.Number */
+table.codehilitetable .s, .codehilite pre .s { color: #BA2121 } /* Literal.String */
+table.codehilitetable .na, .codehilite pre .na { color: #7D9029 } /* Name.Attribute */
+table.codehilitetable .nb, .codehilite pre .nb { color: #008000 } /* Name.Builtin */
+table.codehilitetable .nc, .codehilite pre .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+table.codehilitetable .no, .codehilite pre .no { color: #880000 } /* Name.Constant */
+table.codehilitetable .nd, .codehilite pre .nd { color: #AA22FF } /* Name.Decorator */
+table.codehilitetable .ni, .codehilite pre .ni { color: #999999; font-weight: bold } /* Name.Entity */
+table.codehilitetable .ne, .codehilite pre .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+table.codehilitetable .nf, .codehilite pre .nf { color: #0000FF } /* Name.Function */
+table.codehilitetable .nl, .codehilite pre .nl { color: #A0A000 } /* Name.Label */
+table.codehilitetable .nn, .codehilite pre .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+table.codehilitetable .nt, .codehilite pre .nt { color: #008000; font-weight: bold } /* Name.Tag */
+table.codehilitetable .nv, .codehilite pre .nv { color: #19177C } /* Name.Variable */
+table.codehilitetable .ow, .codehilite pre .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+table.codehilitetable .w, .codehilite pre .w { color: #bbbbbb } /* Text.Whitespace */
+table.codehilitetable .mf, .codehilite pre .mf { color: #666666 } /* Literal.Number.Float */
+table.codehilitetable .mh, .codehilite pre .mh { color: #666666 } /* Literal.Number.Hex */
+table.codehilitetable .mi, .codehilite pre .mi { color: #666666 } /* Literal.Number.Integer */
+table.codehilitetable .mo, .codehilite pre .mo { color: #666666 } /* Literal.Number.Oct */
+table.codehilitetable .sb, .codehilite pre .sb { color: #BA2121 } /* Literal.String.Backtick */
+table.codehilitetable .sc, .codehilite pre .sc { color: #BA2121 } /* Literal.String.Char */
+table.codehilitetable .sd, .codehilite pre .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+table.codehilitetable .s2, .codehilite pre .s2 { color: #BA2121 } /* Literal.String.Double */
+table.codehilitetable .se, .codehilite pre .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+table.codehilitetable .sh, .codehilite pre .sh { color: #BA2121 } /* Literal.String.Heredoc */
+table.codehilitetable .si, .codehilite pre .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+table.codehilitetable .sx, .codehilite pre .sx { color: #008000 } /* Literal.String.Other */
+table.codehilitetable .sr, .codehilite pre .sr { color: #BB6688 } /* Literal.String.Regex */
+table.codehilitetable .s1, .codehilite pre .s1 { color: #BA2121 } /* Literal.String.Single */
+table.codehilitetable .ss, .codehilite pre .ss { color: #19177C } /* Literal.String.Symbol */
+table.codehilitetable .bp, .codehilite pre .bp { color: #008000 } /* Name.Builtin.Pseudo */
+table.codehilitetable .vc, .codehilite pre .vc { color: #19177C } /* Name.Variable.Class */
+table.codehilitetable .vg, .codehilite pre .vg { color: #19177C } /* Name.Variable.Global */
+table.codehilitetable .vi, .codehilite pre .vi { color: #19177C } /* Name.Variable.Instance */
+table.codehilitetable .il, .codehilite pre .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
+  <style>
+body {
+    font-family: 'Roboto', sans-serif;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", 'Roboto', Arial, "Lucida Grande", sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+}
+.nav {
+    text-align: right;
+    padding-bottom: 20px;
+}
+
+.nav a {
+    padding-right: 2em;
+    color: black;
+    font-size: 14px;
+}
+
+.title {
+   width: 100%; 
+   text-align: center; 
+   border-bottom: 1px solid #000; 
+   line-height: 0.1em;
+   margin: 10px 0 40px; 
+} 
+
+.title span { 
+    background:#fff; 
+    padding:0 20px; 
+}
+
+/* Side notes for calling out things
+-------------------------------------------------- */
+ 
+/* Base styles (regardless of theme) */
+.bs-callout {
+  margin: 20px 0;
+  padding: 15px 30px 15px 15px;
+  border-left: 5px solid #eee;
+}
+.bs-callout h4 {
+  margin-top: 0;
+}
+.bs-callout p:last-child {
+  margin-bottom: 0;
+}
+.bs-callout code,
+.bs-callout .highlight {
+  background-color: #fff;
+}
+ 
+/* Themes for different contexts */
+.bs-callout-danger {
+  background-color: #fcf2f2;
+  border-color: #dFb5b4;
+}
+.bs-callout-warning {
+  background-color: #fefbed;
+  border-color: #f1e7bc;
+}
+.bs-callout-info {
+  background-color: #f0f7fd;
+  border-color: #d0e3f0;
+}
+.bs-callout-danger h4 {
+color: #B94A48;
+}
+
+.bs-callout-warning h4 {
+color: #C09853;
+}
+
+.bs-callout-info h4 {
+color: #3A87AD;
+}
+</style>
+
+  
+  
+  <!-- Google Analytics -->
+  <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-12615441-1', 'jeffknupp.com');
+    ga('send', 'pageview');
+  </script>
+  <!-- Google Plus Author Link -->
+  <link href="https://plus.google.com/102786441324515866525" rel="publisher" />
+
+</head>
+
+<body itemscope itemtype="http://schema.org/Blog">
+<header id="header">
+    <img src="/images/jeff.jpg" class="circular center-block">
+    <h1>Jeff Knupp</h1>
+    <h2>PYTHON PROGRAMMER</h2>
+    <nav>
+        <a href="/">BLOG</a>
+        <span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="/about-me/" itemprop="url">ABOUT</a></span>
+        <a href="/blog/archives">ARCHIVES</a>
+        <a href="/python-tutoring" title="python-tutoring">TUTORING</a>
+        <a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">BOOK</a>
+    </nav>
+</header>
+<div class="container-fluid content">
+    <h2 class="text-center"><span itemprop="name">Everything I know about Python...</span></h2>
+    <div class="col-md-8 col-md-offset-2 col-xs-12">
+        <div class="bs-callout bs-callout-danger">
+            <h4 class="text-center">Learn to Write Pythonic Code!</h4>
+            <p class="text-center"><a href="https://www.jeffknupp.com/writing-idiomatic-python-ebook/">
+                Check out the book <em>Writing Idiomatic Python</em>!</a></p>
+        </div>
+        <div id="content">
+            
+<article itemscope itemtype="http://schema.org/BlogPosting">
+<header>
+    <h1 class="post-title"><a href="/blog/2013/11/29/improve-your-python-decorators-explained"><span itemprop="headline">Improve Your Python: Decorators Explained</span></a><br/>
+</header>
+
+<div class="entry-content" itemprop="articleBody">
+    
+        <p>I've previously written about <a href="http://www.jeffknupp.com/blog/2013/04/07/improve-your-python-yield-and-generators-explained/">"yield" and generators.</a> In that article, I mention it's a topic that novices find confusing. The purpose and creation of <strong>decorators</strong> is another such topic (using them, however, is rather easy). In this post, you'll learn what decorators are, how they're created, and why they're so useful.</p>
+<!--more-->
+
+<h3>A Brief Aside...</h3>
+<h4>Passing Functions</h4>
+<p>Before we get started, recall that <em>everything</em> in Python is an object that can
+be treated like a value (e.g. functions, classes, modules). You can bind names
+to these objects, pass them as arguments to functions, and return them
+from functions (among other things). The following code
+is an example of what I'm talking about:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">is_even</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return True if *value* is even.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">value</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+<span class="k">def</span> <span class="nf">count_occurrences</span><span class="p">(</span><span class="n">target_list</span><span class="p">,</span> <span class="n">predicate</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the number of times applying the callable *predicate* to a</span>
+<span class="sd">    list element returns True.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="mi">1</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">target_list</span> <span class="k">if</span> <span class="n">predicate</span><span class="p">(</span><span class="n">e</span><span class="p">)])</span>
+
+<span class="n">my_predicate</span> <span class="o">=</span> <span class="n">is_even</span>
+<span class="n">my_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">count_occurrences</span><span class="p">(</span><span class="n">my_list</span><span class="p">,</span> <span class="n">my_predicate</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+
+
+<p>We've written a function that takes a list and another function (which happens
+to be a <em>predicate function</em>, meaning it returns True or False based on some 
+property of the argument passed to it), and returns the number of times our predicate function
+holds true for an element in the list. While there are built-in functions to
+accomplish this, it's useful for illustrative purposes.</p>
+<p>The magic is in the lines <code>my_predicate = is_even</code>. We bound the name
+<code>my_predicate</code> to the function itself (not the value returned when calling it) 
+and can use it like any "normal" variable. Passing it to <code>count_occurrences</code> allows <code>count_occurrences</code> to
+apply the function to the elements of the list, even though it doesn't "know"
+what <code>my_predicate</code> does. It just assumes it's a function that can be called 
+with a single argument and returns True or False.</p>
+<p>Hopefully, this is all old hat to you. If, however, this is the first time
+you've seen functions used in this manner, I recommend reading <a href="http://www.jeffknupp.com/blog/2013/02/14/drastically-improve-your-python-understanding-pythons-execution-model/">Drastically Improve Your Python: Understanding Python's Execution Model</a> before continuing here.</p>
+<h3>Returning Functions</h3>
+<p>We just saw that functions can be passed as arguments to other functions. They
+can also be <em>returned</em> from functions as the return value. The following
+demonstrates how that might be useful:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">surround_with</span><span class="p">(</span><span class="n">surrounding</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a function that takes a single argument and.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">surround_with_value</span><span class="p">(</span><span class="n">word</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;{}{}{}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">surrounding</span><span class="p">,</span> <span class="n">word</span><span class="p">,</span> <span class="n">surrounding</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">surround_with_value</span>
+
+<span class="k">def</span> <span class="nf">transform_words</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a string based on *content* but with each occurrence </span>
+<span class="sd">    of words in *targets* replaced with</span>
+<span class="sd">    the result of applying *transform* to it.&quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">content</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">targets</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="s">&#39; {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">word</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="s">&#39; {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="n">markdown_string</span> <span class="o">=</span> <span class="s">&#39;My name is Jeff Knupp and I like Python but I do not own a Python&#39;</span>
+<span class="n">markdown_string_italicized</span> <span class="o">=</span> <span class="n">transform_words</span><span class="p">(</span><span class="n">markdown_string</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;Python&#39;</span><span class="p">,</span> <span class="s">&#39;Jeff&#39;</span><span class="p">],</span>
+        <span class="n">surround_with</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">markdown_string_italicized</span><span class="p">)</span>
+</pre></div>
+
+
+<p>The purpose of the <code>transform_words</code> function is to search <code>content</code> for any
+occurrences of a word in the list of <code>targets</code> and apply the <code>transform</code>
+argument to them. In our example, we imagine we have a Markdown string and would
+like to italicize all occurrences of the words <code>Python</code> and <code>Jeff</code> (a word is
+italicized in Markdown when it is surrounded by asterisks).</p>
+<p>Here we make use of the fact that functions can be returned as the result of
+calling a function. In the process, we create a <em>new</em> function that, when called, prepends and
+appends the given argument. We then pass that new function as an argument to
+<code>transform_words</code>, where it is applied to the words in our search list:
+(<code>['Python', 'Jeff']</code>).</p>
+<p>You can think of <code>surround_with</code> as a little function "factory". It sits there
+waiting to create a function. You give it a value, and it gives you back a
+function that will surround a word argument with the value you gave it.
+Understanding what's happening here is crucial to understanding decorators.
+Our "function factory" doesn't <em>ever</em> return a "normal" value; it always returns
+a new function. Note that <code>surround_with</code> doesn't actually do the surrounding itself, it 
+just creates a function that can do it whenever it's needed.</p>
+<p><code>surround_with_value</code> makes use of the fact that nested functions have access to
+names bound in the scope in which they were created. Therefore,
+<code>surround_with_value</code> doesn't need any special machinery to access <code>surrounding</code>
+(which would defeat the purpose). It simply "knows" it has access to it and 
+uses it when required.</p>
+<h3>Putting it all together</h3>
+<p>We've now seen that functions can both be sent as arguments to a function and
+returned as the result of a function. What if we made use of both of those facts
+together? Can we create a function that takes a function as a parameter and
+returns a function as the result. Would that be useful?</p>
+<p>Indeed it would be. Imagine we were using a web framework and have models with
+lots of currency related fields like <code>price</code>, <code>cart_subtotal</code>, <code>savings</code> etc. 
+Ideally, when we output these fields, we would always prepend a "$". If we could somehow
+mark functions that produce these values in a way that would do that for us,
+that would be great.</p>
+<p>This is exactly what decorators do. The function below is used to show the
+<code>price</code> with <code>tax</code> applied:</p>
+<div class="codehilite"><pre><span class="k">class</span> <span class="nc">Product</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">StringColumn</span>
+    <span class="n">price</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">FloatColumn</span>
+
+    <span class="k">def</span> <span class="nf">price_with_tax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tax_rate_percentage</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the price with *tax_rate_percentage* applied.</span>
+<span class="sd">        *tax_rate_percentage* is the tax rate expressed as a float, like</span>
+<span class="sd">        &quot;7.0&quot; for a 7% tax rate.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">price</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">tax_rate_percentage</span> <span class="o">*</span> <span class="o">.</span><span class="mo">01</span><span class="p">))</span>
+</pre></div>
+
+
+<p>How can use the language to augment this function so that the return value has a "$" prepended?
+We create a <code>decorator</code> function, which has a useful shorthand notation: <code>@</code>.
+To create our <code>decorator</code>, we create a function which takes a function (the
+function to be decorated) and returns a new function (the original function
+with decoration applied). Here's how we would do that in our application:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">currency</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;$&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span>
+</pre></div>
+
+
+<p>We include the '<em>args' and '</em>*kwargs' as parameters to the <code>wrapper</code> function to
+make it more flexible. Since we don't know the parameters the function we're
+wrapping may take (and <code>wrapper</code> needs to call that function), we accept all
+possible positional (<code>*args</code>) and keyword (<code>**args</code>) arguments as parameters and
+"forward" them to the function call.</p>
+<p>With <code>currency</code> defined, we can now use the <code>decorator</code> notation to decorate our
+<code>price_with_tax</code> function, like so:</p>
+<div class="codehilite"><pre><span class="k">class</span> <span class="nc">Product</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">StringColumn</span>
+    <span class="n">price</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">FloatColumn</span>
+
+    <span class="nd">@currency</span>
+    <span class="k">def</span> <span class="nf">price_with_tax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tax_rate_percentage</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the price with *tax_rate_percentage* applied.</span>
+<span class="sd">        *tax_rate_percentage* is the tax rate expressed as a float, like &quot;7.0&quot;</span>
+<span class="sd">        for a 7% tax rate.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">price</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">tax_rate_percentage</span> <span class="o">*</span> <span class="o">.</span><span class="mo">01</span><span class="p">))</span>
+</pre></div>
+
+
+<p>Now, to other code, it seems as though <code>price_with_tax</code> is a function that
+returns the price with tax prepended by a dollar sign. Notice, however, that we
+didn't change any code in <code>price_with_tax</code> itself to achieve this. We simply
+"decorated" the function with a <code>decorator</code>, giving it additional functionality.</p>
+<h4>Brief aside</h4>
+<p>One problem (easily solved) is that wrapping <code>price_with_tax</code> with <code>currency</code>
+changes its <code>.__name__</code> and <code>.__doc__</code> to that of <code>currency</code>, which is certainly
+not what we want. The <code>functools</code> modules contains a useful tool, <code>wraps</code>, which
+will restore these values to what we would expect them to be. It is used like
+so: </p>
+<div class="codehilite"><pre><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+
+<span class="k">def</span> <span class="nf">currency</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;$&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span>
+</pre></div>
+
+
+<h2>Raw Power</h2>
+<p>This notion of wrapping a function with additional functionality without
+changing the wrapped function is <em>extremely</em> powerful and useful. Much can
+be done with <code>decorators</code> that would otherwise require lots of boilerplate code
+or simply wouldn't be possible. They also act as a convenient way for frameworks
+and libraries to provide functionality. <a href="http://flaks.pocoo.org">Flask</a> uses
+<code>decorators</code> as a means for adding new endpoints to the web application, as in
+this example from the documentation:</p>
+<div class="codehilite"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello_world</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">&#39;Hello World!&#39;</span>
+</pre></div>
+
+
+<p>Notice that decorators (being functions themselves) can take arguments. I'll
+save decorator arguments, along with class decorators, for the next article in
+this series. </p>
+<h2>In Closing</h2>
+<p>Today we learned how decorators can be used to manipulate the language (much
+like C macros) <em>using</em> the language we're manipulating (i.e. Python). This has
+very powerful implications, which we'll explore in the next article. For now,
+however, you should have a solid grasp on how the vast majority of decorators 
+are created and used. More importantly, you should now understand how they work
+and when they're useful.</p>
+        
+<small>Posted on <time datetime="2013-11-29 12:21:00" pubdate data-updated="true" itemprop="datePublished">Nov 29, 2013</time> by <span itemprop="author"> Jeff Knupp</span></small> </h1>
+<div class="sharing">
+    <div class="row">
+    <p class="meta" style="padding-top: 20px;">
+    <a class="basic-alignment left" href="/blog/2013/11/15/supercharge-your-python-developers" title="Previous Post: Supercharge Your Python Developers">&laquo; Supercharge Your Python Developers</a>
+    </p>
+    
+    <div id="mc_embed_signup" class="well">
+<form action="http://jeffknupp.us6.list-manage1.com/subscribe/post?u=51d2d98cf34cbcc20db22e5fa&amp;id=f15bb537ad" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+  <h4>Like this article?</h4>
+  <p>Why not sign up for <strong>Python Tutoring</strong>? Sessions can be held
+  remotely using Google+/Skype or in-person if you're in the NYC area. <a href="mailto:jeff@jeffknupp.com">Email jeff@jeffknupp.com</a> if interested.</p>
+  <p><strong>Sign up for the free jeffknupp.com email newsletter.</strong> Sent roughly once a month, it focuses on Python programming, scalable web development, and growing your freelance consultancy. And of course, you'll never be spammed, your privacy is protected, and you can opt out at any time.</p>
+<div class="mc-field-group">
+	<label for="mce-EMAIL">Email Address</label>
+	<input type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+</div>
+	<div id="mce-responses" class="clear">
+		<div class="response" id="mce-error-response" style="display:none"></div>
+		<div class="response" id="mce-success-response" style="display:none"></div>
+	</div>	<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+</form>
+</div>
+    
+  </footer>
+</article>
+</div>
+<section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Leaderboard -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-2922325862575361"
+     data-ad-slot="6191597138"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <div id="disqus_thread"></div>
+<script type="text/javascript">
+            var disqus_shortname = 'hackersgonnahack';
+
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+ 
+  </section>
+  </div>
+    
+</div>
+</article>
+
+        </div>
+        <div id="footer" class="text-center">
+        
+            <footer role="contentinfo">
+                <p>Copyright &copy; 2014 - Jeff Knupp- <span class="credit">Powered by <a href="http://www.github.com/jeffknupp/blug">Blug</a></span> </p>
+            </footer>
+         
+    </div>
+
+<a title="Web Analytics" href="http://clicky.com/66535137"><img alt="Web Analytics" src="//static.getclicky.com/media/links/badge.gif" border="0" /></a>
+<script type="text/javascript">
+var clicky_site_ids = clicky_site_ids || [];
+clicky_site_ids.push(66535137);
+(function() {
+  var s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.async = true;
+  s.src = '//static.getclicky.com/js';
+  ( document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0] ).appendChild( s );
+})();
+</script>
+<noscript><p><img alt="Clicky" width="1" height="1" src="//in.getclicky.com/66535137ns.gif" /></p></noscript> 
+</div>
+</html>
